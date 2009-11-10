@@ -1,0 +1,201 @@
+#ifndef COOLFluiD_Muffin_Element3D_ci
+#define COOLFluiD_Muffin_Element3D_ci
+
+namespace COOLFluiD {
+  namespace Muffin {
+
+//////////////////////////////////////////////////////////////////////////////
+
+/// 3D point constructor
+template<>
+AElement< DIM_3D,ORDERED >::AElement() :
+    N(1),
+    S(1),
+    F(0),
+    nodes(N,Framework::Node(RealVector(0.,3),false))
+{}
+
+/// 3D point properties
+template<>
+CFreal AElement< DIM_3D,ORDERED >::element(std::vector< Framework::Node >& n)
+{
+  cf_assert_desc("expecting 1 node",n.size()==N);
+  nodes[0] = *n[0];
+  s = 0.;
+  return s;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+/// 3D line segment constructor
+template<>
+AElement< DIM_3D,FELINESEG >::AElement() :
+    N(2),
+    S(2),
+    F(2),
+    nodes(N,Framework::Node(RealVector(0.,3),false)),
+    normal(F,RealVector(0.,DIM_3D)),
+    norm2(F,0.)
+{}
+
+/// 3D line segment properties
+template<>
+CFreal AElement< DIM_3D,FELINESEG >::element(std::vector< Framework::Node* >& n)
+{
+  cf_assert_desc("expecting 2 nodes",n.size()==N);
+  for (CFuint i=0; i<N; ++i)
+    nodes[i] = *n[i];
+
+  // inward-facing normals and size
+  normal[0] = nodes[0]-nodes[1];
+  normal[1] = nodes[1]-nodes[0];
+  norm2[1] = norm2[0] = normal[0].sqrNorm();
+  s = sqrt(norm2[0]);
+  return s;
+}
+
+/// 3D line segment face properties
+template<>  // specialize class
+template<>  // specialize return type
+AElement< DIM_3D,ORDERED >& AElement< DIM_3D,FELINESEG >::face(const CFuint& i)
+{
+  std::vector< Framework::Node* > fn(1,i==0? &nodes[1]:(i==1? &nodes[0]:CFNULL));
+
+  AElement< DIM_3D,ORDERED >* f = new AElement< DIM_3D,ORDERED >();
+  f->element(fn);
+  if (states.size()==N)
+    f->states.push_back(i==0? states[1]:states[0]);
+  return (*f);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+/// 3D triangle constructor
+template<>
+AElement< DIM_3D,FETRIANGLE >::AElement() :
+    N(3),
+    S(3),
+    F(3),
+    nodes(N,Framework::Node(RealVector(0.,3),false)),
+    normal(F,RealVector(0.,DIM_3D)),
+    norm2(F,0.)
+{}
+
+/// 3D triangle element properties
+template<>
+CFreal AElement< DIM_3D,FETRIANGLE >::element(std::vector< Framework::Node* >& n)
+{
+  cf_assert_desc("expecting 3 nodes",n.size()==N);
+  for (CFuint i=0; i<N; ++i)
+    nodes[i] = *n[i];
+
+  using namespace MathTools;
+
+  // size (using triangle normal)
+  RealVector enormal(0.,DIM_3D);
+  const RealVector edge1(nodes[1]-nodes[0]);
+  const RealVector edge2(nodes[2]-nodes[0]);
+  MathFunctions::crossProd(edge1,edge2,enormal);
+  s = sqrt(MathFunctions::innerProd(enormal,enormal))*.5;
+  enormal *= .5/s;  // normalize
+
+  // inward-facing normals (crossProd of edges by triangle's normalized normal)
+  for (CFuint i=0, j=1, k=2; i<N; ++i, j=(j+1)%N, k=(k+1)%N) {
+    const RealVector edgejk(nodes[k]-nodes[j]);
+    MathFunctions::crossProd(enormal,edgejk,normal[i]);
+    norm2[i] = normal[i].sqrNorm();
+  }
+  return s;
+}
+
+/// 3D triangle face properties
+template<>  // specialize class
+template<>  // specialize return type
+AElement< DIM_3D,FELINESEG >& AElement< DIM_3D,FETRIANGLE >::face(const CFuint& i)
+{
+  std::vector< Framework::Node* > fn;
+  fn.push_back(i==0? &nodes[1]:(i==1? &nodes[2]: (i==2? &nodes[0]:CFNULL)));
+  fn.push_back(i==0? &nodes[2]:(i==1? &nodes[0]: (i==2? &nodes[1]:CFNULL)));
+
+  AElement< DIM_3D,FELINESEG >* f = new AElement< DIM_3D,FELINESEG >();
+  f->element(fn);
+  if (states.size()==N) {
+    Framework::State z(RealVector(0.,DIM_3D),false);
+    f->states.push_back(i==0? states[1]:(i==1? states[2]: (i==2? states[0]:z)));
+    f->states.push_back(i==0? states[2]:(i==1? states[0]: (i==2? states[1]:z)));
+  }
+  return (*f);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+/// 3D tetrahedron constructor
+template<>
+AElement< DIM_3D,FETETRAHEDRON >::AElement() :
+    N(4),
+    S(4),
+    F(4),
+    nodes(N,Framework::Node(RealVector(0.,3),false)),
+    normal(F,RealVector(0.,DIM_3D)),
+    norm2(F,0.)
+{}
+
+/// 3D tetrahedron element properties
+template<>
+CFreal AElement< DIM_3D,FETETRAHEDRON >::element(std::vector< Framework::Node* >& n)
+{
+  cf_assert_desc("expecting 4 nodes",n.size()==N);
+  for (CFuint i=0; i<N; ++i)
+    nodes[i] = *n[i];
+
+  using namespace MathTools;
+  const CFreal dNface(N-1);
+
+  // inward-facing normals and size
+  const RealVector edge32(nodes[2]-nodes[3]);  const RealVector edge13(nodes[3]-nodes[1]);
+  const RealVector edge31(nodes[1]-nodes[3]);  const RealVector edge12(nodes[2]-nodes[1]);
+  const RealVector edge30(nodes[0]-nodes[3]);  const RealVector edge10(nodes[0]-nodes[1]);
+  MathFunctions::crossProd(edge32,edge31,normal[0]);
+  MathFunctions::crossProd(edge30,edge32,normal[1]);
+  MathFunctions::crossProd(edge10,edge13,normal[2]);
+  MathFunctions::crossProd(edge12,edge10,normal[3]);
+  cf_assert_desc("normal not inward-facing!",MathFunctions::innerProd(edge30,normal[0])>=0.);
+  for (CFuint i=0; i<N; ++i) {
+    normal[i] *= .5;
+    norm2[i] = normal[i].sqrNorm();
+  }
+  s = ( MathFunctions::innerProd(nodes[0],normal[0])
+      + MathFunctions::innerProd(nodes[1],normal[1])
+      + MathFunctions::innerProd(nodes[2],normal[2])
+      + MathFunctions::innerProd(nodes[3],normal[3]) ) / CFreal(DIM_3D*dNface);
+  cf_assert_desc("negative element size!",s>0.);
+  return s;
+}
+
+/// 3D tetrahedron face properties
+template<>  // specialize class
+template<>  // specialize return type
+AElement< DIM_3D,FETRIANGLE >& AElement< DIM_3D,FETETRAHEDRON >::face(const CFuint& i)
+{
+  std::vector< Framework::Node* > fn;
+  fn.push_back(i==0? &nodes[2]:(i==1? &nodes[0]: (i==2? &nodes[0]:(i==3? &nodes[0]:CFNULL))));
+  fn.push_back(i==0? &nodes[1]:(i==1? &nodes[2]: (i==2? &nodes[3]:(i==3? &nodes[1]:CFNULL))));
+  fn.push_back(i==0? &nodes[3]:(i==1? &nodes[3]: (i==2? &nodes[1]:(i==3? &nodes[2]:CFNULL))));
+
+  AElement< DIM_3D,FETRIANGLE >* f = new AElement< DIM_3D,FETRIANGLE >();
+  f->element(fn);
+  if (states.size()==N) {
+    f->states.push_back(i==0? states[2]:(i==1? states[0]: (i==2? states[0]:states[0])));
+    f->states.push_back(i==0? states[1]:(i==1? states[2]: (i==2? states[3]:states[1])));
+    f->states.push_back(i==0? states[3]:(i==1? states[3]: (i==2? states[1]:states[2])));
+  }
+  return (*f);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+  }  // namespace Muffin
+}  // namespace COOLFluiD
+
+#endif // COOLFluiD_Muffin_Element3D_ci
+

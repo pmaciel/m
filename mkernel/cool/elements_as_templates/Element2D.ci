@@ -1,0 +1,136 @@
+#ifndef COOLFluiD_Muffin_Element2D_ci
+#define COOLFluiD_Muffin_Element2D_ci
+
+namespace COOLFluiD {
+  namespace Muffin {
+
+//////////////////////////////////////////////////////////////////////////////
+
+/// 2D point constructor
+template<>
+AElement< DIM_2D,ORDERED >::AElement() :
+    N(1),
+    S(1),
+    F(0),
+    nodes(N,Framework::Node(RealVector(0.,DIM_2D),false))
+{}
+
+/// 2D point properties
+template<>
+CFreal AElement< DIM_2D,ORDERED >::element(std::vector< Framework::Node* >& n)
+{
+  cf_assert_desc("expecting 1 node",n.size()==N);
+  nodes[0] = *n[0];
+  s = 0.;
+  return s;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+/// 2D line segment constructor
+template<>
+AElement< DIM_2D,FELINESEG >::AElement() :
+    N(2),
+    S(2),
+    F(2),
+    nodes(N,Framework::Node(RealVector(0.,DIM_2D),false)),
+    normal(F,RealVector(0.,DIM_2D)),
+    norm2(F,0.)
+{}
+
+/// 2D line segment properties
+template<>
+CFreal AElement< DIM_2D,FELINESEG >::element(std::vector< Framework::Node* >& n)
+{
+  cf_assert_desc("expecting 2 nodes",n.size()==N);
+  for (CFuint i=0; i<N; ++i)
+    nodes[i] = *n[i];
+
+  // inward-facing normals and size
+  RealVector l = nodes[0]-nodes[1];
+  s = sqrt(l.sqrNorm());
+  normal[0] = (nodes[0]-nodes[1])*.5*s;
+  normal[1] = (nodes[1]-nodes[0])*.5*s;
+  norm2[1] = norm2[0] = normal[0].sqrNorm();
+  return s;
+}
+
+/// 2D line segment face properties
+template<>  // specialize class
+template<>  // specialize return type
+AElement< DIM_2D,ORDERED >& AElement< DIM_2D,FELINESEG >::face(const CFuint& i)
+{
+  std::vector< Framework::Node* > fn(1,i==0? &nodes[1]:(i==1? &nodes[0]:CFNULL));
+
+  AElement< DIM_2D,ORDERED >* f = new AElement< DIM_2D,ORDERED >();
+  f->element(fn);
+  if (states.size()==N)
+    f->states.push_back(i==0? states[1]:states[0]);
+  return (*f);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+/// 2D triangle constructor
+template<>
+AElement< DIM_2D,FETRIANGLE >::AElement() :
+    N(3),
+    S(3),
+    F(3),
+    nodes(N,Framework::Node(RealVector(0.,DIM_2D),false)),
+    normal(F,RealVector(0.,DIM_2D)),
+    norm2(F,0.)
+{}
+
+/// 2D triangle element properties
+template<>
+CFreal AElement< DIM_2D,FETRIANGLE >::element(std::vector< Framework::Node* >& n)
+{
+  cf_assert_desc("expecting 3 nodes",n.size()==N);
+  for (CFuint i=0; i<N; ++i)
+    nodes[i] = *n[i];
+
+  using namespace MathTools;
+
+  // inwards-facing normals and size
+  for (CFuint i=0, j=1, k=2; i<N; ++i, j=(j+1)%N, k=(k+1)%N) {
+    normal[i][XX] = nodes[j][YY] - nodes[k][YY];
+    normal[i][YY] = nodes[k][XX] - nodes[j][XX];
+    cf_assert_desc( "normal not inward-facing!",
+      (nodes[i][XX]-nodes[k][XX])*normal[i][XX] +
+      (nodes[i][YY]-nodes[k][YY])*normal[i][YY] >= 0.);
+    norm2[i] = normal[i].sqrNorm();
+  }
+  s = ( MathFunctions::innerProd(nodes[0],normal[0])
+      + MathFunctions::innerProd(nodes[1],normal[1])
+      + MathFunctions::innerProd(nodes[2],normal[2]) ) / CFreal(DIM_2D*2);
+  cf_assert_desc("negative element size!",s>0.);
+  return s;
+}
+
+/// 2D triangle face properties
+template<>  // specialize class
+template<>  // specialize return type
+AElement< DIM_2D,FELINESEG >& AElement< DIM_2D,FETRIANGLE >::face(const CFuint& i)
+{
+  std::vector< Framework::Node* > fn;
+  fn.push_back(i==0? &nodes[1]:(i==1? &nodes[2]: (i==2? &nodes[0]:CFNULL)));
+  fn.push_back(i==0? &nodes[2]:(i==1? &nodes[0]: (i==2? &nodes[1]:CFNULL)));
+
+  AElement< DIM_2D,FELINESEG >* f = new AElement< DIM_2D,FELINESEG >();
+  f->element(fn);
+  if (states.size()==N) {
+    Framework::State z(RealVector(0.,states[0].size()),false);
+    f->states.push_back(i==0? states[1]:(i==1? states[2]: (i==2? states[0]:z)));
+    f->states.push_back(i==0? states[2]:(i==1? states[0]: (i==2? states[1]:z)));
+  }
+  return (*f);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+  }  // namespace Muffin
+}  // namespace COOLFluiD
+
+#endif // COOLFluiD_Muffin_Element2D_ci
+

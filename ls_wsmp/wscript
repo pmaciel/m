@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+
+
+def configure(ctx):
+  ctx.env.m_mlibraries.append('ls_wsmp')
+  ctx.env['LIB_WSMP']       = ['wsmp64','blas','gfortran'] #pwsmp64 for MPI version
+  ctx.env['LIBPATH_WSMP']   = ['/home/pedro/wsmp']
+  ctx.env['RPATH_WSMP']     = ['/home/pedro/wsmp']
+  ctx.env['LINKFLAGS_WSMP'] = ['-fopenmp']
+
+
+def build(ctx):
+  ctx.new_task_gen(
+    features = 'cxx cshlib',
+    name     = 'ls_wsmp',
+    target   = 'ls_wsmp',
+    includes = ['.','../mkernel'],
+    source   = ['ls_wsmp.cpp'],
+    uselib   = ['WSMP'] )
+

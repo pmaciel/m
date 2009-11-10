@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+
+def configure(ctx):
+
+  ctx.env.m_mlibraries.append('mkernel')
+
+  # set configuration header
+  # (with import/export symbols depending on compiler)
+  ctx.undefine('MVERSION')
+  ctx.define('MVERSION',ctx.env.m_mversion)
+  ctx.define('M_SYMEXPORT','',0)
+  ctx.define('M_SYMIMPORT','',0)
+  if ctx.env['CXX_NAME']=='gcc':
+    ctx.define('M_SYSEXPORT','__attribute__ ((dllexport))',0)
+    ctx.define('M_SYSIMPORT','__attribute__ ((dllimport))',0)
+  elif ctx.env['CXX_NAME']=='msvc':
+    ctx.define('M_SYSEXPORT','__declspec(dllexport)',0)
+    ctx.define('M_SYSIMPORT','__declspec(dllimport)',0)
+  ctx.write_config_header('mconfig.h')
+
+
+def build(ctx):
+
+  # mkernel library
+  ctx.new_task_gen(
+    features = 'cxx cshlib',
+    name     = 'mkernel',
+    target   = 'mkernel',
+    includes = ['.'],
+    source   = ['boost/error_code.cpp','ext/fparser.cc','ext/fpoptimizer.cc','cool/Element.cpp','cool/MathTools.cpp','cool/Framework.cpp','f_cfmesh.cpp','f_miotras.cpp','f_neu.cpp','f_plt.cpp','f_steven.cpp','mlinearsystem.cpp','mmesh.cpp','t_avgsolution.cpp','t_debug.cpp','t_extrude.cpp','t_fix.cpp','t_geo.cpp','t_info.cpp','t_lap2d.cpp','t_manip.cpp','t_math.cpp','t_ren.cpp','t_simplex.cpp','t_solution.cpp','t_surfmap.cpp','t_zmerge.cpp'] if not(ctx.env.m_minikernel) else ['boost/error_code.cpp','f_plt.cpp','mmesh.cpp','t_info.cpp'] )
+
+  # m executable
+  ctx.new_task_gen(
+    features = 'cxx cprogram',
+    target   = 'm',
+    includes = ['.'],
+    source   = ['m.cpp'],
+    uselib_local = ctx.env.m_mlibraries )
+

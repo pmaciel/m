@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+
+
+def configure(ctx):
+  ctx.env.m_mlibraries.append('ls_pardiso')
+  ctx.env['LIB_PARDISO']       = ['pardiso400_GNU430_IA64','lapack','gfortran','g2c']
+  ctx.env['LIBPATH_PARDISO']   = ['/home/pedro/pardiso']
+  ctx.env['RPATH_PARDISO']     = ['/home/pedro/pardiso']
+  ctx.env['LINKFLAGS_PARDISO'] = ['-fopenmp']
+
+
+def build(ctx):
+  ctx.new_task_gen(
+    features = 'cxx cshlib',
+    name     = 'ls_pardiso',
+    target   = 'ls_pardiso',
+    includes = ['.','../mkernel'],
+    source   = ['ls_pardiso.cpp'],
+    uselib   = ['PARDISO'] )
+

@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+def configure(ctx):
+  ctx.env.m_mlibraries.append('msmurf')
+
+
+def build(ctx):
+
+  # smurf static/dynamic library (not to use with m)
+  l = ctx.new_task_gen(
+    features = 'cxx cstaticlib',
+    target   = 'smurf',
+    includes = ['.'],
+    source   = ['smurf.cpp'] )
+  ctx.new_task_gen(
+    features = 'cxx cshlib',
+    target   = l.target,
+    includes = l.includes,
+    source   = l.source )
+
+  # msmurf library (to use with m)
+  ctx.new_task_gen(
+    features = 'cxx cshlib',
+    name     = 'msmurf',
+    target   = 'msmurf',
+    includes = l.includes + ['../mkernel'],
+    source   = l.source   + ['f_smurf.cpp'] )
+
