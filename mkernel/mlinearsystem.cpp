@@ -4,11 +4,14 @@
 #include "mfactory.h"
 #include "mlinearsystem.h"
 
+
 using namespace m;
 
+Register< mlinearsystem< double >,ls_gauss > __ls_gauss("ls_gauss","linear system solver, using gaussian elimination (double p.)");
+Register< mlinearsystem< double >,ls_bandlu > __ls_bandlu("ls_bandlu","linear system solver, using band LU (double p.)");
 
-Register< mlinearsystem< double >,ls_gauss > ls_gauss("ls_gauss","linear system solver, using gaussian elimination (double p.)");
-Register< mlinearsystem< double >,ls_bandlu > ls_bandlu("ls_bandlu","linear system solver, using band LU (double p.)");
+
+namespace m {
 
 
 void ls_gauss::solve()
@@ -134,3 +137,5 @@ void ls_bandlu::LUDecomposition()
   }
 }
 
+
+}  // namespace m

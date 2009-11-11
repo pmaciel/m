@@ -32,7 +32,7 @@ struct AElement {
     normal(F,RealVector(0.,D)),
     norm2(F,0.)
  {}
-  ~AElement() {}
+  virtual ~AElement() {}
 
   // element and faces properties
   virtual CFreal element(std::vector< Framework::Node* >& n) { NOTIMPLEMENTED; return 0.; }

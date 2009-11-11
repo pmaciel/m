@@ -34,6 +34,7 @@ namespace aux {
 
 // renumbering method skeleton
 struct renumber {
+  virtual ~renumber() {}
   virtual void calc(
     // outputs: (half) bandwidth, zone title (for dumping),
     // and renumbering maps, from new to old and old to new
