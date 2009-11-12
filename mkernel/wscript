@@ -35,5 +35,6 @@ def build(ctx):
     target   = 'm',
     includes = ['.'],
     source   = ['m.cpp'],
-    uselib_local = ctx.env.m_mlibraries )
+    uselib_local = ctx.env.m_mlibraries,
+    rpath    = ctx.env['PREFIX'] )
 
