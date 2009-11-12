@@ -93,7 +93,9 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
 
     for (unsigned i=0; i<mold.e(0); ++i) {
       const vector< unsigned >& en = mold.vz[0].e2n[i].n;
-      tri[i] = (TRI){ Vec<3,int>(en[0],en[1],en[2]), (int) i, 1. };
+      tri[i].v = Vec<3,int>(en[0],en[1],en[2]);
+      tri[i].i = (int) i;
+      tri[i].w = 1.;
       pn += trinorm(points[en[0]].first,points[en[1]].first,points[en[2]].first);
     }
     pn /= (double) mold.e(0);
@@ -186,8 +188,13 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
                                             points[A].second*(1.-w) + points[B].second*w ));
           isedge.push_back(isedge[A] && isedge[B]);
           const double wacc = tri[i].w;
-          tri[i]       = (TRI){ Vec< 3,int >(C,A,D),tri[i].i,wacc*(w   ) };
-          tri.push_back( (TRI){ Vec< 3,int >(C,D,B),tri[i].i,wacc*(1.-w) } );
+          tri[i].v = Vec< 3,int >(C,A,D);
+          tri[i].i = tri[i].i;
+          tri[i].w = wacc*w;
+          TRI triste;
+          triste.v = Vec< 3,int >(C,D,B);
+          triste.i = tri[i].i;
+          triste.w = wacc*(1.-w);
           if (isedge.back()) {
             edge.erase(EDGE(A,B));
             edge.insert(EDGE(A,D));
@@ -222,8 +229,13 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
                                             points[A].second*(1.-w) + points[B].second*w ));
           isedge.push_back(isedge[A] && isedge[B]);
           const double wacc = tri[i].w;
-          tri[i]       = (TRI){ Vec< 3,int >(C,A,D),tri[i].i,wacc*(w   ) };
-          tri.push_back( (TRI){ Vec< 3,int >(C,D,B),tri[i].i,wacc*(1.-w) } );
+          tri[i].v = Vec< 3,int >(C,A,D);
+          tri[i].i = tri[i].i;
+          tri[i].w = wacc*w;
+          TRI triste;
+          triste.v = Vec< 3,int >(C,D,B);
+          triste.i = tri[i].i;
+          triste.w = wacc*(1.-w);
           if (isedge.back()) {
             edge.erase(EDGE(A,B));
             edge.insert(EDGE(A,D));
@@ -267,7 +279,7 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
                 + points[ t->v[2] ].second );
           tc /= 3.;
           if (tc[0]>quad[0] && tc[0]<quad[1] && tc[1]>quad[2] && tc[1]<quad[3]) {
-            pair< set< WPAIR >::iterator,bool > r = setwpair.insert(WPAIR(t->i,t->w));
+            pair< set< WPAIR,WPAIRLT >::iterator,bool > r = setwpair.insert(WPAIR(t->i,t->w));
             if (!r.second /*if this index was already present*/) {
               const double wacc = (r.first)->second + t->w;
               setwpair.erase(r.first);
@@ -282,7 +294,7 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
         nout += (setwpair.size()? 0:1);
         if (!setwpair.size())
           continue;
-        for (set< WPAIR >::const_iterator p=setwpair.begin(); p!=setwpair.end(); ++p) {
+        for (set< WPAIR,WPAIRLT >::const_iterator p=setwpair.begin(); p!=setwpair.end(); ++p) {
           n.ni.push_back(p->first);
           n.nw.push_back(p->second);
         }
