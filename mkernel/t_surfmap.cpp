@@ -188,13 +188,11 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
                                             points[A].second*(1.-w) + points[B].second*w ));
           isedge.push_back(isedge[A] && isedge[B]);
           const double wacc = tri[i].w;
-          tri[i].v = Vec< 3,int >(C,A,D);
-          tri[i].i = tri[i].i;
-          tri[i].w = wacc*w;
-          TRI triste;
-          triste.v = Vec< 3,int >(C,D,B);
-          triste.i = tri[i].i;
-          triste.w = wacc*(1.-w);
+          tri.push_back(TRI());
+          TRI& t1 = tri[i];
+          TRI& t2 = tri.back();
+          t1.v = Vec< 3,int >(C,A,D);  t1.i = tri[i].i;  t1.w = wacc*w;
+          t2.v = Vec< 3,int >(C,D,B);  t2.i = tri[i].i;  t2.w = wacc*(1.-w);
           if (isedge.back()) {
             edge.erase(EDGE(A,B));
             edge.insert(EDGE(A,D));
@@ -229,13 +227,11 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
                                             points[A].second*(1.-w) + points[B].second*w ));
           isedge.push_back(isedge[A] && isedge[B]);
           const double wacc = tri[i].w;
-          tri[i].v = Vec< 3,int >(C,A,D);
-          tri[i].i = tri[i].i;
-          tri[i].w = wacc*w;
-          TRI triste;
-          triste.v = Vec< 3,int >(C,D,B);
-          triste.i = tri[i].i;
-          triste.w = wacc*(1.-w);
+          tri.push_back(TRI());
+          TRI& t1 = tri[i];
+          TRI& t2 = tri.back();
+          t1.v = Vec< 3,int >(C,A,D);  t1.i = tri[i].i;  t1.w = wacc*w;
+          t2.v = Vec< 3,int >(C,D,B);  t2.i = tri[i].i;  t2.w = wacc*(1.-w);
           if (isedge.back()) {
             edge.erase(EDGE(A,B));
             edge.insert(EDGE(A,D));
