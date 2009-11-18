@@ -14,7 +14,7 @@ def build(ctx):
     features = 'cxx cshlib',
     name     = 'ls_pardiso',
     target   = 'ls_pardiso',
-    includes = ['.','../mkernel'],
+    includes = ['.','../../mkernel'],
     source   = ['ls_pardiso.cpp'],
     uselib   = ['PARDISO'] )
 

@@ -27,7 +27,10 @@ def build(ctx):
     name     = 'mkernel',
     target   = 'mkernel',
     includes = ['.'],
-    source   = ['ext/error_code.cpp','ext/fparser.cc','ext/fpoptimizer.cc','cool/Element.cpp','cool/MathTools.cpp','cool/Framework.cpp','f_cfmesh.cpp','f_miotras.cpp','f_neu.cpp','f_plt.cpp','f_steven.cpp','mlinearsystem.cpp','mmesh.cpp','t_avgsolution.cpp','t_debug.cpp','t_extrude.cpp','t_fix.cpp','t_geo.cpp','t_info.cpp','t_lap2d.cpp','t_manip.cpp','t_math.cpp','t_ren.cpp','t_simplex.cpp','t_solution.cpp','t_surfmap.cpp','t_zmerge.cpp'] if not(ctx.env.m_minikernel) else ['ext/error_code.cpp','f_plt.cpp','mmesh.cpp','t_info.cpp'] )
+    source   = [
+      'ext/error_code.cpp','ext/fparser.cc','ext/fpoptimizer.cc',
+      'cool/Element.cpp','cool/MathTools.cpp','cool/Framework.cpp',
+      'mlinearsystem.cpp','mmesh.cpp' ] )
 
   # m executable
   ctx.new_task_gen(

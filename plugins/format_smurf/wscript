@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 def configure(ctx):
   ctx.env.m_mlibraries.append('msmurf')
 
@@ -23,6 +24,6 @@ def build(ctx):
     features = 'cxx cshlib',
     name     = 'msmurf',
     target   = 'msmurf',
-    includes = l.includes + ['../mkernel'],
-    source   = l.source   + ['f_smurf.cpp'] )
+    includes = l.includes + ['../../mkernel'],
+    source   = l.source   + ['f_smurf.cpp','f_plt.cpp'] )
 
