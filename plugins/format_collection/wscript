@@ -11,5 +11,5 @@ def build(ctx):
     name     = 'mformat_collection',
     target   = 'mformat_collection',
     includes = ['.','../../mkernel'],
-    source   = ['f_cfmesh.cpp','f_miotras.cpp','f_neu.cpp','f_steven.cpp'] )
+    source   = ['f_cfmesh.cpp','f_miotras.cpp','f_neu.cpp','f_steven.cpp','f_xpl.cpp'] )
 
