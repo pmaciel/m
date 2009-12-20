@@ -50,8 +50,8 @@ class mlinearsystem {
   virtual       T& A(const unsigned r, const unsigned c)       = 0;
           const T& X(const unsigned r) const { return m_X[r]; }
                 T& X(const unsigned r)       { return m_X[r]; }
-          const T& B(const unsigned r) const { return m_B[r]; }
-                T& B(const unsigned r)       { return m_B[r]; }
+          const T& B(const unsigned c) const { return m_B[c]; }
+                T& B(const unsigned c)       { return m_B[c]; }
   // members
  public:
   bool issparse;

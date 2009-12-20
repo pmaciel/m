@@ -15,7 +15,7 @@ Register< mtransform,t_lap2d > mt_lap2d(6,"-tlap2d","[str[=real]:...] [str] 2d l
                                           "",       "  zone name[=conductivity] for inner elements, or",
                                           "",       "  zone name=value pairs for boundary elements, and",
                                           "",       "with [str] linear system solver:",
-                                          "",       "  gauss|pardiso|wsmp");
+                                          "",       "  ls_gauss|ls_pardiso|ls_trilinos|ls_wsmp");
 
 
 namespace aux {
