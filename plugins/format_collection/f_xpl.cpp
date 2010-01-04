@@ -10,16 +10,6 @@ using namespace m;
 Register< mfinput,f_xpl > mf_xpl(".xpl","xplot input format");
 
 
-// useful definitions for this format
-enum BCType {
-  NONE = 0, INSULATOR = 1, ELECTRODE = 2,
-  WALL = 3, INLET     = 4, OUTLET    = 5 };
-
-const unsigned BCTypePriority[] = {
-   0,  10,  20,
-  30,  40,  50 };
-
-
 void f_xpl::read(GetPot& o, mmesh& m)
 {
   const string fn(o.get(o.inc_cursor(),""));
