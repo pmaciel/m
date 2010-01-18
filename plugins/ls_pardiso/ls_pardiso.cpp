@@ -1,4 +1,5 @@
 
+#include <cstdio>  // for sscanf
 #include "mfactory.h"
 #include "ls_pardiso.h"
 

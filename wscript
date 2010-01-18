@@ -53,10 +53,14 @@ def configure(ctx):
 
 def build(ctx):
 
-  # plugins build (they install to the same directory)
+  # plugins build:
+  # - single installation directory
+  # - prefix imp/exporting symbols qualifiers for dll's
   ctx.add_subdirs(ctx.env.m_plugins)
   for t in [] + ctx.all_task_gen:
     t.install_path = '${PREFIX}'
+    if 'cshlib' in t.features.join(' ').split(' '):
+      t.defines = t.defines.split(' ') + ['M_CSHLIB']
 
   # nice target
   ctx.new_task_gen(name='love', rule='echo not war?')

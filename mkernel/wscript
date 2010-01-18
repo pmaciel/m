@@ -11,11 +11,11 @@ def configure(ctx):
   ctx.define('M_SYMEXPORT','',0)
   ctx.define('M_SYMIMPORT','',0)
   if ctx.env['CXX_NAME']=='gcc':
-    ctx.define('M_SYSEXPORT','__attribute__ ((dllexport))',0)
-    ctx.define('M_SYSIMPORT','__attribute__ ((dllimport))',0)
+    ctx.define('M_SYMBOL_EXPORT','',0) #__attribute__ ((dllexport))
+    ctx.define('M_SYMBOL_IMPORT','',0) #__attribute__ ((dllimport))
   elif ctx.env['CXX_NAME']=='msvc':
-    ctx.define('M_SYSEXPORT','__declspec(dllexport)',0)
-    ctx.define('M_SYSIMPORT','__declspec(dllimport)',0)
+    ctx.define('M_SYMBOL_EXPORT','__declspec(dllexport)',0)
+    ctx.define('M_SYMBOL_IMPORT','__declspec(dllimport)',0)
   ctx.write_config_header('mconfig.h')
 
 
