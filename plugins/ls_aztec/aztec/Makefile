@@ -4,7 +4,7 @@ MACHINE = PC
 #
 # ANSI C compiler
 #
-CC_PC           = gcc-4.4
+CC_PC           = gcc-4.3
 CC_GENERIC      = cc
 CC_SUN4         = acc-2.0.1
 CC_SGI          = cc
@@ -19,7 +19,7 @@ CC_SP2          = mpcc
 #
 # Fortran compiler
 #
-FC_PC           = gfortran-4.4
+FC_PC           = gfortran-4.3
 FC_GENERIC      = f77
 FC_SUN4         = f77-2.0.1
 FC_SGI          = f77

@@ -33,30 +33,51 @@ ls_aztec::~ls_aztec()
 }
 
 
+void ls_aztec::initialize(const vector< vector< unsigned > >& nz)
+{
+  // set sparse matrix
+  m_A.initialize(nz);
+
+  // set aztec
+  setup();
+  AZ_processor_info(proc_config);
+  AZ_check_input(data_org,options,params,proc_config);
+  AZ_check_msr(m_A.BINDX,m_A.NNU,0,AZ_LOCAL,proc_config);
+}
+
+
+void ls_aztec::setup()
+{
+  options[AZ_solver]   = AZ_cgs;
+  options[AZ_scaling]  = AZ_none;
+  options[AZ_precond]  = AZ_ls;
+  options[AZ_output]   = 1;
+  options[AZ_max_iter] = 640;
+  options[AZ_poly_ord] = 7;
+  params[AZ_tol]   = 0.0000001;
+  params[AZ_drop]  = 0.;
+//params[AZ_omega] = 1.;
+}
+
+
 void ls_aztec::solve()
 {
   int error = 0;
   error = error;
   AZ_solve(&m_X[0], &m_B[0], options, params, NULL, m_A.BINDX,
     NULL, NULL, NULL, m_A.VAL, data_org, status, proc_config);
-  std::cout << "Aztec summary: " << std::endl
-            << "  number of iterations: " << status[AZ_its] << std::endl
-            << "  termination reason:   " << (status[AZ_why]==AZ_normal?    "user requested convergence criteria is satisfied" :
-                                             (status[AZ_why]==AZ_param?     "user requested option is not available" :
-                                             (status[AZ_why]==AZ_breakdown? "numerical breakdown occured" :
-                                             (status[AZ_why]==AZ_loss?      "loss of precision occured" :
-                                             (status[AZ_why]==AZ_ill_cond?  "GMRES Hessenberg matrix is ill-conditioned" :
-                                             (status[AZ_why]==AZ_maxits?    "maximum iterations taken without convergence" :
-                                                                            "unknown" )))))) << std::endl
-            << "  true residual norm:   " << status[AZ_r] << std::endl
-            << "  " << status[AZ_its] << std::endl
-            << "  " << status[AZ_its] << std::endl
-            << "  " << status[AZ_its] << std::endl
-            << "  " << status[AZ_its] << std::endl
-            << "  " << status[AZ_its] << std::endl
-            << "  " << status[AZ_its] << std::endl
-            << "  " << status[AZ_its] << std::endl
-            << "  " << status[AZ_its] << std::endl;
+  cout << "Aztec status: " << endl
+       << "  AZ_its: " << status[AZ_its] << endl
+       << "  AZ_why: " << (status[AZ_why]==AZ_normal?    "AZ_normal"    :
+                          (status[AZ_why]==AZ_param?     "AZ_param"     :
+                          (status[AZ_why]==AZ_breakdown? "AZ_breakdown" :
+                          (status[AZ_why]==AZ_loss?      "AZ_loss"      :
+                          (status[AZ_why]==AZ_ill_cond?  "AZ_ill_cond"  :
+                          (status[AZ_why]==AZ_maxits?    "AZ_maxits"    :
+                                                         "unknown" )))))) << endl
+       << "  AZ_r:   " << status[AZ_r]             << endl
+       << "  AZ_scaled_r:      " << status[AZ_scaled_r]      << endl
+       << "  AZ_rec_r:         " << status[AZ_rec_r]         << endl;
 }
 
 

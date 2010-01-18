@@ -26,13 +26,13 @@ struct mmatrix_mbr : mmatrix< T,mmatrix_mbr< T > > {
   // initialize method for base/sparse variation
   void initialize(unsigned _Nr, unsigned _Nc) { P::initialize(_Nr,_Nc); }
   void initialize(const std::vector< std::vector< unsigned > >& nz) {
-    // set number of rows/non-zero entries
+    // set number of rows/non-zero entries and allocate data structure
     NNU = (int) nz.size();
     NNZ = 0;
     for (int i=0; i<NNU; ++i)
       NNZ += (int) nz[i].size();
-    // allocate data structure
     BINDX = new int[NNZ + 1];
+
     // set row number of off-diagonal non-zeros and their entries
     BINDX[0] = NNU + 1;
     for (int i=0; i<NNU; ++i) {
@@ -42,11 +42,13 @@ struct mmatrix_mbr : mmatrix< T,mmatrix_mbr< T > > {
         if ((int) nz[i][j]!=i)
           BINDX[k++] = nz[i][j];
     }
+
     // set entries
     VAL = new T[BINDX[NNU]/*NNZ*/];
     for (int i=0; i<BINDX[NNU]/*NNZ*/; ++i)
       VAL[i] = T();
   }
+  // utilities
   int getindex(const unsigned r, const unsigned c) const {
     if (r==c)
       return VAL[r];
@@ -83,13 +85,13 @@ class ls_aztec : public mlinearsystem< double > {
     mlinearsystem< double >::initialize(_Ne,_Nv);
     m_A.initialize(Ne,Nv);
   }
-  void initialize(const std::vector< std::vector< unsigned > >& nz) {
-    m_A.initialize(nz);
-  }
+  void initialize(const std::vector< std::vector< unsigned > >& nz);
   // indexing functions
   const double& A(const unsigned r, const unsigned c) const { return m_A(r,c); }
         double& A(const unsigned r, const unsigned c)       { return m_A(r,c); }
+ private:
   // auxiliary functions
+  void setup();
  private:
   // members
   mmatrix_mbr< double > m_A;

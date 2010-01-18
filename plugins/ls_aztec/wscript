@@ -3,10 +3,9 @@
 
 def configure(ctx):
   ctx.env.m_mlibraries.append('ls_aztec')
-  ctx.env['LIB_AZTEC']     = ['aztec']
-  ctx.env['CPPPATH_AZTEC'] = ['/home/pedro/workspace/m/plugins/ls_aztec/aztec']
-  ctx.env['LIBPATH_AZTEC'] = ctx.env['CPPPATH_AZTEC']
-  ctx.env['RPATH_AZTEC']   = ctx.env['CPPPATH_AZTEC']
+  ctx.env['LIB_AZTEC']     = ['aztec','gfortran']
+  ctx.env['CPPPATH_AZTEC'] = ['/home/pmaciel/Documents/m/plugins/ls_aztec/aztec']
+  ctx.env['LIBPATH_AZTEC'] = ctx.env['RPATH_AZTEC'] = ctx.env['CPPPATH_AZTEC']
 
 
 def build(ctx):
