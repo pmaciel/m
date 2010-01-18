@@ -1,0 +1,217 @@
+#====================================================================
+COMM    = SERIAL
+MACHINE = PC
+#
+# ANSI C compiler
+#
+CC_PC           = gcc-4.4
+CC_GENERIC      = cc
+CC_SUN4         = acc-2.0.1
+CC_SGI          = cc
+CC_SGIM4        = cc
+CC_DEC          = mpicc
+CC_I860         = icc
+CC_HP           = cc
+CC_SUNMOS	= sicc
+CC_NCUBE        = ncc
+CC_SP2          = mpcc
+
+#
+# Fortran compiler
+#
+FC_PC           = gfortran-4.4
+FC_GENERIC      = f77
+FC_SUN4         = f77-2.0.1
+FC_SGI          = f77
+FC_DEC          = f77
+FC_SGIM4        = f77
+FC_I860         = if77
+FC_HP           = f77
+FC_SUNMOS	= sif77
+FC_NCUBE        = ncc
+FC_SP2          = mpxlf
+
+#
+# Archive program
+#
+AR_PC           = ar
+AR_GENERIC      = ar
+AR_SUN4 	= ar
+AR_SGI  	= ar
+AR_DEC		= ar
+AR_SGIM4 	= ar
+AR_I860 	= ar860
+AR_HP           = ar
+AR_SUNMOS       = ar860
+AR_NCUBE	= nar
+AR_SP2          = ar
+
+#
+# Ranlib program
+#
+RNLIB_PC        = touch
+RNLIB_GENERIC   = touch
+RNLIB_SUN4      = ranlib
+RNLIB_SGI       = touch
+RNLIB_SGIM4     = touch
+RNLIB_DEC       = touch
+RNLIB_I860      = touch
+RNLIB_HP        = touch
+RNLIB_SUNMOS    = touch
+RNLIB_NCUBE     = touch
+RNLIB_SP2       = touch
+
+#
+# Machine dependent timing routine
+#
+TIME_PC         = md_timer_generic.c
+TIME_GENERIC    = md_timer_generic.c
+TIME_SUN4       = md_timer_sun.c
+TIME_SGI        = md_timer_sun.c
+TIME_SGIM4      = md_timer_sun.c
+TIME_DEC        = md_timer_sun.c
+TIME_I860       = md_timer_intel.c
+TIME_HP         = md_timer_generic.c
+TIME_SUNMOS     = md_timer_intel.c
+TIME_NCUBE      = md_timer_ncube.c
+TIME_SP2        = md_timer_generic.c
+
+#
+# Communication package
+#
+COMM_SERIAL      = md_wrap_sun_c.c
+COMM_I860        = md_wrap_intel_c.c
+COMM_MPI         = md_wrap_mpi_c.c
+COMM_NCUBE       = md_wrap_ncube_c.c
+COMM_SUNMOS      = md_wrap_puma_c.c
+
+#
+# Machine dependent fortran/C interface
+#
+CFORT_PC          =  
+CFORT_GENERIC     = -Dappend_
+CFORT_SUN4        = -Dappend_
+CFORT_SGI         = -Dappend_
+CFORT_SGIM4       = -Dappend_
+CFORT_DEC         = -Dappend_
+CFORT_I860        = -Dappend_
+CFORT_HP          = -Dmatched
+CFORT_SUNMOS      = -Dappend_
+CFORT_NCUBE       = -Dcaps
+CFORT_SP2         = -Dmatched
+
+#
+# Compilation flags
+#
+CFLAGS_PC      = -O3 -g -ggdb -fPIC
+CFLAGS_GENERIC = -O
+CFLAGS_SUN4   = -O2 -vc -Xc
+CFLAGS_SGI    = -O2 -mips2
+CFLAGS_SGIM4  = -O3 -mips4       # 64 bit mips processors (R8000, R1000, etc.)
+CFLAGS_DEC    = -O3
+CFLAGS_I860   = -O4
+CFLAGS_HP     = -O4
+CFLAGS_SUNMOS = -O4
+CFLAGS_NCUBE  = -O
+CFLAGS_SP2    = -O2
+
+FFLAGS_PC      = -O3 -g -ggdb -fPIC
+FFLAGS_GENERIC = -O
+FFLAGS_SUN4   = -O2
+FFLAGS_SGI    = $(CFLAGS_SGI)
+FFLAGS_SGIM4  = $(CFLAGS_SGIM4)
+FFLAGS_DEC    = $(CFLAGS_DEC)
+FFLAGS_I860   = $(CFLAGS_I860)
+FFLAGS_HP     = -O
+FFLAGS_SUNMOS = $(CFLAGS_SUNMOS)
+FFLAGS_NCUBE  = $(CFLAGS_NCUBE)
+FFLAGS_SP2    = $(CFLAGS_SP2)
+
+#
+# Blas routines NOT supplied by vendor
+#
+BLAS_PC      = blas1.f  blas2.f blas3.f xerbla.f lsame.f
+BLAS_GENERIC = blas1.f  blas2.f blas3.f xerbla.f lsame.f
+BLAS_SUN4    = blas1.f  blas2.f blas3.f xerbla.f lsame.f
+BLAS_SGI     = blas1.f  blas2.f blas3.f xerbla.f lsame.f
+BLAS_SGIM4   = blas1.f  blas2.f blas3.f xerbla.f lsame.f
+BLAS_DEC     = blas1.f  blas2.f blas3.f xerbla.f lsame.f
+BLAS_I860    =
+BLAS_HP      = blas1.f  blas2.f blas3.f xerbla.f lsame.f
+BLAS_SUNMOS  =
+BLAS_NCUBE   =          blas2.f blas3.f xerbla.f lsame.f
+BLAS_SP2     = blas1.f  blas2.f blas3.f xerbla.f lsame.f
+
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#
+# No need to change the rest of this file when adding
+# a new machine to the makefile
+#
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+CC              = $(CC_$(MACHINE))
+FC              = $(FC_$(MACHINE))
+AR              = $(AR_$(MACHINE))
+BLAS            = $(BLAS_$(MACHINE))
+TIMER           = $(TIME_$(MACHINE))
+COMMUNICATION   = $(COMM_$(COMM))
+RNLIB           = $(RNLIB_$(MACHINE))
+CFORT           = $(CFORT_$(MACHINE))
+CFLAGS2         = $(CFLAGS_$(MACHINE)) 
+FFLAGS          = $(FFLAGS_$(MACHINE))
+CFLAGS          = $(CFLAGS2) $(CFORT)
+
+# Aztec source code
+
+AZ_SRC = az_cg.c		az_cgs.c		az_cgstab.c \
+	 az_comm.c 		az_flop_cnt.c		az_gmres.c \
+	 az_icc.c 		az_icc_msr.c		az_msr_ilu.c \
+	 az_solve.c		az_matrix_util.c	az_poly.c \
+	 az_precond.c		az_qmrcgs.c		az_util.c \
+	 az_check.c	        az_dgemv2.c		az_ilu_vbr.c \
+	 az_dgemv3.c		az_ilu_util.c		az_domain_decomp.c \
+	 az_domain_setup.c	az_lu_y12.c		az_my_tools.c  az_tools.c \
+	 az_sort.c		az_scaling.c            az_converge.c \
+	 az_interface.c		az_fortran_wrap.c	az_sparax.c
+
+Y12M =   y12m.f			y12mae.f		y12maf.f \
+	 y12mbe.f 		y12mbf.f 		y12mce.f \
+	 y12mcf.f		y12mde.f		y12mdf.f \
+	 y12mfe.f		y12mge.f		y12mhe.f
+
+
+LA_SRC = la_dgetrf.f		la_dgetri.f		la_ilaenv.f \
+	 la_dgetf2.f		la_dlaswp.f		la_dtrtri.f \
+	 la_dtrti2.f		la_dgetrs.f		la_dgeco.f \
+	 la_dgedi.f		la_dgefa.f		la_dpotf2.f \
+	 la_dpotrf.f		la_dlamch.f		la_dlaic1.f
+
+SRC_F = $(LA_SRC) $(Y12M)  $(BLAS)
+SRC_C = $(AZ_SRC) $(TIMER) $(COMMUNICATION)
+
+OBJ = 	$(SRC_C:.c=.o) $(SRC_F:.f=.o)
+
+all: aztec
+
+
+#####################################
+# Define implicit compilation rules #
+#####################################
+
+%.o:%.f
+	$(FC) $(FFLAGS) -c $<
+%.o:%.c
+	$(CC) $(CFLAGS) -c $<
+
+# solver library
+
+aztec: $(OBJ)
+	@echo "Building library $(TARGET)"
+	@rm -f libaztec.a
+	$(AR) ruv libaztec.a $(OBJ)
+	@$(RNLIB) libaztec.a
+
+clean:
+	@echo "cleaning ..."
+	/bin/rm -f $(OBJ)
+
