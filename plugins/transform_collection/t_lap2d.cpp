@@ -10,12 +10,15 @@ using namespace std;
 using namespace m;
 
 
-Register< mtransform,t_lap2d > mt_lap2d(6,"-tlap2d","[str[=real]:...] [str] 2d laplace equation solver,",
-                                          "",       "with [str[=real]:...]:",
+Register< mtransform,t_lap2d > mt_lap2d(7,"-tlap2d","[n] n*[str[=real]:...] [str] 2d laplace equation solver,",
+                                          "",       "with [n]: block size, and",
+                                          "",       "with n*[str[=real]:...]:",
+                                          "",       "  n times the following option set, [str[=real]:]:",
                                           "",       "  zone name[=conductivity] for inner elements, or",
                                           "",       "  zone name=value pairs for boundary elements, and",
                                           "",       "with [str] linear system solver:",
-                                          "",       "  ls_aztec|ls_gauss|ls_pardiso|ls_trilinos|ls_wsmp");
+                                          "",       "  ls_aztec|ls_gauss|ls_pardiso|ls_trilinos|ls_wsmp, and",
+                                          "",       "with [str] xml linear system solver options");
 
 
 namespace aux {
@@ -49,7 +52,8 @@ void t_lap2d::transform(GetPot& o, mmesh& m)
   if (m.d()!=2)
     return;
   const string o_zones  = o.get(o.inc_cursor(),""),
-               o_method = o.get(o.inc_cursor(),"");
+               o_method = o.get(o.inc_cursor(),""),
+               o_lsxml  = o.get(o.inc_cursor(),"");
   using namespace aux;
 
 
@@ -77,6 +81,11 @@ void t_lap2d::transform(GetPot& o, mmesh& m)
 
   // linear system
   auto_ptr< mlinearsystem< double > > ls(Create< mlinearsystem< double > >(o_method));
+
+  // update linear system options from xml
+  XMLNode x(XMLNode::parseString(o_lsxml.c_str()));
+  for (int a=0; a<x.nAttribute(); ++a)
+    ls->xml.updateAttribute(x.getAttribute(a).lpszValue,NULL,x.getAttribute(a).lpszName);
   ls->initialize(m.n(),m.n());
   if (ls->issparse) {
     cout << "info: setup linear system sparsity..." << endl;
@@ -110,6 +119,7 @@ void t_lap2d::transform(GetPot& o, mmesh& m)
     boost::progress_display pbar(Nelem);
     boost::progress_timer t(cout);
 
+    // assembly
     for (vector< pair< string,double > >::iterator p=vzones.begin(); p!=vzones.end(); ++p) {
       vector< mzone >::const_iterator z = getzoneit(p->first,m);
       for (vector< melem >::const_iterator e=z->e2n.begin(); e!=z->e2n.end(); ++e, ++pbar) {

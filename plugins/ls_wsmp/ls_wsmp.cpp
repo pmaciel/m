@@ -56,7 +56,7 @@ int ls_wsmp::call_wsmp(int task)
   iparm[ 2] = task;
   int nrhs = 1;
   boost::timer t;
-  wgsmp_(&m_A.NNU,m_A.IA,m_A.JA,m_A.A,&m_B[0],&m_A.NNU,&nrhs,NULL,iparm,dparm);
+  wgsmp_(&m_A.nnu,m_A.ia,m_A.ja,m_A.a,&m_B[0],&m_A.nnu,&nrhs,NULL,iparm,dparm);
   if (iparm[63]) {
     cerr << "error: SolverWSMP task/error: " << task << '/' << iparm[63] << endl;
     throw 42;

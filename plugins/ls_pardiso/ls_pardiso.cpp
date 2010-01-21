@@ -69,8 +69,8 @@ int ls_pardiso::call_pardisoinit() {
 int ls_pardiso::call_pardiso(int phase, int msglvl)
 {
   int error = 0;
-  pardiso_( pt, &maxfct, &mnum, &mtype, &phase, &m_A.NNU,
-            m_A.A, m_A.IA, m_A.JA, NULL, &nrhs, iparm,
+  pardiso_( pt, &maxfct, &mnum, &mtype, &phase, &m_A.nnu,
+            m_A.a, m_A.ia, m_A.ja, NULL, &nrhs, iparm,
             &msglvl, &m_B[0], &m_X[0], &error, dparm );
   if (error) {
     cerr << "error: pardiso phase/error: " << phase << '/' << error << ": "

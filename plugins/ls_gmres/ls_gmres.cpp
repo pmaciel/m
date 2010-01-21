@@ -17,7 +17,7 @@ void ls_gmres::solve()
 {
   int n = (int) Ne;
   int ierr;
-  int iwk = m_A.NNZ;
+  int iwk = m_A.nnz;
   double eps = 1e-5;  // tolerance, process is stopped when eps>=||current residual||/||initial residual||
   int im     = 50;    // size of krylov subspace (should not exceed 50)
   int maxits = 50;    // maximum number of iterations allowed
@@ -46,7 +46,7 @@ void ls_gmres::solve()
   }
 
   int newiwk = 0;
-  newiwk = iluk(&n,m_A.A,m_A.JA,m_A.IA,&lfil,
+  newiwk = iluk(&n,m_A.a,m_A.ja,m_A.ia,&lfil,
                 alu,jlu,ju,levs,&iwk,w,jw,&ierr);
 
   delete[] w;
@@ -63,7 +63,7 @@ void ls_gmres::solve()
   }
 
   pgmres(&n,&im,dblRHS,dblRES,vv,&eps,&maxits,&iout,
-         m_A.A,m_A.JA,m_A.IA,alu,jlu,ju,&ierr);
+         m_A.a,m_A.ja,m_A.ia,alu,jlu,ju,&ierr);
 
   for (unsigned index=0; index<Ne; index++)
     X(index) = dblRES[index];

@@ -5,69 +5,86 @@
 
 /**/
 namespace m {
-// implementation of a sparse matrix, MBR format
+
+
+// implementation of a sparse matrix, VBR format
 template< typename T >
-struct mmatrix_mbr : mmatrix< T,mmatrix_mbr< T > > {
-  typedef mmatrix< T,mmatrix_mbr< T > > P;
+struct mmatrix_vbr : mmatrix< T,mmatrix_vbr< T > > {
+  typedef mmatrix< T,mmatrix_vbr< T > > P;
   // cons/destructor and indexing operators
-  mmatrix_mbr() : P(), zero(T()) { P::issparse = true; }
-  ~mmatrix_mbr() {
-    if (NNZ) {
-      delete[] VAL;
-      delete[] BINDX;
+  mmatrix_vbr() : P(), zero(T()) { P::issparse = true; }
+  ~mmatrix_vbr() {
+    if (bnnz) {
+      delete[] val;
+      delete[] indx;
+      delete[] bindx;
+      delete[] rpntr;
+      delete[] bpntr;
     }
   }
-  const T& operator()(const unsigned r, const unsigned c) const { const int i=getindex(r,c); if (i<0) return zero; return VAL[i]; }
-        T& operator()(const unsigned r, const unsigned c)       { const int i=getindex(r,c); if (i<0) return zero; return VAL[i]; }
+  const T& operator()(const unsigned r, const unsigned c) const { const int i=getindex(r,c); if (i<0) return zero; return val[i]; }
+        T& operator()(const unsigned r, const unsigned c)       { const int i=getindex(r,c); if (i<0) return zero; return val[i]; }
   void zerorow(const unsigned r) {
-    for (int k=BINDX[r]; k<BINDX[r+1]; ++k)
-      VAL[k] = T();
+/*
+    for (int k=bindx[r]; k<bindx[r+1]; ++k)
+      val[k] = T();
+*/
   }
   // initialize method for base/sparse variation
-  void initialize(unsigned _Nr, unsigned _Nc) { P::initialize(_Nr,_Nc); }
+  void initialize(unsigned _Nr, unsigned _Nc, unsigned _Nb=1) { P::initialize(_Nr,_Nc,_Nb); }
   void initialize(const std::vector< std::vector< unsigned > >& nz) {
-    // set number of rows/non-zero entries and allocate data structure
-    NNU = (int) nz.size();
-    NNZ = 0;
-    for (int i=0; i<NNU; ++i)
-      NNZ += (int) nz[i].size();
-    BINDX = new int[NNZ + 1];
 
-    // set row number of off-diagonal non-zeros and their entries
-    BINDX[0] = NNU + 1;
-    for (int i=0; i<NNU; ++i) {
-      BINDX[i+1] = BINDX[i] + (int) nz[i].size() - 1;
-      int k = BINDX[i];
+    bnnu = (int) nz.size();
+    bnnz = 0;
+    for (int i=0; i<bnnu; ++i)
+      bnnz += (int) nz[i].size();
+
+    const unsigned Nblock = 2;
+
+    // allocate data structure (cpntr=rpntr in a struct. symmetric matrix)
+    cpntr = rpntr = new int[bnnu+1];
+    bpntr = new int[bnnu+1];
+    bindx = new int[bnnz];
+    indx  = new int[bnnz+1];
+
+    // set it up (diagonal blocks come first)
+    rpntr[0] = bpntr[0] = bindx[0] = indx[0] = 0;
+    for (int i=0; i<bnnu; ++i) {
+      rpntr[i+1] = rpntr[i] + (int) Nblock;
+      bpntr[i+1] = bpntr[i] + (int) nz[i].size();
+      int k = bpntr[i];
+      bindx[k++] = i;
       for (int j=0; j<(int) nz[i].size(); ++j)
-        if ((int) nz[i][j]!=i)
-          BINDX[k++] = nz[i][j];
+        if (nz[i][j]!=i)
+          bindx[k++] = nz[i][j];
+      for (int j=0, k=bpntr[i]; j<(int) nz[i].size(); ++j, ++k)
+        indx[k+1] = indx[k] + (int) (Nblock*Nblock);
     }
 
     // set entries
-    VAL = new T[BINDX[NNU]/*NNZ*/];
-    for (int i=0; i<BINDX[NNU]/*NNZ*/; ++i)
-      VAL[i] = T();
+    val = new double[indx[bpntr[bnnu]]];  // or bnnz*Nblock^2+1
+    for (int i=0; i<indx[bpntr[bnnu]]; ++i)
+      val[i] = T();
   }
   // utilities
   int getindex(const unsigned r, const unsigned c) const {
-    if (r==c)
-      return VAL[r];
-    for (int k=BINDX[r]; k<BINDX[r+1]; ++k)
-      if (BINDX[k]==(int) c)
-        return k;
+    for (int i=bpntr[r]; i<bpntr[r+1]; ++i)
+      if (bindx[i]==c)
+        return indx[i];
     return -1;
   }
   // members
   T   zero;
-  T   *VAL;
-  int *BINDX;
-  int NNU;
-  int NNZ;
+  T   *val;
+  int *indx, *bindx, *rpntr, *cpntr, *bpntr;
+  int bnnu;
+  int bnnz;
 };
 
 
 }  // namespace m
 /**/
+class XMLNode;
 namespace m {
 
 
@@ -81,25 +98,26 @@ class ls_aztec : public mlinearsystem< double > {
   void zerorow(const unsigned r) { B(r)=0.; m_A.zerorow(r); }
   void solve();
   // initialize methods for dense/sparse variations
-  void initialize(unsigned _Ne, unsigned _Nv) {
-    mlinearsystem< double >::initialize(_Ne,_Nv);
-    m_A.initialize(Ne,Nv);
-  }
+  void initialize(unsigned _Ne, unsigned _Nv, unsigned _Nb);
   void initialize(const std::vector< std::vector< unsigned > >& nz);
-  // indexing functions
+  // indexing functions (absolute indexing)
   const double& A(const unsigned r, const unsigned c) const { return m_A(r,c); }
         double& A(const unsigned r, const unsigned c)       { return m_A(r,c); }
+  // indexing functions (block indexing)
+  const double& A(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return m_A(R,C,r,c); }
+        double& A(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return m_A(R,C,r,c); }
  private:
-  // auxiliary functions
-  void setup();
+  // utilities
+  void set_az_options(XMLNode& xml, int *options, double *params);
  private:
   // members
-  mmatrix_mbr< double > m_A;
-  int *proc_config;  // for communication? (set by AZ_set_proc_config)
-  int *data_org;     // for communication? (allocated and set by AZ_transform)
-  int *options;      // options
-  double *params;    // parameters
-  double *status;    // result of AZ_solve
+  mmatrix_msr< double > m_A;     // linear system matrix
+  int *options;                  // solver options
+  double *params;                // ... parameters
+  double *status;                // ... status
+  int *proc_config, *data_org,   // for communication?
+      *update,   *update_index,  // update/external vectors
+      *external, *extern_index;  // ...
 };
 
 

@@ -87,14 +87,14 @@ void ls_trilinos_aztecoo::solve()
 {
   vector< int > vNumEntriesPerRow(Ne,0);
   for (unsigned i=0; i<Ne; ++i)
-    vNumEntriesPerRow[i] = m_A.IA[i+1] - m_A.IA[i];
+    vNumEntriesPerRow[i] = m_A.ia[i+1] - m_A.ia[i];
 
   Epetra_Map EpetraMap((int) Ne,0,Epetra_SerialComm());
 
   Epetra_CrsMatrix A(Copy,EpetraMap,&vNumEntriesPerRow[0]);
 
-  for (int i=0; i<m_A.NNU; ++i)
-    A.InsertGlobalValues(i,m_A.IA[i+1]-m_A.IA[i],&m_A.A[ m_A.IA[i] ],&m_A.JA[ m_A.IA[i] ]);
+  for (int i=0; i<m_A.nnu; ++i)
+    A.InsertGlobalValues(i,m_A.ia[i+1]-m_A.ia[i],&m_A.a[ m_A.ia[i] ],&m_A.ja[ m_A.ia[i] ]);
   A.FillComplete();
 
   // set linear system vectors and AztecOO solver
