@@ -28,7 +28,9 @@ def build(ctx):
     target   = 'mkernel',
     includes = ['.'],
     source   = [
-      'ext/error_code.cpp','ext/fparser.cc','ext/fpoptimizer.cc',
+      'ext/error_code.cpp',                   # boost
+      'ext/fparser.cc','ext/fpoptimizer.cc',  # function parser
+      'ext/xmlParser.cpp',                    # xml parser
       'cool/Element.cpp','cool/MathTools.cpp','cool/Framework.cpp',
       'mlinearsystem.cpp','mmesh.cpp' ] )
 

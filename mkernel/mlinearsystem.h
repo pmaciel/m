@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "boost/progress.hpp"
+#include "ext/xmlParser.h"
 #include "mmatrix.h"
 
 
@@ -18,19 +19,22 @@ template< typename T >
 class mlinearsystem {
  public:
   // cons/destructor
-  mlinearsystem() : issparse(true), Ne(0), Nv(0) {}
-  virtual ~mlinearsystem()                       {}
-  // interfacing functions
-  virtual void zerorow(const unsigned r) = 0;
+  mlinearsystem() :
+    issparse(true), xml(XMLNode::createXMLTopNode("mlinearsystem")),
+    Ne(0), Nv(0), Nb(1)    {}
+  virtual ~mlinearsystem() {}
+  // interfacing methods
   virtual void solve()                   = 0;
+  virtual void zerorow(const unsigned r) = 0;
+          void zerorow(const unsigned R, const unsigned r) { for (unsigned i=0; i<Nb; ++i) zerorow(R*Nb+i); }
   void print(std::ostream& o) {
-    o << "m::mlinearsystem::X(Nv:" << Nv << "):" << std::endl;
+    o << "m::mlinearsystem::X(Nv:" << Nv << ",Nb:" << Nb << "):" << std::endl;
     for (unsigned j=0; j<Nv; ++j)
       o << ' ' << m_X[j] << std::endl;
-    o << "m::mlinearsystem::B(Ne:" << Nv << "):" << std::endl;
+    o << "m::mlinearsystem::B(Ne:" << Nv << ",Nb:" << Nb << "):" << std::endl;
     for (unsigned i=0; i<Ne; ++i)
       o << ' ' << m_B[i] << std::endl;
-    o << "m::mlinearsystem::A(" << (issparse? "true":"false") << "):" << std::endl;
+    o << "m::mlinearsystem::A(issparse?" << (issparse? "true":"false") << "):" << std::endl;
     for (unsigned i=0; i<Ne; ++i) {
       for (unsigned j=0; j<Nv; ++j)
         o << ' ' << A(i,j);
@@ -38,26 +42,37 @@ class mlinearsystem {
     }
   }
   // initialize methods for dense/sparse variations
-  virtual void initialize(unsigned _Ne, unsigned _Nv) {
+  virtual void initialize(unsigned _Ne, unsigned _Nv, unsigned _Nb=1) {
     Ne = _Ne;
     Nv = _Nv;
-    m_X.assign(Ne,T());
-    m_B.assign(Nv,T());
+    Nb = _Nb;
+    m_X.assign(Nb*Ne,T());
+    m_B.assign(Nb*Nv,T());
   }
   virtual void initialize(const std::vector< std::vector< unsigned > >& nz) = 0;
-  // indexing functions
+  // indexing functions (absolute indexing)
   virtual const T& A(const unsigned r, const unsigned c) const = 0;
   virtual       T& A(const unsigned r, const unsigned c)       = 0;
           const T& X(const unsigned r) const { return m_X[r]; }
                 T& X(const unsigned r)       { return m_X[r]; }
           const T& B(const unsigned c) const { return m_B[c]; }
                 T& B(const unsigned c)       { return m_B[c]; }
-  // members
+  // indexing functions (block indexing)
+  virtual const T& A(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const = 0;
+  virtual       T& A(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       = 0;
+          const T& X(const unsigned R, const unsigned r) const { return X(R*Nb+r); }
+                T& X(const unsigned R, const unsigned r)       { return X(R*Nb+r); }
+          const T& B(const unsigned C, const unsigned c) const { return B(C*Nb+c); }
+                T& B(const unsigned C, const unsigned c)       { return B(C*Nb+c); }
  public:
+  // members
   bool issparse;
+  XMLNode xml;
  protected:
-  unsigned Ne;
-  unsigned Nv;
+  // members
+  unsigned Ne;  // number of (block) equations
+  unsigned Nv;  // ... (block) variables
+  unsigned Nb;  // ... block size
   std::vector< T > m_X;
   std::vector< T > m_B;
 };
@@ -77,9 +92,12 @@ class ls_gauss : public mlinearsystem< double > {
     m_A.initialize(Ne,Nv);
   }
   void initialize(const std::vector< std::vector< unsigned > >& nz) {}
-  // indexing functions
+  // indexing functions (absolute indexing)
   const double& A(const unsigned r, const unsigned c) const { return m_A(r,c); }
         double& A(const unsigned r, const unsigned c)       { return m_A(r,c); }
+  // indexing functions (block indexing)
+  const double& A(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return m_A(R*Nb+r,C*Nb+c); }
+        double& A(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return m_A(R*Nb+r,C*Nb+c); }
   // members
  private:
   mmatrix_aa< double > m_A;
@@ -96,9 +114,12 @@ class ls_bandlu : public mlinearsystem< double > {
   void solve();
   // initialize methods for sparse variation
   void initialize(const std::vector< std::vector< unsigned > >& nz);
-  // indexing functions
+  // indexing functions (absolute indexing)
   const double& A(const unsigned r, const unsigned c) const { return m_A(r,m_ld+c-r); }
         double& A(const unsigned r, const unsigned c)       { return m_A(r,m_ld+c-r); }
+  // indexing functions (block indexing)
+  const double& A(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return m_A(R*Nb+r,C*Nb+c); }
+        double& A(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return m_A(R*Nb+r,C*Nb+c); }
  private:
   // auxiliary functions
   void LUDecomposition();

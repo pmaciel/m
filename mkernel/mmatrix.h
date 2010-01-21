@@ -16,17 +16,24 @@ namespace m {
 // description of a matrix (T: storage type, P: parent class)
 template< typename T, class P >
 struct mmatrix {
-  // constructor and indexing operators
-  mmatrix() : Nr(0), Nc(0), issparse(false) {}
+  // constructor
+  mmatrix() : Nr(0), Nc(0), Nb(0), issparse(false) {}
+  // indexing functions (absolute indexing)
   const T& operator()(const unsigned r, const unsigned c) const { return P::operator()(r,c); };
         T& operator()(const unsigned r, const unsigned c)       { return P::operator()(r,c); };
-  void zerorow(const unsigned r)                                {        P::zerorow(r);      };
+  // indexing functions (block indexing)
+  const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return P::operator()(R,C,r,c); };
+        T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return P::operator()(R,C,r,c); };
+  // interfacing functions
+  void zerorow(const unsigned r)                   { P::zerorow(r);   };
+  void zerorow(const unsigned R, const unsigned r) { P::zerorow(R,r); };
   // initialize methods for dense/sparse variations
-  void initialize(unsigned _Nr, unsigned _Nc)                       { Nr=_Nr; Nc=_Nc; }
+  void initialize(unsigned _Nr, unsigned _Nc, unsigned _Nb=1) { Nr=_Nr; Nc=_Nc; Nb=_Nb; }
   void initialize(const std::vector< std::vector< unsigned > >& nz) {}
   // members
-  unsigned Nr;
-  unsigned Nc;
+  unsigned Nr;  // number of (block) rows
+  unsigned Nc;  // ... (block) columns
+  unsigned Nb;  // ... block size
   bool issparse;
 };
 
@@ -35,17 +42,22 @@ struct mmatrix {
 template< typename T >
 struct mmatrix_vv : mmatrix< T,mmatrix_vv< T > > {
   typedef mmatrix< T,mmatrix_vv< T > > P;
-  // indexing operators
-  const T& operator()(const unsigned r, const unsigned c) const { return A[r][c]; }
-        T& operator()(const unsigned r, const unsigned c)       { return A[r][c]; }
-  void zerorow(const unsigned r) { A[r].assign(P::Nc,T()); }
+  // indexing functions (absolute indexing)
+  const T& operator()(const unsigned r, const unsigned c) const { return a[r][c]; }
+        T& operator()(const unsigned r, const unsigned c)       { return a[r][c]; }
+  // indexing functions (block indexing)
+  const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return operator()(P::Nb*R+r,P::Nb*C+c); }
+        T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return operator()(P::Nb*R+r,P::Nb*C+c); }
+  // interfacing functions
+  void zerorow(const unsigned r)                   { a[r].assign(P::Nb*P::Nc,T()); }
+  void zerorow(const unsigned R, const unsigned r) { zerorow(P::Nb*R+r); };
   // initialize method for dense variation
-  void initialize(unsigned _Nr, unsigned _Nc) {
-    P::initialize(_Nr,_Nc);
-    A.assign(P::Nr,std::vector< T >(P::Nc,T()));
+  void initialize(unsigned _Nr, unsigned _Nc, unsigned _Nb=1) {
+    P::initialize(_Nr,_Nc,_Nb);
+    a.assign(P::Nb*P::Nr,std::vector< T >(P::Nb*P::Nc,T()));
   }
   // members
-  std::vector< std::vector< T > > A;
+  std::vector< std::vector< T > > a;
 };
 
 
@@ -53,30 +65,34 @@ struct mmatrix_vv : mmatrix< T,mmatrix_vv< T > > {
 template< typename T >
 struct mmatrix_aa : mmatrix< T,mmatrix_aa< T > > {
   typedef mmatrix< T,mmatrix_aa< T > > P;
-  // destructor and indexing operators
+  // destructor
   ~mmatrix_aa() {
     if (P::Nr || P::Nc) {
-      delete[] A[0];
-      delete[] A;
+      delete[] a[0];
+      delete[] a;
     }
   }
-  const T& operator()(const unsigned r, const unsigned c) const { return A[r][c]; }
-        T& operator()(const unsigned r, const unsigned c)       { return A[r][c]; }
-  void zerorow(const unsigned r) {
-    for (unsigned c=0; c<P::Nc; ++c) A[r][c] = T();
-  }
+  // indexing functions (absolute indexing)
+  const T& operator()(const unsigned r, const unsigned c) const { return a[r][c]; }
+        T& operator()(const unsigned r, const unsigned c)       { return a[r][c]; }
+  // indexing functions (block indexing)
+  const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return operator()(P::Nb*R+r,P::Nb*C+c); }
+        T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return operator()(P::Nb*R+r,P::Nb*C+c); }
+  // interfacing functions
+  void zerorow(const unsigned r)                   { for (unsigned c=0; c<P::Nb*P::Nc; ++c) a[r][c] = T(); }
+  void zerorow(const unsigned R, const unsigned r) { zerorow(P::Nb*R+r); };
   // initialize method for dense variation
-  void initialize(unsigned _Nr, unsigned _Nc) {
-    P::initialize(_Nr,_Nc);
-    A    = new T*[ P::Nr ];
-    A[0] = new T [ P::Nr * P::Nc ];
-    for (unsigned r=1; r<P::Nr; ++r)
-      A[r] = A[r-1] + P::Nc;
-    for (unsigned r=0; r<P::Nr; ++r)
+  void initialize(unsigned _Nr, unsigned _Nc, unsigned _Nb=1) {
+    P::initialize(_Nr,_Nc,_Nb);
+    a    = new T*[ P::Nb*P::Nr ];
+    a[0] = new T [ P::Nb*P::Nr * P::Nb*P::Nc ];
+    for (unsigned r=1; r<P::Nb*P::Nr; ++r)
+      a[r] = a[r-1] + P::Nb*P::Nc;
+    for (unsigned r=0; r<P::Nb*P::Nr; ++r)
       zerorow(r);
   }
   // members
-  T **A;
+  T **a;
 };
 
 
@@ -85,58 +101,139 @@ struct mmatrix_aa : mmatrix< T,mmatrix_aa< T > > {
 template< typename T, int BASE >
 struct mmatrix_csr : mmatrix< T,mmatrix_csr< T,BASE > > {
   typedef mmatrix< T,mmatrix_csr< T,BASE > > P;
-  // cons/destructor and indexing operators
-  mmatrix_csr() : P(), zero(T()) { P::issparse = true; }
+  // cons/destructor
+  mmatrix_csr() : P(), zero(T()), nnz(0), nnu(0) {
+    P::issparse = true;
+  }
   ~mmatrix_csr() {
-    if (NNZ) {
-      delete[] A;
-      delete[] JA;
-      delete[] IA;
+    if (nnz) {
+      delete[] a;
+      delete[] ja;
+      delete[] ia;
     }
   }
-  const T& operator()(const unsigned r, const unsigned c) const { const int i=getindex(r,c); if (i<0) return zero; return A[i]; }
-        T& operator()(const unsigned r, const unsigned c)       { const int i=getindex(r,c); if (i<0) return zero; return A[i]; }
-  void zerorow(const unsigned r) {
-    for (int k=IA[r]-BASE; k<IA[r+1]-BASE; ++k)
-      A[k] = T();
-  }
-  // initialize method for base/sparse variation
-  void initialize(unsigned _Nr, unsigned _Nc) { P::initialize(_Nr,_Nc); }
+  // indexing functions (absolute indexing)
+  const T& operator()(const unsigned r, const unsigned c) const { const int i=getindex(r,c); if (i<0) return zero; return a[i]; }
+        T& operator()(const unsigned r, const unsigned c)       { const int i=getindex(r,c); if (i<0) return zero; return a[i]; }
+  // indexing functions (block indexing)
+  const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return operator()(P::Nb*R+r,P::Nb*C+c); }
+        T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return operator()(P::Nb*R+r,P::Nb*C+c); }
+  // interfacing functions
+  void zerorow(const unsigned r)                   { for (int k=ia[r]-BASE; k<ia[r+1]-BASE; ++k) a[k] = T(); }
+  void zerorow(const unsigned R, const unsigned r) { zerorow(P::Nb*R+r); };
+  // initialize methods for base/sparse variation
+  void initialize(unsigned _Nr, unsigned _Nc, unsigned _Nb=1) { P::initialize(_Nr,_Nc,_Nb); }
   void initialize(const std::vector< std::vector< unsigned > >& nz) {
-    // set base class members
-    initialize((unsigned) nz.size(), (unsigned) nz.size());
+
     // set row indices
-    NNU = (int) nz.size();
-    IA = new int[NNU+1];
-    IA[0] = BASE;
-    for (int r=0; r<NNU; ++r)
-      IA[r+1] = IA[r] + nz[r].size();
-    NNZ = IA[NNU]-BASE;
+    nnu = (int) P::Nb * (int) nz.size();
+    ia = new int[nnu+1];
+    ia[0] = BASE;
+    int k = 0;
+    for (int R=0; R<(int) nz.size(); ++R)
+      for (int i=0; i<(int) P::Nb; ++i, ++k)
+        ia[k+1] = ia[k] + nz[R].size();
+    nnz = ia[nnu]-BASE;
+
     // set column indices
-    JA = new int[NNZ];
-    for (int r=0; r<NNU; ++r) {
-      int j = IA[r]-BASE;
-      for (unsigned n=0; n<(unsigned) nz[r].size(); ++n)
-        JA[j++] = (int) nz[r][n] + BASE;
-    }
+    ja = new int[nnz];
+    for (int R=0; R<(int) nz.size(); ++R)
+      for (int r=0; r<(int) P::Nb; ++r) {
+        k = ia[R*P::Nb+r]-BASE;
+        for (unsigned I=0; I<(unsigned) nz[R].size(); ++I)
+          for (int i=0; i<(int) P::Nb; ++i)
+            ja[k++] = (int) nz[R][I] + BASE;
+      }
+
     // set entries
-    A = new T[NNZ];
-    for (int i=0; i<NNZ; ++i)
-      A[i] = T();
+    a = new T[nnz];
+    for (int i=0; i<nnz; ++i)
+      a[i] = T();
   }
   int getindex(const unsigned r, const unsigned c) const {
-    for (int k=IA[r]-BASE; k<IA[r+1]-BASE; ++k)
-      if (JA[k]-BASE==(int) c)
+    for (int k=ia[r]-BASE; k<ia[r+1]-BASE; ++k)
+      if (ja[k]-BASE==(int) c)
         return k;
     return -1;
   }
   // members
   T zero;
-  int *IA;
-  int *JA;
-  T   *A;
-  int NNZ;
-  int NNU;
+  int *ia;
+  int *ja;
+  T   *a;
+  int nnz;
+  int nnu;
+};
+
+
+// implementation of a sparse matrix, modified sparse row format
+template< typename T >
+struct mmatrix_msr : mmatrix< T,mmatrix_msr< T > > {
+  typedef mmatrix< T,mmatrix_msr< T > > P;
+  // cons/destructor
+  mmatrix_msr() : P(), zero(T()) {
+    P::issparse = true;
+  }
+  ~mmatrix_msr() {
+    if (nnz) {
+      delete[] val;
+      delete[] bindx;
+    }
+  }
+  // indexing functions (absolute indexing)
+  const T& operator()(const unsigned r, const unsigned c) const { const int i=getindex(r,c); if (i<0) return zero; return val[i]; }
+        T& operator()(const unsigned r, const unsigned c)       { const int i=getindex(r,c); if (i<0) return zero; return val[i]; }
+  // indexing functions (block indexing)
+  const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return operator()(P::Nb*R+r,P::Nb*C+c); }
+        T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return operator()(P::Nb*R+r,P::Nb*C+c); }
+  // interfacing functions
+  void zerorow(const unsigned r)                   { for (int k=bindx[r]; k<bindx[r+1]; ++k) val[k] = T(); }
+  void zerorow(const unsigned R, const unsigned r) { zerorow(P::Nb*R+r); };
+  // initialize methods for base/sparse variation
+  void initialize(unsigned _Nr, unsigned _Nc, unsigned _Nb=1) { P::initialize(_Nr,_Nc,_Nb); }
+  void initialize(const std::vector< std::vector< unsigned > >& nz) {
+
+    // set number of rows/non-zero entries
+    nnu = (int) P::Nb * (int) nz.size();
+    nnz = 0;
+    for (int i=0; i<nnu; ++i)
+      nnz += (int) nz[i].size();
+    nnz *= (int) (P::Nb*P::Nb);
+
+    // set row number of off-diagonal non-zeros and their addresses
+    bindx = new int[nnz + 1];
+    bindx[0] = nnu + 1;
+    for (int R=0; R<(int) nz.size(); ++R)
+      for (int r=0; r<(int) P::Nb; ++r) {
+        const int i = (int) P::Nb * R + r;
+        bindx[i+1] = bindx[i] + (int) P::Nb * (int) nz[R].size() - 1;
+        int k = bindx[i];
+        for (unsigned C=0; C<(unsigned) nz[R].size(); ++C)
+          for (int c=0; c<(int) P::Nb; ++c)
+            if (R!=(int) nz[R][C] || r!=c)
+              bindx[k++] = (int) (P::Nb*nz[R][C]) + c;
+      }
+
+    // set entries
+    val = new T[bindx[nnu]];  // or nnz+1
+    for (int i=0; i<bindx[nnu]; ++i)
+      val[i] = T();
+  }
+  // utilities
+  int getindex(const unsigned r, const unsigned c) const {
+    if (r==c)
+      return r;
+    for (int k=bindx[r]; k<bindx[r+1]; ++k)
+      if (bindx[k]==(int) c)
+        return k;
+    return -1;
+  }
+  // members
+  T   zero;
+  T   *val;
+  int *bindx;
+  int nnu;
+  int nnz;
 };
 
 
