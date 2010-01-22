@@ -15,7 +15,7 @@ namespace m {
 
 void ls_gmres::solve()
 {
-  int n = (int) Ne;
+  int n = (int) Nb*Ne;
   int ierr;
   int iwk = m_A.nnz;
   double eps = 1e-5;  // tolerance, process is stopped when eps>=||current residual||/||initial residual||
@@ -57,7 +57,7 @@ void ls_gmres::solve()
   double *dblRHS = new double[n];
   double *dblRES = new double[n];
 
-  for (unsigned index=0; index<Ne; index++) {
+  for (unsigned index=0; index<Nb*Ne; index++) {
     dblRHS[index] = B(index);
     dblRES[index] = 0;
   }
@@ -65,7 +65,7 @@ void ls_gmres::solve()
   pgmres(&n,&im,dblRHS,dblRES,vv,&eps,&maxits,&iout,
          m_A.a,m_A.ja,m_A.ia,alu,jlu,ju,&ierr);
 
-  for (unsigned index=0; index<Ne; index++)
+  for (unsigned index=0; index<Nb*Ne; index++)
     X(index) = dblRES[index];
 
   delete [] alu;

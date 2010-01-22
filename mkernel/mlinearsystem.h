@@ -87,9 +87,9 @@ class ls_gauss : public mlinearsystem< double > {
   void zerorow(const unsigned r) { B(r)=0.; m_A.zerorow(r); }
   void solve();
   // initialize methods for dense/sparse variations
-  void initialize(unsigned _Ne, unsigned _Nv) {
-    mlinearsystem< double >::initialize(_Ne,_Nv);
-    m_A.initialize(Ne,Nv);
+  void initialize(unsigned _Ne, unsigned _Nv, unsigned _Nb) {
+    mlinearsystem< double >::initialize(_Ne,_Nv,_Nb);
+    m_A.initialize(Ne,Nv,Nb);
   }
   void initialize(const std::vector< std::vector< unsigned > >& nz) {}
   // indexing functions (absolute indexing)
@@ -101,34 +101,6 @@ class ls_gauss : public mlinearsystem< double > {
   // members
  private:
   mmatrix_aa< double > m_A;
-};
-
-
-// implementation of a linear system solver, using band LU (double p.)
-class ls_bandlu : public mlinearsystem< double > {
- public:
-  // constructor
-  ls_bandlu() : mlinearsystem< double >(), m_ld(0), m_ud(0) { issparse=true; }
-  // interfacing functions
-  void zerorow(const unsigned r) { B(r)=0.; m_A.zerorow(r); }
-  void solve();
-  // initialize methods for sparse variation
-  void initialize(const std::vector< std::vector< unsigned > >& nz);
-  // indexing functions (absolute indexing)
-  const double& A(const unsigned r, const unsigned c) const { return m_A(r,m_ld+c-r); }
-        double& A(const unsigned r, const unsigned c)       { return m_A(r,m_ld+c-r); }
-  // indexing functions (block indexing)
-  const double& A(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return m_A(R*Nb+r,C*Nb+c); }
-        double& A(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return m_A(R*Nb+r,C*Nb+c); }
- private:
-  // auxiliary functions
-  void LUDecomposition();
-  // members
- private:
-  mmatrix_aa< double > m_A;  // matrix (dense)
-  unsigned m_bandwidth;      // bandwidth
-  unsigned m_ld;             // number of lower co-diagonals
-  unsigned m_ud;             // number of upper co-diagonals
 };
 
 
