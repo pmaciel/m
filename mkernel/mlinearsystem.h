@@ -26,18 +26,18 @@ class mlinearsystem {
   // interfacing methods
   virtual void solve()                   = 0;
   virtual void zerorow(const unsigned r) = 0;
-          void zerorow(const unsigned R, const unsigned r) { for (unsigned i=0; i<Nb; ++i) zerorow(R*Nb+i); }
+          void zerorow(const unsigned R, const unsigned r) { zerorow(R*Nb+r); }
   void print(std::ostream& o) {
     o << "m::mlinearsystem::X(Nv:" << Nv << ",Nb:" << Nb << "):" << std::endl;
-    for (unsigned j=0; j<Nv; ++j)
-      o << ' ' << m_X[j] << std::endl;
+    for (unsigned J=0; J<Nv; ++J) for (unsigned j=0; j<Nb; ++j)
+      o << ' ' << X(J,j) << std::endl;
     o << "m::mlinearsystem::B(Ne:" << Nv << ",Nb:" << Nb << "):" << std::endl;
-    for (unsigned i=0; i<Ne; ++i)
-      o << ' ' << m_B[i] << std::endl;
+    for (unsigned I=0; I<Ne; ++I) for (unsigned i=0; i<Nb; ++i)
+      o << ' ' << B(I,i) << std::endl;
     o << "m::mlinearsystem::A(issparse?" << (issparse? "true":"false") << "):" << std::endl;
-    for (unsigned i=0; i<Ne; ++i) {
-      for (unsigned j=0; j<Nv; ++j)
-        o << ' ' << A(i,j);
+    for (unsigned I=0; I<Ne; ++I) for (unsigned i=0; i<Nb; ++i) {
+      for (unsigned J=0; J<Nv; ++J) for (unsigned j=0; j<Nb; ++j)
+        o << ' ' << A(I,J,i,j);
       o << std::endl;
     }
   }

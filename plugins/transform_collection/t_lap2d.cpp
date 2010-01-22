@@ -10,15 +10,23 @@ using namespace std;
 using namespace m;
 
 
-Register< mtransform,t_lap2d > mt_lap2d(7,"-tlap2d","[n] n*[str[=real]:...] [str] 2d laplace equation solver,",
-                                          "",       "with [n]: block size, and",
-                                          "",       "with n*[str[=real]:...]:",
-                                          "",       "  n times the following option set, [str[=real]:]:",
-                                          "",       "  zone name[=conductivity] for inner elements, or",
-                                          "",       "  zone name=value pairs for boundary elements, and",
-                                          "",       "with [str] linear system solver:",
-                                          "",       "  ls_aztec|ls_gauss|ls_pardiso|ls_trilinos|ls_wsmp, and",
-                                          "",       "with [str] xml linear system solver options");
+Register< mtransform,t_lap2d > mt_lap2d(17,"-tlap2d","[str] 2d laplace equation solver, with",
+                                           "",       "[str] filename or string with xml formatted as:",
+                                           "",       "<lap2d",
+                                           "",       " ls=\"\" linear system solver (default ls_gauss)",
+                                           "",       " Nb=\"\" block size (default 1)",
+                                           "",       ">",
+                                           "",       " <ls",
+                                           "",       "  precond=\"\"  (default none)",
+                                           "",       "  overlap=\"\"  (default 0)",
+                                           "",       "  solver=\"\"   (default gmres)",
+                                           "",       "  max_iter=\"\" (default 500)",
+                                           "",       "  kspace=\"\"   (default 30)",
+                                           "",       "  tol=\"\"      (default 1.e-6)",
+                                           "",       " />",
+                                           "",       " <i zone=\"\" (no default) conductivity=\"\" (default 1.)/> (inner zone, 1 or more)",
+                                           "",       " <b zone=\"\" (no default) value=\"\" (default 0)/> (boundary zone, 1 or more)",
+                                           "",       "</lap2d>");
 
 
 namespace aux {
@@ -49,44 +57,55 @@ struct AElement {
 
 void t_lap2d::transform(GetPot& o, mmesh& m)
 {
-  if (m.d()!=2)
+  if (m.d()!=2 || !m.z())
     return;
-  const string o_zones  = o.get(o.inc_cursor(),""),
-               o_method = o.get(o.inc_cursor(),""),
-               o_lsxml  = o.get(o.inc_cursor(),"");
   using namespace aux;
 
+  cout << "info: setup lap2d xml..." << endl;
+  const string o_xml = o.get(o.inc_cursor(),"");
+  XMLNode x = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"lap2d")
+                                                 : XMLNode::openFileHelper(o_xml.c_str(),"lap2d");
+  cout << "info: setup lap2d xml." << endl;
 
-  cout << "info: setup zones and mesh..." << endl;
-  vector< pair< string,double > > vzones = getzones(o_zones,m);
 
-  // minimize point cloud
-  m.vn.resize(3);
-  m.vv.resize(3);
-  m.vn.back() = "T";
-  m.vv.back().assign(m.n(),0.);
+  // set block size
+  const unsigned Nb = x.getAttribute< unsigned >("Nb",1);
 
-  // minimize connectivities
+
+  cout << "info: minimize mesh connectivity..." << endl;
   {
     vector< bool > vused(m.z(),false);
-    for (vector< pair< string,double > >::const_iterator p=vzones.begin(); p!=vzones.end(); ++p)
-      vused[ getzoneidx(p->first,m) ] = true;
-    for (unsigned i=m.z(); i>0; --i)
-      if (!vused[i-1])
-        m.vz.erase( m.vz.begin()+i-1 );
+    for (int i=0; i<x.nChildNode("i"); ++i)
+      vused[ getzoneidx( x.getChildNode("i",i).getAttribute< string >("zone") ,m) ] = true;
+    for (int i=0; i<x.nChildNode("b"); ++i)
+      vused[ getzoneidx( x.getChildNode("b",i).getAttribute< string >("zone") ,m) ] = true;
+    for (int i=m.z()-1; i>=0; --i)
+      if (!vused[i] || (m.d(i)!=2 && m.d(i)!=1))
+        m.vz.erase( m.vz.begin()+i );
+    m.compress();
   }
-  m.compress();
-  cout << "info: setup zones and mesh." << endl;
+  cout << "info: minimize mesh connectivity." << endl;
 
 
-  // linear system
-  auto_ptr< mlinearsystem< double > > ls(Create< mlinearsystem< double > >(o_method));
+  cout << "info: minimize mesh point cloud..." << endl;
+  m.vn.resize(2+Nb);
+  m.vv.resize(2+Nb);
+  for (unsigned i=0; i<Nb; ++i) {
+    m.vn[2+i] = string("T") + (char) ('0'+i);
+    m.vv[2+i].assign(m.n(),0.);
+  }
+  cout << "info: minimize mesh point cloud." << endl;
 
-  // update linear system options from xml
-  XMLNode x(XMLNode::parseString(o_lsxml.c_str()));
-  for (int a=0; a<x.nAttribute(); ++a)
-    ls->xml.updateAttribute(x.getAttribute(a).lpszValue,NULL,x.getAttribute(a).lpszName);
-  ls->initialize(m.n(),m.n());
+
+  cout << "info: setup linear system..." << endl;
+
+  // create pointer to linear system and update its options from lap2d xml
+  auto_ptr< mlinearsystem< double > > ls(
+    Create< mlinearsystem< double > >(x.getAttribute< string >("ls","ls_gauss")) );
+  XMLNode x_ls  = x.getChildNode("ls");
+  for (int a=0; a<x_ls.nAttribute(); ++a)
+    ls->xml.updateAttribute(x_ls.getAttribute(a).lpszValue,NULL,x_ls.getAttribute(a).lpszName);
+  ls->initialize(m.n(),m.n(),Nb);
   if (ls->issparse) {
     cout << "info: setup linear system sparsity..." << endl;
 
@@ -106,38 +125,46 @@ void t_lap2d::transform(GetPot& o, mmesh& m)
 
     cout << "info: setup linear system sparsity." << endl;
   }
+  cout << "info: setup linear system." << endl;
 
 
   cout << "info: assemble linear system..." << endl;
   {
     // timing and progress utilities
     unsigned Nelem = 0;
-    for (vector< pair< string,double > >::iterator p=vzones.begin(); p!=vzones.end(); ++p) {
-      vector< mzone >::const_iterator z = getzoneit(p->first,m);
+    for (vector< mzone >::const_iterator z=m.vz.begin(); z!=m.vz.end(); ++z)
       Nelem += (unsigned) z->e2n.size();
-    }
     boost::progress_display pbar(Nelem);
     boost::progress_timer t(cout);
 
     // assembly
-    for (vector< pair< string,double > >::iterator p=vzones.begin(); p!=vzones.end(); ++p) {
-      vector< mzone >::const_iterator z = getzoneit(p->first,m);
+    for (int i=0; i<x.nChildNode("i"); ++i) {
+      vector< mzone >::const_iterator z = getzoneit(x.getChildNode("i",i).getAttribute< string >("zone"),m);
+      vector< double > conductivity = getvvalues(x.getChildNode("i",i).getAttribute< string >("conductivity","1."));
       for (vector< melem >::const_iterator e=z->e2n.begin(); e!=z->e2n.end(); ++e, ++pbar) {
-        if (z->d()==2) {
-          const vector< unsigned >& en = e->n;
-          const AElement E(en,m.vv[0],m.vv[1]);
-          for (unsigned i=0; i<(unsigned) en.size(); ++i)
-            for (unsigned j=0; j<(unsigned) en.size(); ++j)
-              (ls->A)(en[i],en[j]) += 0.25 * p->second / E.Size() *
+
+        const vector< unsigned >& en = e->n;
+        const AElement E(en,m.vv[0],m.vv[1]);
+        for (unsigned i=0; i<(unsigned) en.size(); ++i)
+          for (unsigned j=0; j<(unsigned) en.size(); ++j)
+            for (unsigned b=0; b<Nb; ++b)
+              (ls->A)(en[i],en[j],b,b) += 0.25 * conductivity[b] / E.Size() *
                  (E.NX(i)*E.NX(j) + E.NY(i)*E.NY(j));
-        }
-        else if (z->d()==1) {
-          for (vector< unsigned >::const_iterator n=e->n.begin(); n!=e->n.end(); ++n) {
-            ls->zerorow(*n);
-            (ls->A)(*n,*n) = 1.;
-            (ls->B)(*n)    = p->second;
+
+      }
+    }
+    for (int i=0; i<x.nChildNode("b"); ++i) {
+      vector< mzone >::const_iterator z = getzoneit(x.getChildNode("b",i).getAttribute< string >("zone"),m);
+      vector< double > value = getvvalues(x.getChildNode("b",i).getAttribute< string >("value","1."));
+      for (vector< melem >::const_iterator e=z->e2n.begin(); e!=z->e2n.end(); ++e, ++pbar) {
+
+        for (vector< unsigned >::const_iterator n=e->n.begin(); n!=e->n.end(); ++n)
+          for (unsigned b=0; b<Nb; ++b) {
+            ls->zerorow(*n,b);
+            (ls->A)(*n,*n,b,b) = 1.;
+            (ls->B)(*n,b)      = value[b];
           }
-        }
+
       }
     }
     cout << "info: timer: ";
@@ -155,49 +182,26 @@ void t_lap2d::transform(GetPot& o, mmesh& m)
 
 
   // copy solution
-  for (unsigned i=0; i<m.n(); ++i)
-    m.vv[2][i] = (ls->X)(i);
+  for (unsigned i=0; i<Nb; ++i)
+    for (unsigned n=0; n<m.n(); ++n)
+      m.vv[2+i][n] = (ls->X)(n,i);
 }
 
 
-vector< pair< string,double > > t_lap2d::getzones(const string& s, const mmesh& m)
+vector< double > t_lap2d::getvvalues(const string& s)
 {
-  vector< pair< string,double > > r;
+  vector< double > r;
 
   // split string find a '=' then a ':'
   string::size_type p1 = 0,
                     p2 = 0;
   while (p2!=string::npos) {
-    pair< string,double > p("",0.);
-
-    p2 = min(s.find(":",p1),s.find("=",p1));
-    p.first = s.substr(p1,(p2==string::npos? p2:p2-p1));
-    if (s.find("=",p1)<s.find(":",p1)) {
-      p1 = p2+1;
-      p2 = s.find(":",p1);
-      string s2 = s.substr(p1,(p2==string::npos? p2:p2-p1));
-      istringstream ss(s2);
-      ss >> p.second;
-    }
-
+    double v;
+    p2 = s.find(":",p1);
+    istringstream ss( s.substr(p1,(p2==string::npos? p2:p2-p1)) );
+    ss >> v;
     p1 = p2+1;
-    r.push_back(p);
-  }
-
-  // check zones exist and comply with dimensions
-  for (vector< pair< string,double > >::iterator p=r.begin(); p!=r.end(); ++p) {
-    vector< mzone >::const_iterator z = getzoneit(p->first,m);
-    if (z->d()==1) {
-      cout << "info: zone \"" << z->n << "\": impose = " << p->second << endl;
-    }
-    else if (z->d()==2) {
-      p->second = max(1.e-20,p->second);
-      cout << "info: zone \"" << z->n << "\": sigma = " << p->second << endl;
-    }
-    else {
-      cerr << "error: zone \"" << z->n << "\" d!=1 && d!=2" << endl;
-      throw 42;
-    }
+    r.push_back(v);
   }
 
   return r;

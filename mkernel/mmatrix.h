@@ -132,17 +132,17 @@ struct mmatrix_csr : mmatrix< T,mmatrix_csr< T,BASE > > {
     int k = 0;
     for (int R=0; R<(int) nz.size(); ++R)
       for (int i=0; i<(int) P::Nb; ++i, ++k)
-        ia[k+1] = ia[k] + nz[R].size();
+        ia[k+1] = ia[k] + (int) P::Nb * (int) nz[R].size();
     nnz = ia[nnu]-BASE;
 
     // set column indices
     ja = new int[nnz];
-    for (int R=0; R<(int) nz.size(); ++R)
+    for (unsigned R=0; R<(unsigned) nz.size(); ++R)
       for (int r=0; r<(int) P::Nb; ++r) {
         k = ia[R*P::Nb+r]-BASE;
         for (unsigned I=0; I<(unsigned) nz[R].size(); ++I)
-          for (int i=0; i<(int) P::Nb; ++i)
-            ja[k++] = (int) nz[R][I] + BASE;
+          for (int c=0; c<(int) P::Nb; ++c)
+            ja[k++] = (int) (P::Nb*nz[R][I]) + c + BASE;
       }
 
     // set entries
@@ -196,7 +196,7 @@ struct mmatrix_msr : mmatrix< T,mmatrix_msr< T > > {
     // set number of rows/non-zero entries
     nnu = (int) P::Nb * (int) nz.size();
     nnz = 0;
-    for (int i=0; i<nnu; ++i)
+    for (int i=0; i<(int) nz.size(); ++i)
       nnz += (int) nz[i].size();
     nnz *= (int) (P::Nb*P::Nb);
 
@@ -208,10 +208,10 @@ struct mmatrix_msr : mmatrix< T,mmatrix_msr< T > > {
         const int i = (int) P::Nb * R + r;
         bindx[i+1] = bindx[i] + (int) P::Nb * (int) nz[R].size() - 1;
         int k = bindx[i];
-        for (unsigned C=0; C<(unsigned) nz[R].size(); ++C)
+        for (unsigned I=0; I<(unsigned) nz[R].size(); ++I)
           for (int c=0; c<(int) P::Nb; ++c)
-            if (R!=(int) nz[R][C] || r!=c)
-              bindx[k++] = (int) (P::Nb*nz[R][C]) + c;
+            if (R!=(int) nz[R][I] || r!=c)
+              bindx[k++] = (int) (P::Nb*nz[R][I]) + c;
       }
 
     // set entries
