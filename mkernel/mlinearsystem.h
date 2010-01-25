@@ -20,13 +20,14 @@ class mlinearsystem {
  public:
   // cons/destructor
   mlinearsystem() :
-    issparse(true), xml(XMLNode::createXMLTopNode("mlinearsystem")),
+    issparse(true),
+    xml(XMLNode::createXMLTopNode("mlinearsystem")),
     Ne(0), Nv(0), Nb(1)    {}
   virtual ~mlinearsystem() {}
   // interfacing methods
   virtual void solve()                   = 0;
   virtual void zerorow(const unsigned r) = 0;
-          void zerorow(const unsigned R, const unsigned r) { zerorow(R*Nb+r); }
+  virtual void zerorow(const unsigned R, const unsigned r) { zerorow(R*Nb+r); }
   void print(std::ostream& o) {
     o << "m::mlinearsystem::X(Nv:" << Nv << ",Nb:" << Nb << "):" << std::endl;
     for (unsigned J=0; J<Nv; ++J) for (unsigned j=0; j<Nb; ++j)

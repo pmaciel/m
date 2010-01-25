@@ -96,7 +96,7 @@ struct mmatrix_aa : mmatrix< T,mmatrix_aa< T > > {
 };
 
 
-// implementation of a sparse matrix, compressed sparse rows format
+// implementation of a sparse matrix, compressed sparse rows (CSR) format
 // note: BASE={0,1}: {0,1}-based indexing (other values probably don't work)
 template< typename T, int BASE >
 struct mmatrix_csr : mmatrix< T,mmatrix_csr< T,BASE > > {
@@ -166,12 +166,12 @@ struct mmatrix_csr : mmatrix< T,mmatrix_csr< T,BASE > > {
 };
 
 
-// implementation of a sparse matrix, modified sparse row format
+// implementation of a sparse matrix, modified sparse row (MSR) format
 template< typename T >
 struct mmatrix_msr : mmatrix< T,mmatrix_msr< T > > {
   typedef mmatrix< T,mmatrix_msr< T > > P;
   // cons/destructor
-  mmatrix_msr() : P(), zero(T()) {
+  mmatrix_msr() : P(), zero(T()), nnu(0), nnz(0) {
     P::issparse = true;
   }
   ~mmatrix_msr() {
@@ -234,6 +234,90 @@ struct mmatrix_msr : mmatrix< T,mmatrix_msr< T > > {
   int *bindx;
   int nnu;
   int nnz;
+};
+
+
+// implementation of a sparse matrix, variable block compressed sparse row (VBR) format
+template< typename T >
+struct mmatrix_vbr : mmatrix< T,mmatrix_vbr< T > > {
+  typedef mmatrix< T,mmatrix_vbr< T > > P;
+  // cons/destructor and indexing operators
+  mmatrix_vbr() : P(), zero(T()), bnnu(0), bnnz(0) {
+    P::issparse = true;
+  }
+  ~mmatrix_vbr() {
+    if (bnnz) {
+      delete[] val;
+      delete[] bpntr;
+      free(cpntr);  // (set by AZ_transform)
+      delete[] rpntr;
+      delete[] bindx;
+      delete[] indx;
+    }
+  }
+  // indexing functions (absolute indexing)
+  const T& operator()(const unsigned r, const unsigned c) const { const int b=(int) P::Nb; return operator()(r/b,c/b,r%b,c%b); }
+        T& operator()(const unsigned r, const unsigned c)       { const int b=(int) P::Nb; return operator()(r/b,c/b,r%b,c%b); }
+  // indexing functions (block indexing)
+  const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { const int i=getindex(R,C,r,c); if (i<0) return zero; return val[i]; }
+        T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { const int i=getindex(R,C,r,c); if (i<0) return zero; return val[i]; }
+  // interfacing functions
+  void zerorow(const unsigned r)                   { const int b=(int) P::Nb; zerorow(r/b,r%b); }
+  void zerorow(const unsigned R, const unsigned r) {
+    const int b = (int) P::Nb;
+    const int i = getindex(R,R,r,0);
+    for (int j=0; j<b*b*(bpntr[R+1]-bpntr[R]); j+=b)
+      val[i+j] = T();
+  }
+  // initialize methods for base/sparse variation
+  void initialize(unsigned _Nr, unsigned _Nc, unsigned _Nb=1) { P::initialize(_Nr,_Nc,_Nb); }
+  void initialize(const std::vector< std::vector< unsigned > >& nz) {
+
+    // count rows and non-zero (blocks)
+    bnnu = (int) nz.size();
+    bnnz = 0;
+    for (int i=0; i<bnnu; ++i)
+      bnnz += (int) nz[i].size();
+
+    // allocate data structure (cpntr==rpntr in a struct. symmetric matrix)
+    indx  = new int[bnnz+1];
+    bindx = new int[bnnz];
+    rpntr = new int[bnnu+1];
+    cpntr = NULL;  // (set by AZ_transform)
+    bpntr = new int[bnnu+1];
+
+    // set it up (diagonal blocks come first)
+    rpntr[0] = bpntr[0] = bindx[0] = indx[0] = 0;
+    for (int i=0; i<bnnu; ++i) {
+      rpntr[i+1] = rpntr[i] + (int) P::Nb;
+      bpntr[i+1] = bpntr[i] + (int) nz[i].size();
+      int k = bpntr[i];
+      bindx[k++] = i;
+      for (int j=0; j<(int) nz[i].size(); ++j)
+        if ((int) nz[i][j]!=i)
+          bindx[k++] = (int) nz[i][j];
+      for (int j=0, k=bpntr[i]; j<(int) nz[i].size(); ++j, ++k)
+        indx[k+1] = indx[k] + (int) (P::Nb*P::Nb);
+    }
+
+    // set entries
+    val = new double[indx[bpntr[bnnu]]];  // or bnnz*P::Nb*P::Nb
+    for (int i=0; i<indx[bpntr[bnnu]]; ++i)
+      val[i] = T();
+  }
+  // utilities
+  int getindex(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const {
+    for (int i=bpntr[R]; i<bpntr[R+1]; ++i)
+      if (bindx[i]==(int) C)
+        return indx[i] + P::Nb*c + r;
+    return -1;
+  }
+  // members
+  T   zero;
+  T   *val;
+  int *indx, *bindx, *rpntr, *cpntr, *bpntr;
+  int bnnu;
+  int bnnz;
 };
 
 
