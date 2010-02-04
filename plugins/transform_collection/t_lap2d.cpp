@@ -10,13 +10,15 @@ using namespace std;
 using namespace m;
 
 
-Register< mtransform,t_lap2d > mt_lap2d(17,"-tlap2d","[str] 2d laplace equation solver, with",
+Register< mtransform,t_lap2d > mt_lap2d(19,"-tlap2d","[str] 2d laplace equation solver, with",
                                            "",       "[str] filename or string with xml formatted as:",
                                            "",       "<lap2d",
                                            "",       " ls=\"\" linear system solver (default ls_gauss)",
                                            "",       " Nb=\"\" block size (default 1)",
                                            "",       ">",
                                            "",       " <ls",
+                                           "",       "  mtype=\"\"    (default msr)",
+                                           "",       "  output=\"\"   (default 1)",
                                            "",       "  precond=\"\"  (default none)",
                                            "",       "  overlap=\"\"  (default 0)",
                                            "",       "  solver=\"\"   (default gmres)",

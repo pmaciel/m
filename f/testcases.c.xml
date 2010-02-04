@@ -1,0 +1,1511 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="testcases.c.xsl"?>
+<!DOCTYPE c [
+ <!ENTITY year "2010">
+ <!ENTITY author "Vrije Universiteit Brussel">
+ <!ENTITY author-note "&author;, &year;">
+]>
+<cdb>
+ <c label="laminar_cavity_re=0100">
+  <comment>
+   <p>Shear-driven flow in a square cavity:</p>
+   <p>Re=100, converges with pure Newton linearization.</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/laminar_cavity_001kn.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="1.e-2"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="-9.81"
+   scalarscheme="PSI"
+   diffusion="true"
+   turbulence="NONE"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="100"
+   convergence_level="-10."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Newton"
+   newton_eps="1.e-8"
+   newton_switch="-1."
+   couple_t="false"
+   couple_ke="false"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="25"
+   max_iter="100"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="1.0e-4"
+  />
+  <vars>
+   <v label="p" init="0.01"/>
+   <v label="u" init="0.001"/>
+   <v label="v" init="0.001"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="right" type="wall"/>
+   <bc zone="Boundary2" label="left" type="wall"/>
+   <bc zone="Boundary3" label="bottom" type="wall"/>
+   <bc zone="Boundary4" label="top" type="wall" option="m" values="1. 0."/>
+  </bcs>
+ </c>
+ <c label="laminar_cavity_re=1000">
+  <comment>
+   <p>Shear-driven flow in a square cavity:</p>
+   <p>Re=1000, starts with Picard linearization before switching to Newton.</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/laminar_cavity_001kn.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="1.e-3"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="-9.81"
+   scalarscheme="Lax-Wendroff"
+   diffusion="true"
+   turbulence="NONE"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="100"
+   convergence_level="-10."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-1."
+   couple_t="false"
+   couple_ke="false"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="25"
+   max_iter="100"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="1.0e-2"
+  />
+  <vars>
+   <v label="p" init="0.01"/>
+   <v label="u" init="0.001"/>
+   <v label="v" init="0.001"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="right" type="wall"/>
+   <bc zone="Boundary2" label="left" type="wall"/>
+   <bc zone="Boundary3" label="bottom" type="wall"/>
+   <bc zone="Boundary4" label="top" type="wall" option="m" values="1. 0."/>
+  </bcs>
+ </c>
+ <c label="laminar_bfstep_re=0100">
+  <comment>
+   <p>Laminar backwards-facing step:</p>
+   <p>Laminar flow past a backward-facing step.</p>
+   <p>Re=100, based on inlet bulk velocity and twice inlet duct width. Converges with pure Newton linearization.</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/laminar_bfstep_006kn.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="2.128e-2"
+   prandtl="0.7"
+   gx="0."
+   gy="0."
+   diffusion="true"
+   temperature="false"
+   buoyancy="false"
+   vardensity="false"
+   vardensity_value="1.e-3"
+   scalarscheme="PSI"
+   turbulence="NONE"
+  />
+  <solver_nonlinear
+   maxiterations="100"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Newton"
+   newton_eps="1.e-8"
+   newton_switch="-4."
+   couple_t="false"
+   couple_ke="false"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="25"
+   max_iter="150"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="1.0e-4"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="0.50"/>
+   <v label="v" init="0.01"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="wall-i" type="wall"/>
+   <bc zone="Boundary2" label="wall-v" type="wall"/>
+   <bc zone="Boundary3" label="wall-b" type="wall"/>
+   <bc zone="Boundary4" label="outlet" type="fixp" option="x" values="0."/>
+   <bc zone="Boundary5" label="wall-t" type="wall"/>
+   <bc zone="Boundary6" label="inlet" type="fixv" option="p" values="1. 0. 1."/>
+  </bcs>
+ </c>
+ <c label="laminar_bfstep_re=0400">
+  <comment>
+   <p>Laminar backwards-facing step:</p>
+   <p>Laminar flow past a backward-facing step.</p>
+   <p>Re=1000, based on inlet bulk velocity and twice inlet duct width. Starts with Picard linearization before swiching to Newton method.</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/laminar_bfstep_006kn.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="2.128e-2"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="Lax-Wendroff"
+   diffusion="true"
+   turbulence="NONE"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="100"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-4."
+   couple_t="false"
+   couple_ke="false"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="25"
+   max_iter="150"
+   overlap="none"
+   precond="bilu"
+   solver="tfqmr"
+   tol="5.0e-2"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="2.00"/>
+   <v label="v" init="0.01"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="wall-i" type="wall"/>
+   <bc zone="Boundary2" label="wall-v" type="wall"/>
+   <bc zone="Boundary3" label="wall-b" type="wall"/>
+   <bc zone="Boundary4" label="outlet" type="fixp" option="x" values="0."/>
+   <bc zone="Boundary5" label="wall-t" type="wall"/>
+   <bc zone="Boundary6" label="inlet" type="fixv" option="p" values="4. 0. 1."/>
+  </bcs>
+ </c>
+ <c label="laminar_buoyancy_ra=1e5">
+  <comment>
+   <p>Buoyancy-driven cavity (Hortmann, Peric, Scheurer, IJNMF 11, p.189, 1990):</p>
+   <p>Laminar buoyancy-driven flow in a square cavity.</p>
+   <p>This case displays combined flow and heat transfer with buoyancy effects.</p>
+   <p>Rayleigh number: Ra=1.e5, Pr=0.71 => Gr=1.41e5</p>
+   <p>Input values: beta, gx, gy, T-right, T-left</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/laminar_buoyancy_001kn_ra=1e5.plt"
+  />
+  <terms
+   density="1.19"
+   kviscosity="1.51e-5"
+   prandtl="0.71"
+   vardensity_value="0.00341"
+   gx="0."
+   gy="-9.81"
+   scalarscheme="Lax-Wendroff"
+   diffusion="true"
+   turbulence="NONE"
+   temperature="true"
+   vardensity="false"
+   buoyancy="true"
+  />
+  <solver_nonlinear
+   maxiterations="2000"
+   convergence_level="-12."
+   convergence_variable="t"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-3."
+   couple_t="true"
+   couple_ke="false"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="25"
+   max_iter="100"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <vars>
+   <v label="p" init="0.01"/>
+   <v label="u" init="0.001"/>
+   <v label="v" init="0.001"/>
+   <v label="t" init="2."/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="left" type="wall" values="12."/>
+   <bc zone="Boundary2" label="bottom" type="wall" option="q" values="0."/>
+   <bc zone="Boundary3" label="right" type="wall" values="2."/>
+   <bc zone="Boundary4" label="top" type="wall" option="q" values="0."/>
+  </bcs>
+ </c>
+ <c label="laminar_buoyancy_ra=1e6">
+  <comment>
+   <p>Buoyancy-driven cavity (Hortmann, Peric, Scheurer, IJNMF 11, p.189, 1990):</p>
+   <p>Laminar buoyancy-driven flow in a square cavity.</p>
+   <p>This case displays combined flow and heat transfer with buoyancy effects.</p>
+   <p>Rayleigh number: Ra=1.e6, Pr=0.71 => Gr=1.41e6</p>
+   <p>Input values: beta, gx, gy, T-right, T-left</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/laminar_buoyancy_001kn_ra=1e6.plt"
+  />
+  <terms
+   density="1.19"
+   kviscosity="1.51e-5"
+   prandtl="0.71"
+   vardensity_value="0.00341"
+   gx="0."
+   gy="-9.81"
+   scalarscheme="Lax-Wendroff"
+   diffusion="true"
+   turbulence="NONE"
+   temperature="true"
+   vardensity="false"
+   buoyancy="true"
+  />
+  <solver_nonlinear
+   maxiterations="2000"
+   convergence_level="-12."
+   convergence_variable="t"
+   relax_puvw_type="dt-local"
+   relax_puvw_value="100."
+   relax_t_type="dt-local"
+   relax_t_value="100."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-3."
+   couple_t="true"
+   couple_ke="false"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="25"
+   max_iter="100"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <vars>
+   <v label="p" init="0.01"/>
+   <v label="u" init="0.001"/>
+   <v label="v" init="0.001"/>
+   <v label="t" init="7."/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="left" type="wall" values="12."/>
+   <bc zone="Boundary2" label="bottom" type="wall" option="q" values="0."/>
+   <bc zone="Boundary3" label="right" type="wall" values="2."/>
+   <bc zone="Boundary4" label="top" type="wall" option="q" values="0."/>
+  </bcs>
+ </c>
+ <c label="laminar_duct3d_heat_transfer">
+  <comment>
+   <p>Developing laminar flow between two infinite flat planes:</p>
+   <p>Treated as 3D problem with symmetry plane in centre.</p>
+   <p>Re=100, based on bulk velocity and duct width, converges with pure Newton linearization.</p>
+   <p>NON-ISOTHERMAL CASE: inflow has temperature of 50 deg.C and wall is heat to 100 deg.C</p>
+   <p>(No buoyancy is activated hence temperature field has no effect on flow variables and could be calculated separately)</p>
+  </comment>
+  <setup
+   dimensions="3"
+   restart="0"
+   file_input="testcases/laminar_duct_3d_001kn.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="2.e-2"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   gz="0."
+   scalarscheme="Lax-Wendroff"
+   diffusion="true"
+   turbulence="NONE"
+   temperature="true"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="100"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Newton"
+   newton_eps="1.e-8"
+   newton_switch="-4."
+   couple_t="false"
+   couple_ke="false"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="25"
+   max_iter="150"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="1.0e-4"
+  />
+  <system_scalar
+   type="ls_aztec"
+   mtype="msr"
+   output="1"
+   kspace="50"
+   max_iter="50"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-2"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="0.50"/>
+   <v label="v" init="0.01"/>
+   <v label="w" init="0.01"/>
+   <v label="t" init="100."/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="inlet" type="fixv" option="u" values="1. 50."/>
+   <bc zone="Boundary2" label="outlet" type="fixp" option="x" values="0."/>
+   <bc zone="Boundary3" label="wall" type="wall" values="100."/>
+   <bc zone="Boundary4" label="upper" type="symm" option="y"/>
+   <bc zone="Boundary5" label="side1" type="symm" option="z"/>
+   <bc zone="Boundary6" label="side2" type="symm" option="z"/>
+  </bcs>
+ </c>
+ <c label="laminar_duct3d_isothermal">
+  <comment>
+   <p>Developing laminar flow between two infinite flat planes:</p>
+   <p>Treated as 3D problem with symmetry plane in centre.</p>
+   <p>Re=100, based on bulk velocity and duct width, converges with pure Newton linearization.</p>
+  </comment>
+  <setup
+   dimensions="3"
+   restart="0"
+   file_input="testcases/laminar_duct_3d_001kn.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="2.e-2"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   gz="0."
+   scalarscheme="Lax-Wendroff"
+   diffusion="true"
+   turbulence="NONE"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="100"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Newton"
+   newton_eps="1.e-8"
+   newton_switch="-4."
+   couple_t="false"
+   couple_ke="false"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="25"
+   max_iter="150"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="1.0e-4"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="0.50"/>
+   <v label="v" init="0.01"/>
+   <v label="w" init="0.01"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="inlet" type="fixv" option="u" values="1."/>
+   <bc zone="Boundary2" label="outlet" type="fixp" option="x" values="0."/>
+   <bc zone="Boundary3" label="wall" type="wall"/>
+   <bc zone="Boundary4" label="upper" type="symm" option="y"/>
+   <bc zone="Boundary5" label="side1" type="symm" option="z"/>
+   <bc zone="Boundary6" label="side2" type="symm" option="z"/>
+  </bcs>
+ </c>
+ <c label="laminar_pipe_bend_re500_coarse">
+  <comment>
+   <p>Laminar flow in 3D through a 90-degree pipe bend:</p>
+   <p>Re=500, based on bulk velocity and pipe diameter.</p>
+  </comment>
+  <setup
+   dimensions="3"
+   restart="0"
+   file_input="testcases/laminar_pipe_bend_014kn.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="4.e-3"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   gz="0."
+   scalarscheme="Lax-Wendroff"
+   diffusion="true"
+   turbulence="NONE"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="100"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-2."
+   couple_t="false"
+   couple_ke="false"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="200"
+   overlap="none"
+   precond="bilu"
+   solver="bicgstab"
+   tol="5.0e-2"
+  />
+  <system_scalar
+   type="ls_aztec"
+   mtype="msr"
+   output="1"
+   kspace="50"
+   max_iter="50"
+   overlap="none"
+   precond="ilu"
+   solver="bicgstab"
+   tol="1.0e-2"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="0.001"/>
+   <v label="v" init="0.001"/>
+   <v label="w" init="0.001"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="centre" type="symm" option="x"/>
+   <bc zone="Boundary2" label="wall" type="wall"/>
+   <bc zone="Boundary3" label="inlet" type="fixv" option="u" values="1.028"/>
+   <bc zone="Boundary4" label="outlet" type="fixp" values="0."/>
+  </bcs>
+ </c>
+ <c label="turbulent_bfstep_ds_akn">
+  <comment>
+   <p>Turbulent backwards-facing step:</p>
+   <p>Turbulent flow past a backward-facing step for the conditions examined by Driver and Seegmiller.</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/turbulent_bfstep_ds_022kn.plt"
+   file_inlet="testcases/turbulent_bfstep_ds_inlet_ke.dat"
+  />
+  <terms
+   density="1."
+   kviscosity="2.67e-5"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="N"
+   diffusion="true"
+   turbulence="KENA"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="1000"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-4."
+   couple_t="false"
+   couple_ke="true"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="none"
+   kspace="50"
+   max_iter="250"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <system_turb
+   type="ls_aztec"
+   mtype="vbr"
+   output="none"
+   kspace="50"
+   max_iter="100"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-2"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="0.750"/>
+   <v label="v" init="0.001"/>
+   <v label="k" init="0.05"/>
+   <v label="e" init="5.00"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="wall-u" type="wall"/>
+   <bc zone="Boundary2" label="wall-s" type="wall"/>
+   <bc zone="Boundary3" label="wall-d" type="wall"/>
+   <bc zone="Boundary4" label="exit" type="fixp" option="x" values="0."/>
+   <bc zone="Boundary5" label="top" type="wall"/>
+   <bc zone="Boundary6" label="inlet" type="fixv" option="r" values="1. 1."/>
+  </bcs>
+ </c>
+ <c label="turbulent_bfstep_ds_sst">
+  <comment>
+   <p>Turbulent backwards-facing step:</p>
+   <p>Turbulent flow past a backward-facing step for the conditions examined by Driver and Seegmiller.</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/turbulent_bfstep_ds_022kn.plt"
+   file_inlet="testcases/turbulent_bfstep_ds_inlet_kw.dat"
+  />
+  <terms
+   density="1."
+   kviscosity="2.67e-5"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="N"
+   diffusion="true"
+   turbulence="KWSS"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="1000"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="0.6"
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="0.6"
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-23."
+   couple_t="false"
+   couple_ke="true"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="250"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <system_turb
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="100"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-2"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="0.750"/>
+   <v label="v" init="0.001"/>
+   <v label="k" init="0.05"/>
+   <v label="e" init="5.00"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="wall-u" type="wall"/>
+   <bc zone="Boundary2" label="wall-s" type="wall"/>
+   <bc zone="Boundary3" label="wall-d" type="wall"/>
+   <bc zone="Boundary4" label="exit" type="fixp" option="x" values="0."/>
+   <bc zone="Boundary5" label="top" type="wall"/>
+   <bc zone="Boundary6" label="inlet" type="fixv" option="r" values="1. 1."/>
+  </bcs>
+ </c>
+ <c label="turbulent_bfstep_jd_akn">
+  <comment>
+   <p>Turbulent backwards-facing step:</p>
+   <p>Turbulent flow past a backward-facing step for the conditions examined by Jovic and Driver (experimentally) and Le, Moin and Kim (DNS).</p>
+   <p>The Reynolds number is quite low (about 5000).</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/turbulent_bfstep_jd_021kn.plt"
+   file_inlet="testcases/turbulent_bfstep_jd_inlet_ke.dat"
+  />
+  <terms
+   density="1."
+   kviscosity="1.96e-4"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="N"
+   diffusion="true"
+   turbulence="KENA"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="1000"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-40."
+   couple_t="false"
+   couple_ke="true"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="200"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <system_turb
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="100"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-2"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="0.500"/>
+   <v label="v" init="0.001"/>
+   <v label="k" init="0.01"/>
+   <v label="e" init="5.00"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="wall-u" type="wall"/>
+   <bc zone="Boundary2" label="wall-s" type="wall"/>
+   <bc zone="Boundary3" label="wall-d" type="wall"/>
+   <bc zone="Boundary4" label="exit" type="fixp" option="x" values="0."/>
+   <bc zone="Boundary5" label="top" type="symm" option="y"/>
+   <bc zone="Boundary6" label="inlet" type="fixv" option="r" values="1. 1."/>
+  </bcs>
+ </c>
+ <c label="turbulent_bfstep_jd_kwl">
+  <comment>
+   <p>Turbulent backwards-facing step:</p>
+   <p>Turbulent flow past a backward-facing step for the conditions examined by Jovic and Driver (experimentally) and Le, Moin and Kim (DNS).</p>
+   <p>The Reynolds number is quite low (about 5000).</p>
+   <p>Expansion ratio=1.=H/h => for step height 1.0: h=.0, H=.0</p>
+   <p>Low-Re k-w model</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/turbulent_bfstep_jd_021kn.plt"
+   file_inlet="testcases/turbulent_bfstep_jd_inlet_kw.dat"
+  />
+  <terms
+   density="1."
+   kviscosity="2.e-4"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="N"
+   diffusion="true"
+   turbulence="KWLR"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="1000"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="0.8"
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="0.8"
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-100."
+   couple_t="false"
+   couple_ke="true"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="300"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <system_turb
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="100"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-2"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="0.500"/>
+   <v label="v" init="0.001"/>
+   <v label="k" init="0.01"/>
+   <v label="e" init="3.00"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="wall-u" type="wall"/>
+   <bc zone="Boundary2" label="wall-s" type="wall"/>
+   <bc zone="Boundary3" label="wall-d" type="wall"/>
+   <bc zone="Boundary4" label="exit" type="fixp" option="x" values="0."/>
+   <bc zone="Boundary5" label="top" type="symm" option="y"/>
+   <bc zone="Boundary6" label="inlet" type="fixv" option="r" values="1. 1."/>
+  </bcs>
+ </c>
+ <c label="turbulent_bfstep_ve_akn_flow">
+  <comment>
+   <p>Turbulent backwards-facing step:</p>
+   <p>Turbulent flow past a backward-facing step for the conditions described by Vogel and Eaton.</p>
+   <p>Case 1/2 is for solving the flow without heat transfer, using the Abe-Kondoh-Nagano k-e model.</p>
+   <p>Expansion ratio=1.25= H/h => for step height 1.0: h=4.0, H=5.0</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/turbulent_bfstep_ve_028kn.plt"
+   file_inlet="testcases/turbulent_bfstep_ve_inlet_ke.dat"
+  />
+  <terms
+   density="1."
+   kviscosity="3.57e-5"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="N"
+   diffusion="true"
+   turbulence="KENA"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="1000"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="0.8"
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="0.8"
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-23."
+   couple_t="false"
+   couple_ke="true"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="250"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <system_turb
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="50"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-2"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="0.750"/>
+   <v label="v" init="0.001"/>
+   <v label="k" init="0.05"/>
+   <v label="e" init="5.00"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="wall-u" type="wall"/>
+   <bc zone="Boundary2" label="wall-s" type="wall"/>
+   <bc zone="Boundary3" label="wall-d" type="wall"/>
+   <bc zone="Boundary4" label="exit" type="fixp" option="x" values="0."/>
+   <bc zone="Boundary5" label="top" type="wall"/>
+   <bc zone="Boundary6" label="inlet" type="fixv" option="r" values="1. 1."/>
+  </bcs>
+ </c>
+ <c label="turbulent_bfstep_ve_akn_heat">
+  <comment>
+   <p>Turbulent backwards-facing step:</p>
+   <p>Turbulent flow past a backward-facing step for the conditions described by Vogel and Eaton.</p>
+   <p>Case 2/2 is for calculating the temperature field based on an existing converged flow solution.</p>
+   <p>It can only be run after case 1.</p>
+   <p>Expansion ratio = 1.25 = H/h</p>
+   <p>=> for step height 1.0: h=4.0, H=5.0</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="1"
+   file_input="testcases/turbulent_bfstep_ve_028kn.plt"
+   file_inlet="testcases/turbulent_bfstep_ve_inlet_ke.dat"
+  />
+  <terms
+   density="1."
+   kviscosity="3.57e-5"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="Lax-Wendroff"
+   diffusion="true"
+   turbulence="KENA"
+   temperature="true"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="1000"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-23."
+   couple_t="false"
+   couple_ke="true"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="200"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <system_scalar
+   type="ls_aztec"
+   mtype="msr"
+   output="1"
+   kspace="50"
+   max_iter="1000"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-12"
+  />
+  <system_turb
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="1000"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-12"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="0.750"/>
+   <v label="v" init="0.001"/>
+   <v label="t" init="10."/>
+   <v label="k" init="0.05"/>
+   <v label="e" init="5.00"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="wall-u" type="wall" option="q" values="0."/>
+   <bc zone="Boundary2" label="wall-s" type="wall" option="q" values="0."/>
+   <bc zone="Boundary3" label="wall-d" type="wall" option="q" values="3.9e-4"/>
+   <bc zone="Boundary4" label="exit" type="fixp" option="x" values="0."/>
+   <bc zone="Boundary5" label="top" type="wall" option="q" values="0."/>
+   <bc zone="Boundary6" label="inlet" type="fixv" option="r" values="1. 1."/>
+  </bcs>
+ </c>
+ <c label="turbulent_channel_akn_coarse">
+  <comment>
+   <p>Turbulent fully-developed flow in a 2D channel:</p>
+   <p>This is very well suited for testing turbulence model implementation.</p>
+   <p>The cases are Abe-Kondoh-Nagano k-e models.</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/turbulent_channel_138n_yp=1.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="2.53e-3"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="N"
+   diffusion="true"
+   turbulence="KENA"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="200"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-30."
+   couple_t="false"
+   couple_ke="true"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="250"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <system_turb
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="50"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-4"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="10.000"/>
+   <v label="v" init="00.001"/>
+   <v label="k" init="0.1"/>
+   <v label="e" init="1.0"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="inlet" type="peri" option="x" values="0.1"/>
+   <bc zone="Boundary2" label="exit" type="pere" option="x" values="0."/>
+   <bc zone="Boundary3" label="wall" type="wall"/>
+   <bc zone="Boundary4" label="centre" type="symm" option="y"/>
+  </bcs>
+ </c>
+ <c label="turbulent_channel_akn_fine">
+  <comment>
+   <p>Turbulent fully-developed flow in a 2D channel:</p>
+   <p>This is very well suited for testing turbulence model implementation.</p>
+   <p>The cases are Abe-Kondoh-Nagano k-e models.</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/turbulent_channel_543n_yp=1.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="2.53e-3"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="N"
+   diffusion="true"
+   turbulence="KENA"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="200"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-30."
+   couple_t="false"
+   couple_ke="true"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="250"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <system_turb
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="50"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-4"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="10.000"/>
+   <v label="v" init="00.001"/>
+   <v label="k" init="0.1"/>
+   <v label="e" init="1.0"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="inlet" type="peri" option="x" values="0.1"/>
+   <bc zone="Boundary2" label="exit" type="pere" option="x" values="0."/>
+   <bc zone="Boundary3" label="wall" type="wall"/>
+   <bc zone="Boundary4" label="centre" type="symm" option="y"/>
+  </bcs>
+ </c>
+ <c label="turbulent_channel_akn_medium">
+  <comment>
+   <p>Turbulent fully-developed flow in a 2D channel:</p>
+   <p>This is very well suited for testing turbulence model implementation.</p>
+   <p>The cases are Abe-Kondoh-Nagano k-e models.</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/turbulent_channel_273n_yp=1.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="2.53e-3"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="N"
+   diffusion="true"
+   turbulence="KENA"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="200"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-30."
+   couple_t="false"
+   couple_ke="true"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="250"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <system_turb
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="50"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-4"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="10.000"/>
+   <v label="v" init="00.001"/>
+   <v label="k" init="0.1"/>
+   <v label="e" init="1.0"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="inlet" type="peri" option="x" values="0.1"/>
+   <bc zone="Boundary2" label="exit" type="pere" option="x" values="0."/>
+   <bc zone="Boundary3" label="wall" type="wall"/>
+   <bc zone="Boundary4" label="centre" type="symm" option="y"/>
+  </bcs>
+ </c>
+ <c label="turbulent_channel_akn_vfine">
+  <comment>
+   <p>Turbulent fully-developed flow in a 2D channel:</p>
+   <p>This is very well suited for testing turbulence model implementation.</p>
+   <p>The cases are Abe-Kondoh-Nagano k-e models.</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/turbulent_channel_543n_yp=0.1.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="2.53e-3"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="N"
+   diffusion="true"
+   turbulence="KENA"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="200"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-30."
+   couple_t="false"
+   couple_ke="true"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="250"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <system_turb
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="50"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-4"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="10.000"/>
+   <v label="v" init="00.001"/>
+   <v label="k" init="0.1"/>
+   <v label="e" init="1.0"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="inlet" type="peri" option="x" values="0.1"/>
+   <bc zone="Boundary2" label="exit" type="pere" option="x" values="0."/>
+   <bc zone="Boundary3" label="wall" type="wall"/>
+   <bc zone="Boundary4" label="centre" type="symm" option="y"/>
+  </bcs>
+ </c>
+ <c label="turbulent_ribbed_channel_akn">
+  <comment>
+   <p>Turbulent flow in a ribbed channel:</p>
+   <p>Conditions examined by Drain and Martin, with turbulence model set to Abe-Kondoh-Nagano (k-epsilon).</p>
+  </comment>
+  <setup
+   dimensions="2"
+   restart="0"
+   file_input="testcases/turbulent_ribbed_channel_012kn.plt"
+  />
+  <terms
+   density="1."
+   kviscosity="1.075e-4"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="N"
+   diffusion="true"
+   turbulence="KENA"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <solver_nonlinear
+   maxiterations="1000"
+   convergence_level="-12."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="0.8"
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="0.8"
+   method="Picard"
+   newton_eps="1.e-8"
+   newton_switch="-100."
+   couple_t="false"
+   couple_ke="true"
+  />
+  <system_coupled
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="250"
+   overlap="none"
+   precond="bilu"
+   solver="gmres"
+   tol="5.0e-2"
+  />
+  <system_turb
+   type="ls_aztec"
+   mtype="vbr"
+   output="1"
+   kspace="50"
+   max_iter="150"
+   overlap="none"
+   precond="ilu"
+   solver="gmres"
+   tol="1.0e-4"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="1.000"/>
+   <v label="v" init="0.001"/>
+   <v label="k" init="0.1"/>
+   <v label="e" init="2.5"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="inlet" type="peri" option="x" values="0.052"/>
+   <bc zone="Boundary2" label="wall-u" type="wall"/>
+   <bc zone="Boundary3" label="wall-s" type="wall"/>
+   <bc zone="Boundary4" label="wall-d" type="wall"/>
+   <bc zone="Boundary5" label="wall-d" type="wall"/>
+   <bc zone="Boundary6" label="exit" type="pere" option="x" values="0."/>
+   <bc zone="Boundary7" label="wall-u" type="wall"/>
+  </bcs>
+ </c>
+</cdb>
+

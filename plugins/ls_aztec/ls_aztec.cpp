@@ -16,16 +16,18 @@ namespace m {
 
 ls_aztec::ls_aztec() :
   mlinearsystem< double >(),
-  m_mtype(AZ_MSR_MATRIX)
+  mtype(AZ_MSR_MATRIX)
 {
   // allocate options, parameters, status, proc_config and update
-  proc_config = new int[AZ_PROC_SIZE];
-  options = new int[AZ_OPTIONS_SIZE];
-  params = new double[AZ_PARAMS_SIZE];
-  status = new double[AZ_STATUS_SIZE];
+  proc_config = new int[AZ_PROC_SIZE];  for (int i=0; i<AZ_PROC_SIZE;    ++i) proc_config[i] = 0;
+  options = new int[AZ_OPTIONS_SIZE];   for (int i=0; i<AZ_OPTIONS_SIZE; ++i) options[i] = 0;
+  params = new double[AZ_PARAMS_SIZE];  for (int i=0; i<AZ_PARAMS_SIZE;  ++i) params[i] = 0.;
+  status = new double[AZ_STATUS_SIZE];  for (int i=0; i<AZ_STATUS_SIZE;  ++i) status[i] = 0.;
 
   // setup options/params (at initialize, user option override)
   AZ_defaults(options,params);
+  xml.addAttribute("mtype",    "msr");
+  xml.addAttribute("output",   "1");
   xml.addAttribute("precond",  "none");
   xml.addAttribute("overlap",  "0");
   xml.addAttribute("solver",   "gmres");
@@ -57,7 +59,7 @@ void ls_aztec::initialize(unsigned _Ne, unsigned _Nv, unsigned _Nb)
 
   cout << "parent/matrix initialize..." << endl;
   mlinearsystem< double >::initialize(_Ne,_Nv,_Nb);
-  if (m_mtype==AZ_MSR_MATRIX)
+  if (mtype==AZ_MSR_MATRIX)
     m_A_msr.initialize(Ne,Nv,Nb);
   else
     m_A_vbr.initialize(Ne,Nv,Nb);
@@ -71,8 +73,8 @@ void ls_aztec::initialize(const vector< vector< unsigned > >& nz)
   AZ_processor_info(proc_config);
   cout << "aztec: AZ_processor_info." << endl;
 
-  cout << "aztec: initialize, AZ_{read_update,transform,check_" << (m_mtype==AZ_MSR_MATRIX? "msr":"vbr") << "}..." << endl;
-  if (m_mtype==AZ_MSR_MATRIX) {
+  cout << "aztec: initialize, AZ_{read_update,transform,check_" << (mtype==AZ_MSR_MATRIX? "msr":"vbr") << "}..." << endl;
+  if (mtype==AZ_MSR_MATRIX) {
     m_A_msr.initialize(nz);
     int N_update = 0;
     AZ_read_update(&N_update,&update,proc_config,Ne*Nb,1,AZ_linear);
@@ -88,10 +90,10 @@ void ls_aztec::initialize(const vector< vector< unsigned > >& nz)
     AZ_transform( proc_config, &external, m_A_vbr.bindx, m_A_vbr.val,
       update, &update_index, &extern_index, &data_org, N_update,
       m_A_vbr.indx, m_A_vbr.bpntr, m_A_vbr.rpntr, &m_A_vbr.cpntr, AZ_VBR_MATRIX );
-    AZ_check_vbr( N_update, 0, AZ_GLOBAL, 
+    AZ_check_vbr( N_update, 0, AZ_GLOBAL,
       m_A_vbr.bindx, m_A_vbr.bpntr, m_A_vbr.cpntr, m_A_vbr.rpntr, proc_config);
   }
-  cout << "aztec: initialize, AZ_{read_update,transform,check_" << (m_mtype==AZ_MSR_MATRIX? "msr":"vbr") << "}." << endl;
+  cout << "aztec: initialize, AZ_{read_update,transform,check_" << (mtype==AZ_MSR_MATRIX? "msr":"vbr") << "}." << endl;
 
   cout << "aztec: AZ_check_input..." << endl;
   AZ_check_input(data_org,options,params,proc_config);
@@ -101,33 +103,33 @@ void ls_aztec::initialize(const vector< vector< unsigned > >& nz)
 
 const double& ls_aztec::A(const unsigned r, const unsigned c) const
 {
-  return m_mtype==AZ_MSR_MATRIX? m_A_msr(r,c):m_A_vbr(r,c);
+  return mtype==AZ_MSR_MATRIX? m_A_msr(r,c):m_A_vbr(r,c);
 }
 
 
 double& ls_aztec::A(const unsigned r, const unsigned c)
 {
-  return m_mtype==AZ_MSR_MATRIX? m_A_msr(r,c):m_A_vbr(r,c);
+  return mtype==AZ_MSR_MATRIX? m_A_msr(r,c):m_A_vbr(r,c);
 }
 
 
 const double& ls_aztec::A(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const
 {
-  return m_mtype==AZ_MSR_MATRIX? m_A_msr(R,C,r,c):m_A_vbr(R,C,r,c);
+  return mtype==AZ_MSR_MATRIX? m_A_msr(R,C,r,c):m_A_vbr(R,C,r,c);
 }
 
 
 double& ls_aztec::A(const unsigned R, const unsigned C, const unsigned r, const unsigned c)
 {
-  return m_mtype==AZ_MSR_MATRIX? m_A_msr(R,C,r,c):m_A_vbr(R,C,r,c);
+  return mtype==AZ_MSR_MATRIX? m_A_msr(R,C,r,c):m_A_vbr(R,C,r,c);
 }
 
 
 void ls_aztec::set_az_options(XMLNode& xml, int *options, double *params)
 {
   // set matrix type
-  const string mtype = xml.getAttribute< string >("mtype","msr");
-  m_mtype = mtype=="vbr"? AZ_VBR_MATRIX : AZ_MSR_MATRIX;
+  const string mtype_str = xml.getAttribute< string >("mtype","msr");
+  mtype = mtype_str=="vbr"? AZ_VBR_MATRIX : AZ_MSR_MATRIX;
 
   // set maximum iterations, number of Krylov subspaces and tolerance
   options[AZ_max_iter] = xml.getAttribute< int    >("max_iter",options[AZ_max_iter]);
@@ -179,27 +181,62 @@ void ls_aztec::set_az_options(XMLNode& xml, int *options, double *params)
 }
 
 
+void ls_aztec::reset(const double &v)
+{
+  mlinearsystem< double >::reset(v);
+  if (mtype==AZ_MSR_MATRIX)
+    m_A_msr.reset(v);
+  else
+    m_A_vbr.reset(v);
+}
+
+
 void ls_aztec::zerorow(const unsigned r)
 {
-  B(r) = 0.;
-  if (m_mtype==AZ_MSR_MATRIX)
-    m_A_msr.zerorow(r);
+  zerorow(r/Nb,r%Nb);
+}
+
+
+void ls_aztec::zerorow(const unsigned R, const unsigned r)
+{
+  B(R,r) = 0.;
+  if (mtype==AZ_MSR_MATRIX)
+    m_A_msr.zerorow(R,r);
   else
-    m_A_vbr.zerorow(r);
+    m_A_vbr.zerorow(R,r);
+}
+
+
+void ls_aztec::print(std::ostream& o, bool pmatrix)
+{
+/*  mlinearsystem< double >::print(o,false);return;*/
+  mlinearsystem< double >::print(o,false);
+  if (!pmatrix)
+    return;
+  if (mtype==AZ_MSR_MATRIX)
+    AZ_print_out(
+      update_index, extern_index, update, external,
+      m_A_msr.val, NULL, m_A_msr.bindx, NULL, NULL, NULL,
+      proc_config, AZ_explicit, mtype, Ne, 0, 0 );
+  else
+    AZ_print_out(
+      update_index, extern_index, update, external,
+      m_A_vbr.val, m_A_vbr.indx, m_A_vbr.bindx, m_A_vbr.rpntr, m_A_vbr.cpntr, m_A_vbr.bpntr,
+      proc_config, AZ_explicit, mtype, Ne, 0, 0 );
 }
 
 
 void ls_aztec::solve()
 {
   status[AZ_its] = 0.;
-  for (int i=0; i<5 && status[AZ_its]<5.; ++i) {
+  for (int i=0; i<1/*5 && status[AZ_its]<5.*/; ++i) {
     AZ_solve( &m_X[0], &m_B[0], options, params,
-      m_mtype==AZ_MSR_MATRIX? NULL          : m_A_vbr.indx,
-      m_mtype==AZ_MSR_MATRIX? m_A_msr.bindx : m_A_vbr.bindx,
-      m_mtype==AZ_MSR_MATRIX? NULL          : m_A_vbr.rpntr,
-      m_mtype==AZ_MSR_MATRIX? NULL          : m_A_vbr.cpntr,
-      m_mtype==AZ_MSR_MATRIX? NULL          : m_A_vbr.bpntr,
-      m_mtype==AZ_MSR_MATRIX? m_A_msr.val   : m_A_vbr.val,
+      mtype==AZ_MSR_MATRIX? NULL          : m_A_vbr.indx,
+      mtype==AZ_MSR_MATRIX? m_A_msr.bindx : m_A_vbr.bindx,
+      mtype==AZ_MSR_MATRIX? NULL          : m_A_vbr.rpntr,
+      mtype==AZ_MSR_MATRIX? NULL          : m_A_vbr.cpntr,
+      mtype==AZ_MSR_MATRIX? NULL          : m_A_vbr.bpntr,
+      mtype==AZ_MSR_MATRIX? m_A_msr.val   : m_A_vbr.val,
       data_org, status, proc_config );
     cout << "aztec status:"
          << "  [AZ_its]=" << status[AZ_its]

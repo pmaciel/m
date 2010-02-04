@@ -13,6 +13,7 @@ class ls_gmres : public mlinearsystem< double > {
   // constructor
   ls_gmres() : mlinearsystem< double >(), c__1(1) {}
   // interfacing functions
+  void reset(const double& v=0.) { mlinearsystem< double >::reset(v); m_A.reset(v); }
   void zerorow(const unsigned r) { B(r)=0.; m_A.zerorow(r); }
   void solve();
   // initialize methods for dense/sparse variations

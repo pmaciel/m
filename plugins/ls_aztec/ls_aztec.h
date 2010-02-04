@@ -14,7 +14,10 @@ class ls_aztec : public mlinearsystem< double > {
   ls_aztec();
   ~ls_aztec();
   // interfacing functions
+  void reset(const double& v=0.);
   void zerorow(const unsigned r);
+  void zerorow(const unsigned R, const unsigned r);
+  void print(std::ostream& o, bool pmatrix=false);
   void solve();
   // initialize methods for dense/sparse variations
   void initialize(unsigned _Ne, unsigned _Nv, unsigned _Nb);
@@ -30,7 +33,7 @@ class ls_aztec : public mlinearsystem< double > {
   void set_az_options(XMLNode& xml, int *options, double *params);
  private:
   // members
-  int m_mtype;                    // matrix type
+  int mtype;                      // matrix type
   mmatrix_msr< double > m_A_msr;  // ... in MSR format
   mmatrix_vbr< double > m_A_vbr;  // ... in VBR format
   int *options;                   // solver options

@@ -25,6 +25,7 @@ struct mmatrix {
   const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return P::operator()(R,C,r,c); };
         T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return P::operator()(R,C,r,c); };
   // interfacing functions
+  void reset(const T& v=T())                       { P::reset(v);     };
   void zerorow(const unsigned r)                   { P::zerorow(r);   };
   void zerorow(const unsigned R, const unsigned r) { P::zerorow(R,r); };
   // initialize methods for dense/sparse variations
@@ -49,12 +50,13 @@ struct mmatrix_vv : mmatrix< T,mmatrix_vv< T > > {
   const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return operator()(P::Nb*R+r,P::Nb*C+c); }
         T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return operator()(P::Nb*R+r,P::Nb*C+c); }
   // interfacing functions
+  void reset(const T& v=T())                       { a.assign(P::Nb*P::Nr,std::vector< T >(P::Nb*P::Nc,v)); };
   void zerorow(const unsigned r)                   { a[r].assign(P::Nb*P::Nc,T()); }
   void zerorow(const unsigned R, const unsigned r) { zerorow(P::Nb*R+r); };
   // initialize method for dense variation
   void initialize(unsigned _Nr, unsigned _Nc, unsigned _Nb=1) {
     P::initialize(_Nr,_Nc,_Nb);
-    a.assign(P::Nb*P::Nr,std::vector< T >(P::Nb*P::Nc,T()));
+    reset(T());
   }
   // members
   std::vector< std::vector< T > > a;
@@ -79,6 +81,7 @@ struct mmatrix_aa : mmatrix< T,mmatrix_aa< T > > {
   const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return operator()(P::Nb*R+r,P::Nb*C+c); }
         T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return operator()(P::Nb*R+r,P::Nb*C+c); }
   // interfacing functions
+  void reset(const T& v=T())                       { for (unsigned r=0; r<P::Nb*P::Nr; ++r) for (unsigned c=0; c<P::Nb*P::Nc; ++c) a[r][c] = v; };
   void zerorow(const unsigned r)                   { for (unsigned c=0; c<P::Nb*P::Nc; ++c) a[r][c] = T(); }
   void zerorow(const unsigned R, const unsigned r) { zerorow(P::Nb*R+r); };
   // initialize method for dense variation
@@ -88,8 +91,7 @@ struct mmatrix_aa : mmatrix< T,mmatrix_aa< T > > {
     a[0] = new T [ P::Nb*P::Nr * P::Nb*P::Nc ];
     for (unsigned r=1; r<P::Nb*P::Nr; ++r)
       a[r] = a[r-1] + P::Nb*P::Nc;
-    for (unsigned r=0; r<P::Nb*P::Nr; ++r)
-      zerorow(r);
+    reset(T());
   }
   // members
   T **a;
@@ -119,6 +121,7 @@ struct mmatrix_csr : mmatrix< T,mmatrix_csr< T,BASE > > {
   const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return operator()(P::Nb*R+r,P::Nb*C+c); }
         T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return operator()(P::Nb*R+r,P::Nb*C+c); }
   // interfacing functions
+  void reset(const T& v=T())                       { for (int i=0; i<nnz; ++i) a[i] = v; };
   void zerorow(const unsigned r)                   { for (int k=ia[r]-BASE; k<ia[r+1]-BASE; ++k) a[k] = T(); }
   void zerorow(const unsigned R, const unsigned r) { zerorow(P::Nb*R+r); };
   // initialize methods for base/sparse variation
@@ -147,8 +150,7 @@ struct mmatrix_csr : mmatrix< T,mmatrix_csr< T,BASE > > {
 
     // set entries
     a = new T[nnz];
-    for (int i=0; i<nnz; ++i)
-      a[i] = T();
+    reset(T());
   }
   int getindex(const unsigned r, const unsigned c) const {
     for (int k=ia[r]-BASE; k<ia[r+1]-BASE; ++k)
@@ -187,6 +189,7 @@ struct mmatrix_msr : mmatrix< T,mmatrix_msr< T > > {
   const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { return operator()(P::Nb*R+r,P::Nb*C+c); }
         T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return operator()(P::Nb*R+r,P::Nb*C+c); }
   // interfacing functions
+  void reset(const T& v=T())                       { for (int i=0; i<bindx[nnu]; ++i) val[i] = v; };
   void zerorow(const unsigned r)                   { for (int k=bindx[r]; k<bindx[r+1]; ++k) val[k] = T(); }
   void zerorow(const unsigned R, const unsigned r) { zerorow(P::Nb*R+r); };
   // initialize methods for base/sparse variation
@@ -216,8 +219,7 @@ struct mmatrix_msr : mmatrix< T,mmatrix_msr< T > > {
 
     // set entries
     val = new T[bindx[nnu]];  // or nnz+1
-    for (int i=0; i<bindx[nnu]; ++i)
-      val[i] = T();
+    reset(T());
   }
   // utilities
   int getindex(const unsigned r, const unsigned c) const {
@@ -262,6 +264,7 @@ struct mmatrix_vbr : mmatrix< T,mmatrix_vbr< T > > {
   const T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const { const int i=getindex(R,C,r,c); if (i<0) return zero; return val[i]; }
         T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { const int i=getindex(R,C,r,c); if (i<0) return zero; return val[i]; }
   // interfacing functions
+  void reset(const T& v=T())                       { for (int i=0; i<indx[bpntr[bnnu]]; ++i) val[i] = v; };
   void zerorow(const unsigned r)                   { const int b=(int) P::Nb; zerorow(r/b,r%b); }
   void zerorow(const unsigned R, const unsigned r) {
     const int b = (int) P::Nb;
@@ -302,8 +305,7 @@ struct mmatrix_vbr : mmatrix< T,mmatrix_vbr< T > > {
 
     // set entries
     val = new double[indx[bpntr[bnnu]]];  // or bnnz*P::Nb*P::Nb
-    for (int i=0; i<indx[bpntr[bnnu]]; ++i)
-      val[i] = T();
+    reset(T());
   }
   // utilities
   int getindex(const unsigned R, const unsigned C, const unsigned r, const unsigned c) const {

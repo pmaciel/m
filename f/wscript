@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+
+
+def configure(ctx):
+  pass
+
+
+def build(ctx):
+
+  # f executable
+  ctx.new_task_gen(
+    features = 'cxx cprogram',
+    target   = 'f',
+    includes = ['src','../mkernel'],
+    uselib_local = ctx.env.m_mlibraries,
+    rpath    = ctx.env['PREFIX'],
+    source   = [
+      'src/cellgeom.cpp',
+      'src/common.cpp',
+      'src/convection.cpp',
+      'src/F1_function.cpp',
+      'src/Gfunction.cpp',
+      'src/Iboundary.cpp',
+      'src/IJacobian_A.cpp',
+      'src/IJacobian_N.cpp',
+      'src/IJacobian_P.cpp',
+      'src/IJacobian_scalar.cpp',
+      'src/IJacobian_turb_coupled.cpp',
+      'src/IJacobian_turb_uncoupled.cpp',
+      'src/main.cpp',
+      'src/massflux.cpp',
+      'src/read_inlet_2D.cpp',
+      'src/read_inlet_3D.cpp',
+      'src/readsoltp.cpp',
+      'src/readstart.cpp',
+      'src/rescalc.cpp',
+      'src/scacde.cpp',
+      'src/turb_init.cpp',
+      'src/turb_source_D.cpp',
+      'src/turb_source_node.cpp',
+      'src/turb_source_P.cpp',
+      'src/turb_viscosity.cpp',
+      'src/turb_wallbc.cpp',
+      'src/turb_wfuncs.cpp',
+      'src/Update_temperature.cpp',
+      'src/Update_turbulence_coupled.cpp',
+      'src/Update_turbulence_sequential.cpp',
+      'src/Update_turbulence_uncoupled.cpp',
+      'src/utils.cpp',
+      'src/viscous.cpp',
+      'src/writeres.cpp',
+      'src/writesoltp.cpp' ] )
+
