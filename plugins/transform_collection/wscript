@@ -11,5 +11,20 @@ def build(ctx):
     name     = 'mtransform_collection',
     target   = 'mtransform_collection',
     includes = ['.','../../mkernel','../format_smurf'],
-    source   = ['t_avgsolution.cpp','t_debug.cpp','t_extrude.cpp','t_fix.cpp','t_geo.cpp','t_info.cpp','t_lap2d.cpp','t_manip.cpp','t_math.cpp','t_ren.cpp','t_simplex.cpp','t_solution.cpp','t_surfmap.cpp','t_zmerge.cpp'] )
+    source   = [
+      't_avgsolution.cpp',
+      't_debug.cpp',
+      't_extrude.cpp',
+      't_fix.cpp',
+      't_geo.cpp',
+      't_info.cpp',
+      't_lap2d.cpp',
+      't_manip.cpp',
+      't_math.cpp',
+      't_ren.cpp',
+      't_simplex.cpp',
+      't_solution.cpp',
+      't_surfmap.cpp',
+      't_walldistance.cpp',
+      't_zmerge.cpp' ] )
 
