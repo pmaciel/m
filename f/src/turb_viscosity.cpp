@@ -126,10 +126,10 @@ double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, doub
   else
     nrerror("Turbulence model not defined !!!\n") ;
 
-  if ( (turmod/10)==ITMGKE && !wall_functions && iter<=iter_init && !restart )
-    nuturb = 1.125*fmu*sqrt(kturb)*len ;
+  if (turmod/10==ITMGKE && iter<=turb_iterinit && !wall_functions)
+    nuturb = 1.125*fmu*sqrt(kturb)*len;
 
-  if ( (turmod/10)==ITMGKW && iter<=(2*iter_init) && !restart )
+  if (turmod/10==ITMGKW && iter<=turb_iterinit)
     nuturb = 1000.0*nulam ;
 
   return(nuturb) ;

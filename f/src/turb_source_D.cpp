@@ -30,7 +30,7 @@ void turb_source_D(
   if ( model==ITKELB ) {
     Rt = k*k/(nu_l*turb2) ;
     feps2 = 1. - exp(-Rt*Rt) ;
-    if ( iter<=iter_init && !restart )
+    if (iter<=turb_iterinit)
       feps2 = 1. ;
 
     *source_k  = -turb2 ;
@@ -41,7 +41,7 @@ void turb_source_D(
     *deriv_kew = -1. ;
 
 /* Use k-l model for early iterations */
-    if ( iter<=iter_init && !restart ) {
+    if (iter<=turb_iterinit) {
       *source_k = -0.08*pow(k,1.5)/len ;
       *deriv_k  = -0.12*sqrt(k)/len ;
     }
@@ -52,7 +52,7 @@ void turb_source_D(
 
     feps2 = ( 1. - exp(-ystar/3.1) ) ;
     feps2 = feps2*feps2*( 1. - 0.3*exp(-Rt*Rt/42.25) ) ;
-    if ( iter<=iter_init && !restart )
+    if (iter<=turb_iterinit)
       feps2=1. ;
 
     *source_k  = -turb2 ;
@@ -64,7 +64,7 @@ void turb_source_D(
     *deriv_ewk =  Ceps2*feps2*turb2*turb2/(k*k) ;
 
 /* Use k-l model for early iterations */
-    if ( iter<=iter_init && !restart ) {
+    if (iter<=turb_iterinit) {
       *source_k = -0.08*pow(k,1.5)/len ;
       *deriv_k  = -0.12*sqrt(k)/len ;
     }
@@ -80,7 +80,7 @@ void turb_source_D(
     *deriv_kew = -1. ;
 
 /* Use k-l model for early iterations */
-    if ( iter<=iter_init && !restart ) {
+    if (iter<=turb_iterinit) {
       *source_k = -0.08*pow(k,1.5)/len ;
       *deriv_k  = -0.12*sqrt(k)/len ;
     }
@@ -107,7 +107,7 @@ void turb_source_D(
   }
   else if ( model==ITKWBS ) {
     F1 = F1_function(k,turb2,nu_l,wd,gradkw) ;
-    if ( iter<=iter_init && !restart )
+    if ( iter<=turb_iterinit)
       F1 = 1. ;
     Beta = F1*Beta1 + (1.-F1)*Beta2 ;
 

@@ -36,7 +36,7 @@ void turb_source_P(
 
     feps1 = Aeps1/(fmu+epsilon) ;
     feps1 = 1. + feps1*feps1*feps1 ;
-    if ( iter<=iter_init && !restart )
+    if (iter<=turb_iterinit)
       feps1 = 1. ;
 
     *source_k  = Pk ;
@@ -66,7 +66,7 @@ void turb_source_P(
   }
   else if ( model==ITKWBS ) {
     F1 = F1_function(k,turb2,nu_l,wd,gradkw) ;
-    if ( iter<=iter_init && !restart )
+    if (iter<=turb_iterinit)
       F1 = 1. ;
     const double Gamma = F1*Gamma1 + (1.-F1)*Gamma2 ;
 

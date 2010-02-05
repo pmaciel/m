@@ -96,6 +96,7 @@ void readstart(const std::string& ccase)
   conv_thresh         = c.getChildNode("solver_nonlinear").getAttribute< double >("convergence_level");
   newton_eps          = c.getChildNode("solver_nonlinear").getAttribute< double >("newton_eps");
   newton_thresh       = c.getChildNode("solver_nonlinear").getAttribute< double >("newton_switch");
+  turb_iterinit       = c.getChildNode("solver_nonlinear").getAttribute< int    >("turb_iterinit",5);
   scalar_coupling     = c.getChildNode("solver_nonlinear").getAttribute< string >("couple_t", "false")=="true"? 1:0;
   turbulence_coupling = c.getChildNode("solver_nonlinear").getAttribute< string >("couple_ke","false")=="true"? 1:0;
   const string convergence_variable = c.getChildNode("solver_nonlinear").getAttribute< string >("convergence_variable","p");
@@ -106,6 +107,9 @@ void readstart(const std::string& ccase)
   const double relax_puvw_value     = c.getChildNode("solver_nonlinear").getAttribute< double >("relax_puvw_value",1.);
   const double relax_t_value        = c.getChildNode("solver_nonlinear").getAttribute< double >("relax_t_value",   1.);
   const double relax_ke_value       = c.getChildNode("solver_nonlinear").getAttribute< double >("relax_ke_value",  1.);
+
+  // correct real turbulent coefficients calculation
+  turb_iterinit = restart? 0 : turb_iterinit;
 
   // set non-linear method
   Jacobian = (method=="Picard"? 0 :    // Picard
@@ -144,39 +148,39 @@ void readstart(const std::string& ccase)
     XMLNode ls = c.getChildNode("system_scalar");
     if (ls.isEmpty())
       nrerror("readstart: no system_scalar present, but it is required");
-    ls_aztec_scalar = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
+    ls_scalar = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
     for (int a=0; a<ls.nAttribute(); ++a)
-      ls_aztec_scalar->xml.updateAttribute(ls.getAttribute(a).lpszValue,NULL,ls.getAttribute(a).lpszName);
+      ls_scalar->xml.updateAttribute(ls.getAttribute(a).lpszValue,NULL,ls.getAttribute(a).lpszName);
   }
   if (turmod && turbulence_coupling==0) {
     XMLNode ls = c.getChildNode("system_turb1");
     if (ls.isEmpty())
       nrerror("readstart: no system_turb1 present, but it is required");
-    ls_aztec_turb1 = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
+    ls_turb1 = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
     for (int a=0; a<ls.nAttribute(); ++a)
-      ls_aztec_turb1->xml.updateAttribute(ls.getAttribute(a).lpszValue,NULL,ls.getAttribute(a).lpszName);
+      ls_turb1->xml.updateAttribute(ls.getAttribute(a).lpszValue,NULL,ls.getAttribute(a).lpszName);
     ls = c.getChildNode("system_turb2");
     if (ls.isEmpty())
       nrerror("readstart: no system_turb2 present, but it is required");
-    ls_aztec_turb2 = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
+    ls_turb2 = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
     for (int a=0; a<ls.nAttribute(); ++a)
-      ls_aztec_turb2->xml.updateAttribute(ls.getAttribute(a).lpszValue,NULL,ls.getAttribute(a).lpszName);
+      ls_turb2->xml.updateAttribute(ls.getAttribute(a).lpszValue,NULL,ls.getAttribute(a).lpszName);
   }
   if (turmod && turbulence_coupling==1) {
     XMLNode ls = c.getChildNode("system_turb");
     if (ls.isEmpty())
       nrerror("readstart: no system_turb present, but it is required");
-    ls_aztec_turb = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
+    ls_turb = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
     for (int a=0; a<ls.nAttribute(); ++a)
-      ls_aztec_turb->xml.updateAttribute(ls.getAttribute(a).lpszValue,NULL,ls.getAttribute(a).lpszName);
+      ls_turb->xml.updateAttribute(ls.getAttribute(a).lpszValue,NULL,ls.getAttribute(a).lpszName);
   }
   if (true) {
     XMLNode ls = c.getChildNode("system_coupled");
     if (ls.isEmpty())
       nrerror("readstart: no system_coupled present, but it is required");
-    ls_aztec_coupled = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
+    ls_coupled = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
     for (int a=0; a<ls.nAttribute(); ++a)
-      ls_aztec_coupled->xml.updateAttribute(ls.getAttribute(a).lpszValue,NULL,ls.getAttribute(a).lpszName);
+      ls_coupled->xml.updateAttribute(ls.getAttribute(a).lpszValue,NULL,ls.getAttribute(a).lpszName);
   }
 
 
@@ -284,14 +288,13 @@ void readstart(const std::string& ccase)
 
 
   // initialize parameters and turbulence model constants
-  iter_init = 5;
   To    = 0.;
   Qin   = 0.;
   Qout  = 0.;
   iter  = 0;
   epsilon = 1.e-20;
   if (turmod)
-    turb_init(turmod);
+    turb_init((ITid) turmod);
 
 
   cout << "readstart: reading." << endl;

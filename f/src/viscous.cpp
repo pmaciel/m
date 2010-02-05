@@ -56,12 +56,12 @@ void viscous(local_node_struct *No_loc, double vol, int celltype)
         for (int id=0; id<Ndim; ++id)
           ninj += No_loc[inc].norm[id]*No_loc[jnc].norm[id];
         for (int iv=1; iv<=Ndim; ++iv)
-          ls_aztec_coupled->A(No_loc[inc].node,No_loc[jnc].node,iv,iv) += -viscfac*ninj;
+          ls_coupled->A(No_loc[inc].node,No_loc[jnc].node,iv,iv) += -viscfac*ninj;
 
         /* instead of the previous one
          * for (iv=1; iv<=Ndim; ++iv)
          *   for (jv=1; jv<=Ndim; ++jv)
-         *     ls_aztec_coupled->A(No_loc[inc].node,No_loc[jnc].node,iv,jv) += -viscfac*No_loc[inc].norm[jv-1]*No_loc[jnc].norm[iv-1];
+         *     ls_coupled->A(No_loc[inc].node,No_loc[jnc].node,iv,jv) += -viscfac*No_loc[inc].norm[jv-1]*No_loc[jnc].norm[iv-1];
          */
 
       }

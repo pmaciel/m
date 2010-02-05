@@ -79,7 +79,7 @@ void readsoltp(const std::string& infile, int read_soln);
 void readstart(const std::string& ccase);
 void rescalc(int iv, int iv_local, double *res, int Nsize);
 void scacde(int ic, int iv, local_node_struct *No_loc, double vol, int inc_min, int scheme, double diffco, double source, double coeff, int coeff_calc);
-void turb_init(int turmod);
+void turb_init(ITid model);
 void turb_source_D(int model, double k, double turb2, double nu_l, double wd, double len, double gradkw, double *source_k, double *source_ew, double *deriv_k, double *deriv_ew, double *deriv_kew, double *deriv_ewk);
 void turb_source_node();
 void turb_source_P(int model, double k, double turb2, double nu_t, double nu_l, double wd, double G, double gradkw, double *source_k, double *source_ew, double v2);
@@ -95,12 +95,12 @@ void writeres();
 void writesoltp(const std::string& outfile);
 
 
-/* aztec solvers */
-extern LS *ls_aztec_coupled;  // aztec solver, for "coupled" system
-extern LS *ls_aztec_scalar;   // ..., for scalar system
-extern LS *ls_aztec_turb;     // ..., for turbulence system
-extern LS *ls_aztec_turb1;    // ..., for uncoupled turbulence system (k)
-extern LS *ls_aztec_turb2;    // ..., for uncoupled turbulence system (epsilon/omega)
+/* linear system solvers */
+extern LS *ls_coupled;  // for "coupled" system
+extern LS *ls_scalar;   // for scalar system
+extern LS *ls_turb;     // for turbulence system
+extern LS *ls_turb1;    // for uncoupled turbulence system (k)
+extern LS *ls_turb2;    // for uncoupled turbulence system (epsilon/omega)
 
 
 /* data structures */
@@ -129,16 +129,16 @@ extern std::vector< double      > m_vars_init;
 extern std::vector< double > logL1, logL2, logLi;
 extern std::vector< double > resL1, resL2, resLi;
 
-extern int iverr;      // variable for error check
-extern int Nsys;       // number of system variables
-extern int Neqns;      // number of equations solved
-extern int Ncoupled;   // number of coupled equations
-extern int Nvtfce;     // number of vertices per face
-extern int Ncell;      // number of cells
-extern int Nnode;      // number of nodes
-extern int Nbface;     // number of boundary faces
-extern int Nbcgroup;   // number of b.c. groups
-extern int iter_init;  // start real turbulent coefficients calculation
+extern int iverr;          // variable for error check
+extern int Nsys;           // number of system variables
+extern int Neqns;          // number of equations solved
+extern int Ncoupled;       // number of coupled equations
+extern int Nvtfce;         // number of vertices per face
+extern int Ncell;          // number of cells
+extern int Nnode;          // number of nodes
+extern int Nbface;         // number of boundary faces
+extern int Nbcgroup;       // number of b.c. groups
+extern int turb_iterinit;  // start real turbulent coefficients calculation
 
 extern int iv_turb1;
 extern int iv_turb2;

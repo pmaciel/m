@@ -1,12 +1,12 @@
 
 #include "common.h"
 
-/* aztec solvers */
-LS *ls_aztec_coupled;  // aztec solver, for "coupled" system
-LS *ls_aztec_scalar;   // ..., for scalar system
-LS *ls_aztec_turb;     // ..., for turbulence system
-LS *ls_aztec_turb1;    // ..., for uncoupled turbulence system (k)
-LS *ls_aztec_turb2;    // ..., for uncoupled turbulence system (epsilon/omega)
+/* linear systems solvers */
+LS *ls_coupled;  // for "coupled" system
+LS *ls_scalar;   // for scalar system
+LS *ls_turb;     // for turbulence system
+LS *ls_turb1;    // for uncoupled turbulence system (k)
+LS *ls_turb2;    // for uncoupled turbulence system (epsilon/omega)
 
 
 /* data structures */
@@ -35,16 +35,16 @@ std::vector< double      > m_vars_init;
 std::vector< double > logL1, logL2, logLi;
 std::vector< double > resL1, resL2, resLi;
 
-int iverr;      // variable for error check
-int Nsys;       // number of system variables
-int Neqns;      // number of equations solved
-int Ncoupled;   // number of coupled equations
-int Nvtfce;     // number of vertices per face
-int Ncell;      // number of cells
-int Nnode;      // number of nodes
-int Nbface;     // number of boundary faces
-int Nbcgroup;   // number of b.c. groups
-int iter_init;  // start real turbulent coefficients calculation
+int iverr;          // variable for error check
+int Nsys;           // number of system variables
+int Neqns;          // number of equations solved
+int Ncoupled;       // number of coupled equations
+int Nvtfce;         // number of vertices per face
+int Ncell;          // number of cells
+int Nnode;          // number of nodes
+int Nbface;         // number of boundary faces
+int Nbcgroup;       // number of b.c. groups
+int turb_iterinit;  // start real turbulent coefficients calculation
 
 int iv_turb1;
 int iv_turb2;

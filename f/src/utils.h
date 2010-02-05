@@ -5,6 +5,7 @@
 #include <iostream>
 
 /* forward declarations */
+std::string extension(const std::string& fn);
 void copy(double *U1, double *U2, int N);
 void nrerror(std::string msg);
 void vecprd3(double *U1, double *U2, double *VP);

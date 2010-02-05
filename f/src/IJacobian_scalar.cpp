@@ -1,4 +1,5 @@
 
+#include "boost/progress.hpp"
 #include "common.h"
 
 void IJacobian_scalar(int iv_scalar)
@@ -9,13 +10,14 @@ void IJacobian_scalar(int iv_scalar)
   local_node_struct No_local[4];
 
 
-  std::cout << "Scalar Jacobian..." << std::endl;
+  std::cout << "IJacobian_scalar..." << std::endl;
 
 
   /*******************/
   /* LOOP OVER CELLS */
   /*******************/
-  for (int ic=0; ic<Ncell; ++ic) {
+  boost::progress_display pbar(Ncell);
+  for (int ic=0; ic<Ncell; ++ic, ++pbar) {
 
     /* compute cell normals and volume */
     cellgeom(ic,No_local,&vol,&inc_min);
@@ -45,9 +47,9 @@ void IJacobian_scalar(int iv_scalar)
 
     /* add residuals and Jacobian entries to global arrays */
     for (int inc=0; inc<Nvtcell; ++inc) {
-      ls_aztec_scalar->B(e2n[ic].n[inc]) += No_local[inc].Res[iv_scalar];
+      ls_scalar->B(e2n[ic].n[inc]) += No_local[inc].Res[iv_scalar];
       for (int jnc=0; jnc<Nvtcell; ++jnc)
-        ls_aztec_scalar->A(No_local[inc].node,No_local[jnc].node) += No_local[inc].C[jnc];
+        ls_scalar->A(No_local[inc].node,No_local[jnc].node) += No_local[inc].C[jnc];
     }
 
     if ( periodic )
@@ -62,16 +64,16 @@ void IJacobian_scalar(int iv_scalar)
     if ( BCgroup[ig].type==IBFIXV || BCgroup[ig].type==IBWALL || BCgroup[ig].type==IBPERE )
       for (int  inb=1; inb<=BCgroup[ig].nnode; ++inb) {
         const int inu = Nobg[ig][inb].node;
-        ls_aztec_scalar->zerorow(inu);
-        ls_aztec_scalar->A(inu,inu) = 1.;
+        ls_scalar->zerorow(inu);
+        ls_scalar->A(inu,inu) = 1.;
       }
     else if ( BCgroup[ig].type==IBWALQ )
       for (int inb=1; inb<=BCgroup[ig].nnode; ++inb) {
         const int inu = Nobg[ig][inb].node;
-        ls_aztec_scalar->B(inu) += Nobg[ig][inb].modn*BCgroup[ig].invals[0];
+        ls_scalar->B(inu) += Nobg[ig][inb].modn*BCgroup[ig].invals[0];
       }
   }
 
-  std::cout << "Scalar Jacobian." << std::endl;
+  std::cout << "IJacobian_scalar." << std::endl;
 }
 

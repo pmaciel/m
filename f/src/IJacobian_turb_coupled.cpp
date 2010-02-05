@@ -1,5 +1,6 @@
 
 #include <fstream>
+#include "boost/progress.hpp"
 #include "common.h"
 
 void IJacobian_turb_coupled()
@@ -10,8 +11,8 @@ void IJacobian_turb_coupled()
   int inc_min;
   local_node_struct No_local[4];
 
-  LS *ls = (turbulence_coupling==1? ls_aztec_turb    :
-           (turbulence_coupling==2? ls_aztec_coupled : NULL ));
+  LS *ls = (turbulence_coupling==1? ls_turb    :
+           (turbulence_coupling==2? ls_coupled : NULL ));
   const int iv1 = turbulence_coupling==2? iv_turb1 : 0;
   const int iv2 = turbulence_coupling==2? iv_turb2 : 1;
 
@@ -22,7 +23,8 @@ void IJacobian_turb_coupled()
   /*******************/
   /* LOOP OVER CELLS */
   /*******************/
-  for (int ic=0; ic<Ncell; ++ic) {
+  boost::progress_display pbar(Ncell);
+  for (int ic=0; ic<Ncell; ++ic, ++pbar) {
 
     /* compute cell normals and volume */
     cellgeom(ic,No_local,&vol,&inc_min);
@@ -71,7 +73,7 @@ void IJacobian_turb_coupled()
       for (int id=0; id<Ndim; ++id)
         dkdw += gradk[id]*gradw[id];
 
-      const double F1 = iter<=iter_init? 1.
+      const double F1 = iter<=turb_iterinit? 1.
                                        : F1_function(turb1,turb2,nulam,wdist,dkdw);
 
       Sig1 = 1./(F1*Sigk1 + (1.-F1)*Sigk2);

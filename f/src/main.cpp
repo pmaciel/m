@@ -1,4 +1,5 @@
 
+#include "boost/progress.hpp"
 #include "common.h"
 
 int main(int argc, char **argv)
@@ -30,7 +31,7 @@ int main(int argc, char **argv)
   // - distribute residual in cell to nodes
   // - update nodal values using distributed residuals
 
-  cout << "starting main update loop..." << endl;
+  cout << "main: starting main update loop..." << endl;
 
   /* start of main loop */
   do {
@@ -56,26 +57,27 @@ int main(int argc, char **argv)
     /* 1) compute jacobian and residual */
 
     if (Jacobian==0 && logL2[iverr]<newton_thresh && iter>2) {
-      cout << "*** Switching to Newton ***" << endl;
+      cout << "main: switching to Newton..." << endl;
       Jacobian = 2;
       CFL *= 100.;
       linrlx = 1.;
 /*
-      ls_aztec_coupled->set_params(0)  /= 100.;  // AZ_tol
-      ls_aztec_coupled->set_options(6) *= 2;     // AZ_max_iter
+      ls_coupled->set_params(0)  /= 100.;  // AZ_tol
+      ls_coupled->set_options(6) *= 2;     // AZ_max_iter
 */
       if (temperature && scalar_coupling)
         linrlx_scalar = 1.;
       if (turmod && turbulence_coupling)
         linrlx_turb = 1.;
+      cout << "main: switching to Newton." << endl;
     }
 
     /* zero nodal turbulent viscosity store */
     if (turmod)
       No_nuturb.assign(Nnode,0.);
 
-    /* calculate bulk temperature for boussinesq buoyancy case */
     if (temperature && buoyancy) {
+      cout << "main: calculate bulk temperature (boussinesq buoyancy)..." << endl;
       To  = 0.;
       for (int inu=0; inu<Nnode; inu++)
         To += No_W[iv_temp][inu]*No_vol[inu];
@@ -86,37 +88,33 @@ int main(int argc, char **argv)
       if (iter<=1)
         masstot = 1.e5*sum;
       Po = masstot/sum;
-      cout << "Total mass=" << masstot << " To=" << To << " Po=" << Po << endl;
+      cout << "main: total mass=" << masstot << " To=" << To << " Po=" << Po << endl;
+      cout << "main: calculate bulk temperature (boussinesq buoyancy)." << endl;
     }
 
 
-    cout << "Computing nodal residuals and steady Jacobian..." << endl;
+    ls_coupled->reset();  // zero jacobian, residual and vector
+    No_dt.assign(Nnode,0.);     // updated during assembly
 
-    /* zero jacobian, residual and vector */
-    ls_aztec_coupled->reset();
-
-    No_dt.assign(Nnode,0.);
-
-    /* build jacobian and residual vector */
+    cout << "main: linear system assembly..." << endl;
     if      (Jacobian==0)  IJacobian_P();
     else if (Jacobian==1)  IJacobian_A();
     else if (Jacobian==2)  IJacobian_N();
-
-    cout << "Computing nodal residuals and steady Jacobian." << endl;
+    cout << "main: linear system assembly." << endl;
 
 
     /* calculate residuals for coupled system */
     for (int iv=0; iv<Ncoupled; iv++)
-      rescalc(iv,iv,&(ls_aztec_coupled->m_B)[0],Ncoupled);
+      rescalc(iv,iv,&(ls_coupled->m_B)[0],Ncoupled);
 
 
     for (int n=0; n<Nnode; n++)
       for (int iv=0; iv<Ncoupled; iv++)
-        ls_aztec_coupled->B(n,iv) *= linrlx;
+        ls_coupled->B(n,iv) *= linrlx;
 
 
     if (dtrelax) {
-      cout << "adding time-step (backward-euler) to coupled Jacobian..." << endl;
+      cout << "main: add time-step (backward-euler) to Jacobian..." << endl;
 
       if (dtrelax==1) {
         /* global time-step */
@@ -139,17 +137,21 @@ int main(int argc, char **argv)
 
       for (int inu=0; inu<Nnode; ++inu)
         for (int iv=1; iv<Ncoupled; ++iv)
-          ls_aztec_coupled->A(inu,inu,iv,iv) += No_dt[inu]/CFL;
+          ls_coupled->A(inu,inu,iv,iv) += No_dt[inu]/CFL;
 
       if (logL2[iverr]<newton_thresh)
         CFL *= 1.5;
 
-      cout << "adding time-step (backward-euler) to coupled Jacobian." << endl;
+      cout << "main: add time-step (backward-euler) to Jacobian..." << endl;
     }
 
-    cout << "solve coupled system..." << endl;
-    ls_aztec_coupled->solve();
-    cout << "solve coupled system." << endl;
+    cout << "main: solve linear system..." << endl;
+    {
+      boost::progress_timer t(cout);
+      ls_coupled->solve();
+      cout << "main: timer: ";
+    }
+    cout << "main: solve linear system." << endl;
 
 
     /*
@@ -162,17 +164,17 @@ int main(int argc, char **argv)
      */
 
 
-    cout << "update solution..." << endl;
+    cout << "main: update solution..." << endl;
 
     /* pressure-velocity system */
     for (int n=0; n<Nnode; ++n)
       for (int iv=0; iv<=Ndim; ++iv)
-        No_W[iv][n] -= /*linrlx**/ls_aztec_coupled->X(n,iv);
+        No_W[iv][n] -= /*linrlx**/ls_coupled->X(n,iv);
 
     /* temperature */
     if (temperature && scalar_coupling) {
       for (int n=0; n<Nnode; ++n)
-        No_W[iv_temp][n] -= linrlx_scalar*ls_aztec_coupled->X(n,iv_temp);
+        No_W[iv_temp][n] -= linrlx_scalar*ls_coupled->X(n,iv_temp);
     }
 
     /* turbulence */
@@ -180,8 +182,8 @@ int main(int argc, char **argv)
       int nkneg = 0;
       int neneg = 0;
       for (int n=0; n<Nnode; ++n) {
-        const double k = No_W[iv_turb1][n] - linrlx_turb*ls_aztec_coupled->X(n,iv_turb1);
-        const double e = No_W[iv_turb2][n] - linrlx_turb*ls_aztec_coupled->X(n,iv_turb2);
+        const double k = No_W[iv_turb1][n] - linrlx_turb*ls_coupled->X(n,iv_turb1);
+        const double e = No_W[iv_turb2][n] - linrlx_turb*ls_coupled->X(n,iv_turb2);
         if (k<0.) ++nkneg; else No_W[iv_turb1][n] = k;
         if (e<0.) ++neneg; else No_W[iv_turb2][n] = e;
       }
@@ -208,7 +210,7 @@ int main(int argc, char **argv)
       }
     }
 
-    cout << "update solution." << endl;
+    cout << "main: update solution." << endl;
 
 
     massflux();
@@ -229,12 +231,13 @@ int main(int argc, char **argv)
   /* end of main loop */
 
 
-  /* linear systems deallocation */
-  if (temperature && !scalar_coupling)  delete ls_aztec_scalar;
-  if (turbulence_coupling==1)           delete ls_aztec_turb;
-  if (turmod && turbulence_coupling==0) delete ls_aztec_turb1;
-  if (turmod && turbulence_coupling==0) delete ls_aztec_turb2;
-  delete ls_aztec_coupled;
+  cout << "main: linear systems deallocation..." << endl;
+  if (temperature && !scalar_coupling)  delete ls_scalar;
+  if (turbulence_coupling==1)           delete ls_turb;
+  if (turmod && turbulence_coupling==0) delete ls_turb1;
+  if (turmod && turbulence_coupling==0) delete ls_turb2;
+  if (true)                             delete ls_coupled;
+  cout << "main: linear systems deallocation." << endl;
 
 
   return 0;

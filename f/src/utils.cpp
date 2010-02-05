@@ -1,9 +1,18 @@
 
+#include <string>
 #include <cstdlib>
 #include "utils.h"
 
 
 // -- miscelaneous ----
+
+// get filename extension
+std::string extension(const std::string& fn)
+{
+  const std::string::size_type idx = fn.rfind('.');
+  return fn.substr(idx!=std::string::npos? idx:0);
+}
+
 
 // copy one array into another
 void copy(double *U1, double *U2, int N)

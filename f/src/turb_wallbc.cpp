@@ -105,12 +105,12 @@ void turb_wallbc(int iv1, int iv2, LS *ls1, LS *ls2)
     }
 
     const double dNwnode = (double) Nwnode;
-    std::cout << "** near-wall nodes report..." << std::endl
+    std::cout << "turb_wallbc: near-wall nodes report..." << std::endl
               << "Maximum y+=" << ypmax << " at n=" << in_ypmax << " with utau=" << utmax << std::endl
               << "Minimum y+=" << ypmin << " at n=" << in_ypmin << " with utau=" << utmin << std::endl
               << "N. nodes with y+>2.0: " << nyp_far  << " (" << 100.*(double)nyp_far /dNwnode << "%)" << std::endl
               << "N. nodes with y+<1.0: " << nyp_near << " (" << 100.*(double)nyp_near/dNwnode << "%)" << std::endl
-              << "** near-wall nodes report." << std::endl;
+              << "turb_wallbc: near-wall nodes report." << std::endl;
 
   }
   else {

@@ -63,6 +63,7 @@
     <tr><td class="h">convergence_level   </td><td><xsl:value-of select="solver_nonlinear/@convergence_level"   /></td></tr>
     <tr><td class="h">newton_eps          </td><td><xsl:value-of select="solver_nonlinear/@newton_eps"          /></td></tr>
     <tr><td class="h">newton_switch       </td><td><xsl:value-of select="solver_nonlinear/@newton_switch"       /></td></tr>
+    <tr><td class="h">turb_iterinit       </td><td><xsl:value-of select="solver_nonlinear/@turb_iterinit"       /></td></tr>
     <tr><td class="h">couple_t            </td><td><xsl:value-of select="solver_nonlinear/@couple_t"            /></td></tr>
     <tr><td class="h">couple_ke           </td><td><xsl:value-of select="solver_nonlinear/@couple_ke"           /></td></tr>
     <tr><td class="h">relax_puvw_type     </td><td><xsl:value-of select="solver_nonlinear/@relax_puvw_type"     /></td></tr>

@@ -25,12 +25,12 @@ void read_inlet_2D(const std::string& finlet,int ig)
   double **inlet_data_turb2;
   char dummystr[300];
 
-  /* processor 0 reads inlet data */
+
+  std::cout << "read_inlet_2D: reading file \"" << finlet << "\"..." << std::endl;
   FILE *fid = fopen(finlet.c_str(),"r");
   if (fid==NULL)
     nrerror("Inlet file needed for FIXV-R inlet option, not found");
 
-  printf("\n*** Reading inlet-data file ... ");
 
   fgets(dummystr,300,fid);
   fscanf(fid,"%d",&Nint);
@@ -84,7 +84,8 @@ void read_inlet_2D(const std::string& finlet,int ig)
   }
 
   fclose(fid);
-  printf("done\n");
+  std::cout << "read_inlet_2D: reading file." << std::endl;
+
 
 /* Define normal and tangential directions */
   if (std::abs(BCgroup[ig].n[0])>=std::abs(BCgroup[ig].n[1]))
@@ -155,7 +156,5 @@ void read_inlet_2D(const std::string& finlet,int ig)
     free_dmatrix(inlet_data_turb1,0,1,1,Nint_turb1);
     free_dmatrix(inlet_data_turb2,0,1,1,Nint_turb2);
   }
-
-  return;
 }
 

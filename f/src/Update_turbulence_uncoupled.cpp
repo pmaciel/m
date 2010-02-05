@@ -1,36 +1,44 @@
 
 /* main body of implicit scheme */
 
+#include "boost/progress.hpp"
 #include "common.h"
 
 void Update_turbulence_uncoupled()
 {
   /* zero jacobian, residual and vector */
-  ls_aztec_turb1->reset();
-  ls_aztec_turb2->reset();
+  ls_turb1->reset();
+  ls_turb2->reset();
 
   /* assemble linear systems */
   IJacobian_turb_uncoupled();
   if (dtrelax_turb)
     for (int n=0; n<Nnode; ++n) {
-      ls_aztec_turb1->A(n,n) += No_dt[n]/CFL_turb;
-      ls_aztec_turb2->A(n,n) += No_dt[n]/CFL_turb;
+      ls_turb1->A(n,n) += No_dt[n]/CFL_turb;
+      ls_turb2->A(n,n) += No_dt[n]/CFL_turb;
     }
 
-  /* solve linear systems */
-  ls_aztec_turb1->solve();
-  ls_aztec_turb2->solve();
+
+  std::cout << "Update_turbulence_uncoupled: solve linear system..." << std::endl;
+  {
+    boost::progress_timer t(std::cout);
+    ls_turb1->solve();
+    ls_turb2->solve();
+    std::cout << "Update_turbulence_uncoupled: timer: ";
+  }
+  std::cout << "Update_turbulence_uncoupled: solve linear system." << std::endl;
+
 
   /* calculate global residuals */
-  rescalc(iv_turb1,0,&(ls_aztec_turb1->m_B)[0],1);
-  rescalc(iv_turb2,0,&(ls_aztec_turb2->m_B)[0],1);
+  rescalc(iv_turb1,0,&(ls_turb1->m_B)[0],1);
+  rescalc(iv_turb2,0,&(ls_turb2->m_B)[0],1);
 
   /* update scalar solution values */
   int nkneg = 0;
   int neneg = 0;
   for (int n=0; n<Nnode; ++n) {
-    const double k = No_W[iv_turb1][n] - linrlx_turb*ls_aztec_turb1->X(n);
-    const double e = No_W[iv_turb2][n] - linrlx_turb*ls_aztec_turb2->X(n);
+    const double k = No_W[iv_turb1][n] - linrlx_turb*ls_turb1->X(n);
+    const double e = No_W[iv_turb2][n] - linrlx_turb*ls_turb2->X(n);
     if (k<0.) ++nkneg; else No_W[iv_turb1][n] = k;
     if (e<0.) ++neneg; else No_W[iv_turb2][n] = e;
   }

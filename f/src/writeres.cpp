@@ -17,16 +17,14 @@ void writeres()
   f.close();
 
   // write to screen
-  cout << endl
-       << "  /////////////////////////////////////////////////////////////////////////" << endl
-       << "  // iteration: " << iter << endl
-       << "  // method: " << (Jacobian==0? "Picard" : (Jacobian==1? "Approximate Newton" : "Newton" )) << endl
-       << "  // CFL: " << (dtrelax? CFL : 0.) << endl
-       << "  // Qin=" << Qin << " Qout=" << Qout << " delQ=" << 100.*(Qin+Qout)/(Qin+epsilon) << " %Qin" << endl
-       << "  // " << "iv" << '\t' << "L1"      << '\t' << "L2"      << '\t' << "Li"      << endl;
+  cout << "writeres: iteration report..." << endl
+       << "  iteration: " << iter << endl
+       << "  method: " << (Jacobian==0? "Picard" : (Jacobian==1? "Approximate Newton" : "Newton" )) << endl
+       << "  CFL: " << (dtrelax? CFL : 0.) << endl
+       << "  Qin=" << Qin << " Qout=" << Qout << " delQ=" << 100.*(Qin+Qout)/(Qin+epsilon) << " %Qin" << endl
+       << "  " << "v"               << '\t' << "L1"      << '\t' << "L2"      << '\t' << "Li"      << endl;
   for (int iv=0; iv<Nsys; ++iv)
-  cout << "  // " <<  iv  << '\t' << logL1[iv] << '\t' << logL2[iv] << '\t' << logLi[iv] << endl;
-  cout << "  /////////////////////////////////////////////////////////////////////////" << endl
-       << endl;
+  cout << "  " <<  m_vars_label[iv] << '\t' << logL1[iv] << '\t' << logL2[iv] << '\t' << logLi[iv] << endl;
+  cout << "writeres: iteration report." << endl;
 }
 

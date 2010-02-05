@@ -4,11 +4,15 @@
 #include <memory>
 #include "common.h"
 
+
 void writesoltp(const std::string& outfile)
 {
+/*
   std::ostringstream fn;
   fn << outfile << '.' << iter << ".plt";
   std::cout << "writesoltp: writing \"" << fn.str() << "\"..." << std::endl;
+*/
+  std::cout << "writesoltp: writing \"" << outfile << "\"..." << std::endl;
 
   // copy variables: pressure (iv=0) is multiplied by density (rho)
   for (int n=0; n<Nnode; ++n)
@@ -27,9 +31,8 @@ void writesoltp(const std::string& outfile)
   // write the file
   e2n.swap(M.vz[0].e2n);  // (hack)
   {
-    std::auto_ptr< m::mfoutput > p(m::mfactory< m::mfoutput  >::instance()->Create(".plt"));
-    const std::string f = fn.str();
-    char* argv[] = { (char*) "", const_cast< char* >(f.c_str()) };
+    std::auto_ptr< m::mfoutput > p(m::mfactory< m::mfoutput  >::instance()->Create(extension(outfile)));
+    char* argv[] = { (char*) "", const_cast< char* >(outfile.c_str()) };
     GetPot o2(2,argv);
     p->write(o2,M);
   }

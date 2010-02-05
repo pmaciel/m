@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <memory>
+#include "boost/progress.hpp"
 #include "common.h"
 
 
@@ -60,7 +61,7 @@ void readsoltp(const std::string& infile, int read_soln)
 
   cout << "readsoltp: reading m::mmesh from \"" << infile << "\"..." << endl;
   {
-    std::auto_ptr< m::mfinput > p(m::mfactory< m::mfinput  >::instance()->Create(".plt"));
+    std::auto_ptr< m::mfinput > p(m::mfactory< m::mfinput  >::instance()->Create(extension(infile)));
     char* argv[] = { (char*) "", const_cast< char* >(infile.c_str()) };
     GetPot o2(2,argv);
     p->read(o2,M);
@@ -125,13 +126,14 @@ void readsoltp(const std::string& infile, int read_soln)
   for (unsigned i=1; i<M.z(); ++i)
     Nbface += (int) M.e(i);
   if (Nbface) {
+    boost::progress_display pbar(Nbface);
     Fab_cell .resize(Nbface);
     Fab_node .resize(Nbface);
     Fab_inc  .resize(Nbface);
     Fab_group.resize(Nbface);
     int ifc = 0;
     for (unsigned i=1; i<M.z(); ++i)
-      for (unsigned j=0; j<M.e(i); ++j, ++ifc) {
+      for (unsigned j=0; j<M.e(i); ++j, ++ifc, ++pbar) {
         fab(
           e2n, M.vz[i].e2n[j].n,
           &Fab_cell[ifc], &Fab_node[ifc], &Fab_inc[ifc]);
@@ -221,30 +223,30 @@ void readsoltp(const std::string& infile, int read_soln)
 
 
   if (temperature && !scalar_coupling) {
-    cout << "readsoltp: ls_aztec_scalar setup..." << endl;
-    ls_aztec_scalar->initialize(Nnode,Nnode,1);
-    if (ls_aztec_scalar->issparse) ls_aztec_scalar->initialize(nz);
-    cout << "readsoltp: ls_aztec_scalar setup." << endl;
+    cout << "readsoltp: ls_scalar setup..." << endl;
+    ls_scalar->initialize(Nnode,Nnode,1);
+    if (ls_scalar->issparse) ls_scalar->initialize(nz);
+    cout << "readsoltp: ls_scalar setup." << endl;
   }
   if (turmod && turbulence_coupling==0) {
-    cout << "readsoltp: ls_aztec_turb{1,2} setup..." << endl;
-    ls_aztec_turb1->initialize(Nnode,Nnode,1);
-    ls_aztec_turb2->initialize(Nnode,Nnode,1);
-    if (ls_aztec_turb1->issparse) ls_aztec_turb1->initialize(nz);
-    if (ls_aztec_turb2->issparse) ls_aztec_turb2->initialize(nz);
-    cout << "readsoltp: ls_aztec_turb{1,2} setup." << endl;
+    cout << "readsoltp: ls_turb{1,2} setup..." << endl;
+    ls_turb1->initialize(Nnode,Nnode,1);
+    ls_turb2->initialize(Nnode,Nnode,1);
+    if (ls_turb1->issparse) ls_turb1->initialize(nz);
+    if (ls_turb2->issparse) ls_turb2->initialize(nz);
+    cout << "readsoltp: ls_turb{1,2} setup." << endl;
   }
   if (turmod && turbulence_coupling==1) {
-    cout << "readsoltp: ls_aztec_turb setup..." << endl;
-    ls_aztec_turb->initialize(Nnode,Nnode,2);
-    if (ls_aztec_turb->issparse) ls_aztec_turb->initialize(nz);
-    cout << "readsoltp: ls_aztec_turb setup." << endl;
+    cout << "readsoltp: ls_turb setup..." << endl;
+    ls_turb->initialize(Nnode,Nnode,2);
+    if (ls_turb->issparse) ls_turb->initialize(nz);
+    cout << "readsoltp: ls_turb setup." << endl;
   }
   if (true) {
-    cout << "readsoltp: ls_aztec_coupled setup..." << endl;
-    ls_aztec_coupled->initialize(Nnode,Nnode,Ncoupled);
-    if (ls_aztec_coupled->issparse) ls_aztec_coupled->initialize(nz);
-    cout << "readsoltp: ls_aztec_coupled setup." << endl;
+    cout << "readsoltp: ls_coupled setup..." << endl;
+    ls_coupled->initialize(Nnode,Nnode,Ncoupled);
+    if (ls_coupled->issparse) ls_coupled->initialize(nz);
+    cout << "readsoltp: ls_coupled setup." << endl;
   }
 
 

@@ -72,11 +72,11 @@ void turb_wfuncs(double *res)
   }
 
   const double dNwfnode = (double) WFnodes.size();
-  std::cout << "** wall-function report..." << std::endl
+  std::cout << "turb_wfuncs: wall-function report..." << std::endl
             << "Maximum y+=" << ypmax << " at n=" << in_ypmax << std::endl
             << "Minimum y+=" << ypmin << " at n=" << in_ypmin << std::endl
             << "N. nodes with y+>100.0: " << nyp_far  << " (" << 100.*(double)nyp_far /dNwfnode << "%)" << std::endl
             << "N. nodes with y+<10.0:  " << nyp_near << " (" << 100.*(double)nyp_near/dNwfnode << "%)" << std::endl
-            << "** wall-function report." << std::endl;
+            << "turb_wfuncs: wall-function report." << std::endl;
 }
 

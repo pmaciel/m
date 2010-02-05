@@ -54,12 +54,12 @@ void read_inlet_3D(const std::string& finlet,int ig)
   double **inlet_data_turb;
   char dummystr[100];
 
-  /* read inlet data */
+
+  std::cout << "read_inlet_3D: reading file \"" << finlet << "\"..." << std::endl;
   FILE *fid = fopen(finlet.c_str(),"r");
   if (fid==NULL)
     nrerror("Inlet file needed for FIXV-R inlet option, not found");
 
-  printf("\n*** Reading inlet-data file ... ");
 
   fscanf(fid,"unstprim grid data %d %d\n",&Nxid,&Nyid);
   fscanf(fid,"%d %d",&Ncid,&Nnid);
@@ -96,7 +96,8 @@ void read_inlet_3D(const std::string& finlet,int ig)
   }
 
   fclose(fid);
-  printf("done\n");
+  std::cout << "read_inlet_3D: reading file." << std::endl;
+
 
 /* find coordinate direction normal to inlet plane (x,y or z) */
   kdirn=0;
@@ -170,7 +171,5 @@ void read_inlet_3D(const std::string& finlet,int ig)
   free_dmatrix(inlet_data_ve,1,3,1,Nxid*Nyid);
   if (turmod)
     free_dmatrix(inlet_data_turb,1,2,1,Nxid*Nyid);
-
-  return;
 }
 

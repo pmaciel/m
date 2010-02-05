@@ -97,8 +97,8 @@ void turb_source_node()
     /* Add cell-based sources and Jacobian entries */
     for (int inc=0; inc<Nvtcell; ++inc) {
       const int inu = No_loc[inc].node;
-      ls_aztec_turb->B(inu,0) += SP1*vol/dNvtcell;
-      ls_aztec_turb->B(inu,1) += SP2*vol/dNvtcell;
+      ls_turb->B(inu,0) += SP1*vol/dNvtcell;
+      ls_turb->B(inu,1) += SP2*vol/dNvtcell;
     }
 
   }
@@ -118,7 +118,7 @@ void turb_source_node()
     double lenturb = 0.;
     if (walldist) {
       dwall = No_wd[inu];
-      if (iter<=iter_init && !restart)
+      if (iter<=turb_iterinit)
         lenturb = No_lenturb[inu];
     }
 
@@ -132,12 +132,12 @@ void turb_source_node()
 
     No_dissipation[inu] = -SD1;
 
-    ls_aztec_turb->B(inu,0) += No_vol[inu]*SD1;
-    ls_aztec_turb->B(inu,1) += No_vol[inu]*SD2;
+    ls_turb->B(inu,0) += No_vol[inu]*SD1;
+    ls_turb->B(inu,1) += No_vol[inu]*SD2;
 
-    ls_aztec_turb->A(inu,inu,0,0) += No_vol[inu]*JD1;
-    ls_aztec_turb->A(inu,inu,1,1) += No_vol[inu]*JD2;
-    ls_aztec_turb->A(inu,inu,0,1) += No_vol[inu]*JD12;
+    ls_turb->A(inu,inu,0,0) += No_vol[inu]*JD1;
+    ls_turb->A(inu,inu,1,1) += No_vol[inu]*JD2;
+    ls_turb->A(inu,inu,0,1) += No_vol[inu]*JD12;
 
   }
 }

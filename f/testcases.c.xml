@@ -634,6 +634,7 @@
    restart="0"
    file_input="testcases/turbulent_bfstep_ds_022kn.plt"
    file_inlet="testcases/turbulent_bfstep_ds_inlet_ke.dat"
+   file_output="turbulent_bfstep_ds_akn.smurf"
   />
   <terms
    density="1."
@@ -662,6 +663,7 @@
    method="Picard"
    newton_eps="1.e-8"
    newton_switch="-4."
+   turb_iterinit="5"
    couple_t="false"
    couple_ke="true"
   />
@@ -741,6 +743,7 @@
    method="Picard"
    newton_eps="1.e-8"
    newton_switch="-23."
+   turb_iterinit="10"
    couple_t="false"
    couple_ke="true"
   />
@@ -821,6 +824,7 @@
    method="Picard"
    newton_eps="1.e-8"
    newton_switch="-40."
+   turb_iterinit="5"
    couple_t="false"
    couple_ke="true"
   />
@@ -903,6 +907,7 @@
    method="Picard"
    newton_eps="1.e-8"
    newton_switch="-100."
+   turb_iterinit="10"
    couple_t="false"
    couple_ke="true"
   />
@@ -984,6 +989,7 @@
    method="Picard"
    newton_eps="1.e-8"
    newton_switch="-23."
+   turb_iterinit="5"
    couple_t="false"
    couple_ke="true"
   />
@@ -1067,6 +1073,7 @@
    method="Picard"
    newton_eps="1.e-8"
    newton_switch="-23."
+   turb_iterinit="5"
    couple_t="false"
    couple_ke="true"
   />
@@ -1158,6 +1165,7 @@
    method="Picard"
    newton_eps="1.e-8"
    newton_switch="-30."
+   turb_iterinit="5"
    couple_t="false"
    couple_ke="true"
   />
@@ -1235,6 +1243,7 @@
    method="Picard"
    newton_eps="1.e-8"
    newton_switch="-30."
+   turb_iterinit="5"
    couple_t="false"
    couple_ke="true"
   />
@@ -1312,6 +1321,7 @@
    method="Picard"
    newton_eps="1.e-8"
    newton_switch="-30."
+   turb_iterinit="5"
    couple_t="false"
    couple_ke="true"
   />
@@ -1389,6 +1399,7 @@
    method="Picard"
    newton_eps="1.e-8"
    newton_switch="-30."
+   turb_iterinit="5"
    couple_t="false"
    couple_ke="true"
   />
@@ -1465,6 +1476,7 @@
    method="Picard"
    newton_eps="1.e-8"
    newton_switch="-100."
+   turb_iterinit="5"
    couple_t="false"
    couple_ke="true"
   />

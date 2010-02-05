@@ -6,6 +6,7 @@
  */
 
 #include <fstream>
+#include "boost/progress.hpp"
 #include "common.h"
 
 void IJacobian_N()
@@ -34,7 +35,8 @@ void IJacobian_N()
 
 
   /* loop over cells */
-  for (int ic=0; ic<Ncell; ++ic) {
+  boost::progress_display pbar(Ncell);
+  for (int ic=0; ic<Ncell; ++ic, ++pbar) {
 
     /* compute cell normals and volume */
     cellgeom(ic,No_local,&vol,&inc_min);
@@ -84,7 +86,7 @@ void IJacobian_N()
     for (int inc=0; inc<Nvtcell; ++inc) {
       const int inu = e2n[ic].n[inc];
       for (int iv=0; iv<Ncoupled; ++iv)
-        ls_aztec_coupled->B(inu,iv) += No_local[inc].Res[iv];
+        ls_coupled->B(inu,iv) += No_local[inc].Res[iv];
       No_dt[inu] += No_local[inc].Dt;
     }
 
@@ -168,7 +170,7 @@ void IJacobian_N()
       for (int knc=0; knc<Nvtcell; ++knc)
         for (int i=0; i<Ncoupled; ++i)
           for (int j=0; j<Ncoupled; ++j)
-            ls_aztec_coupled->A(e2n[ic].n[knc],e2n[ic].n[inc],i,j) += J[knc][i][j];
+            ls_coupled->A(e2n[ic].n[knc],e2n[ic].n[inc],i,j) += J[knc][i][j];
 
     /* loop over nodes within cell */
     }
@@ -194,7 +196,7 @@ void IJacobian_N()
    *   turb_source();
    */
   if (wall_functions)
-    turb_wfuncs(&ls_aztec_coupled->m_B[0]);
+    turb_wfuncs(&ls_coupled->m_B[0]);
   Iboundary();
 
 
