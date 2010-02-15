@@ -4,8 +4,8 @@
 def configure(ctx):
   ctx.env.m_mlibraries.append('ls_pardiso')
   ctx.env['LIB_PARDISO']       = ['pardiso400_GNU430_IA64','lapack','gfortran','g2c']
-  ctx.env['LIBPATH_PARDISO']   = ['/home/pedro/pardiso']
-  ctx.env['RPATH_PARDISO']     = ['/home/pedro/pardiso']
+  ctx.env['LIBPATH_PARDISO']   = ['/home/pedro/workspace/external/pardiso/libs_4.0.0']
+  ctx.env['RPATH_PARDISO']     = ['/home/pedro/workspace/external/pardiso/libs_4.0.0']
   ctx.env['LINKFLAGS_PARDISO'] = ['-fopenmp']
 
 
