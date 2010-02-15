@@ -4,7 +4,7 @@ MACHINE = PC
 #
 # ANSI C compiler
 #
-CC_PC           = gcc-4.4
+CC_PC           = gcc-4.3
 CC_GENERIC      = cc
 CC_SUN4         = acc-2.0.1
 CC_SGI          = cc
@@ -19,7 +19,7 @@ CC_SP2          = mpcc
 #
 # Fortran compiler
 #
-FC_PC           = gfortran-4.4
+FC_PC           = gfortran-4.3
 FC_GENERIC      = f77
 FC_SUN4         = f77-2.0.1
 FC_SGI          = f77
@@ -103,7 +103,7 @@ CFORT_SP2         = -Dmatched
 #
 # Compilation flags
 #
-CFLAGS_PC      = -O0 -g -ggdb -fPIC
+CFLAGS_PC      = -O3 -fPIC
 CFLAGS_GENERIC = -O
 CFLAGS_SUN4   = -O2 -vc -Xc
 CFLAGS_SGI    = -O2 -mips2
@@ -115,7 +115,7 @@ CFLAGS_SUNMOS = -O4
 CFLAGS_NCUBE  = -O
 CFLAGS_SP2    = -O2
 
-FFLAGS_PC      = -O0 -g -ggdb -fPIC
+FFLAGS_PC      = -O3 -fPIC
 FFLAGS_GENERIC = -O
 FFLAGS_SUN4   = -O2
 FFLAGS_SGI    = $(CFLAGS_SGI)
