@@ -7,14 +7,14 @@
  *
  * $Author: tuminaro $
  *
- * $Date: 1996/07/30 20:45:07 $
+ * $Date: 2001/10/15 15:40:55 $
  *
- * $Revision: 1.22 $
+ * $Revision: 1.69 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_util.c,v 1.22 1996/07/30 20:45:07 tuminaro Exp $";
+static char rcsid[] = "$Id: az_util.c,v 1.69 2001/10/15 15:40:55 tuminaro Exp $";
 #endif
 
 
@@ -30,7 +30,6 @@ static char rcsid[] = "$Id: az_util.c,v 1.22 1996/07/30 20:45:07 tuminaro Exp $"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <malloc.h>
 #include <float.h>
 #include "az_aztec.h"
 
@@ -43,9 +42,8 @@ static char rcsid[] = "$Id: az_util.c,v 1.22 1996/07/30 20:45:07 tuminaro Exp $"
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_compute_residual(double val[], int indx[], int bindx[], int rpntr[],
-                         int cpntr[], int bpntr[], double b[], double x[],
-                         double r[], int data_org[])
+void AZ_compute_residual(double b[], double x[], double r[], 
+			 int proc_config[], AZ_MATRIX *Amat)
 
 /*******************************************************************************
 
@@ -60,15 +58,15 @@ void AZ_compute_residual(double val[], int indx[], int bindx[], int rpntr[],
   Parameter list:
   ===============
 
-  val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
+  val:             Array containing the nonzero entries of the matrix (see
+                   Aztec User's Guide).
 
   indx,
   bindx,
   rpntr,
   cpntr,
   bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
+                   file Aztec User's Guide).
 
   b:               Right hand side of linear system.
 
@@ -77,9 +75,17 @@ void AZ_compute_residual(double val[], int indx[], int bindx[], int rpntr[],
 
   r:               On output, residual vector.
 
-  data_org:        Array containing information on the distribution of the
-                   matrix to this processor as well as communication parameters
-                   (see file params.txt).
+  options:         Determines specific solution method and other parameters.
+
+  proc_config:     Machine configuration.  proc_config[AZ_node] is the node
+                   number.  proc_config[AZ_N_procs] is the number of processors.
+
+  params:          Drop tolerance and convergence tolerance info.
+
+  Amat:            Structure used to represent the matrix (see az_aztec.h
+                   and Aztec User's Guide).
+
+
 
 *******************************************************************************/
 
@@ -92,12 +98,12 @@ void AZ_compute_residual(double val[], int indx[], int bindx[], int rpntr[],
 
   /**************************** execution begins ******************************/
 
-  N = data_org[AZ_N_internal] + data_org[AZ_N_border];
+  N = Amat->data_org[AZ_N_internal] + Amat->data_org[AZ_N_border];
 
-  AZ_matvec_mult(val, indx, bindx, rpntr, cpntr, bpntr, x, r, 1, data_org);
+  Amat->matvec(x, r, Amat, proc_config);
 
-  for(i = 0; i < N; i++)
-    r[i] = b[i] - r[i];
+
+  for(i = 0; i < N; i++) r[i] = b[i] - r[i];
 
 } /* AZ_compute_residual */
 
@@ -195,7 +201,8 @@ double AZ_gdot(int N, double r[], double z[], int proc_config[])
 void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
                      int bindx[], int rpntr[], int cpntr[], int bpntr[],
                      double x[], double y[], int ntimes, int options[],
-                     int data_org[], int proc_config[])
+                     int data_org[], int proc_config[], double params[],
+                     AZ_MATRIX *Amat)
 
 /*******************************************************************************
 
@@ -215,15 +222,15 @@ void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
 
   gnzeros:         Global number of nonzeros in val.
 
-  val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
+  val:             Array containing the nonzero entries of the matrix (see
+                   Aztec User's Guide).
 
   indx,
   bindx,
   rpntr,
   cpntr,
   bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
+                   file Aztec User's Guide).
 
   x, y:            Vectors of length gN.
 
@@ -233,7 +240,7 @@ void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
 
   data_org:        Array containing information on the distribution of the
                    matrix to this processor as well as communication parameters
-                   (see file params.txt).
+                   (see Aztec User's Guide).
 
   proc_config:     Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
@@ -269,6 +276,7 @@ void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
   char        *message_send_add[AZ_MAX_NEIGHBORS];
   int          message_recv_length[AZ_MAX_NEIGHBORS];
   int          message_send_length[AZ_MAX_NEIGHBORS];
+  AZ_MATRIX   Amat2;
 
   /*
     message_send_add:
@@ -304,6 +312,16 @@ void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
   Num_Internal_Blks = data_org[AZ_N_int_blk];
   iout              = options[AZ_output];
 
+  if (data_org[AZ_matrix_type] == AZ_USER_MATRIX){
+      if (az_proc == 0) {
+        (void) fprintf(stderr, "ERROR: matrix-vector timing not available for"
+                       "matrix-free.\n"
+                       "      (data_org[AZ_matrix_type] = %d)\n\n",
+                       data_org[AZ_matrix_type]);
+      }
+      exit (-1);
+  }
+
   if (data_org[AZ_matrix_type] != AZ_VBR_MATRIX) {
     (void) fprintf(stderr, "I'm not sure if the timing stuff works for \n"
                    "nonVBR matrices. For example I don't think that\n"
@@ -329,7 +347,8 @@ void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
 
   start_t = AZ_second();
   for (i = 1; i <= ntimes; i++)
-    AZ_matvec_mult(val, indx, bindx, rpntr, cpntr, bpntr, x, y, 1, data_org);
+    Amat->matvec(x, r, Amat, proc_config);
+
 
   sprx_t = AZ_second() - start_t;
 
@@ -341,8 +360,8 @@ void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
 
   start_t = AZ_second();
   for (i = 1; i <= ntimes; i++) {
-    AZ_exchange_bdry(x, data_org);
-    AZ_exchange_bdry(y, data_org);
+    AZ_exchange_bdry(x, data_org, proc_config);
+    AZ_exchange_bdry(y, data_org, proc_config);
   }
 
   sprx_comm_t = 0.5*(AZ_second() - start_t);
@@ -355,7 +374,8 @@ void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
   }
   start_t = AZ_second();
   for (i = 1; i <= ntimes; i++)
-    AZ_matvec_mult(val, indx, bindx, rpntr, cpntr, bpntr, x, y, 1, data_org);
+    Amat->matvec(x, r, Amat, proc_config);
+
   time = AZ_second() - start_t;
 
   gather_t                       = (double) 0.0;
@@ -392,7 +412,8 @@ void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
     data_org[AZ_N_bord_blks] = 0;
     data_org[AZ_N_border] = 0;
 
-    AZ_matvec_mult(val, indx, bindx, rpntr, cpntr, bpntr, x, y, 0, data_org);
+    Amat->matvec(x, r, Amat, proc_config);
+
 
     data_org[AZ_N_bord_blks] = temp1;
     data_org[AZ_N_border] = temp2;
@@ -416,10 +437,25 @@ void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
     data_org[AZ_N_bord_blks]   = 0;
     data_org[AZ_N_border]      = 0;
 
-    AZ_matvec_mult(&val[indx[bpntr_index]], &indx[bpntr_index],
+/*
+    Amat2.rpntr = &(Amat->rpntr[Num_Internal_Blks]);
+    Amat2.cpntr =   Amat->cpntr;
+    Amat2.bpntr = &(Amat->bpntr[Num_Internal_Blks]);
+    Amat2.bindx = &(Amat->bindx[bpntr_index]);
+    Amat2.matvec      = Amat->matvec;
+    Amat2.matrix_type = Amat->matrix_type;
+    Amat2.data_org = &(Amat->data_org);
+    Amat2.val   = &(Amat->val[bpntr_index]);
+    Amat2.indx  = &(Amat->indx[bpntr_index]);
+*/
+
+    Amat->matvec(x, r, Amat, proc_config);
+
+/*
                    &bindx[bpntr_index], &rpntr[Num_Internal_Blks], cpntr,
                    &bpntr[Num_Internal_Blks], x, &y[rpntr[Num_Internal_Blks]],
                    0, data_org);
+*/
 
     data_org[AZ_N_bord_blks] = data_org[AZ_N_int_blks];
     data_org[AZ_N_border]    = data_org[AZ_N_internal];
@@ -490,9 +526,9 @@ void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
     (void) printf("time the individual routines for dzpax\n");
   }
 
-  z1 = (double *) malloc(N * sizeof(double));
-  z2 = (double *) malloc(N * sizeof(double));
-  z3 = (double *) malloc(N * sizeof(double));
+  z1 = (double *) AZ_allocate(N * sizeof(double));
+  z2 = (double *) AZ_allocate(N * sizeof(double));
+  z3 = (double *) AZ_allocate(N * sizeof(double));
   for (i = 0; i < N; i++) {
     z2[i] = (double) i;
     z3[i] = (double) 2*i;
@@ -507,9 +543,9 @@ void AZ_time_kernals(int gN, double gnzeros, double val[], int indx[],
   }
   dzpax_comp_t = AZ_gmax_double(AZ_second() - start_t, proc_config);
 
-  free((void *) z1);
-  free((void *) z2);
-  free((void *) z3);
+  AZ_free((void *) z1);
+  AZ_free((void *) z2);
+  AZ_free((void *) z3);
 
   if (Proc == 0) {              /* calculate and print results */
     (void) printf("\n********** sparax ***********\n\n");
@@ -732,6 +768,15 @@ int AZ_find_index(int key, int list[], int length)
 
 } /* AZ_find_index */
 
+int AZ_exit(int input)
+{
+#ifdef AZ_MPI
+   MPI_Finalize();
+#endif
+   exit(input);
+   return(1);
+}
+
 /******************************************************************************/
 /******************************************************************************/
 /******************************************************************************/
@@ -768,8 +813,8 @@ void AZ_free_memory(int label)
 /******************************************************************************/
 /******************************************************************************/
 
-double *AZ_manage_memory(int size, int action, int type, char *name,
-                         int *status)
+double *AZ_manage_memory(unsigned int input_size, int action, int type, 
+                         char *name, int *status)
 
 /*******************************************************************************
 
@@ -787,7 +832,7 @@ double *AZ_manage_memory(int size, int action, int type, char *name,
   Parameter list:
   ===============
 
-  size:            integer variable. On input, size indicates the amount of
+  input_size:      integer variable. On input, size indicates the amount of
                    memory that is needed (NOTE: ignored if action == AZ_CLEAR).
 
   action:          On input, action indicates whether to allocate or free
@@ -815,6 +860,9 @@ double *AZ_manage_memory(int size, int action, int type, char *name,
                    = AZ_CLEAR: free all memory associated with any chunk of
                                memory that has the memory-type 'type'.
 
+                   = AZ_SELECTIVE_CLEAR: free all memory associated with any
+                               chunk ofmemory that has the memory-type 'type'
+                               and the memory-name 'name'.
 
   type:            On input, a number associated with each piece of memory that
                    is allocated.  This number is used when checking to see if
@@ -851,15 +899,19 @@ double *AZ_manage_memory(int size, int action, int type, char *name,
     double *address;
     int     type;
     int     size;
+    char    special;
     struct mem_ptr *next;
   };
 
+  long int size;
   static struct mem_ptr *head = NULL;
-  struct mem_ptr        *current, *temp,*prev;
-  int                   found = 0;
+  struct mem_ptr        *current, *temp,*prev, *thenext;
+  int                   found = 0, i,j, n2, nn;
+int aligned_str_mem,aligned_j,aligned_size;
+double *dtmp;
 
   /**************************** execution begins ******************************/
-
+  size = (int) input_size;
   current = head;
 
   if (action == -43) {
@@ -867,8 +919,8 @@ double *AZ_manage_memory(int size, int action, int type, char *name,
     /* print the list */
 
     while (current != NULL) {
-      (void) printf("(%8d,%8d) ==> %s\n", current->type, current->size,
-                    current->name);
+      (void) printf("(%8d,%8d  %ld) ==> %s\n", current->type, current->size,
+                      (long int) current->address, current->name);
       prev    = current;
       current = current->next;
     }
@@ -876,6 +928,7 @@ double *AZ_manage_memory(int size, int action, int type, char *name,
   }
 
   else if (action == AZ_ALLOC) {
+    *status = AZ_OLD_ADDRESS;
     if (size == 0) return (double *) 0;
 
     /* first look for entry */
@@ -898,32 +951,41 @@ double *AZ_manage_memory(int size, int action, int type, char *name,
        * reasons as type = 0 is used a lot.
        */
 
-      temp = (struct mem_ptr *) malloc(sizeof(struct mem_ptr));
-      if (temp == NULL) {
+      j = strlen(name) + 1;
+      aligned_str_mem = sizeof(struct mem_ptr);
+      aligned_j       = j;
+      aligned_size    = size;
+
+      aligned_str_mem +=  (sizeof(double) - (aligned_str_mem%sizeof(double)));
+      aligned_j       +=  (sizeof(double) - (aligned_j%sizeof(double)));
+      aligned_size    +=  (sizeof(double) - (aligned_size%sizeof(double)));
+
+      dtmp = (double *) AZ_allocate((unsigned int) (aligned_str_mem+aligned_j+
+                                                aligned_size) );
+
+      if (dtmp== NULL) {
         (void) fprintf(stderr, "Error: Not enough space to allocate\n");
         (void) fprintf(stderr, "       '%s' in memory_manage()\n", name);
+        (void) fprintf(stderr, "        Asked for %ld bytes. Perhaps\n", size);
+        (void) fprintf(stderr, "        a smaller problem should be run\n");
         exit(-1);
       }
+      temp = (struct mem_ptr *) &(dtmp[aligned_size/sizeof(double)]);
+      temp->name = (char *)     &(dtmp[(aligned_str_mem+aligned_size)/
+				          sizeof(double)]);
+      temp->address = dtmp;
+      for (i = 0 ; i < j; i++ ) (temp->name)[i] = name[i];
 
-      temp->name    = (char *) strdup(name);
-      temp->address = (double *) malloc(size);
-      if (temp->address == NULL) {
-        (void) fprintf(stderr, "Error:Not enough memory for '%s'\n", name);
-        (void) fprintf(stderr, "      Asked for %d bytes. Perhaps\n", size);
-        (void) fprintf(stderr, "      a smaller problem should be run\n");
-        exit(-1);
-      }
 
+
+      temp->special = 'N';
       temp->type = type;
       temp->size = size;
-      if ( (type == AZ_SYS) || (head == NULL)) {
-        temp->next = head;
-        head       = temp;
-      }
-      else {
-        prev->next = temp;
-        temp->next = NULL;
-      }
+
+      /* put at the head of the list */
+
+      temp->next = head;
+      head       = temp;
 
       *status = AZ_NEW_ADDRESS;
       return temp->address;
@@ -943,9 +1005,7 @@ double *AZ_manage_memory(int size, int action, int type, char *name,
         else              prev->next = current->next;
 
         temp = current->next;
-        free(current->address);
-        free(current->name);
-        free(current);
+        AZ_free(current->address);
         current = temp;
       }
       else {
@@ -955,9 +1015,73 @@ double *AZ_manage_memory(int size, int action, int type, char *name,
     }
     return (double *) 0;
   }
-  else if (action == AZ_REALLOC) {
-    if (size == 0)
-      return (double *) 0;
+
+  else if (action == AZ_EVERYBODY_BUT_CLEAR) {
+    prev = NULL;
+
+    while (current != NULL) {
+      if ( (current->type == type) &&
+           (strncmp(current->name,name,5) != 0) ) {
+        if (prev == NULL) head       = current->next;
+        else              prev->next = current->next;
+
+        temp = current->next;
+
+        AZ_free(current->address);
+        current = temp;
+      }
+      else {
+        prev    = current;
+        current = current->next;
+      }
+    }
+    return (double *) 0;
+  }
+  else if (action == AZ_SUBSELECTIVE_CLEAR) {
+    prev = NULL;
+
+    while (current != NULL) {
+      if ( (current->type == type) &&
+           (strncmp(current->name,name,5) == 0) ) {
+        if (prev == NULL) head       = current->next;
+        else              prev->next = current->next;
+
+        temp = current->next;
+
+        AZ_free(current->address);
+        current = temp;
+      }
+      else {
+        prev    = current;
+        current = current->next;
+      }
+    }
+    return (double *) 0;
+  }
+  else if (action == AZ_SELECTIVE_CLEAR) {
+    prev = NULL;
+
+    while (current != NULL) {
+      if ( (current->type == type) &&
+         (strcmp(current->name,name) == 0) ) {
+        if (prev == NULL) head       = current->next;
+        else              prev->next = current->next;
+
+        temp = current->next;
+
+        AZ_free(current->address);
+        current = temp;
+      }
+      else {
+        prev    = current;
+        current = current->next;
+      }
+    }
+    return (double *) 0;
+  }
+
+  else if ( (action == AZ_REALLOC) || (action == AZ_SPEC_REALLOC)) {
+     prev = NULL;
 
     /* first look for entry */
 
@@ -976,19 +1100,136 @@ double *AZ_manage_memory(int size, int action, int type, char *name,
       (void) fprintf(stderr, " found during reallocation\n");
       exit(-1);
     }
-    current->size = size;
-    *status = AZ_OLD_ADDRESS;
-    current->address = (double *) realloc((char *) current->address,size);
-    if (current->address == NULL) {
+    if ( (action == AZ_REALLOC) && (current->special != 'N')) {
+        *status = AZ_SPECIAL;
+        return(current->address);
+    }
+    else if (current->special != 'N') {
+       *status = AZ_SPECIAL;
+    }
+    else *status = AZ_OLD_ADDRESS;
+
+    if (current->size == size) return(current->address);
+
+
+    j = strlen(name) + 1;
+    aligned_str_mem = sizeof(struct mem_ptr);
+    aligned_j       = j;
+    aligned_size    = size;
+
+    aligned_str_mem +=  (sizeof(double) - (aligned_str_mem%sizeof(double)));
+    aligned_j       +=  (sizeof(double) - (aligned_j%sizeof(double)));
+    aligned_size    +=  (sizeof(double) - (aligned_size%sizeof(double)));
+
+    thenext = current->next;
+    dtmp    = current->address;
+    dtmp    = (double *) AZ_realloc((char *) dtmp,(unsigned int) 
+                                    aligned_str_mem+aligned_j+aligned_size);
+    if (dtmp == NULL) {
       (void) fprintf(stderr, "Error:Not enough memory for '%s'\n", name);
-      (void) fprintf(stderr, "      Asked for %d bytes. Perhaps\n", size);
+      (void) fprintf(stderr, "      Asked for %ld bytes. Perhaps\n", size);
       (void) fprintf(stderr, "      a smaller problem should be run\n");
       exit(-1);
     }
-    return current->address;
+    temp = (struct mem_ptr *) &(dtmp[aligned_size/sizeof(double)]);
+    temp->name = (char *)     &(dtmp[(aligned_str_mem+aligned_size)/
+                                          sizeof(double)]);
+    temp->address = dtmp;
+    for (i = 0 ; i < j; i++ ) (temp->name)[i] = name[i];
+    temp->special = 'N';
+    if (action == AZ_SPEC_REALLOC) temp->special = 'S';
+    temp->type = type;
+    temp->size = size;
+
+    if (prev == NULL) head  = temp;
+    else  prev->next = temp;
+    temp->next = thenext;
+
+    return temp->address;
 
   }
+  else if (action == AZ_RESET_STRING) {
+      prev = NULL;
+ 
+     /* first look for entry */
+ 
+     n2 = strlen(name);
+     while ( current != NULL) {
+       nn = strlen(current->name);
+       if ( (current->type == type) &&
+            (strncmp(current->name,name,(unsigned) nn) == 0) &&
+            (n2 < nn*2)) {
+         found = 1;
+         break;
+       }
+       prev    = current;
+       current = current->next;
+     }
+     if (current == NULL) {
+       (void) fprintf(stderr, "memory_management error: %s with type %d not",
+                      name, type);
+       (void) fprintf(stderr, " found while changing name\n");
+       exit(-1);
+     }
+     sprintf(current->name,"%s",&(name[nn]));
+     *status = AZ_OLD_ADDRESS;
+  }
+  else if (action == AZ_EMPTY ) {
+     if (current == NULL) *status = -1;
+     else *status = 1;
+  }
+  else if (action == AZ_LOOKFOR_PRINT) {
+    /* first look for entry */
 
+    printf("Looking in system for possible mismatches\n");
+    while ( current != NULL) {
+      if (current->name[0] == 'P') {
+         if (current->type != type) {
+            printf("AZ_name/type does not match %d %d\n\n", current->type,type);
+            return(NULL);
+         }
+         i = strcmp(current->name,name);
+         if (i != 0) {
+            printf("option keys do not match (%s) (%s)\n", current->name,name);
+         
+            nn = 1;
+            while ( (current->name[nn] != ' ' )&&(nn < (int) strlen(current->name))) {
+               if (current->name[nn] != name[nn]) break;
+               nn++;
+            }
+            if ((current->name[nn] != ' ') || (name[nn] != ' ')) {
+               sscanf(&(current->name[1]),"%d", &i);
+               sscanf(&(name[1]),"%d", &j);
+               printf("found context with different matrix size (%d vs. %d)\n",
+                      i,j);
+               return(NULL);
+            }
+            i = (int) ( name[++nn] - '!');
+            j = (int) ( current->name[nn] - '!');
+            if (j != i) {
+               printf("==> check overlapping and reordering choices\n");
+               return(NULL);
+            }
+            i = (int) ( name[++nn] - '!');
+            j = (int) ( current->name[nn] - '!');
+            if (j != i) {
+              printf("==> check preconditioner and subdomain solver choices\n");
+              return(NULL);
+            }
+            i = (int) ( name[++nn] - '!');
+            j = (int) ( current->name[nn] - '!');
+            if (j != i) {
+              printf("==> check scaling choices\n");
+              return(NULL);
+            }
+           printf("==> check AZ_ilut_fill, AZ_drop & AZ_graph_fill choices\n");
+           return(NULL);
+         }
+      }
+      prev    = current;
+      current = current->next;
+    }
+  }
   else {
     (void) fprintf(stderr, "Error: Invalid action(%d) in AZ_manage_memory()\n",
                    action);
@@ -1119,8 +1360,7 @@ int AZ_get_new_eps(double *epsilon, double recursive, double actual,
   /**************************** execution begins ******************************/
 
   difference = fabs(actual - recursive);
-  if (difference > *epsilon)
-    return AZ_QUIT;
+  if (difference > *epsilon) return AZ_QUIT;
   else {
     *epsilon = *epsilon - 1.5 * difference;
     while (*epsilon < 0.0) *epsilon += .1*difference;
@@ -1247,32 +1487,44 @@ void AZ_terminate_status_print(int situation, int iter, double status[],
 
   switch (solver_flag) {
   case AZ_cg:
-    solver_name = (char *) malloc(3*sizeof(char));
-    (void) strcpy(solver_name, "cg");
+    solver_name = (char *) AZ_allocate(3*sizeof(char));
+    (void) sprintf(solver_name, "cg");
+    break;
+  case AZ_fixed_pt:
+    solver_name = (char *) AZ_allocate(9*sizeof(char));
+    (void) sprintf(solver_name, "fixed-pt");
+    break;
+  case AZ_GMRESR:
+    solver_name = (char *) AZ_allocate(7*sizeof(char));
+    (void) sprintf(solver_name, "gmresr");
+    break;
+  case AZ_analyze:
+    solver_name = (char *) AZ_allocate(8*sizeof(char));
+    (void) sprintf(solver_name, "analyze");
     break;
   case AZ_gmres:
-    solver_name = (char *) malloc(6*sizeof(char));
-    (void) strcpy(solver_name, "gmres");
+    solver_name = (char *) AZ_allocate(6*sizeof(char));
+    (void) sprintf(solver_name, "gmres");
     break;
   case AZ_cgs:
-    solver_name = (char *) malloc(4*sizeof(char));
-    (void) strcpy(solver_name, "cgs");
+    solver_name = (char *) AZ_allocate(4*sizeof(char));
+    (void) sprintf(solver_name, "cgs");
     break;
   case AZ_tfqmr:
-    solver_name = (char *) malloc(5*sizeof(char));
-    (void) strcpy(solver_name, "tfqmr");
+    solver_name = (char *) AZ_allocate(7*sizeof(char));
+    (void) sprintf(solver_name, "tfqmr");
     break;
   case AZ_bicgstab:
-    solver_name = (char *) malloc(9*sizeof(char));
-    (void) strcpy(solver_name, "bicgstab");
+    solver_name = (char *) AZ_allocate(9*sizeof(char));
+    (void) sprintf(solver_name, "bicgstab");
     break;
   case AZ_symmlq:
-    solver_name = (char *) malloc(7*sizeof(char));
-    (void) strcpy(solver_name, "symmlq");
+    solver_name = (char *) AZ_allocate(7*sizeof(char));
+    (void) sprintf(solver_name, "symmlq");
     break;
   case AZ_lu:
-    solver_name = (char *) malloc(4*sizeof(char));
-    (void) strcpy(solver_name, "lu");
+    solver_name = (char *) AZ_allocate(4*sizeof(char));
+    (void) sprintf(solver_name, "lu");
     break;
   default:
     (void) fprintf(stderr,
@@ -1329,7 +1581,7 @@ void AZ_terminate_status_print(int situation, int iter, double status[],
     default:
       (void) fprintf(stderr, "\tError: improper code passed from solver %s\n\n",
                      solver_name);
-    (void) fprintf(stderr,"\t***********************************************",
+    (void) fprintf(stderr,"\t***********************************************%s",
                    "**********\n\n");
     exit(-1);
     }
@@ -1346,6 +1598,10 @@ void AZ_terminate_status_print(int situation, int iter, double status[],
     (void) fprintf(stdout,"\t--------------\n\n");
 
     switch (conv_flag) {
+    case AZ_noscaled:
+      (void) fprintf(stdout, "\t||r||_2 :\t\t%e\t%e\n", scaled_r_norm,
+                     eps);
+    break;
     case AZ_r0:
       (void) fprintf(stdout, "\t||r||_2 / ||r0||_2:\t\t%e\t%e\n", scaled_r_norm,
                      eps);
@@ -1364,6 +1620,7 @@ void AZ_terminate_status_print(int situation, int iter, double status[],
                    scaled_r_norm, eps);
     (void) fprintf(stdout, "\t||A||_inf ||x||_1 + ||b||_inf\n");
     break;
+    case AZ_expected_values:
     case AZ_weighted:
       (void) fprintf(stdout, "\t||r||_WRMS:\t\t%e\t%e\n", scaled_r_norm, eps);
     break;
@@ -1380,7 +1637,7 @@ void AZ_terminate_status_print(int situation, int iter, double status[],
   /* free memory */
 
   if (solver_name != NULL)
-    free((void *) solver_name);
+    AZ_free((void *) solver_name);
 
 } /* AZ_terminate_status_print */
 
@@ -1451,7 +1708,7 @@ void AZ_random_vector(double u[], int data_org[], int proc_config[])
 
   data_org:        Array containing information on the distribution of the
                    matrix to this processor as well as communication parameters
-                   (see file params.txt).
+                   (see Aztec User's Guide).
 
   proc_config:     Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
@@ -1526,3 +1783,1813 @@ double AZ_srandom1(int *seed)
   return rand_num;
 
 } /* AZ_srandom1 */
+
+
+
+int allo_count = 0, free_count = 0;
+
+#ifdef MEM_CHECK
+/* sophisticated wrappers for allocating memory */
+
+struct widget {                  /* widget is used to maintain a linked   */
+   int order;                    /* list of all memory that was allocated */
+   int size;
+   char *address;
+   struct widget *next;
+};
+struct widget *widget_head =  NULL;  /* points to first element of allocated */
+                                     /* memory linked list.                  */
+
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+
+void AZ_print_it() {
+/*
+ * Print out the allocated memory linked list
+ */
+
+   struct widget *current;
+
+   current = widget_head;
+   while (current != NULL) {
+      printf("(%d,%d,%u)\n",current->order, current->size, current->address);
+      current = current->next;
+   }
+}
+extern void AZ_print_it();
+
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+
+char *AZ_allocate(unsigned int isize) {
+
+/* 
+ *  Allocate memory and record the event by placing an entry in the 
+ *  widget_head list. Also recored the size of this entry as well.
+ *
+ *  Note: we actually allocate more memory than is requested (7 doubles more).
+ *  This additional memory is used to record the 'size' and to mark the
+ *  memory with a header and trailer which we can later check to see if
+ *  they were overwritten.
+ *
+ */
+
+    char *ptr, *header_start, *header_end;
+    struct widget *widget;
+    int *size_ptr, i, size;
+    double *dptr;
+
+    size = (int) isize;
+
+    size = size + 7*sizeof(double);
+    widget = (struct widget *) malloc(sizeof(struct widget));
+    if (widget == NULL) return(NULL);
+    ptr = (char *) malloc(size);
+    if (ptr == NULL) {
+       free(widget);
+       return(NULL);
+    }
+    allo_count++;
+
+    /* put trash in the space to make sure nobody is expecting zeros */
+    for (i = 0 ; i < size/sizeof(char) ; i++ ) 
+       ptr[i] = 'f';
+
+
+    /* record the entry */
+
+    widget->order = allo_count;
+if (size == 7*sizeof(double) ) {
+printf("allocating 0 space %u (%d)\n",ptr,size);
+ i = 0;
+ size = 1/i;
+ widget = NULL;
+}
+    widget->size  = size - 7*sizeof(double);
+    widget->next  = widget_head;
+    widget_head   = widget;
+    widget->address = ptr;
+
+    size_ptr = (int *) ptr;
+    size_ptr[0] = size - 7*sizeof(double);
+    dptr     = (double *) ptr;
+
+    /* mark the header */
+
+    header_start = (char *) &(dptr[1]);
+
+    for (i = 0 ; i < 3*sizeof(double)/sizeof(char) ; i++ )
+       header_start[i] = 'x';
+
+    /* mark the trailer */
+
+    header_end = &(ptr[ (size/sizeof(char)) - 1]);
+    header_start = (char *) &(dptr[4]);
+    header_start = & (header_start[(size-7*sizeof(double))/sizeof(char)]);
+
+    while (header_start <= header_end) {
+       *header_start = 'x';
+       header_start++;
+    }
+
+    return( (char *) &(dptr[4]) );
+}
+
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+
+void AZ_free(void *vptr) {
+/*
+ * Free memory and remove the corresponding entry from the widget_head
+ * list. Additionally, check that the size stored in the header is correct
+ * and that there has not been any memory overwritten in the header or
+ * the trailer.
+ *
+ */
+
+   struct widget *current, *prev;
+   double *dptr;
+   int *iptr, size, i;
+   char *header_start, *header_end, *ptr;
+
+    ptr = (char *) vptr;
+    free_count++;
+    if (ptr == NULL) {
+       printf("Trying to free a NULL ptr\n");
+i = 0;
+size = 1/i;
+widget_head = NULL;
+    }
+    else {
+       current = widget_head;
+       prev    = NULL;
+       dptr = (double *) ptr;
+       --dptr;
+       --dptr;
+       --dptr;
+       --dptr;
+       ptr = (char *) dptr;
+       while (current != NULL) {
+          if (current->address == ptr) break;
+          else { prev = current; current = current->next; }
+       }
+       if (current == NULL) {
+          printf("the pointer %u was not found and thus can not be freed.\n",
+                  ptr);
+          exit(1);
+       }
+       else {
+           /* check to see if the header is corrupted */
+           iptr = (int *) ptr;
+           header_start = (char *) &(dptr[1]);
+
+           for (i = 0 ; i < 3*sizeof(double)/sizeof(char) ; i++ ) {
+              if (header_start[i] != 'x') {
+                 printf("header is corrupted for %u (%d,%d)\n",ptr,
+                         current->size,current->order);
+                 size =  0;
+                 size = 1/size;
+              }
+           }
+           size = iptr[0];
+
+           /* check to see if the sizes are different */
+
+           if (current->size != size) {
+              printf("Freeing %u whose size has changed (%d,%d)\n",
+                     current->address,current->size,size);
+              exit(1);
+           }
+
+           /* check to see if the trailer is corrupted */
+
+           header_end = &(ptr[ ((size+7*sizeof(double))/sizeof(char)) - 1]);
+           header_start = (char *) &(dptr[4]);
+           header_start = &(header_start[size/sizeof(char)]);
+
+           while (header_start <= header_end) {
+              if ( *header_start != 'x') {
+                 printf("trailer is corrupted for %u (%d,%d)\n",
+                         ptr, size,
+                         current->order);
+                 size =  0;
+                 size = 1/size;
+              }
+              header_start++;
+           }
+
+           /* free the space and the widget */
+
+           free(ptr);
+           if (widget_head == current) widget_head = current->next;
+           else prev->next = current->next;
+           free(current);
+
+       }
+   }
+
+}
+
+char *AZ_realloc(void *vptr, unsigned int new_size) {
+
+   struct widget *current, *prev;
+   int i, *iptr, size, *new_size_ptr;
+   char *header_start, *header_end, *ptr;
+   char *data1, *data2, *new_ptr, *new_header_start, *new_header_end;
+   int newmsize, smaller;
+   double *dptr, *new_dptr;
+
+    ptr = (char *) vptr;
+    if (ptr == NULL) {
+       printf("Trying to realloc a NULL ptr\n");
+       exit(1);
+    }
+    else {
+       current = widget_head;
+       prev    = NULL;
+data1 = ptr;
+       dptr = (double *) ptr;
+       --dptr;
+       --dptr;
+       --dptr;
+       --dptr;
+       ptr = (char *) dptr;
+       while (current != NULL) {
+          if (current->address == ptr) break;
+          else { prev = current; current = current->next; }
+       }
+       if (current == NULL) {
+          printf("the pointer %u was not found and thus can not be realloc.\n",
+                  ptr);
+          exit(1);
+       }
+       else {
+           /* check to see if the header is corrupted */
+           iptr = (int *) ptr;
+           header_start = (char *) &(dptr[1]);
+
+           for (i = 0 ; i < 3*sizeof(double)/sizeof(char) ; i++ ) {
+              if (header_start[i] != 'x') {
+                 printf("realloc header is corrupted for %u (%d,%d)\n",ptr,
+                         current->size,current->order);
+                 size =  0;
+                 size = 1/size;
+              }
+/* DO WE CHECK THE TRAILER ???? */
+           }
+           size = iptr[0];
+
+
+    newmsize = new_size + 7*sizeof(double);
+    new_ptr = (char *) malloc(newmsize);
+    if (new_ptr == NULL) return(NULL);
+
+
+    new_size_ptr = (int *) new_ptr;
+    new_size_ptr[0] = new_size;
+    new_dptr     = (double *) new_ptr;
+data2 = (char *) &(new_dptr[4]);
+
+    new_header_start = (char *) &(new_dptr[1]);
+
+    for (i = 0 ; i < 3*sizeof(double)/sizeof(char) ; i++ )
+       new_header_start[i] = 'x';
+
+    new_header_end = &(new_ptr[ (newmsize/sizeof(char)) - 1]);
+    new_header_start = (char *) &(new_dptr[4]);
+    new_header_start= &(new_header_start[new_size/sizeof(char)]);
+
+    while (new_header_start <= new_header_end) {
+       *new_header_start = 'x';
+       new_header_start++;
+    }
+
+    smaller = current->size;
+    if (smaller > new_size ) smaller = new_size;
+    for (i = 0 ; i < smaller; i++) data2[i] = data1[i];
+
+    free(dptr);
+    current->size  = new_size;
+    current->address = (char *) new_dptr;
+    return( (char *) &(new_dptr[4]));
+
+       }
+    }
+}
+   
+
+
+
+
+void spit_it_out()
+{
+printf("malloc/free %d %d\n",allo_count,free_count);
+if (allo_count != free_count) 
+printf("WHOA XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+AZ_print_it();
+}
+
+#else
+/* Simple wrappers for malloc */
+
+char *AZ_allocate(unsigned int size) {
+char *temp;
+temp = malloc (size);
+if (temp != NULL) allo_count++;
+return ( temp );
+}
+
+void AZ_free(void *ptr) {
+free_count++; free(ptr); }
+
+char *AZ_realloc(void *ptr, unsigned int size) {
+   return( realloc(ptr, size) );
+}
+extern void spit_it_out(void);
+
+void spit_it_out()
+{
+if (allo_count != free_count) 
+   printf("malloc/free %d %d XXXXXXXX\n",allo_count,free_count);
+else printf("malloc/free %d %d\n",allo_count,free_count);
+}
+
+#endif
+
+/***********************************************************************/
+/***********************************************************************/
+/***********************************************************************/
+void AZ_perror(char *string)
+{
+/* Print out 'string' and exit */
+
+   (void) fprintf(stderr,"%s",string);
+   exit(-1);
+}
+
+/***********************************************************************/
+/***********************************************************************/
+/***********************************************************************/
+
+void AZ_lower_tsolve(double *x, int n, double *val, int *bindx, int *iu, 
+                    double *y)
+{
+/*
+ *  Do a lower triangular MSR backsolve (I can't remember whether
+ *  this is an MSR C or Fortran matrix).
+ *
+ */
+    double dtmp;
+    int    i, j, k, i1, i2;
+
+    --y;
+    --iu;
+    --x;
+    --val;
+    --bindx;
+
+    i1 = n;
+    for (i = 1; i <= i1; ++i) {
+        /*  Loop over the columns, up to the diagonal. */
+	dtmp = 0.;
+	i2 = iu[i] - 1;
+	for (k = bindx[i]; k <= i2; ++k) {
+	    j = bindx[k];
+	    dtmp += val[k] * y[j];
+	}
+        /*     compute x(i). l(i,i) = 1.0. */
+	y[i] = x[i] - dtmp;
+    }
+} /* AZ_lower_tsolve */
+
+/***********************************************************************/
+/***********************************************************************/
+/***********************************************************************/
+
+void AZ_upper_tsolve(double *x, int n, double *val, int *bindx, int *iu)
+{
+/*
+ *  Do an upper triangular MSR backsolve (I can't remember whether
+ *  this is an MSR C or Fortran matrix).
+ *
+ */
+    double dtmp;
+    int   i, j, k, i1;
+
+    /* Parameter adjustments */
+    --iu;
+    --x;
+    --val;
+    --bindx;
+
+    /* Function Body */
+    for (i = n; i >= 1; --i) {
+	dtmp = 0.;
+	i1 = bindx[i + 1] - 1;
+	for (k = iu[i]; k <= i1; ++k) {
+	    j = bindx[k];
+	    dtmp += val[k] * x[j];
+	}
+	x[i] = (x[i] - dtmp) * val[i];
+    }
+} /* AZ_upper_tsolve */
+
+/***********************************************************************/
+/***********************************************************************/
+/***********************************************************************/
+
+int AZ_set_solver_parameters(double *params, int *options, AZ_MATRIX *A, 
+	AZ_PRECOND *P, struct AZ_SCALING *S)
+{
+/*
+ * Record all the parameters to AZ_oldsolve() in a manage_memory
+ * data field so that they can be recovered later.
+ *
+ */
+  static int name = AZ_SOLVER_PARAMS;
+  double *iparams, *istatus;
+  int    *ioptions, i, i2, i3;
+  char   str[80];
+  AZ_MATRIX  *Aptr;
+  AZ_PRECOND *Pptr;
+  struct AZ_SCALING *Sptr;
+  unsigned   int size;
+
+  name--;
+
+  if ((options[AZ_conv] == AZ_weighted) || (options[AZ_conv] == AZ_expected_values)) {
+     fprintf(stderr,"Sorry weighted norm can not be used with this routine.\n");
+     exit(1);
+  }
+
+
+   /* allocate each one of these things with manage memory */
+
+  size = AZ_get_sol_param_size();
+
+
+  sprintf(str,"sol_param %d",name);
+  iparams = AZ_manage_memory(size, AZ_ALLOC, -777, str, &i);
+  istatus = &(iparams[AZ_PARAMS_SIZE]);
+  Aptr    =  (AZ_MATRIX *) &(istatus[AZ_STATUS_SIZE]);
+  i       = (int) ( ((double) sizeof(AZ_MATRIX)) / ((double) sizeof(double) ));
+  i++;
+  Pptr    =  (AZ_PRECOND *) &(istatus[AZ_STATUS_SIZE+i]);
+  i2      = (int) ( ((double) sizeof(AZ_PRECOND)) / ((double) sizeof(double) ));
+  i2++;
+  ioptions= (int *)  &(istatus[AZ_STATUS_SIZE+i + i2]);
+  i3      = (int) ( ((double) AZ_OPTIONS_SIZE*sizeof(int) ) / ((double) sizeof(double) ));
+  Sptr    =  (struct AZ_SCALING *) &(istatus[AZ_STATUS_SIZE+i + i2 + i3]);
+
+  *Aptr = *A;
+  *Pptr = *P;
+  *Sptr = *S;
+
+  for (i = 0 ; i < AZ_PARAMS_SIZE ; i++ ) iparams[i]  = params[i];
+  for (i = 0 ; i < AZ_OPTIONS_SIZE; i++ ) ioptions[i] = options[i];
+  for (i = 0 ; i < AZ_STATUS_SIZE ; i++ ) istatus[i] = 0.0;
+
+  return(name);
+}
+
+/***********************************************************************/
+/***********************************************************************/
+/***********************************************************************/
+extern unsigned int AZ_get_sol_param_size(void); 
+unsigned int AZ_get_sol_param_size() 
+{
+  /* Utility routine which just gives us the size of all Aztec's */
+  /* solution parameters.                                        */
+
+
+  return((AZ_OPTIONS_SIZE)*sizeof(int) +
+         (AZ_PARAMS_SIZE + AZ_STATUS_SIZE + 2)*sizeof(double) +
+         sizeof(AZ_MATRIX)  + sizeof(AZ_PRECOND) + sizeof(struct AZ_SCALING) );
+}
+
+/***********************************************************************/
+/***********************************************************************/
+/***********************************************************************/
+
+void AZ_recover_sol_params(int instance, int **sub_options, double **sub_params,
+	double **sub_status, AZ_MATRIX **sub_matrix, AZ_PRECOND **sub_precond,
+        struct AZ_SCALING **sub_scaling)
+{
+/* This routine will require the previously stored parameters associated
+ * with 'instance' (see AZ_set_solver_parameters). These parameters correspond
+ * to all the variables need to invoke AZ_oldsolve(). This routine is used
+ * to recursively call the iteratve solvers or to use the iterative solvers
+ * on a subdomain.
+ */
+
+  double     *tparams, *tstatus;
+  int        *toptions, i, i2, i3;
+  char       str[80];
+  AZ_MATRIX  *Aptr;
+  AZ_PRECOND *Pptr;
+  struct AZ_SCALING *scaling;
+  
+  unsigned   int size;
+
+  size = AZ_get_sol_param_size();
+
+  sprintf(str,"sol_param %d",instance);
+  tparams = AZ_manage_memory(size, AZ_ALLOC, -777, str, &i);
+  if (i == AZ_NEW_ADDRESS) {
+     fprintf(stderr,"Error:\tSolver parameters corresponding to ");
+     fprintf(stderr,"the internal solver = %d\n\twere not found.\n",
+             instance);
+     exit(1);
+  }
+  tstatus = &(tparams[AZ_PARAMS_SIZE]);
+  Aptr    =  (AZ_MATRIX *) &(tstatus[AZ_STATUS_SIZE]);
+  i       = (int) ( ((double) sizeof(AZ_MATRIX))/((double) sizeof(double)));
+  i++;
+  Pptr    =  (AZ_PRECOND *) &(tstatus[AZ_STATUS_SIZE+i]);
+  i2      = (int) ( ((double) sizeof(AZ_PRECOND))/((double) sizeof(double)));
+  i2++;
+  toptions= (int *)  &(tstatus[AZ_STATUS_SIZE+i + i2]);
+  i3      = (int) ( ((double) AZ_OPTIONS_SIZE*sizeof(int) ) / ((double) sizeof(double) ));
+  scaling =  (struct AZ_SCALING *) &(tstatus[AZ_STATUS_SIZE+i + i2 + i3]);
+
+  *sub_options = toptions;
+  *sub_params  = tparams;
+  *sub_status  = tstatus;
+  *sub_matrix  = Aptr;
+  *sub_precond = Pptr;
+  *sub_scaling = scaling;
+}
+
+/***********************************************************************/
+/***********************************************************************/
+/***********************************************************************/
+
+void AZ_clear_solver_parameters(int handle)
+{
+/*
+ * Clear the context assoicated with handle.
+ *
+ */
+  int    i;
+  char   str[80];
+  unsigned int size;
+
+
+  size = AZ_get_sol_param_size();
+  sprintf(str,"sol_param %d",handle);
+  AZ_manage_memory(size, AZ_SELECTIVE_CLEAR, -777, str, &i);
+}
+void AZ_set_precond_print_string(struct AZ_PREC_STRUCT *precond, char str[])
+{
+   if ( precond->print_string != NULL) AZ_free( precond->print_string);
+   precond->print_string = (char *) AZ_allocate( (strlen(str)+1)*sizeof(char));
+   if (precond->print_string == NULL) {
+      printf("AZ_set_precond_print_string: Not enough space to allocate string\n");
+      exit(1);
+   }
+   sprintf(precond->print_string,"%s",str);
+}
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+AZ_PRECOND *AZ_precond_create(AZ_MATRIX *Pmat, void (*prec_fun)(
+	double *, int *, int *, double *, struct AZ_MATRIX_STRUCT  *,
+               struct AZ_PREC_STRUCT *), void *data)
+{
+   AZ_PRECOND *precond;
+
+   precond = (AZ_PRECOND *) AZ_allocate(sizeof(AZ_PRECOND));
+   if (precond == NULL) {
+      printf("Error: Not enough space in AZ_precond_create().\n");
+      exit(1);
+   }
+   precond->Pmat          = Pmat;
+   precond->prec_function = prec_fun;
+   precond->precond_data  = data;
+   precond->prec_create_called = 1;
+   precond->options = NULL;
+   precond->params  = NULL;
+   precond->print_string = NULL;
+/*
+precond->options = (int    *) AZ_allocate(AZ_OPTIONS_SIZE*sizeof(int));
+precond->params  = (double *) AZ_allocate(AZ_PARAMS_SIZE*sizeof(double));
+AZ_defaults(precond->options,precond->params);
+   if (prec_fun != AZ_precondition) precond->options[AZ_precond] = AZ_user_precond;
+*/
+   return(precond);
+}
+
+
+AZ_MATRIX *AZ_matrix_create(int local)
+{
+/*
+ * Create an Aztec AZ_MATRIX structure and fill in the noncommunication
+ * related fields of data_org[]. 
+ * Note: This matrix will not work properly with Aztec's AZ_exchange_bdry()
+ *       subroutine. Instead, it is intended that this matrix be used for
+ *       matrix-free users and matrices which do not require communication.
+ *
+ * Parameters
+ * ========
+ *   local              Number of matrix equations residing on this processor.
+ *
+ *   additional         local+additional is the required size of a vector, x,
+ *                      that will be applied to a matrix when performing a
+ *                      matrix-vector product. The first 'local' components of
+ *                      'x' must contain the appropriate data. The remaining
+ *                      'additional' components are used as workspace inside
+ *                      the user's matrix vector product.
+ *  matrix_type         Either AZ_MSR_MATRIX, AZ_VBR_MATRIX, or AZ_USER_MATRIX.
+ *  local_blks          When matrix_type == AZ_VBR_MATRIX, 'local_blks' 
+ *                      indicates how many block equations reside on this node.
+ */
+
+   AZ_MATRIX  *Amat;
+
+   Amat     = (AZ_MATRIX *) AZ_allocate(sizeof(AZ_MATRIX));
+   if (Amat == NULL) {
+      printf("Error: Not enough space in AZ_matrix_create().\n");
+      exit(1);
+   }
+   AZ_matrix_init(Amat, local);
+/*
+   Amat->matrix_type = AZ_none;
+   Amat->N_local = local;
+   Amat->N_ghost = 0;
+   Amat->mat_create_called = 1;
+   Amat->must_free_data_org = 0;
+   Amat->rpntr       = NULL;
+   Amat->cpntr       = NULL;
+   Amat->bpntr       = NULL;
+   Amat->bindx       = NULL;
+   Amat->indx        = NULL;
+   Amat->val         = NULL;
+   Amat->data_org    = NULL;
+   Amat->matvec      = NULL;
+   Amat->getrow      = NULL;
+   Amat->user_comm   = NULL;
+   Amat->matrix_norm = -1.0;
+   Amat->aux_ival    = NULL;
+   Amat->aux_dval    = NULL;
+   Amat->aux_ptr     = NULL;
+   Amat->matvec_data = NULL;
+   Amat->getrow_data = NULL;
+   Amat->aux_matrix  = NULL;
+   Amat->N_nz        = -1;
+   Amat->max_per_row = -1;
+   Amat->largest_band= -1;
+*/
+
+   return(Amat);
+} 
+void AZ_matrix_init(AZ_MATRIX *Amat, int local)
+{
+/*
+ * Create an Aztec AZ_MATRIX structure and fill in the noncommunication
+ * related fields of data_org[]. 
+ * Note: This matrix will not work properly with Aztec's AZ_exchange_bdry()
+ *       subroutine. Instead, it is intended that this matrix be used for
+ *       matrix-free users and matrices which do not require communication.
+ *
+ * Parameters
+ * ========
+ *   local              Number of matrix equations residing on this processor.
+ *
+ *   additional         local+additional is the required size of a vector, x,
+ *                      that will be applied to a matrix when performing a
+ *                      matrix-vector product. The first 'local' components of
+ *                      'x' must contain the appropriate data. The remaining
+ *                      'additional' components are used as workspace inside
+ *                      the user's matrix vector product.
+ *  matrix_type         Either AZ_MSR_MATRIX, AZ_VBR_MATRIX, or AZ_USER_MATRIX.
+ *  local_blks          When matrix_type == AZ_VBR_MATRIX, 'local_blks' 
+ *                      indicates how many block equations reside on this node.
+ */
+
+/*
+   AZ_MATRIX  *Amat;
+
+   Amat     = (AZ_MATRIX *) AZ_allocate(sizeof(AZ_MATRIX));
+   if (Amat == NULL) {
+      printf("Error: Not enough space in AZ_matrix_create().\n");
+      exit(1);
+   }
+*/
+   Amat->matrix_type = AZ_none;
+   Amat->N_local = local;
+   Amat->N_ghost = 0;
+   Amat->mat_create_called = 1;
+   Amat->must_free_data_org = 0;
+   Amat->rpntr       = NULL;
+   Amat->cpntr       = NULL;
+   Amat->bpntr       = NULL;
+   Amat->bindx       = NULL;
+   Amat->indx        = NULL;
+   Amat->val         = NULL;
+   Amat->data_org    = NULL;
+   Amat->matvec      = NULL;
+   Amat->getrow      = NULL;
+   Amat->user_comm   = NULL;
+   Amat->matrix_norm = -1.0;
+   Amat->aux_ival    = NULL;
+   Amat->aux_dval    = NULL;
+   Amat->aux_ptr     = NULL;
+   Amat->matvec_data = NULL;
+   Amat->getrow_data = NULL;
+   Amat->aux_matrix  = NULL;
+   Amat->N_nz        = -1;
+   Amat->max_per_row = -1;
+   Amat->largest_band= -1;
+} 
+/* Begin Aztec 2.1 mheroux mod */
+void AZ_set_MSR(AZ_MATRIX *Amat, int bindx[], double val[], int
+                data_org[], int N_update, int update[], int option)
+/* End Aztec 2.1 mheroux mod */
+{
+   Amat->bindx    = bindx;
+   Amat->val      = val;
+   Amat->data_org = data_org;
+   Amat->N_update = N_update;
+   Amat->update = update;
+   Amat->matrix_type = AZ_MSR_MATRIX;
+   Amat->matvec   = AZ_MSR_matvec_mult;
+   Amat->N_nz  = -1;
+   Amat->max_per_row = -1;
+   Amat->largest_band= -1;
+   if (option == AZ_LOCAL)
+     Amat->has_global_indices = 0;
+   else
+     Amat->has_global_indices = 1;
+}
+/* Begin Aztec 2.1 mheroux mod */
+void AZ_set_VBR(AZ_MATRIX *Amat, int rpntr[], int cpntr[], int bpntr[], 
+		int indx[], int bindx[], double val[], int data_org[], 
+		int N_update, int update[], int option)
+/* End Aztec 2.1 mheroux mod */
+{
+   Amat->rpntr = rpntr;
+   Amat->cpntr = cpntr;
+   Amat->bpntr = bpntr;
+   Amat->indx  = indx;
+   Amat->bindx = bindx;
+   Amat->val   = val;
+   Amat->data_org = data_org;
+   Amat->N_update = N_update;
+   Amat->update = update;
+   Amat->matrix_type = AZ_VBR_MATRIX;
+   Amat->matvec   = AZ_VBR_matvec_mult;
+   Amat->N_nz  = -1;
+   Amat->max_per_row = -1;
+   Amat->largest_band= -1;
+   if (option == AZ_LOCAL)
+     Amat->has_global_indices = 0;
+   else
+     Amat->has_global_indices = 1;
+}
+void AZ_matrix_destroy(AZ_MATRIX **Amat)
+{
+  if ( (*Amat) == NULL) return;
+   if ((*Amat)->must_free_data_org == 1) {
+      AZ_free((*Amat)->data_org);
+      (*Amat)->data_org = NULL;
+   }
+   AZ_free(*Amat);
+   *Amat = NULL;
+}
+void AZ_precond_destroy(AZ_PRECOND **precond)
+{
+  if ( (*precond) == NULL) return;
+   if ( (*precond)->print_string != NULL) AZ_free( (*precond)->print_string);
+   AZ_free(*precond);
+   *precond = NULL;
+}
+
+void AZ_set_MATFREE_matrix_norm(AZ_MATRIX *Amat, double mat_norm)
+{
+   Amat->matrix_norm = mat_norm;
+}
+void AZ_set_MATFREE_name(AZ_MATRIX *Amat, int name)
+{
+   Amat->data_org[AZ_name] = name;
+}
+void AZ_set_MATFREE(AZ_MATRIX *Amat, void *data, 
+    void (*matvec)(double *, double *, struct AZ_MATRIX_STRUCT *, int *))
+{
+   static int name = 2071;
+   int    *data_org;
+
+   if ( Amat->getrow != NULL) {
+      printf("Error: AZ_set_MATFREE must be called before AZ_set_MATFREE_getrow\n");
+      exit(1);
+   }
+   Amat->N_nz  = -1;
+   Amat->max_per_row = -1;
+   Amat->largest_band= -1;
+   if (Amat->data_org == NULL) {
+      Amat->must_free_data_org = 1;
+      data_org = (int  *) AZ_allocate(AZ_COMMLESS_DATA_ORG_SIZE*sizeof(int));
+      if (data_org == NULL) {
+         printf("Error: Not enough space in AZ_create_matrix().\n");
+         exit(1);
+      }
+      Amat->data_org = data_org;
+   }
+   else data_org = Amat->data_org;
+
+   name++; 
+
+   data_org[AZ_N_internal]  = 0;    /* Number of rows without data         */
+                                    /* dependencies on other procs         */
+   data_org[AZ_N_border  ]  = Amat->N_local;
+   data_org[AZ_N_external]  = Amat->N_ghost;
+   data_org[AZ_name]        = name;
+   data_org[AZ_matrix_type] = AZ_USER_MATRIX;
+   Amat->matrix_type = AZ_USER_MATRIX;
+   data_org[AZ_N_int_blk]   = data_org[AZ_N_internal];
+   data_org[AZ_N_bord_blk]  = data_org[AZ_N_border];
+   data_org[AZ_N_ext_blk]   = data_org[AZ_N_external];
+   data_org[AZ_N_neigh]     = 0;
+   Amat->matvec      = matvec;
+   Amat->matvec_data = data;
+}
+void AZ_set_MATFREE_getrow(AZ_MATRIX *Amat, void *data,
+    int  (*getrow)(int *, double *, int *, struct AZ_MATRIX_STRUCT *, 
+		   int , int *, int),
+    int  (*user_comm)(double *, AZ_MATRIX *), int N_ghost, int proc_config[])
+{
+   int    *data_org;
+
+   Amat->N_nz  = -1;
+   Amat->max_per_row = -1;
+   Amat->largest_band= -1;
+   Amat->getrow_data = data;
+   Amat->N_ghost     = N_ghost;
+   AZ_extract_comm_info(&data_org, user_comm, Amat, proc_config,
+   			Amat->N_local, Amat->N_ghost);
+   Amat->must_free_data_org = 1;
+   Amat->user_comm = user_comm;
+
+   data_org[AZ_N_internal]  = 0;    /* Number of rows without data         */
+                                    /* dependencies on other procs         */
+   data_org[AZ_N_border  ]  = Amat->N_local;
+   data_org[AZ_N_external]  = Amat->N_ghost;
+   data_org[AZ_matrix_type] = AZ_USER_MATRIX;
+   data_org[AZ_N_int_blk] = data_org[AZ_N_internal];
+   data_org[AZ_N_bord_blk]= data_org[AZ_N_border];
+   data_org[AZ_N_ext_blk] = data_org[AZ_N_external];
+   Amat->matrix_type = AZ_USER_MATRIX;
+   Amat->getrow = getrow;
+   Amat->user_comm = user_comm;
+   if (Amat->data_org != NULL) {
+      data_org[AZ_name]        = Amat->data_org[AZ_name];
+      AZ_free(Amat->data_org);
+   }
+   Amat->data_org = data_org;
+}
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+
+AZ_MATRIX *AZ_create_matrix(int local, int additional, int matrix_type,
+				    int local_blks, int *idata_org)
+{
+/*
+ * Create an Aztec AZ_MATRIX structure and fill in the noncommunication
+ * related fields of data_org[]. 
+ * Note: This matrix will not work properly with Aztec's AZ_exchange_bdry()
+ *       subroutine. Instead, it is intended that this matrix be used for
+ *       matrix-free users and matrices which do not require communication.
+ *
+ * Parameters
+ * ========
+ *   local              Number of matrix equations residing on this processor.
+ *
+ *   additional         local+additional is the required size of a vector, x,
+ *                      that will be applied to a matrix when performing a
+ *                      matrix-vector product. The first 'local' components of
+ *                      'x' must contain the appropriate data. The remaining
+ *                      'additional' components are used as workspace inside
+ *                      the user's matrix vector product.
+ *  matrix_type         Either AZ_MSR_MATRIX, AZ_VBR_MATRIX, or AZ_USER_MATRIX.
+ *  local_blks          When matrix_type == AZ_VBR_MATRIX, 'local_blks' 
+ *                      indicates how many block equations reside on this node.
+ */
+
+   static int name = 1071;
+   int        *data_org;
+   AZ_MATRIX  *Amat;
+
+
+   name++;
+   Amat     = (AZ_MATRIX *) AZ_allocate(sizeof(AZ_MATRIX));
+   if (Amat == NULL) {
+      printf("Error: Not enough space in AZ_create_matrix().\n");
+      exit(1);
+   }
+   if (idata_org == AZ_NOT_USING_AZTEC_MATVEC) {
+      data_org = (int  *) AZ_allocate(AZ_COMMLESS_DATA_ORG_SIZE*sizeof(int));
+      if (data_org == NULL) {
+         printf("Error: Not enough space in AZ_create_matrix().\n");
+         exit(1);
+      }
+ /* mheroux change */
+      Amat->must_free_data_org = 1; /* AZ_matrix_destroy should delete 
+                                       data_org */
+
+      data_org[AZ_N_internal] = 0;    /* Number of rows without data         */
+                                      /* dependencies on other procs         */
+      data_org[AZ_N_border  ] = local;/* Matrix rows with data dependencies  */
+                                      /* on other procs                      */
+      data_org[AZ_N_external] = 
+                          additional;/* When doing y = A x (i.e. matrix-     */
+                                     /* vector products) user's can request  */
+                                     /* that additional space be passed in   */
+                                     /* with the vector 'x'. This additional */
+                                     /* space can be used as work space or   */
+                                     /* to hold ghost variables when doing   */
+                                     /* parallel computations.               */
+                                     /* If no additional space is needed,    */
+                                     /* this should be set to zero.          */
+         
+      data_org[AZ_name]       = name;/* A number used to 'name' the matrix  */
+      data_org[AZ_matrix_type] = matrix_type;
+
+      if (matrix_type != AZ_VBR_MATRIX) {
+         data_org[AZ_N_int_blk] = data_org[AZ_N_internal];
+         data_org[AZ_N_bord_blk]= data_org[AZ_N_border];
+         data_org[AZ_N_ext_blk] = data_org[AZ_N_external];
+      }
+      else {
+         data_org[AZ_N_int_blk] = data_org[AZ_N_internal];
+         data_org[AZ_N_bord_blk]= local_blks;
+         data_org[AZ_N_ext_blk] = data_org[AZ_N_external];
+      }
+      data_org[AZ_N_neigh] = 0;
+      data_org[AZ_total_send] = 0;
+
+      Amat->data_org = data_org;
+   }
+   else Amat->data_org = idata_org;
+
+   Amat->matrix_type = matrix_type;
+   Amat->matrix_norm = -1.0;
+   Amat->mat_create_called = 1;
+   return(Amat);
+} 
+
+void AZ_delete_matrix(AZ_MATRIX *ptr)
+{
+   AZ_free(ptr->data_org);
+   AZ_free(ptr);
+}
+
+
+int AZ_compress_msr(int *ibindx[], double *ival[], int allocated, int needed,
+		  int name, struct context *context)
+{
+/*
+ * We can't seem to rely on realloc() on the paragon or the tflop
+ * machine. So let's try and do the best job using malloc and 
+ * free to reduce the amount of space required by val and bindx.
+ *
+ */
+
+   int bindx_length, val_length, target_bindx, target_val;
+   int extra_size, *bind2, *bindx;
+   double *ptr1,  *extra, *val, combined_bindx_val = 0;
+   int i, modified_need, modified_target, j;
+   char label[200];
+
+   if (needed == 0) return(0);
+   bindx_length = allocated*sizeof(int);
+   val_length   = allocated*sizeof(double);
+   sprintf(label,"val %s",context->tag);
+   val   = AZ_manage_memory((unsigned) val_length,AZ_REALLOC,name,label, &j);
+   if (j == AZ_SPECIAL) return(1);
+
+   bindx = *ibindx;
+   val   = *ival;
+   target_bindx = needed*sizeof(int);
+   target_val   = needed*sizeof(double);
+   modified_target = target_bindx;
+
+   i = target_bindx%sizeof(double);
+   modified_target += (sizeof(double) - i);    /* add something so things */
+   modified_need = modified_target/sizeof(int);/* fall on double bdries   */
+
+   extra_size  = target_val + modified_target - bindx_length + 4*sizeof(double);
+                                                        /* 4sizeof(double) */
+                                                        /* added for       */
+                                                        /* manage_mem().   */
+
+   if ( extra_size <= 0) {   
+
+      /* There is enough room to store both bindx and val */
+      /* in the bindx array. So we copy val into bindx,   */
+      /* free val, then allocate a new bindx and val      */
+      /* (whose length should be less than the old val),  */
+      /* store the bindx/val information in these new     */
+      /* arrays and then free the old bindx array.        */
+
+      ptr1 = (double *) &(bindx[modified_need]);
+      for (i = 0 ; i < needed; i++) ptr1[i] = val[i];
+
+      sprintf(label,"val %s",context->tag);
+      AZ_manage_memory((unsigned)val_length,AZ_SELECTIVE_CLEAR,name,label, &j);
+      val   = AZ_manage_memory((unsigned)target_val,AZ_ALLOC,name,label, &j);
+
+      sprintf(label,"bind2xx %s",context->tag);
+      bind2 = (int *) AZ_manage_memory((unsigned)target_bindx,AZ_ALLOC,name,label, &j);
+
+      for (i = 0 ; i < needed; i++) val[i]   = ptr1[i];
+      for (i = 0 ; i < needed; i++) bind2[i] = bindx[i];
+
+      sprintf(label,"bindx %s",context->tag);
+      AZ_manage_memory((unsigned)bindx_length,AZ_SELECTIVE_CLEAR,name,label, &j);
+      bindx = bind2;
+      sprintf(label,"bind2xx %sbindx %s",context->tag,context->tag);
+      AZ_manage_memory((unsigned)target_bindx,AZ_RESET_STRING,name,label, &j);
+   }
+   else {
+      i = extra_size%sizeof(double);
+      extra_size += (sizeof(double) - i); /* add something so things */
+                                          /* fall on double bdries   */
+      extra = (double *) AZ_allocate((unsigned) extra_size);
+      if (extra != NULL) {
+
+         /* There is enough room to store both val into    */
+         /* bindx and extra. So we copy val into bindx and */
+         /* extra, free val, then allocate a new val and   */
+         /* fill the new val. Once this is done, we free   */
+         /* extra (the length of extra and the savings in  */
+         /* deleting the old val should be enough to hold  */
+         /* bindx), allocate a new bindx, fill the new     */
+         /* bindx and free the old bindx.                  */
+
+           extra_size /= sizeof(double);
+           if (extra_size > needed) extra_size = needed;
+           for (i = 0 ; i < extra_size; i++) extra[i] = val[i];
+           ptr1 = (double *) &(bindx[modified_need]);
+           for (i = extra_size ; i < needed; i++) 
+              ptr1[i-extra_size] = val[i];
+
+           sprintf(label,"val %s",context->tag);
+           AZ_manage_memory((unsigned) val_length,AZ_SELECTIVE_CLEAR,name,label, &j);
+           val   = AZ_manage_memory((unsigned)target_val,AZ_ALLOC,name,label, &j);
+
+           for (i = 0 ; i < extra_size; i++) val[i]   = extra[i];
+           for (i = extra_size ; i < needed; i++) 
+              val[i] = ptr1[i-extra_size];
+           AZ_free(extra);
+           bind2 = (int *) AZ_allocate(modified_target+ 4*sizeof(double));
+           if (bind2 != NULL) {
+              AZ_free(bind2);
+              sprintf(label,"bind2xx %s",context->tag);
+              bind2 = (int *) AZ_manage_memory((unsigned) target_bindx,AZ_ALLOC,name,
+                                               label, &j);
+              for (i = 0 ; i < needed; i++) bind2[i] = bindx[i];
+
+              sprintf(label,"bindx %s",context->tag);
+              AZ_manage_memory((unsigned)bindx_length,AZ_SELECTIVE_CLEAR,name,label, &j);
+              bindx = bind2;
+              sprintf(label,"bind2xx %sbindx %s",context->tag,context->tag);
+              AZ_manage_memory((unsigned)target_bindx,AZ_RESET_STRING,name,label, &j);
+           }
+           else {
+              sprintf(label,"bindx %s",context->tag);
+              bindx = (int *) AZ_manage_memory((unsigned)target_bindx, AZ_REALLOC,
+                                               name,label, &j);
+           }
+      }
+      else if ( target_val + modified_target <= val_length) {
+
+         /* There is enough room to store both val into    */
+         /* bindx in val. So we copy bindx to val and free */
+         /* the space associated with bindx.               */
+         /* Note: we need to mark this space as not being  */
+         /* really allocated (i.e. we should not free      */
+         /* bindx).                                        */
+
+         sprintf(label,"val %s",context->tag);
+         val = AZ_manage_memory((unsigned)(target_val+target_bindx), AZ_SPEC_REALLOC,
+                                name,label, &j);
+         combined_bindx_val = 1;
+         bind2 = (int *) &(val[needed]);
+         for (i = 0 ; i < needed ; i++) bind2[i] = bindx[i];
+
+         sprintf(label,"bindx %s",context->tag);
+         AZ_manage_memory((unsigned) bindx_length,AZ_SELECTIVE_CLEAR,name,label, &j);
+         bindx = bind2;
+      }
+      else {
+         sprintf(label,"val %s",context->tag);
+         val = AZ_manage_memory((unsigned)target_val, AZ_REALLOC,name,label, &j);
+         sprintf(label,"bindx %s",context->tag);
+         bindx = (int *) AZ_manage_memory((unsigned)target_bindx,AZ_REALLOC,
+                                          name,label,&j);
+      }
+   }
+   *ibindx = bindx;
+   *ival   = val;
+   return(combined_bindx_val);
+}
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+void AZ_loc_avg(AZ_MATRIX *Amat, double r[], double newr[], int Nfixed,
+	int fixed_pts[], int proc_config[])
+
+{
+/*
+ * Do some residual smoothing based on the connectivity given by the
+ * VBR matrix. The new value at a point is given by taking the average
+ * of the neighbors and averaging this with the previous value at the point.
+ *
+ * Parameters
+ * ==========
+ *
+ * Nrows                   On input, number of rows in the matrix
+ *
+ * N_blk_rows              On input, number of block rows in the matrix
+ *
+ * cpntr, bindx, bpntr     On input, VBR matrix giving connectivity
+ *
+ * r                       On input, array to be averaged.
+ *
+ * newr                    On output, result of averaging applied to 'r'.
+ *
+ */
+
+
+   int i,j, ii, block_col, cardinality, offset;
+   double scale_factor;
+   int *data_org, *cpntr, *bpntr, *bindx, Nrows, N_blk_rows;
+   int flag;
+
+   data_org = Amat->data_org;
+   Nrows    = data_org[AZ_N_internal] + data_org[AZ_N_border];
+   bindx    = Amat->bindx;
+
+   AZ_exchange_bdry(r, data_org, proc_config);
+   for (ii = 0; ii < Nrows; ii++)  newr[ii] = 0.0;
+
+   if (Amat->matrix_type == AZ_VBR_MATRIX) {
+      N_blk_rows = data_org[AZ_N_int_blk]  + data_org[AZ_N_bord_blk];
+      cpntr      = Amat->cpntr;
+      bpntr      = Amat->bpntr;
+
+      for ( i = 0; i < N_blk_rows; i++) {
+         cardinality = bpntr[i+1] - bpntr[i] - 1;
+         if (cardinality != 0) {
+            scale_factor = .5/((double) cardinality);
+
+            for (j = bpntr[i]; j < bpntr[i+1] ; j++) {
+               block_col = bindx[j];
+               if (block_col != i) {
+                  offset = cpntr[i];
+                  block_col = cpntr[block_col];
+                  for (ii = 0; ii < cpntr[i+1] - cpntr[i]; ii++)
+                     newr[offset+ii] += r[block_col+ii];
+               }
+            }
+            for (ii = cpntr[i]; ii < cpntr[i+1]; ii++)  newr[ii] *=scale_factor;
+            for (ii = cpntr[i]; ii < cpntr[i+1]; ii++)  newr[ii] += (.5*r[ii]);
+         }
+      }
+   }
+   else if (Amat->matrix_type == AZ_MSR_MATRIX) {
+
+      for (i = 0; i < Nrows; i++) {
+         cardinality = bindx[i+1] - bindx[i];
+         if (cardinality != 0) {
+            scale_factor = .5/((double) cardinality);
+
+            for (j = bindx[i]; j < bindx[i+1] ; j++) 
+               newr[i] += r[bindx[j]];
+
+            newr[i] *=scale_factor;
+            newr[i] += (.5*r[i]);
+         }
+      }
+   }
+   else {
+      printf("Smoothing can only be done with MSR or VBR matrices\n");
+      exit(1);
+   }
+
+   /* fix the boundary */
+
+   flag = 0;
+   for (i = 0; i < Nfixed; i++ ) {
+      if ((flag==0) && (fabs(r[fixed_pts[i]]) > 1.0e-9)) {
+         printf("boundary not zero %e\n",r[fixed_pts[i]]);
+         flag = 1;
+      }
+      newr[fixed_pts[i]] = r[fixed_pts[i]];
+   }
+}
+void AZ_matfree_Nnzs(AZ_MATRIX *Amat)
+{
+   int *data_org, N, space, *cols, i, flag, Nnz, max_length, length;
+   int j, smallest, largest, bandwidth = 0;
+   double *val;
+
+   data_org = Amat->data_org;
+
+   Nnz = 0;
+   max_length = 0;
+   N     = data_org[AZ_N_internal] + data_org[AZ_N_border];
+   if ( (Amat->getrow == NULL) && (N != 0) ) {
+      printf("Error: Only matrices with getrow() defined via ");
+      printf("AZ_set_MATFREE_getrow(...)\n       can compute");
+      printf(" their nonzeros information.\n");
+      exit(1);
+   }
+   space = 30;
+   cols    = (int    *) AZ_allocate(sizeof(int)*space);
+   val    = (double *) AZ_allocate(sizeof(double)*space);
+   if (val == NULL) {
+      printf("AZ_matfree_Nnzs: Out of space. Requested %d.\n",space);
+      exit(1);
+   }
+  
+   for (i = 0; i < N; i++) {
+      flag  = 0;
+      while (flag == 0) {
+         flag = Amat->getrow( cols, val, &length, Amat, 1, &i, space);
+         if (flag == 0) {
+            AZ_free(val);
+            AZ_free(cols);
+            space  = (int) ( ((double)space)*1.5 + 3);
+            cols   = (int    *) AZ_allocate(sizeof(int)*space);
+            val    = (double *) AZ_allocate(sizeof(double)*space);
+            if (val  == NULL) {
+               printf("AZ_matfree_Nnzs: Out of space. Requested %d.\n",space);
+               exit(1);
+            }
+         }
+      }
+      Nnz += length;
+      if (max_length < length) max_length = length;
+      if (length != 0) {
+         smallest = cols[0];  largest = cols[0]; 
+         for (j = 1; j < length; j++) {
+            if (cols[j] < smallest) smallest = cols[j];
+            if (cols[j] > largest ) largest = cols[j];
+         }
+         if (bandwidth <= largest - smallest) {
+             bandwidth = largest - smallest + 1;
+         }
+      }
+   }
+   Amat->N_nz = Nnz;
+   Amat->max_per_row = max_length;
+   Amat->largest_band = bandwidth;
+   AZ_free(val);
+   AZ_free(cols);
+}
+
+
+void AZ_matfree_2_msr(AZ_MATRIX *Amat, double *val, int *bindx, int N_nz)
+{
+/*
+ * Take the 'matrix' defined by Amat->getrow() and 
+ * make an MSR copy of it to be stored in 'output'.
+ *
+ */
+   int N, *data_org, i, length, flag, nz_ptr, k, j;
+
+   if ( (Amat->N_nz < 0) || (Amat->max_per_row < 0)) 
+      AZ_matfree_Nnzs(Amat);
+
+   data_org = Amat->data_org;
+   N     = data_org[AZ_N_internal] + data_org[AZ_N_border];
+   if ( (Amat->getrow == NULL) && (N != 0) ) {
+      printf("Error: Only matrices with getrow() defined via ");
+      printf("AZ_set_MATFREE_getrow(...) can be converted to MSR \n");
+      exit(1);
+   }
+   if (N_nz < Amat->N_nz) {
+      printf("AZ_matfree_2_msr: Something is wrong. The number of nonzeros\n");
+      printf("    allocated for preconditioner is less than the number of\n");
+      printf("    nonzeros in matrix (%d vs. %d)!\n",N_nz, Amat->N_nz);
+      exit(1);
+   }
+  
+   nz_ptr = N+1;
+   bindx[0] = nz_ptr;
+   for (i = 0; i < N; i++) {
+      flag = Amat->getrow(&(bindx[nz_ptr]), &(val[nz_ptr]), &length, Amat, 1, 
+                   &i, N_nz);
+      if (flag == 0) {
+         printf("AZ_matfree_2_msr: Something is wrong. The number of nonzeros");
+         printf("in matrix is\n   greater than the number of nonzeros");
+         printf("recorded in Amat->N_nz (%d)\n",Amat->N_nz);
+         exit(1);
+      }
+      /* move diagonal to proper location */
+
+      for (k =0; k < length; k++) 
+         if (bindx[nz_ptr + k] == i) break;
+      if (k == length) val[i] = 0.0; /* no diagonal */
+      else {
+         val[i] = val[nz_ptr+k];
+         /* move over the rest */
+         for (j = nz_ptr+k+1; j < nz_ptr+length; j++) {
+            bindx[j-1] = bindx[j];
+            val[j-1]   = val[j];
+         }
+         length--;
+      }
+      nz_ptr += length;
+      bindx[i+1] = nz_ptr;
+   }
+}
+int  AZ_MSR_getrow(int columns[], double values[], int row_lengths[], 
+	struct AZ_MATRIX_STRUCT *Amat, int N_requested_rows, 
+	int requested_rows[], int allocated_space)
+{
+   int    *bindx, i, j, count = 0, row;
+   double *val;
+
+   bindx = Amat->bindx;
+   val   = Amat->val;
+
+   for (i = 0; i < N_requested_rows; i++) {
+      row            = requested_rows[i];
+      row_lengths[i] = bindx[row+1] - bindx[row] + 1;
+      if (count+row_lengths[i] > allocated_space) return(0);
+
+      /* diagonal */
+
+      columns[count  ] = row;
+      values[count++]  = val[row];
+
+      /* off-diagonals */
+
+      for (j = bindx[row] ; j < bindx[row+1] ; j++) {
+         columns[count  ]   = bindx[j];
+         values[count++] = val[j];
+      }
+   }
+   return(1);
+}
+int  AZ_VBR_getrow(int columns[], double values[], int row_lengths[], 
+	struct AZ_MATRIX_STRUCT *Amat, int N_requested_rows, 
+	int requested_rows[], int allocated_space)
+{
+   int blk_row, count, N_rows, N_cols, row_offset, i, j, ii, start, k;
+   int *cpntr, *bindx, *rpntr, *indx, *bpntr, oldcount, row;
+   double *val;
+   int    Nblks, N;
+
+
+    bindx = Amat->bindx;
+    val   = Amat->val;
+    rpntr = Amat->rpntr;
+    cpntr = Amat->cpntr;
+    bpntr = Amat->bpntr;
+    indx  = Amat->indx;
+    Nblks = Amat->data_org[AZ_N_int_blk] +
+                Amat->data_org[AZ_N_bord_blk];
+    N     = Amat->data_org[AZ_N_internal] +
+                Amat->data_org[AZ_N_border];
+
+   count = 0;
+   for (k = 0; k < N_requested_rows; k++) {
+      oldcount = count;
+      row = requested_rows[k];
+      blk_row = row * Nblks;
+      blk_row = blk_row/N;
+      while (rpntr[blk_row] < row) blk_row++;
+      while (rpntr[blk_row] > row) blk_row--;
+
+      N_rows = rpntr[blk_row+1] - rpntr[blk_row];
+      row_offset = row - rpntr[blk_row];
+
+      for (i = bpntr[blk_row]; i < bpntr[blk_row+1]; i++) {
+         ii = bindx[i];
+         N_cols = cpntr[ii+1] - cpntr[ii];
+         if (count+N_cols > allocated_space) return(0);
+         start  = indx[i] + row_offset;
+
+         for (j = 0; j < N_cols; j++) {
+            columns[count] = j + cpntr[ii];
+            values[count++] = val[start];
+            start += N_rows;
+         }
+      }
+      row_lengths[k] = count - oldcount;
+   }
+   return(1);
+}
+void AZ__MPI_comm_space_ok() {
+   if (sizeof(MPI_AZComm)/sizeof(int) > SIZEOF_MPI_AZCOMM) {
+      printf("AZ__MPI_comm_space_ok: Recompile all Aztec files with -DSIZEOF_MPI_AZCOMM=%d\n",(int) (sizeof(MPI_AZComm)/sizeof(int) + 1));
+      exit(1);
+   }
+}
+/******************************************************************************/
+/******************************************************************************/
+/******************************************************************************/
+void AZ_version(char str[])
+{
+/*
+ * Print out the version number of Aztec.
+ *
+ * Parameters
+ * ==========
+ *
+ * str               On input, must have space for at least 15 characters.
+ *                   On output, contains the version number for Aztec.
+ *
+ */
+   sprintf(str,"Aztec ?.?.?.?");
+#ifdef AZ_ver2_1_0_3
+   sprintf(str,"Aztec 2.1.0.3");
+#endif
+#ifdef AZ_ver2_1_0_4
+   sprintf(str,"Aztec 2.1.0.4");
+#endif
+#ifdef AZ_ver2_1_0_5
+   sprintf(str,"Aztec 2.1.0.5");
+#endif
+#ifdef AZ_ver2_1_0_6
+   sprintf(str,"Aztec 2.1.0.6");
+#endif
+#ifdef AZ_ver2_1_0_7
+   sprintf(str,"Aztec 2.1.0.7");
+#endif
+#ifdef AZ_ver2_1_0_8
+   sprintf(str,"Aztec 2.1.0.8");
+#endif
+#ifdef AZ_ver2_1_0_9
+   sprintf(str,"Aztec 2.1.0.9");
+#endif
+#ifdef AZ_ver2_1_0_10
+   sprintf(str,"Aztec 2.1.0.10");
+#endif
+#ifdef AZ_ver2_1_1_0
+   sprintf(str,"Aztec 2.1.1.0");
+#endif
+#ifdef AZ_ver2_1_1_1
+   sprintf(str,"Aztec 2.1.1.1");
+#endif
+#ifdef AZ_ver2_2_0_0
+   sprintf(str,"Aztec 2.2.0.0");
+#endif
+#ifdef AZ_ver2_2_0_1
+   sprintf(str,"Aztec 2.2.0.1");
+#endif
+#ifdef AZ_ver2_2_0_2
+   sprintf(str,"Aztec 2.2.0.2");
+#endif
+#ifdef AZ_ver2_2_0_3
+   sprintf(str,"Aztec 2.2.0.3");
+#endif
+#ifdef AZ_ver2_2_0_4
+   sprintf(str,"Aztec 2.2.0.4");
+#endif
+#ifdef AZ_ver2_2_1_0
+   sprintf(str,"Aztec 2.2.1.0");
+#endif
+#ifdef AZ_ver2_2_1_1
+   sprintf(str,"Aztec 2.2.1.1");
+#endif
+}
+void AZ_space_for_kvecs(int request, int **kvec_sizes, double ***saveme, 
+                        double **ptap, int *options, int *data_org, char *suffix,
+			int proc, double **block)
+{
+   char label[64];
+   int  i, j, NN;
+
+   NN = data_org[AZ_N_internal] + data_org[AZ_N_border] + data_org[AZ_N_external];
+   if (request == AZ_NEW_ADDRESS)
+      AZ_manage_memory(0, AZ_SUBSELECTIVE_CLEAR,data_org[AZ_name], "kvecs", (int *) 0);
+
+   sprintf(label,"kvecs1 %s",suffix);
+   *kvec_sizes = (int *) AZ_manage_memory(2*sizeof(int),AZ_ALLOC, data_org[AZ_name],
+                                          label, &j);
+   if (j == AZ_NEW_ADDRESS) {
+      (*kvec_sizes)[AZ_Nkept]  = 0;
+      (*kvec_sizes)[AZ_Nspace] = 0;
+      if (request == AZ_NEW_ADDRESS) (*kvec_sizes)[AZ_Nspace] =options[AZ_keep_kvecs];
+   }
+   if (request == AZ_OLD_ADDRESS) {
+     if ((*kvec_sizes)[AZ_Nkept] > (*kvec_sizes)[AZ_Nspace]) {
+         if (proc == 0) 
+            printf("Number of krylov vectors exceeds space for krylov vectors?\n");
+         exit(1);
+     }
+     if ((*kvec_sizes)[AZ_Nspace] == 0) {
+         if ((proc == 0) && (options[AZ_output] != AZ_none)) {
+            printf("AZ_kvec_space:  No previous krylov vectors available ");
+            printf("for subspace solution.\n");
+            printf("  - Do you want options[AZ_apply_kvecs] set to AZ_APPLY?\n");
+            printf("  - Was options[AZ_keep_info] = 1 on previous solve?\n");
+            printf("  - Was options[AZ_keep_kvecs] > 0 on previous solve?\n");
+         }
+     }
+     else if ((*kvec_sizes)[AZ_Nkept] == 0) {
+         if ((proc == 0) && (options[AZ_output] != AZ_none)) {
+            printf("AZ_kvec_space: Space allocated but no previous Krylov "); 
+            printf("vectors were kept.\n");
+         }
+     }
+   }   
+
+   sprintf(label,"kvecs2 %s",suffix);
+   *block   = (double *) AZ_manage_memory(((*kvec_sizes)[AZ_Nspace]*(NN+1)+1)*
+                                         sizeof(double), AZ_ALLOC, data_org[AZ_name], 
+                                         label, &j);
+   sprintf(label,"kvecs3 %s",suffix);
+   *saveme  = (double **) AZ_manage_memory((*kvec_sizes)[AZ_Nspace]*sizeof(double *), 
+                                         AZ_ALLOC, data_org[AZ_name], label, &j);
+
+   for (i = 0; i < (*kvec_sizes)[AZ_Nspace]; i++)
+     (*saveme)[i] = &((*block)[i*NN]);
+   *ptap = &((*block)[  (*kvec_sizes)[AZ_Nspace]*NN   ]);
+
+
+}
+int AZ_compare_update_vs_soln(int N, double update_norm, double alpha, double p[], double x[],
+        double update_reduction, int output_flag, int proc_config[], int *first_time)
+{
+  double t1, t2;
+  int    converged = AZ_TRUE;
+
+  if (update_norm >= 0.0) t1 = update_norm;
+  else {
+     if (alpha < 0) alpha = -alpha;
+     t1 = alpha*sqrt(AZ_gdot(N, p, p, proc_config));
+  }
+  t2 = sqrt(AZ_gdot(N, x, x, proc_config));
+
+  if (t1 > t2*update_reduction) {
+     if ((output_flag != AZ_none) && *first_time && (proc_config[AZ_node] == 0) ) {
+        printf("Update too large, convergence deferred: ||update|| = %10.3e ||sol|| = %10.3e\n",
+                t1, t2);
+      }
+      converged   = AZ_FALSE;
+      *first_time = AZ_FALSE;
+  }
+  return converged;
+}
+struct AZ_SCALING *AZ_scale_matrix_only(AZ_MATRIX *Amat, int options[],
+			int proc_config[])
+{
+   struct AZ_SCALING *scaling;
+   static int name_count = 13071;
+   int    *data_org, old_name, size, i;
+   double *temp;
+
+   data_org    = Amat->data_org;
+   scaling     = AZ_scaling_create();
+   old_name = data_org[AZ_name];
+   data_org[AZ_name] = name_count++;
+   scaling->mat_name    = data_org[AZ_name];
+   scaling->scaling_opt = options[AZ_scaling];
+   
+   size = data_org[AZ_N_internal]+data_org[AZ_N_border]+data_org[AZ_N_external];
+   temp = (double *) malloc(sizeof(double)*size);
+   if (temp == NULL) {
+      printf("AZ_scale_matrix_only: Not enough space\n"); exit(1);
+   }
+   for (i = 0; i < size; i++) temp[i] = 0.0;
+   AZ_scale_f(AZ_SCALE_MAT_RHS_SOL, Amat, options, temp, temp, proc_config,
+              scaling);
+   free(temp);
+   data_org[AZ_name] = old_name;
+   return(scaling);
+}
+void AZ_scale_rhs_only(double b[], AZ_MATRIX *Amat, int options[], 
+		       int proc_config[], struct AZ_SCALING *scaling)
+{
+   int old_name, old_scaling;
+
+   old_name = Amat->data_org[AZ_name];
+   old_scaling = options[AZ_scaling];
+   Amat->data_org[AZ_name] = scaling->mat_name;
+   options[AZ_scaling] = scaling->scaling_opt;
+   AZ_scale_f(AZ_SCALE_RHS, Amat, options, b, b, proc_config, scaling);
+
+   Amat->data_org[AZ_name] = old_name;
+   options[AZ_scaling] = old_scaling;
+}
+void AZ_scale_sol_only(double x[], AZ_MATRIX *Amat, int options[], 
+		       int proc_config[], struct AZ_SCALING *scaling)
+{
+   int old_name, old_scaling;
+
+   old_name = Amat->data_org[AZ_name];
+   old_scaling = options[AZ_scaling];
+   Amat->data_org[AZ_name] = scaling->mat_name;
+   options[AZ_scaling] = scaling->scaling_opt;
+   AZ_scale_f(AZ_SCALE_SOL, Amat, options, x, x, proc_config, scaling);
+
+   Amat->data_org[AZ_name] = old_name;
+   options[AZ_scaling] = old_scaling;
+}
+
+void AZ_scale_rhs_sol_before_iterate(double x[], double b[], AZ_MATRIX *Amat, 
+	int options[], int proc_config[], struct AZ_SCALING *scaling)
+{
+  AZ_scale_rhs_only(b, Amat, options, proc_config, scaling);
+  AZ_scale_sol_only(x, Amat, options, proc_config, scaling);
+  options[AZ_scaling] = AZ_none;
+}
+
+void AZ_unscale_after_iterate(double x[], double b[], AZ_MATRIX *Amat,
+			      int options[], int proc_config[],
+			      struct AZ_SCALING *scaling)
+{
+   int old_name;
+
+   old_name = Amat->data_org[AZ_name];
+
+   Amat->data_org[AZ_name] = scaling->mat_name;
+   options[AZ_scaling] = scaling->scaling_opt;
+   AZ_scale_f(AZ_INVSCALE_SOL, Amat, options, b, x, proc_config, scaling);
+   AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, b, x, proc_config, scaling);
+   Amat->data_org[AZ_name] = old_name;
+}
+void AZ_clean_scaling(struct AZ_SCALING **scaling)
+{
+   AZ_free_memory((*scaling)->mat_name);
+   AZ_scaling_destroy(scaling);
+}
+
+void AZ_restore_unreordered_bindx(int bindx[], double val[], int update[],
+				  int update_index[], int external[],
+				  int extern_index[], int data_org[])
+{
+  /* Restore the bindx & val arrays to how they were before AZ_transform was */
+  /* invoked. NOTE: this routine should only be used when reordering is      */
+  /* turned off inside AZ_transfrom. That is, AZ_ALL in AZ_transform() should*/
+  /* be changed to AZ_EXTERNS.                                               */
+
+
+  int N, Nghost, i, *rev_extern_ind, global_id;
+  
+  N = data_org[AZ_N_internal] + data_org[AZ_N_border];
+  Nghost = data_org[AZ_N_external];
+
+  /* first check that we have an MSR matrix */
+
+  if ( data_org[AZ_matrix_type] != AZ_MSR_MATRIX) {
+    fprintf(stderr,"AZ_restore_unreordered_bindx: Error! Only MSR matrices can be restored.\n");
+    exit(1);
+  }
+
+  /* now check to make sure that the matrix has not been reordered */
+
+  for (i = 0; i < N; i++) {
+    if (update_index[i] != i) {
+      fprintf(stderr,"AZ_restore_unreordered_bindx: Only unreordered matrices can be restored.\n");
+      fprintf(stderr,"                              Change AZ_ALL in the file 'az_tools.c'\n");
+      fprintf(stderr,"                              during the AZ_order_ele() invokation within 'AZ_transform()' to AZ_EXTERNS'.\n");
+      exit(1);
+    }
+  }
+
+  /* now build the reverse index for the externals */
+
+  rev_extern_ind = (int *) AZ_allocate(sizeof(int)*(Nghost+1));
+  if (rev_extern_ind == NULL) {
+    fprintf(stderr,"AZ_restore_unreordered_bindx: Not enough space\n");
+    exit(1);
+  }
+
+  for (i = 0; i < Nghost; i++) {
+    rev_extern_ind[extern_index[i] - N] = i;
+  }
+
+  /* copy the external part of the matrix */
+
+
+  for (i = N+1; i < bindx[N]; i++) {
+    if (bindx[i] < N) bindx[i] = update[bindx[i]];
+    else {
+      global_id = external[rev_extern_ind[bindx[i]-N]];
+      bindx[i] = global_id;
+    }
+  }
+
+  AZ_free(rev_extern_ind);
+}
+
+/******************************************************************************/
+/******************************************************************************/
+/******************************************************************************/
+
+void AZ_global2local(int data_org[], int bindx[], int update[], int update_index[],
+                     int externs[], int extern_index[])
+
+/*******************************************************************************
+
+  Given the global column indices for the matrix and a list of elements updated
+  on this processor, restore the local indices using information computed
+  from a previous AZ_transform().
+
+
+  On input, the column index bindx[k] is converted to j on output where
+
+          update[j] = bindx[k]
+   or
+          external[i - N_update] = bindx[k] where extern_index[j] = i
+
+  Author:          Ray S. Tuminaro, SNL, 1422
+  =======
+
+  Return code:     void
+  ============
+
+  Parameter list:
+  ===============
+
+  data_org:        Az computed from previous call to AZ_transform.
+
+  bindx:           MSR. On input, they refer to global
+                   column indices. On output, they refer to local column indices
+                   as described above. See User's Guide for more information.
+
+  update:          List (global indices) of elements updated on this node.
+
+  external:        List (global indices) of external elements on this node.
+
+  N_external:      Number of external elements on this processor.
+
+
+*******************************************************************************/
+
+{
+
+  /* local variables */
+
+  int  i, j, k;
+  int *bins,shift;
+  int  start,end;
+  int N_update, N_external;
+
+  /**************************** execution begins ******************************/
+
+  N_update = data_org[AZ_N_internal] + data_org[AZ_N_border];
+  N_external = data_org[AZ_N_external];
+  if ( data_org[AZ_matrix_type] != AZ_MSR_MATRIX) {
+    fprintf(stderr,"AZ_restore_unreordered_bindx: Error! Only MSR matrices can be restored.\n");
+    exit(1);
+  }
+
+  /* now check to make sure that the matrix has not been reordered */
+
+  for (i = 0; i < N_update; i++) {
+    if (update_index[i] != i) {
+      fprintf(stderr,"AZ_restore_unreordered_bindx: Only unreordered matrices can be restored.\n");
+      fprintf(stderr,"                              Change AZ_ALL in the file 'az_tools.c'\n");
+      fprintf(stderr,"                              during the AZ_order_ele() invokation within 'AZ_transform()' to AZ_EXTERNS'.\n");
+      exit(1);
+    }
+  }
+
+  /* set up some bins so that we will be able to use AZ_quick_find() */
+
+  bins = (int *) AZ_allocate((N_update / 4 + 10)*sizeof(int));
+  if  (bins == NULL) {
+    (void) fprintf(stderr, "ERROR: Not enough temp space\n");
+    exit(-1);
+  }
+
+  AZ_init_quick_find(update, N_update, &shift, bins);
+
+  /*
+   * Compute the location of the first and last column index that is stored in
+   * the bindx[].
+   */
+
+  start = bindx[0]; end = bindx[bindx[0]-1]; 
+  
+  for (j = start; j < end; j++) {
+    k = AZ_quick_find(bindx[j], update, N_update,shift,bins);
+
+    if (k != -1) bindx[j] = k;
+    else {
+       k = AZ_find_index(bindx[j], externs,N_external);
+       if (k != -1) bindx[j] = extern_index[k];
+       else {
+        (void) fprintf(stderr, "ERROR: column number not found %d\n",
+                       bindx[j]);
+        exit(-1);
+      }
+    }
+  }
+
+  AZ_free((char *) bins);
+
+} 
+

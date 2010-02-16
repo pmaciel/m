@@ -7,14 +7,14 @@
  *
  * $Author: tuminaro $
  *
- * $Date: 1996/07/30 20:44:56 $
+ * $Date: 2000/06/02 16:46:55 $
  *
- * $Revision: 1.16 $
+ * $Revision: 1.28 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_cgs.c,v 1.16 1996/07/30 20:44:56 tuminaro Exp $";
+static char rcsid[] = "$Id: az_cgs.c,v 1.28 2000/06/02 16:46:55 tuminaro Exp $";
 #endif
 
 
@@ -32,9 +32,9 @@ static char rcsid[] = "$Id: az_cgs.c,v 1.16 1996/07/30 20:44:56 tuminaro Exp $";
 #include <float.h>
 #include "az_aztec.h"
 
-void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
-         int bpntr[], double b[], double x[], double weight[], int options[],
-         double params[], int data_org[], int proc_config[], double status[])
+void AZ_pcgs(double b [], double x[], double weight[], int options[], 
+	double params[], int proc_config[], double status[], AZ_MATRIX *Amat, 
+        AZ_PRECOND *precond, struct AZ_CONVERGE_STRUCT *convergence_info)
 
 /*******************************************************************************
 
@@ -50,16 +50,6 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
   Parameter list:
   ===============
 
-  val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
-
-  indx,
-  bindx,
-  rpntr,
-  cpntr,
-  bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
-
   b:               Right hand side of linear system.
 
   x:               On input, contains the initial guess. On output contains the
@@ -70,10 +60,6 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
   options:         Determines specific solution method and other parameters.
 
   params:          Drop tolerance and convergence tolerance info.
-
-  data_org:        Array containing information on the distribution of the
-                   matrix to this processor as well as communication parameters
-                   (see file params.txt).
 
   proc_config:     Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
@@ -87,6 +73,13 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
                    -3:  Internal residual differs from the computed residual due
                         to a significant loss of precision.
 
+
+  Amat:            Structure used to represent the matrix (see file az_aztec.h
+                   and Aztec User's Guide).
+
+  precond:         Structure used to represent the preconditionner
+                   (see file az_aztec.h and Aztec User's Guide).
+
 *******************************************************************************/
 
 {
@@ -96,12 +89,32 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
   register int i;
   int          N, NN, converged, one = 1, iter = 1, r_avail = AZ_TRUE, j;
   int          precond_flag, print_freq, proc, brkdown_will_occur = AZ_FALSE;
-  double       alpha, beta, nalpha, true_scaled_r;
-  double       *u, *v, *r, *rtilda, *p, *q, *w, init_time;
+  double       alpha, beta, nalpha, true_scaled_r=0.0;
+  double       *u, *v, *r, *rtilda, *p, *q, *w, init_time = 0.0;
   double       rhonm1 = 1.0, rhon, rec_residual, actual_residual = -1.0;
   double       sigma, scaled_r_norm, epsilon, brkdown_tol = DBL_EPSILON;
+  int          *data_org, str_leng, first_time = AZ_TRUE;
+  char         label[64],suffix[32], prefix[64];
+
+
 
   /**************************** execution begins ******************************/
+
+  sprintf(suffix," in cgs%d",options[AZ_recursion_level]);  /* set string that will be used */
+                                                            /* for manage_memory label      */
+
+  /* set prefix for printing */
+
+  str_leng = 0;
+  for (i = 0; i < 16; i++) prefix[str_leng++] = ' ';
+  for (i = 0 ; i < options[AZ_recursion_level]; i++ ) {
+     prefix[str_leng++] = ' '; prefix[str_leng++] = ' '; prefix[str_leng++] = ' ';
+     prefix[str_leng++] = ' '; prefix[str_leng++] = ' ';
+  }
+  prefix[str_leng] = '\0';
+
+  data_org = Amat->data_org;
+ 
 
   /* pull needed values out of parameter arrays */
 
@@ -113,19 +126,23 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
 
   /* allocate memory for required vectors */
 
-  NN     = (N + data_org[AZ_N_external])*sizeof(double) + 1;
-  /* +1: make sure everybody allocates something */
+  NN     = N + data_org[AZ_N_external];
+  if (NN == 0) NN++; /* make sure everybody allocates something */
+  NN = NN + (NN%2);  /* make sure things are aligned on word    */
+                     /* boundaries for the paragon.             */
 
-  w      = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "w in cgs", &j);
-  u      = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "u in cgs", &j);
-  p      = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "p in cgs", &j);
-  r      = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "r in cgs", &j);
-  q      = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "q in cgs", &j);
-  rtilda = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "rtilda in cgs",
-                                       &j);
-  v      = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "v in cgs", &j);
+  sprintf(label,"w%s",suffix);
 
-  AZ_compute_residual(val, indx, bindx, rpntr, cpntr, bpntr, b, x, r, data_org);
+  w      = (double *) AZ_manage_memory(7*NN*sizeof(double),AZ_ALLOC,
+				       AZ_SYS,label,&j);
+  u      = &(w[1*NN]);
+  p      = &(w[2*NN]);
+  r      = &(w[3*NN]);
+  q      = &(w[4*NN]);
+  rtilda = &(w[5*NN]);
+  v      = &(w[6*NN]);
+
+  AZ_compute_residual(b, x, r, proc_config, Amat);
 
   /* q, p <- 0 */
 
@@ -143,23 +160,23 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
    * 3) rhon = <rtilda, r>
    */
 
-  AZ_compute_global_scalars(val, indx, bindx, rpntr, cpntr, bpntr, x, b, r,
+  AZ_compute_global_scalars(Amat, x, b, r,
                             weight, &rec_residual, &scaled_r_norm, options,
                             data_org, proc_config,&r_avail,r,rtilda,&rhon,
-                            AZ_FIRST_TIME);
+                            convergence_info);
   true_scaled_r = scaled_r_norm;
 
   if ((options[AZ_output] != AZ_none) && (options[AZ_output] != AZ_last) &&
       (options[AZ_output] != AZ_warnings) && (proc == 0))
-    (void) fprintf(stdout, "\t\titer:    0\t\tresidual = %e\n", scaled_r_norm);
+    (void) fprintf(stdout, "%siter:    0           residual = %e\n",prefix,scaled_r_norm);
 
   converged = scaled_r_norm < epsilon;
 
   for (iter = 1; iter <= options[AZ_max_iter] && !converged; iter++) {
     if (brkdown_will_occur) {
-      AZ_scale_true_residual(val, indx, bindx, rpntr, cpntr, bpntr, x, b, v,
-                             weight, &actual_residual, &true_scaled_r, options,
-                             data_org, proc_config);
+      AZ_scale_true_residual( x, b, v,
+                           weight, &actual_residual, &true_scaled_r, options,
+                           data_org, proc_config, Amat,convergence_info);
 
       AZ_terminate_status_print(AZ_breakdown, iter, status, rec_residual,
                                 params, true_scaled_r, actual_residual, options,
@@ -190,12 +207,12 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
 
     if (iter==1) init_time = AZ_second();
 
-    if (precond_flag) AZ_precondition(val, indx, bindx, rpntr, cpntr, bpntr, w,
-                                      options, data_org, proc_config, params);
+    if (precond_flag) precond->prec_function(w,options,proc_config,params,Amat,precond);
 
     if (iter==1) status[AZ_first_precond] = AZ_second() - init_time;
 
-    AZ_matvec_mult(val, indx, bindx, rpntr, cpntr, bpntr, w, v, 1, data_org);
+    Amat->matvec(w, v, Amat, proc_config);
+
 
     sigma = AZ_gdot(N, rtilda, v, proc_config);
     if (fabs(sigma) < brkdown_tol) { /* possible problem */
@@ -204,9 +221,10 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
 
         /* break down */
 
-        AZ_scale_true_residual(val, indx, bindx, rpntr, cpntr, bpntr, x, b, v,
+        AZ_scale_true_residual( x, b, v,
                                weight, &actual_residual, &true_scaled_r,
-                               options, data_org, proc_config);
+                               options, data_org, proc_config, Amat,
+			       convergence_info);
 
         AZ_terminate_status_print(AZ_breakdown, iter, status, rec_residual,
                                   params, true_scaled_r, actual_residual,
@@ -228,12 +246,12 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
     for (i = 0; i < N; i++) q[i] = u[i] - alpha * v[i];
     for (i = 0; i < N; i++) w[i] = u[i] + q[i];
 
-    if (precond_flag) AZ_precondition(val, indx, bindx, rpntr, cpntr, bpntr, w,
-                                      options, data_org, proc_config, params);
+    if (precond_flag) precond->prec_function(w,options,proc_config,params,Amat,precond);
 
     daxpy_(&N, &alpha, w, &one, x, &one);
-    AZ_matvec_mult(val, indx, bindx, rpntr, cpntr, bpntr, w, v, 1, data_org);
+    Amat->matvec(w, v, Amat, proc_config);
     daxpy_(&N, &nalpha, v, &one, r, &one);
+
 
     /*
      * compute a few global scalars:
@@ -242,21 +260,27 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
      *     3) rhon = <rtilda, r>
      */
 
-    AZ_compute_global_scalars(val, indx, bindx, rpntr, cpntr, bpntr, x, b, r,
+    AZ_compute_global_scalars(Amat, x, b, r,
                               weight, &rec_residual, &scaled_r_norm, options,
                               data_org, proc_config, &r_avail, r, rtilda, &rhon,
-                              AZ_NOT_FIRST);
+                              convergence_info);
 
     if ( (iter%print_freq == 0) && proc == 0 )
-      (void) fprintf(stdout, "\t\titer: %4d\t\tresidual = %e\n", iter,
+      (void) fprintf(stdout, "%siter: %4d           residual = %e\n", prefix,iter,
                      scaled_r_norm);
 
     /* convergence tests */
 
-    if (scaled_r_norm < epsilon) {
-      AZ_scale_true_residual(val, indx, bindx, rpntr, cpntr, bpntr, x, b, v,
+    converged = scaled_r_norm < epsilon;
+    if (options[AZ_check_update_size] & converged)
+      converged = AZ_compare_update_vs_soln(N, -1.,alpha, w, x,
+                                           params[AZ_update_reduction],
+                                           options[AZ_output], proc_config, &first_time);
+
+    if (converged) {
+      AZ_scale_true_residual(x, b, v,
                              weight, &actual_residual, &true_scaled_r, options,
-                             data_org, proc_config);
+                             data_org, proc_config, Amat, convergence_info);
 
       converged = true_scaled_r < params[AZ_tol];
 
@@ -286,7 +310,7 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
 
   if ( (iter%print_freq != 0) && (proc == 0) && (options[AZ_output] != AZ_none)
        && (options[AZ_output] != AZ_warnings))
-    (void) fprintf(stdout, "\t\titer: %4d\t\tresidual = %e\n", iter,
+    (void) fprintf(stdout, "%siter: %4d           residual = %e\n", prefix, iter,
                    scaled_r_norm);
 
   /* check if we exceeded maximum number of iterations */
@@ -301,5 +325,4 @@ void AZ_pcgs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
   AZ_terminate_status_print(i, iter, status, rec_residual, params,
                             scaled_r_norm, actual_residual, options,
                             proc_config);
-
 } /* pcgs */

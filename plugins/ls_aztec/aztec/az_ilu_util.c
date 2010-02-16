@@ -5,16 +5,16 @@
  *
  * $RCSfile: az_ilu_util.c,v $
  *
- * $Author: sahutch $
+ * $Author: tuminaro $
  *
- * $Date: 1996/01/23 00:51:26 $
+ * $Date: 1999/09/30 17:11:09 $
  *
- * $Revision: 1.8 $
+ * $Revision: 1.15 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_ilu_util.c,v 1.8 1996/01/23 00:51:26 sahutch Exp $";
+static char rcsid[] = "$Id: az_ilu_util.c,v 1.15 1999/09/30 17:11:09 tuminaro Exp $";
 #endif
 
 
@@ -28,9 +28,20 @@ static char rcsid[] = "$Id: az_ilu_util.c,v 1.8 1996/01/23 00:51:26 sahutch Exp 
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <math.h>
 #include "az_aztec.h"
+
+  /* externals */
+
+extern void sort_blk_col_indx(int num_blks_row, int *bindx_start_row,
+                       int *ordered_index);
+
+extern void sort2(int, int *, int*);
+
+extern void order_parallel(int M, double *val_old, double *val_new, 
+                   int *bindx_old, int *bindx_new, int *indx_old, int *indx_new,
+                   int *bpntr_old, int *bpntr_new, int *diag_block);
+extern void get_diag(int M, int *bindx, int *bpntr, int *diag_block);
 
 /******************************************************************************/
 
@@ -70,9 +81,6 @@ void sort_blk_col_indx(int num_blks_row, int *bindx_start_row,
 
   int i;
 
-  /* externals */
-
-  void sort2(int, int *, int*);
 
   /**************************** execution begins ******************************/
 
@@ -245,12 +253,12 @@ void AZ_order(int M, double *val_old, double *val_new, int *bindx,
 
   /**************************** execution begins ******************************/
 
-  /* malloc array */
+  temp_ind = (int    *) AZ_allocate(size_temp_ind*sizeof(int));
+  temp_val = (double *) AZ_allocate(size_temp_val*sizeof(double));
+  sort     = (int    *) AZ_allocate(sizeof(int) * (M));
 
-  temp_ind = (int *)    calloc(size_temp_ind, sizeof(int));
-  temp_val = (double *) calloc(size_temp_val, sizeof(double));
-
-  sort = (int *) malloc(sizeof(int) * (M));
+  if ( (temp_val == NULL) || (sort == NULL)) 
+     AZ_perror("Out of space inside AZ_sort()\n");
 
   for (i = 0; i < M; i++) diag_block[i] = -1;
 
@@ -262,8 +270,8 @@ void AZ_order(int M, double *val_old, double *val_new, int *bindx,
 
     if (num_blks_row+1 > size_temp_ind) {
       size_temp_ind = num_blks_row + 1;
-      free(temp_ind);
-      temp_ind = (int *) calloc(size_temp_ind, sizeof(int));
+      AZ_free(temp_ind);
+      temp_ind = (int *) AZ_allocate(size_temp_ind * sizeof(int));
     }
 
     for (ii = bpntr[i]; ii <= bpntr[i+1]; ii++)
@@ -292,8 +300,8 @@ void AZ_order(int M, double *val_old, double *val_new, int *bindx,
 
     if (total_vals > size_temp_val) {
       size_temp_val = total_vals;
-      free(temp_val);
-      temp_val = (double *) calloc(size_temp_val, sizeof(double));
+      AZ_free(temp_val);
+      temp_val = (double *) AZ_allocate(size_temp_val * sizeof(double));
     }
 
     start   = indx_old[bpntr[i]];
@@ -319,9 +327,9 @@ void AZ_order(int M, double *val_old, double *val_new, int *bindx,
     }
   }
 
-  free((void *) sort);
-  free((void *) temp_ind);
-  free((void *) temp_val);
+  AZ_free((void *) sort);
+  AZ_free((void *) temp_ind);
+  AZ_free((void *) temp_val);
 
 } /* order */
 
@@ -398,7 +406,7 @@ void order_parallel(int M, double *val_old, double *val_new, int *bindx_old,
 
   /* Allocate work space */
 
-  sort = (int *) malloc(sizeof(int) * (M));
+  sort = (int *) AZ_allocate(sizeof(int) * (M));
   if (sort == NULL) {
     (void) fprintf(stderr, "Error: not enough memory inside order_parallel\n"
                    "       must run a smaller problem\n");
@@ -468,256 +476,9 @@ void order_parallel(int M, double *val_old, double *val_new, int *bindx_old,
     }
   }
 
-  free((void *) sort);
+  AZ_free((void *) sort);
 
 } /* order_parallel */
-
-/******************************************************************************/
-/******************************************************************************/
-/******************************************************************************/
-
-void AZ_lower_triang_vbr_solve(int N, int M, double *val, int *indx, int *bindx,
-                            int *rpntr, int *cpntr, int *bpntr, int *diag_block,
-                            double *y, double *b)
-
-/*******************************************************************************
-
-  Lower triangular solver for Ly = b with L stored in VBR matrix format.
-
-  Note: In this version the diagonal blocks of L are assumed to be identity.
-
-  Author:          Lydie Prevost, SNL, 1421
-  =======
-
-  Return code:     void
-  ============
-
-  Parameter list:
-  ===============
-
-  N:               Leading dimension of b and y.
-
-  M:               Number of (block) rows in the matrix and L.
-
-  val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
-
-  indx,
-  bindx,
-  rpntr,
-  cpntr,
-  bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
-
-  diag_block:      On output, array of size M points on each diagonal block.
-
-  b:               Right hand side of linear system.
-
-  y:               On output, contains the result vector y.
-
-*******************************************************************************/
-
-{
-
-  /* local variables */
-
-  register int  iblk_row, j, jblk;
-  int           iy, m1, ival, ib1, ib2, n1;
-  int           ione = 1;
-  double        one = 1.0, minus_one=-1.0;
-  char         *T = "N";
-  double       *y_pntr;
-
-  /**************************** execution begins ******************************/
-
-  /* initialize the result vector */
-
-  for (j = 0; j < N; j++) y[j] = b[j];
-
-  /* loop over block rows */
-
-  for (iblk_row = 1; iblk_row < M; iblk_row++) {
-
-    /* starting point row of the current row block */
-
-    iy = rpntr[iblk_row];
-
-    /* set result pointer */
-
-    y_pntr = y + iy;
-
-    /* number of rows in the current row block */
-
-    m1 = rpntr[iblk_row+1] - rpntr[iblk_row];
-
-    /* starting index of current row block */
-
-    ival = indx[bpntr[iblk_row]];
-
-    /* loop over all the lower blocks in the current block-row */
-
-    for (j = bpntr[iblk_row]; j < diag_block[iblk_row]; j++) {
-      jblk = bindx[j];
-
-      /* the starting point column index of the current block */
-
-      ib1 = cpntr[jblk];
-
-      /* ending point column index of the current block */
-
-      ib2 = cpntr[jblk+1];
-
-      /* number of columns in the current block */
-
-      n1 = ib2 - ib1;
-
-      /* dense matrix-vector multiplication */
-
-      if (m1 == 1 && n1 == 1)
-        *y_pntr -= (*(val+ival++) * *(y+ib1));
-      else {
-        if (m1 < 10)
-          AZ_dgemv3(m1, n1, val+ival, y+ib1, y_pntr);
-        else
-          dgemv_(T, &m1, &n1, &minus_one, val+ival, &m1, y+ib1, &ione, &one,
-                 y_pntr, &ione, strlen(T));
-        ival += (m1*n1);
-      }
-    }
-  }
-
-} /* AZ_lower_triang_vbr_solve */
-
-/******************************************************************************/
-/******************************************************************************/
-/******************************************************************************/
-
-void AZ_upper_triang_vbr_solve(int N, int M, double *val, int *indx, int *bindx,
-                               int *rpntr, int *cpntr, int *bpntr,
-                               int *diag_block, double *y, double *b,
-                               int *ipvt)
-
-/*******************************************************************************
-
-  Upper triangular solver for Uy = b with U stored in VBR matrix format.
-
-  Author:          Lydie Prevost, SNL, 1421
-  =======
-
-  Return code:     void
-  ============
-
-  Parameter list:
-  ===============
-
-  N:               Leading dimension of b and y.
-
-  M:               Number of (block) rows in the matrix and L.
-
-  val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
-
-  indx,
-  bindx,
-  rpntr,
-  cpntr,
-  bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
-
-  diag_block:      On output, array of size M points on each diagonal block.
-
-  b:               Right hand side of linear system.
-
-  y:               On output, contains the result vector y.
-
-  Routines called:
-  ================
-
-  AZ_dgemv3 or dgemv (blas2 dense matrix vector multiply)
-
-*******************************************************************************/
-
-{
-
-  /* local variables */
-
-  register int  iblk_row, j, jblk;
-  int           iy, m1, ival, ib1, ib2, n1;
-  int           ione = 1;
-  int           info;
-  double        one = 1.0, minus_one = -1.0;
-  char         *T = "N";
-  double       *y_pntr;
-
-  /**************************** execution begins ******************************/
-
-  /* initialize  the result vector */
-
-  for (j = 0; j < N; j++) y[j] = b[j];
-
-  /* loop over block rows */
-
-  for (iblk_row = M - 1; iblk_row >= 0; iblk_row--) {
-
-    /* starting point row of the current row block */
-
-    iy = rpntr[iblk_row];
-
-    /* set result pointer */
-
-    y_pntr  = y + iy;
-
-    /* number of rows in the current row block */
-
-    m1 = rpntr[iblk_row+1] - rpntr[iblk_row];
-
-    /* starting index of current row block */
-
-    ival = indx[bpntr[iblk_row]];
-
-    /* loop over all the upperblocks in the current block-row */
-
-    for (j = diag_block[iblk_row] + 1; j < bpntr[iblk_row+1]; j++) {
-      ival = indx[j];
-      jblk = bindx[j];
-
-      /* the starting point column index of the current block */
-
-      ib1 = cpntr[jblk];
-
-      /* ending point column index of the current block */
-
-      ib2 = cpntr[jblk+1];
-
-      /* number of columns in the current block */
-
-      n1 = ib2 - ib1;
-
-      /* dense matrix-vector multiplication and division */
-
-      if (m1 == 1 && n1 == 1)
-        *y_pntr -=  (*(y+ib1) * *(val+ival++) );
-      else {
-        if (m1 < 10)
-          AZ_dgemv3(m1, n1, val+ival, y+ib1, y_pntr);
-        else
-          dgemv_(T, &m1, &n1, &minus_one, val+ival, &m1, y+ib1, &ione,
-                 &one, y_pntr, &ione, strlen(T));
-        ival += m1*n1;
-      }
-    }
-
-    j    = diag_block[iblk_row];
-    jblk = bindx[j];
-    ib1  = cpntr[jblk];
-    ib2  = cpntr[jblk+1];
-    n1   = ib2 - ib1;
-    ival = indx[j];
-    dgetrs_(T, &n1, &ione, val+ival, &m1, &(ipvt[iy]), y_pntr, &m1, &info,
-            strlen(T));
-  }
-
-} /* AZ_upper_triang_vbr_solve */
 
 /******************************************************************************/
 /******************************************************************************/
@@ -765,3 +526,242 @@ void get_diag(int M, int *bindx, int *bpntr, int *diag_block)
   }
 
 } /* get_diag */
+
+
+
+
+#define add_scaled_row(row)                             \
+    accum_col[Ncols++] = row;                           \
+    for (kk = bindx[row] ; kk <= last[row]; kk++ ) {    \
+       col = bindx[kk];                                 \
+       if (col >= 0) accum_col[Ncols++] = col;          \
+    }
+
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+void AZ_MSR_mult_patterns(int bindx[], int N, int last[], int bindx_length,
+	int *accum_col)
+{
+/*
+ * Multiply two MSR matrices (actually only the sparsity patterns)
+ * and store the resulting sparse matrix. That is,
+ *                 C = A * B
+ *
+ * Note: A, B and C are all stored in the same array (bindx). Specifically,
+ *       all the elements in bindx[] correspond to A. However, some columns
+ *       are encoded as negative numbers. To obtain the real column number
+ *       one must do the following:  real_column = -2 - bindx[k]. The matrix,
+ *       B, corresponds only to the positive column indices in bindx[].
+ *
+ * Parameters
+ * ======
+ *    bindx[]       On input, bindx[] holds the two input matrices as 
+ *                  described above. On output, bindx[] holds the matrix
+ *                  corresponding to the product of the two input matrices.
+ *                  However, any matrix entry which was not in the matrix B
+ *                  is encoded as a negative column number (see above).
+ *
+ *    N             On input, size of the matrices to multiply.
+ *
+ *    last          On input, uninitialized workspace of size N.
+ *
+ *    bindx_length  On input, the size of the array allocated for bindx.
+ *                  In general, the number of elements in bindx[] will grow and
+ *                  so bindx[] should contain additional room for this growth.
+ *
+ *    accum_col     On input, uninitialized workspace of size 2*N.
+ */
+
+   int    i, k, kk, next_nz, Ncols;
+   int    row, col, *signs;
+   int    start_row, end_row, first_one, orig_col;
+   int largest_col, smallest_col;
+
+
+   /* move off-diagonals to the back of the array */
+   /* and  initialize start/end ptrs              */
+
+   kk = bindx_length-1;
+   end_row   = bindx[N]-1; 
+   for (i = N-1 ; i >= 0 ; i--) {
+      start_row = bindx[i];
+      last[i] = kk;
+      for (k = end_row; k >= start_row; k-- ) bindx[kk--] = bindx[k];
+      end_row   = start_row - 1; 
+      bindx[i] = kk+1;
+   }
+
+   /* initialize the arrays */
+
+   for (i = 0 ; i < 2*N; i++) accum_col[i] = 0;
+   signs = &(accum_col[N]);
+
+   next_nz   = N+1;
+
+   largest_col = 0;
+   for (i = 0 ; i < N ; i++) {
+      if (largest_col < i) largest_col = i;
+      Ncols = 0;
+      add_scaled_row(i);
+
+      for (k = bindx[i] ; k <= last[i]; k++ ) {
+         if (Ncols >= N) {
+            AZ_sort(accum_col, Ncols, NULL, NULL);
+            AZ_rm_duplicates(accum_col, &Ncols);
+         }
+         row        = bindx[k];
+         if (row < 0) row = -2 - row;
+         add_scaled_row(row);
+      }
+      AZ_sort(accum_col, Ncols, NULL, NULL);
+      AZ_rm_duplicates(accum_col, &Ncols);
+
+      for (k = 0 ; k < Ncols; k++) signs[accum_col[k]] = -1;
+
+      /* compute the smallest and largest column */
+      /* that could appear in a factorization    */
+
+      smallest_col = i;
+      first_one    = next_nz;
+      if (bindx[i] <= last[i]) {
+         orig_col = bindx[bindx[i]];
+         if (orig_col < 0)  orig_col = -2 - orig_col; 
+         if (smallest_col > orig_col) smallest_col = orig_col;
+
+         orig_col = bindx[last[i]];
+         if (orig_col < 0)  orig_col = -2 - orig_col; 
+         if (largest_col < orig_col) largest_col = orig_col;
+      }
+
+      /* record sign of column to be stored  */
+
+      for (k = bindx[i]; k <= last[i]; k++) {
+         orig_col = bindx[k];
+         if (orig_col >= 0)  signs[orig_col] = 1;    
+      }
+
+      if (next_nz+Ncols-2 > last[i]) {
+         printf("Not enough room for the larger sparsity pattern\n");
+         exit(1);
+      }
+      for (k = 0 ; k < Ncols ; k++) {
+         col = accum_col[k];
+         if (col != i) {
+            if (signs[col] == -1) col = -2 - col;
+
+            if ((accum_col[k] <= largest_col) && 
+                (accum_col[k] >= smallest_col ) ) 
+                   bindx[next_nz++] = col;
+         }
+      }
+      bindx[i] = first_one;
+      last[i]  = next_nz - 1;
+   }
+   bindx[N] = last[N-1]+1;
+
+}
+       
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+void AZ_rm_duplicates(int array[], int *N)
+{
+/*
+ * remove any duplicates that might appear in the SORTED
+ * array 'array'.
+ *
+ */
+  int k, kk;
+
+  kk = 0;
+  for (k = 1; k < *N; k++) {
+    if (array[kk] != array[k]) {
+      kk++;
+      array[kk] = array[k];
+    }
+  }
+  if (*N != 0) kk++;
+
+  *N= kk;
+}
+
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+
+int AZ_fill_sparsity_pattern(struct context *context, int ifill, int bindx[], 
+			     double val[], int N)
+{
+/*
+ * Expand the MSR matrix (bindx,val) by adding zeros such that the new
+ * matrix has the same sparsity pattern as when ILU(ifill) is performed
+ * on the original matrix.
+ *
+ */
+int   length, last_one, flag, i;
+int   *work1, *work2;
+double temp;
+
+   length = context->N_nz_allocated;
+   last_one = bindx[N]-1;
+
+   /* allocate the work space arrays. If there is enough space in */
+   /* val[] use that for one of the two work arrays               */
+
+   if ( (length - last_one - 2)*sizeof(double) > (N+1)*sizeof(int) ) {
+      flag = 0;
+      work1 = (int *) &(val[last_one+1]);
+   }
+   else {
+      work1 = (int *) AZ_allocate((N+1)*sizeof(int));
+      flag = 1;
+   }
+   work2 = (int *) AZ_allocate(2*(N+1)*sizeof(int));
+   if (work2 == NULL) AZ_perror("Out of space in ilu.\n");
+
+   /* Take the power of the matrix. That is, A = A^ifill. */
+
+   for (i = 0 ; i < ifill; i++)
+      AZ_MSR_mult_patterns(bindx, N, work1, length,work2);
+
+   AZ_free(work2);
+   if (flag) AZ_free(work1);
+
+   /* Move the nonzero values into their proper location in the  */
+   /* new expanded matrix. Also, decode any columns which appear */
+   /* as negative numbers (see AZ_MSR_mult_patterns()).          */
+
+   for (i = bindx[N]-1; i >=  bindx[0]; i--) {
+      if (bindx[i] >= 0) {
+         temp            = val[last_one];
+         val[last_one--] = 0.0;
+         val[i]          = temp;
+      }
+      else {
+         bindx[i] = -2 - bindx[i];
+         val[i] = 0.0;
+      }
+   }
+
+   return(bindx[N]);
+}
+
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+
+void AZ_sort_msr(int bindx[], double val[], int N)
+{
+/*
+ * Sort the column numbers within each MSR row.
+ */
+
+   int i, start, last;
+
+   for (i = 0 ; i < N ; i++ ) {
+      start = bindx[i];
+      last  = bindx[i+1];
+      AZ_sort( &(bindx[start]), last - start , NULL, &(val[start]));
+   }
+}

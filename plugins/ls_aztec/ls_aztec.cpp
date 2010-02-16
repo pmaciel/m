@@ -18,11 +18,11 @@ ls_aztec::ls_aztec() :
   mlinearsystem< double >(),
   mtype(AZ_MSR_MATRIX)
 {
-  // allocate options, parameters, status, proc_config and update
-  proc_config = new int[AZ_PROC_SIZE];  for (int i=0; i<AZ_PROC_SIZE;    ++i) proc_config[i] = 0;
+  // allocate options, parameters, status and proc_config
   options = new int[AZ_OPTIONS_SIZE];   for (int i=0; i<AZ_OPTIONS_SIZE; ++i) options[i] = 0;
   params = new double[AZ_PARAMS_SIZE];  for (int i=0; i<AZ_PARAMS_SIZE;  ++i) params[i] = 0.;
   status = new double[AZ_STATUS_SIZE];  for (int i=0; i<AZ_STATUS_SIZE;  ++i) status[i] = 0.;
+  proc_config = new int[AZ_PROC_SIZE];  for (int i=0; i<AZ_PROC_SIZE;    ++i) proc_config[i] = 0;
 
   // setup options/params (at initialize, user option override)
   AZ_defaults(options,params);
@@ -69,9 +69,9 @@ void ls_aztec::initialize(unsigned _Ne, unsigned _Nv, unsigned _Nb)
 
 void ls_aztec::initialize(const vector< vector< unsigned > >& nz)
 {
-  cout << "aztec: AZ_processor_info..." << endl;
-  AZ_processor_info(proc_config);
-  cout << "aztec: AZ_processor_info." << endl;
+  cout << "aztec: AZ_set_proc_config..." << endl;
+  AZ_set_proc_config(proc_config,AZ_NOT_MPI);
+  cout << "aztec: AZ_set_proc_config." << endl;
 
   cout << "aztec: initialize, AZ_{read_update,transform,check_" << (mtype==AZ_MSR_MATRIX? "msr":"vbr") << "}..." << endl;
   if (mtype==AZ_MSR_MATRIX) {
@@ -131,34 +131,20 @@ void ls_aztec::set_az_options(XMLNode& xml, int *options, double *params)
   const string mtype_str = xml.getAttribute< string >("mtype","msr");
   mtype = mtype_str=="vbr"? AZ_VBR_MATRIX : AZ_MSR_MATRIX;
 
-  // set maximum iterations, number of Krylov subspaces and tolerance
-  options[AZ_max_iter] = xml.getAttribute< int    >("max_iter",options[AZ_max_iter]);
-  options[AZ_kspace]   = xml.getAttribute< int    >("kspace",  options[AZ_kspace]);
-  params[AZ_tol]       = xml.getAttribute< double >("tol",     params[AZ_tol]);
-
-  // set preconditioner, overlap, solver and output
-  const string precond = xml.getAttribute< string >("precond"),
-               overlap = xml.getAttribute< string >("overlap"),
-               solver  = xml.getAttribute< string >("solver"),
-               output  = xml.getAttribute< string >("output");
-  const int output_int = xml.getAttribute< int    >("output",options[AZ_output]);
-  options[AZ_precond] = (precond=="Jacobi"?   AZ_Jacobi  :  // Jacobi
-                        (precond=="sym_GS"?   AZ_sym_GS  :  // symmetric Gauss-Siedel
-                        (precond=="Neumann"?  AZ_Neumann :  // Neumann series polynomial
-                        (precond=="ls"?       AZ_ls      :  // least-squares polynomial
-                        (precond=="ilu"?      AZ_ilu     :  // domain decomp with ilu in subdomains
-                        (precond=="bilu"?     AZ_bilu    :  // domain decomp with block ilu in subdomains
-                        (precond=="bmilu"?    AZ_bmilu   :  // domain decomp with block milu in subdomains
-                        (precond=="icc"?      AZ_icc     :  // domain decomp with incomp Choleski in domains
-                        (precond=="none"?     AZ_none    :  // no preconditioning
-                        options[AZ_precond] )))))))));  // (default)
-
-  options[AZ_overlap] = (overlap=="diag"?     AZ_diag     :  // use diagonal blocks for overlapping
-                        (overlap=="sym_full"? AZ_sym_full :  // use external rows (symmetric) for overlapping
-                        (overlap=="full"?     AZ_full     :  // use external rows for overlapping
-                        (overlap=="none"?     AZ_none     :  // no overlap
-                                              options[AZ_overlap] ))));  // (default)
-
+  // set options
+  const string solver   = xml.getAttribute< string >("solver"),
+               scaling  = xml.getAttribute< string >("scaling"),
+               precond  = xml.getAttribute< string >("precond"),
+               subdomain_solve = xml.getAttribute< string >("subdomain_solve"),
+               conv     = xml.getAttribute< string >("conv"),
+               output   = xml.getAttribute< string >("output"),
+               pre_calc = xml.getAttribute< string >("pre_calc"),
+               overlap  = xml.getAttribute< string >("overlap"),
+               type_overlap    = xml.getAttribute< string >("type_overlap"),
+               orthog   = xml.getAttribute< string >("orthog"),
+               aux_vec  = xml.getAttribute< string >("aux_vec");
+  const int output_int  = xml.getAttribute< int >("output",  options[AZ_output]),
+            overlap_int = xml.getAttribute< int >("overlap", options[AZ_overlap]);
   options[AZ_solver] = (solver=="cg"?        AZ_cg       :  // preconditioned conjugate gradient method
                        (solver=="gmres"?     AZ_gmres    :  // preconditioned gmres method
                        (solver=="cgs"?       AZ_cgs      :  // preconditioned cg squared method
@@ -166,18 +152,102 @@ void ls_aztec::set_az_options(XMLNode& xml, int *options, double *params)
                        (solver=="bicgstab"?  AZ_bicgstab :  // preconditioned stabilized bi-cg method
                        (solver=="slu"?       AZ_slu      :  // super LU direct method
                        (solver=="symmlq"?    AZ_symmlq   :  // indefinite symmetric like symmlq
-                       (solver=="lu"?        AZ_lu       :  // sparse LU direct method
-                                             options[AZ_solver] ))))))));  // (default)
+                       (solver=="GMRESR"?    AZ_GMRESR   :  // recursive GMRES (not supported)
+                       (solver=="fixed_pt"?  AZ_fixed_pt :  // fixed point iteration
+                       (solver=="analyze"?   AZ_analyze  :  // fixed point iteration
+                       (solver=="lu"?        AZ_lu       :  // sparse LU direct method (also used for preconditioning)
+                                             options[AZ_solver] )))))))))));  // (default)
 
-  options[AZ_output] = (output=="all"?      AZ_all      :  // print matrix/vectors and residuals
-                       (output=="none"?     AZ_none     :  // no intermediate results
-                       (output=="warnings"? AZ_warnings :  // print only warnings
-                       (output=="last"?     AZ_last     :  // print only last residual
+  options[AZ_scaling] = (scaling=="none"?        AZ_none        :  // no scaling
+                        (scaling=="Jacobi"?      AZ_Jacobi      :  // Jacobi scaling
+                        (scaling=="BJacobi"?     AZ_BJacobi     :  // block Jacobi scaling
+                        (scaling=="row_sum"?     AZ_row_sum     :  // point row-sum scaling
+                        (scaling=="sym_diag"?    AZ_sym_diag    :  // symmetric diagonal scaling
+                        (scaling=="sym_row_sum"? AZ_sym_row_sum :  // symmetric diagonal scaling
+                        (scaling=="equil"?       AZ_equil       :  // equilib scaling
+                        (scaling=="sym_BJacobi"? AZ_sym_BJacobi :  // symmetric block Jacobi scaling
+                        options[AZ_scaling] ))))))));  // (default)
+
+  options[AZ_precond] = (precond=="none"?         AZ_none         :  // no preconditioning
+                        (precond=="Jacobi"?       AZ_Jacobi       :  // Jacobi (also used for scaling options)
+                        (precond=="sym_GS"?       AZ_sym_GS       :  // symmetric Gauss-Siedel
+                        (precond=="Neumann"?      AZ_Neumann      :  // Neumann series polynomial
+                        (precond=="ls"?           AZ_ls           :  // least-squares polynomial
+                        (precond=="ilu"?          AZ_ilu          :  // domain decomposition with ilu in subdomains
+                        (precond=="bilu"?         AZ_bilu         :  // domain decomposition with block ilu in subdomains
+                        (precond=="lu"?           AZ_lu           :  // domain decomposition with lu in subdomains
+                        (precond=="icc"?          AZ_icc          :  // domain decomposition with incomplete Choleski in domains
+                        (precond=="ilut"?         AZ_ilut         :  // domain decomposition with ilut in subdomains
+                        (precond=="rilu"?         AZ_rilu         :  // domain decomposition with rilu in subdomains
+                        (precond=="recursive"?    AZ_recursive    :  // recursive call to AZ_iterate()
+                        (precond=="smoother"?     AZ_smoother     :  // recursive call to AZ_iterate()
+                        (precond=="dom_decomp"?   AZ_dom_decomp   :  // domain decomposition using subdomain solver given by options[AZ_subdomain_solve]
+                        (precond=="multilevel"?   AZ_multilevel   :  // do multiplicative domain decomposition with coarse grid (not supported)
+                        (precond=="user_precond"? AZ_user_precond :  // user's preconditioning
+                        (precond=="bilu_ifp"?     AZ_bilu_ifp     :  // domain decomposition with bilu using ifpack in subdom
+                        options[AZ_precond] )))))))))))))))));  // (default)
+
+  options[AZ_subdomain_solve] = (subdomain_solve=="lu"?   AZ_lu   :  // domain decomposition with lu in subdomains
+                                (subdomain_solve=="ilut"? AZ_ilut :  // domain decomposition with ilut in subdomains
+                                (subdomain_solve=="ilu"?  AZ_ilu  :  // domain decomposition with ilu in subdomains
+                                (subdomain_solve=="rilu"? AZ_rilu :  // domain decomposition with rilu in subdomains
+                                (subdomain_solve=="bilu"? AZ_bilu :  // domain decomposition with block ilu in subdomains
+                                (subdomain_solve=="icc"?  AZ_icc  :  // domain decomposition with incomplete Choleski in domains
+                                options[AZ_subdomain_solve] ))))));  // (default)
+
+  options[AZ_conv] = (conv=="r0"?              AZ_r0              :  // ||r||_2 / ||r^{(0)}||_2
+                     (conv=="rhs"?             AZ_rhs             :  // ||r||_2 / ||b||_2
+                     (conv=="Anorm"?           AZ_Anorm           :  // ||r||_2 / ||A||_infty
+                     (conv=="sol"?             AZ_sol             :  // ||r||_infty/(||A||_infty ||x||_1+||b||_infty)
+  //                 (conv=="weighted"?        AZ_weighted        :  // ||r||_WRMS
+                     (conv=="expected_values"? AZ_expected_values :  // ||r||_WRMS with weights taken as |A||x0|
+                     (conv=="noscaled"?        AZ_noscaled        :  // ||r||_2
+                     options[AZ_conv] ))))));  // (default)
+
+  options[AZ_output] = (output=="all"?      AZ_all      :  // print out everything including matrix
+                       (output=="none"?     AZ_none     :  // print out no results (not even warnings)
+                       (output=="last"?     AZ_last     :  // print out final residual and warnings
+                       (output=="warnings"? AZ_warnings :  // print out only warning messages
                        (output_int>0?       output_int  :  // print residual every output_int iteration
                                             options[AZ_output] )))));  // (default)
 
-  // override polynomial order if Jacobi preconditioner is used
-  options[AZ_poly_ord] = options[AZ_precond]==AZ_Jacobi? 3:0;
+  options[AZ_pre_calc] = (pre_calc=="calc"?      AZ_calc       :  // use no previous information
+                         (pre_calc=="recalc"?    AZ_recalc     :  // use last symbolic information
+                         (pre_calc=="reuse"?     AZ_reuse      :  // use a previous factorization to precondition
+                         (pre_calc=="sys_reuse"? AZ_sys_reuse  :  // use last factorization to precondition
+                                                 options[AZ_pre_calc] ))));  // (default)
+
+  options[AZ_overlap] = (overlap=="none"? AZ_none     :  // no overlap
+                        (overlap=="diag"? AZ_diag     :  // use diagonal blocks for overlapping
+                        (overlap=="full"? AZ_full     :  // use external rows for overlapping
+                        (overlap_int>=0?  overlap_int :  // overlapping steps
+                                          options[AZ_overlap] ))));  // (default)
+
+  options[AZ_type_overlap] = (type_overlap=="standard"?  AZ_standard  :
+                             (type_overlap=="symmetric"? AZ_symmetric :
+                                                         options[AZ_type_overlap] ));  // (default)
+
+  options[AZ_orthog] = (orthog=="classic"?  AZ_classic  :  // 2 steps of classical Gram-Schmidt orthogonalization
+                       (orthog=="modified"? AZ_modified :  // modified Gram-Schmidt orthogonalization
+                                            options[AZ_orthog] ));  // (default)
+
+  options[AZ_aux_vec] = (aux_vec=="resid"? AZ_resid :  // r is set to the initial residal vector
+                        (aux_vec=="rand"?  AZ_rand  :  // r is set to the random numbers between -1. and 1.
+                                           options[AZ_aux_vec] ));  // (default)
+
+  options[AZ_graph_fill] = xml.getAttribute< int >("graph_fill", options[AZ_graph_fill]);
+  options[AZ_max_iter]   = xml.getAttribute< int >("max_iter",   options[AZ_max_iter]);
+  options[AZ_poly_ord]   = xml.getAttribute< int >("poly_ord",   options[AZ_poly_ord]);
+  options[AZ_kspace]     = xml.getAttribute< int >("kspace",     options[AZ_kspace]);
+  options[AZ_reorder]    = xml.getAttribute< int >("reorder",    options[AZ_reorder]);
+  options[AZ_keep_info]  = xml.getAttribute< int >("keep_info",  options[AZ_keep_info]);
+
+  // set params
+  params[AZ_tol]       = xml.getAttribute< double >("tol",       params[AZ_tol]);
+  params[AZ_drop]      = xml.getAttribute< double >("drop",      params[AZ_drop]);
+  params[AZ_ilut_fill] = xml.getAttribute< double >("ilut_fill", params[AZ_ilut_fill]);
+  params[AZ_omega]     = xml.getAttribute< double >("omega",     params[AZ_omega]);
+  // params[AZ_weights] = // harder to implement, not done
 }
 
 
@@ -229,7 +299,7 @@ void ls_aztec::print(std::ostream& o, bool pmatrix)
 void ls_aztec::solve()
 {
   status[AZ_its] = 0.;
-  for (int i=0; i<1/*5 && status[AZ_its]<5.*/; ++i) {
+  /*for (int i=0; i<5 && status[AZ_its]<5.; ++i)*/ {
     AZ_solve( &m_X[0], &m_B[0], options, params,
       mtype==AZ_MSR_MATRIX? NULL          : m_A_vbr.indx,
       mtype==AZ_MSR_MATRIX? m_A_msr.bindx : m_A_vbr.bindx,
@@ -239,15 +309,20 @@ void ls_aztec::solve()
       mtype==AZ_MSR_MATRIX? m_A_msr.val   : m_A_vbr.val,
       data_org, status, proc_config );
     cout << "aztec status:"
-         << "  [AZ_its]=" << status[AZ_its]
-         << "  [AZ_r]="   << status[AZ_r]
-         << "  [AZ_why]=" << (status[AZ_why]==AZ_normal?    "AZ_normal"    :
-                             (status[AZ_why]==AZ_param?     "AZ_param"     :
-                             (status[AZ_why]==AZ_breakdown? "AZ_breakdown" :
-                             (status[AZ_why]==AZ_loss?      "AZ_loss"      :
-                             (status[AZ_why]==AZ_ill_cond?  "AZ_ill_cond"  :
-                             (status[AZ_why]==AZ_maxits?    "AZ_maxits"    :
-                                                            "unknown" )))))) << endl;
+         << "  [its]=" << status[AZ_its]
+         << "  [why]=" << (status[AZ_why]==AZ_normal?    "normal"    :
+                          (status[AZ_why]==AZ_param?     "param"     :
+                          (status[AZ_why]==AZ_breakdown? "breakdown" :
+                          (status[AZ_why]==AZ_loss?      "loss"      :
+                          (status[AZ_why]==AZ_ill_cond?  "ill_cond"  :
+                          (status[AZ_why]==AZ_maxits?    "maxits"    :
+                                                         "(unknown)" ))))))
+         << "  [r]="             << status[AZ_r]
+         << "  [scaled_r]="      << status[AZ_scaled_r]
+         << "  [rec_r]="         << status[AZ_rec_r]
+         << "  [solve_time]="    << status[AZ_solve_time]
+    //   << "  [Aztec_version]=" << status[AZ_Aztec_version]
+         << endl;
   }
 }
 

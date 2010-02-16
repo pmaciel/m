@@ -7,14 +7,14 @@
  *
  * $Author: tuminaro $
  *
- * $Date: 1996/06/24 19:30:20 $
+ * $Date: 2002/08/20 20:02:06 $
  *
- * $Revision: 1.33 $
+ * $Revision: 1.59 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_tools.c,v 1.33 1996/06/24 19:30:20 tuminaro Exp $";
+static char rcsid[] = "$Id: az_tools.c,v 1.59 2002/08/20 20:02:06 tuminaro Exp $";
 #endif
 
 
@@ -115,7 +115,7 @@ void AZ_order_ele(int update_index[], int extern_index[], int *internal,
     if (m_type == AZ_MSR_MATRIX)      t_ptr = bindx;
     else if (m_type == AZ_VBR_MATRIX) t_ptr = bpntr;
     else {
-      (void) fprintf(stderr, "%sERROR: Unknown matrix type (%d)\n", m_type, yo);
+      (void) fprintf(stderr, "%sERROR: Unknown matrix type (%d)\n", yo, m_type);
       exit(1);
     }
 
@@ -287,7 +287,7 @@ void AZ_reorder_vec(double vector[], int data_org[], int update_index[],
     if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX) 
       AZ_sortqlists((char *) vector, 0, update_index, length, sizeof(double), length);
     else if (data_org[AZ_matrix_type] == AZ_VBR_MATRIX) {
-       temp = (int *) calloc(length+1, sizeof(int));
+       temp = (int *) AZ_allocate( (length+1)*sizeof(int));
        if (temp == NULL) {
           (void) fprintf(stderr, "Out of memory in AZ_reorder_vec()\n");
           exit(-1);
@@ -298,7 +298,7 @@ void AZ_reorder_vec(double vector[], int data_org[], int update_index[],
        }
        AZ_sortqlists((char *)vector,temp,update_index,rpntr[length],
                      sizeof(double),length);
-       free(temp);
+       AZ_free(temp);
     }
     else {
       (void) fprintf(stderr,"Error: Unknown matrix type (%d) in AZ_reorder_vec\n",
@@ -407,7 +407,7 @@ void AZ_reorder_matrix(int N_update, int bindx[], double val[],
 
     /* 3) order the external blocks */
 
-    temp = (int *) calloc((unsigned)(N_external + 1), sizeof(int));
+    temp = (int *) AZ_allocate((unsigned)(N_external + 1)*sizeof(int));
     if (temp == NULL) {
       (void) fprintf(stderr,
                      "%sERROR: not enough memory to malloc temporary space\n",
@@ -419,7 +419,7 @@ void AZ_reorder_matrix(int N_update, int bindx[], double val[],
       temp[extern_index[i] - N_update] = cnptr[i + N_update];
 
     for (i = 0; i < N_external; i++) cnptr[i + N_update] = temp[i];
-    free((char *) temp);
+    AZ_free((char *) temp);
 
     /* 4) reconvert cnptr to give pointer information */
 
@@ -473,8 +473,8 @@ void AZ_reorder_matrix(int N_update, int bindx[], double val[],
     indx_length = bnptr[N_update];
     AZ_convert_ptrs_to_values(indx, indx_length);
 
-    temp = (int *) calloc((unsigned) N_update, sizeof(int));
-    if ( (temp == NULL) && (N_update != 0) ) {
+    temp = (int *) AZ_allocate((unsigned) (N_update+1)*sizeof(int));
+    if (temp == NULL) {
       (void) fprintf(stderr, "%sERROR: Not enough temp space in reorder.\n",
                      yo);
       exit(-1);
@@ -489,7 +489,7 @@ void AZ_reorder_matrix(int N_update, int bindx[], double val[],
 
     AZ_sortqlists((char *) val, temp, update_index, val_length, sizeof(double),
                   N_update);
-    free((char *) temp);
+    AZ_free((char *) temp);
 
     AZ_convert_ptrs_to_values(bnptr, N_update);
     AZ_convert_ptrs_to_values(rnptr, N_update);
@@ -618,7 +618,7 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
 
   /* local variables */
 
-  int   i, j, ii, type, start, cflag, length, partner, newlength, new_i;
+  int   i, j, ii, type, start, cflag, partner, newlength, new_i;
   int   total_to_be_sent, found;
   int  *new_external, *new_extern_proc;
   int  *neighbors, *tempneigh;
@@ -630,26 +630,30 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
   int  *send_ptr, *lens;
   int   proc,nprocs;
   int   firstone,current;
-  MPI_Request request[AZ_MAX_NEIGHBORS];  /* Message handle */
+  MPI_AZRequest request[AZ_MAX_NEIGHBORS];  /* Message handle */
+  unsigned int length;
 
   char *yo = "AZ_set_message_info: ";
 
   /*---------------------- execution begins -----------------------------*/
 
+  AZ__MPI_comm_space_ok();
   proc   = proc_config[AZ_node];
   nprocs = proc_config[AZ_N_procs];
 
-  neighbors = (int *) calloc((unsigned) nprocs, sizeof(int));
-  tempneigh = (int *) calloc((unsigned) nprocs, sizeof(int));
+  neighbors = (int *) AZ_allocate((unsigned) nprocs*sizeof(int));
+  tempneigh = (int *) AZ_allocate((unsigned) nprocs*sizeof(int));
 
   /* Produce a list of the external updating processors corresponding */
   /* to each external point in the order given by 'extern_index[]'    */
 
-  new_extern_proc = (int *) calloc((unsigned) N_external+1, sizeof(int));
+  new_extern_proc = (int *) AZ_allocate((unsigned) (N_external+1)*sizeof(int));
   if (new_extern_proc == NULL) {
     (void) fprintf(stderr, "%sERROR: Not enough dynamic space.\n", yo);
     exit(-1);
   }
+  for (i = 0 ; i < nprocs ; i++)  neighbors[i] = 0;
+  for (i = 0 ; i < N_external+1; i++)  new_extern_proc[i] = 0;
 
   for (i = 0; i < N_external; i++)
     new_extern_proc[extern_index[i] - N_update] = extern_proc[i];
@@ -675,9 +679,11 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
 
     if (mat_type != AZ_VBR_MATRIX)
       neighbors[new_extern_proc[i]] += nprocs;
-    else
+    else {
       neighbors[new_extern_proc[i]] += (nprocs * (cnptr[i + 1 + N_update]
                                                   - cnptr[i + N_update]));
+
+    }
   }
 
   /*
@@ -685,7 +691,7 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
    * external elements (in the order that we will receive this information).
    */
 
-  recv_list = (int *) calloc((unsigned) AZ_MAX_NEIGHBORS, sizeof(int));
+  recv_list = (int *) AZ_allocate((unsigned) AZ_MAX_NEIGHBORS*sizeof(int));
   if (recv_list == NULL) {
     (void) fprintf(stderr, "%sERROR: Not enough dynamic space.\n", yo);
     exit(-1);
@@ -711,16 +717,17 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
 
   total_to_be_sent = (neighbors[proc] - num_send_neighbors) / nprocs;
 
-  free((char *) neighbors);
-  free((char *) tempneigh);
+  AZ_free((char *) neighbors);
+  AZ_free((char *) tempneigh);
 
   /* send a 0 length message to each of our recv neighbors */
 
-  send_list = (int *) calloc((unsigned) num_send_neighbors+1,sizeof(int));
-  if ( (send_list == NULL) && (num_send_neighbors != 0)) {
+  send_list = (int *)AZ_allocate((unsigned) (num_send_neighbors+1)*sizeof(int));
+  if (send_list == NULL) {
     (void) fprintf(stderr, "%sERROR: Not enough dynamic space.\n", yo);
     exit(-1);
   }
+  for (i = 0 ; i < num_send_neighbors+1 ; i++ ) send_list[i] = 0;
 
 
   type            = AZ_sys_msg_type;
@@ -732,13 +739,13 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
   length = 0;
   for (i = 0; i < num_send_neighbors; i++) {
     partner = -1;
-    md_wrap_iread((void *) external, length, &partner, &type, request+i);
+    mdwrap_iread((void *) external, length, &partner, &type, request+i);
   }
 
   /* send messages */
 
   for (i = 0; i < num_recv_neighbors; i++) {
-    md_wrap_write((void *) external, 0, recv_list[i], type, &cflag);
+    mdwrap_write((void *) external, 0, recv_list[i], type, &cflag);
   }
 
   /*
@@ -748,7 +755,7 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
   length = 0;
   for (i = 0; i < num_send_neighbors; i++) {
     partner = -1;
-    md_wrap_wait((void *) external, length, &partner, &type, &cflag, request+i);
+    mdwrap_wait((void *) external, length, &partner, &type, &cflag, request+i);
     if (partner != -1) send_list[i] = partner;
   }
 
@@ -773,17 +780,22 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
     }
   }
 
-  free((char *) send_list);
+  AZ_free((char *) send_list);
   num_send_neighbors = num_recv_neighbors;
 
   /* create data_org array */
 
-  if (!AZ_using_fortran)
-    *data_org = (int *) calloc((unsigned) total_to_be_sent + AZ_send_list,
-                               sizeof(int));
-  if ( (*data_org == NULL) && ( (total_to_be_sent + AZ_send_list) != 0)) {
+  if (!AZ_using_fortran) {
+    *data_org = (int *) AZ_allocate(((unsigned) total_to_be_sent + AZ_send_list)
+                               *sizeof(int));
+  }
+  if (*data_org == NULL) {
     (void) fprintf(stderr, "%sERROR: Not enough dynamic space.\n", yo);
     exit(-1);
+  }
+  if (!AZ_using_fortran) {
+     for (i = 0 ; i < total_to_be_sent + AZ_send_list; i++ ) 
+        (*data_org)[i] = 0;
   }
 
   (*data_org)[AZ_total_send] = total_to_be_sent;
@@ -794,8 +806,8 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
    * order given by 'extern_index'
    */
 
-  new_external = (int *) calloc((unsigned) N_external, sizeof(int));
-  if ( (new_external == NULL) && (N_external != 0)) {
+  new_external = (int *) AZ_allocate((unsigned) (N_external+1)*sizeof(int));
+  if (new_external == NULL) {
     (void) fprintf(stderr, "%sERROR: Not enough dynamic space.\n", yo);
     exit(-1);
   }
@@ -814,7 +826,7 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
   type            = AZ_sys_msg_type;
   AZ_sys_msg_type = (AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS + AZ_MSG_TYPE;
 
-  lens = (int *) calloc(num_recv_neighbors+1,sizeof(int));
+  lens = (int *) AZ_allocate((num_recv_neighbors+1)*sizeof(int));
   if (lens == NULL) {
     (void) fprintf(stderr, "%sERROR: Not enough dynamic space.\n", yo);
     exit(-1);
@@ -823,7 +835,7 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
   for (i = 0; i < num_recv_neighbors; i++) {
     length     = sizeof(int);
     partner    = recv_list[i];
-    md_wrap_iread((void *) &(lens[i]), length, &partner, &type, request+i);
+    mdwrap_iread((void *) &(lens[i]), length, &partner, &type, request+i);
   }
 
 
@@ -847,7 +859,7 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
     (*data_org)[AZ_neighbors+i]  = recv_list[i];
 
     length = j - start;
-    md_wrap_write((void *) &length, sizeof(int), recv_list[i], type, &cflag);
+    mdwrap_write((void *) &length, sizeof(int), recv_list[i], type, &cflag);
   }
 
   /* receive from each neighbor the global index list of external ele */
@@ -855,11 +867,10 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
   for (i = 0; i < num_recv_neighbors; i++) {
     length     = sizeof(int);
     partner    = (*data_org)[AZ_neighbors+i];
-    md_wrap_wait((void *) &(lens[i]), length, &partner, &type, &cflag,request+i);
+    mdwrap_wait((void *) &(lens[i]), length, &partner, &type, &cflag,request+i);
     (*data_org)[AZ_send_length + i] = lens[i];
   }
-  free(lens);
-
+  AZ_free(lens);
 
 
 
@@ -875,7 +886,7 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
   for (i = 0; i < num_recv_neighbors; i++) {
     length     = (  (*data_org)[AZ_send_length + i] ) * sizeof(int);
     partner    = (*data_org)[AZ_neighbors+i];
-    md_wrap_iread((void *) &(send_ptr[j]), length, &partner, &type, request+i);
+    mdwrap_iread((void *) &(send_ptr[j]), length, &partner, &type, request+i);
     j += (*data_org)[AZ_send_length + i];
   }
 
@@ -894,7 +905,7 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
       j++;
       if (j == N_external) break;
     }
-    md_wrap_write((void *) &(new_external[start]), (j-start)* sizeof(int),
+    mdwrap_write((void *) &(new_external[start]), (j-start)* sizeof(int),
              recv_list[i], type, &cflag);
   }
 
@@ -904,7 +915,7 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
   for (i = 0; i < num_recv_neighbors; i++) {
     length     = (  (*data_org)[AZ_send_length + i] ) * sizeof(int);
     partner    = (*data_org)[AZ_neighbors+i];
-    md_wrap_wait((void *) &(send_ptr[j]), length, &partner, &type, &cflag,
+    mdwrap_wait((void *) &(send_ptr[j]), length, &partner, &type, &cflag,
 		 request+i);
     j += (*data_org)[AZ_send_length + i];
   }
@@ -934,11 +945,12 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
   while (((*data_org)[current] == 0) && (current-firstone < num_recv_neighbors))
     current++;
 
-  bins = (int *) calloc((unsigned) (N_update / 4 + 10), sizeof(int));
+  bins = (int *) AZ_allocate((unsigned) (N_update / 4 + 10)*sizeof(int));
   if (bins == NULL) {
     (void) fprintf(stderr, "%sERROR: Not enough dynamic space.\n", yo);
     exit(-1);
   }
+  for (i = 0 ; i < N_update / 4 + 10 ; i++ ) bins[i] = 0;
 
   AZ_init_quick_find(update, N_update, &shift, bins);
   for (i = tj; i < total_to_be_sent + tj; i++) {
@@ -977,10 +989,10 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
     }
   }
 
-  free((char *) bins);
-  free((char *) recv_list);
-  free((char *) new_external);
-  free((char *) new_extern_proc);
+  AZ_free((char *) bins);
+  AZ_free((char *) recv_list);
+  AZ_free((char *) new_external);
+  AZ_free((char *) new_extern_proc);
 
   (*data_org)[AZ_N_neigh] = num_send_neighbors;
 
@@ -1022,7 +1034,7 @@ void AZ_convert_values_to_ptrs(int array[], int length, int start)
 
   /**************************** execution begins ******************************/
 
-  for (i = 1; i <= length; i++) array[i] += array[i - 1];
+  for (i = 1; i < length; i++) array[i] += array[i - 1];
   for (i = length; i > 0; i--)  array[i]  = array[i - 1] + start;
 
   array[0] = start;
@@ -1422,12 +1434,13 @@ void AZ_check_msr(int bindx[], int N_update, int N_external, int option,
 
   /* local variables */
 
-  int   i, largest, num, total_ele;
+  int   i, largest, num, total_ele = 0;
 
   char *yo = "AZ_check_msr: ";
 
   /**************************** execution begins ******************************/
 
+  AZ__MPI_comm_space_ok();
   /* compute the total number of elements in this simulation. */
 
   if (option == AZ_GLOBAL)
@@ -1581,13 +1594,14 @@ void AZ_check_vbr(int N_update, int N_external, int option,
 
   int   i;
   int   largest, num;
-  int   total_ele;
+  int   total_ele = 0;
   int   proc;
 
   char *yo = "AZ_check_vbr: ";
 
   /**************************** execution begins ******************************/
 
+  AZ__MPI_comm_space_ok();
   proc   = proc_config[AZ_node];
 
   /* compute the total number of blocks in this simulation. */
@@ -1817,29 +1831,42 @@ void AZ_find_procs_for_externs(int N_update, int update[],
   int  type, cflag, partner, length;
   int  num_sublist_elements, all_sublists_length;
   int  found = 0, flag = 0;
-  int  stride;
+  int  stride = 0;
   int  first_extern;
   int  buf_size;
   int  nprocs, proc;
-  MPI_Request request[AZ_MAX_NEIGHBORS];  /* Message handle */
-  int num_sent, exch_neighbor, exch_length = 0, *buffer2, buf2_size;
+  MPI_AZRequest request[AZ_MAX_NEIGHBORS];  /* Message handle */
+  MPI_AZRequest send_request[2*AZ_MAX_NEIGHBORS];
+  int num_sent, exch_neighbor;
+  unsigned int exch_length = 0;
   int to_recv;
+int oldk, iii, *ext_copy, **exch_buffers, exch_count, 
+    *newbuffer, send_counter;
 
 
   /**************************** execution begins ******************************/
 
-  if (!AZ_using_fortran)
-    *extern_proc = (int *) calloc((unsigned) N_external, sizeof(int));
-
-  for (i = 0; i < N_external; i++) (*extern_proc)[i] = -1;
-
+  AZ__MPI_comm_space_ok();
   proc   = proc_config[AZ_node];
   nprocs = proc_config[AZ_N_procs];
 
-  buf2_size = 1;
-  buffer2    = (int *) calloc(buf2_size+1,sizeof(int));
-  neigh_list = (int *) calloc((unsigned) nprocs, sizeof(int));
-  tempneigh  = (int *) calloc((unsigned) nprocs, sizeof(int));
+  if (!AZ_using_fortran) {
+    *extern_proc = (int *) AZ_allocate((unsigned) (N_external+1)*sizeof(int));
+    if ( *extern_proc == NULL) {
+       (void) fprintf(stderr, "%d: Not enough memory for extern_proc\n",proc);
+       exit(-1);
+     }
+  }
+
+  for (i = 0; i < N_external; i++) (*extern_proc)[i] = -1;
+
+  neigh_list = (int *) AZ_allocate((unsigned) nprocs*sizeof(int));
+  tempneigh  = (int *) AZ_allocate((unsigned) nprocs*sizeof(int));
+
+  if ( (neigh_list == NULL) || (tempneigh == NULL)) {
+       (void) fprintf(stderr, " Not enough memory to find externals\n");
+       exit(-1);
+  }
 
   /*
    * 'extern_mess' must hold the concatentated sublists as well as all the
@@ -1852,11 +1879,12 @@ void AZ_find_procs_for_externs(int N_update, int update[],
   buf_size = AZ_gmax_int(i + 1, proc_config);
   buf_size = max(buf_size, (AZ_TEST_ELE+1) * nprocs);
 
-  extern_mess = (int *) calloc((unsigned) buf_size, sizeof(int));
+  extern_mess = (int *) AZ_allocate((unsigned) buf_size*sizeof(int));
   if (extern_mess == NULL) {
     (void) fprintf(stderr, " Not enough memory to find the external procs\n");
     exit(-1);
   }
+  for (i = 0 ; i < buf_size ; i++) extern_mess[i] = 0;
 
   first_extern = 0;
 
@@ -1956,21 +1984,21 @@ void AZ_find_procs_for_externs(int N_update, int update[],
 
     for (i = 0; i < num_recv_neighbors; i++) {
       partner       = -1;
-      (void) md_wrap_iread((void *) &k, 0, &partner, &type, request+i);
+      (void) mdwrap_iread((void *) &k, 0, &partner, &type, request+i);
     }
 
     /* send messages */
 
     for (i = 0; i < num_send_neighbors; i++) {
       k = 1;
-      md_wrap_write((void *) &k, 0, -extern_mess[i] - 1, type, &cflag);
+      mdwrap_write((void *) &k, 0, -extern_mess[i] - 1, type, &cflag);
     }
 
     /* receive the messages and create a new neighbor list */
 
     for (i = 0; i < num_recv_neighbors; i++) {
       partner  = -1;
-      length   = md_wrap_wait((void *) &k, 0, &partner, &type, &cflag,request+i);
+      length   = mdwrap_wait((void *) &k, 0, &partner, &type, &cflag,request+i);
       neigh_list[i] = partner;
     }
 
@@ -1980,29 +2008,50 @@ void AZ_find_procs_for_externs(int N_update, int update[],
 
     k               = N_external - first_extern;
     if (k > AZ_MAX_MESSAGE_SIZE) k = AZ_MAX_MESSAGE_SIZE;
+    if (k > buf_size) k = buf_size;
 
     num_sent  = 0;
     exch_neighbor = -1;
     to_recv = num_recv_neighbors + num_send_neighbors;
- 
+
+    /* set variables to do a nonblocking sends */
+
+    send_counter = 0; 
+    exch_count   = 0;
+    oldk         = k;
+    ext_copy = (int *) AZ_allocate((k+1)*sizeof(int));
+    exch_buffers = (int **) AZ_allocate((num_send_neighbors+1)*sizeof(int *));
+    if ( (ext_copy == NULL) || (exch_buffers == NULL) ) {
+       printf("Error: Out of memory in AZ_transform\n");
+       exit(1);
+    }
+    for (iii = 0 ; iii < k ; iii++ ) ext_copy[iii] = external[first_extern+iii];
+
 
     while ( to_recv || (exch_neighbor != -1) ) {
       partner = -1;
-      if (to_recv) md_wrap_iread((void *) extern_mess, buf_size*sizeof(int), 
+
+      if (to_recv) mdwrap_iread((void *) extern_mess, buf_size*sizeof(int), 
                                  &partner, &type, request);
  
       if (exch_neighbor != -1) {
-        md_wrap_write((void *) buffer2, exch_length, exch_neighbor, type, &cflag);
+        mdwrap_iwrite((void *) exch_buffers[exch_count], exch_length, 
+                       exch_neighbor, type, &cflag, 
+                       &(send_request[send_counter]));
+        send_counter++;
         exch_neighbor = -1;
+        exch_count++;
       }
       else if (num_sent < num_recv_neighbors) {
-        md_wrap_write((void *) &(external[first_extern]), k * sizeof(int),
-                      neigh_list[num_sent], type, &cflag);
+        mdwrap_iwrite((void *) ext_copy, oldk * sizeof(int),
+                      neigh_list[num_sent], type, &cflag, 
+                      &(send_request[send_counter]));
+        send_counter++;
         num_sent++;
       }
  
       if (to_recv) {
-         length  = md_wrap_wait((void *) extern_mess, buf_size*sizeof(int), 
+         length  = mdwrap_wait((void *) extern_mess, buf_size*sizeof(int), 
                                 &partner, &type, &cflag, request);
          length = length/sizeof(int);
          to_recv--;
@@ -2016,18 +2065,15 @@ void AZ_find_procs_for_externs(int N_update, int update[],
               if (AZ_find_index(extern_mess[j],update,N_update) != -1)
                  extern_mess[kk++] = extern_mess[j];
             }
-            if (kk > buf2_size) {
-               free(buffer2);
-               buf2_size = kk+20;
-               buffer2 = (int *) calloc(buf2_size+1,sizeof(int));
-               if (buffer2 == NULL) {
-                  (void) fprintf(stderr, " Not enough memory to find the ");
-                  (void) fprintf(stderr, "external procs\n");
-                  exit(-1);
-               }
+            exch_buffers[exch_count] = (int *) AZ_allocate((kk+1)*sizeof(int));
+            if (exch_buffers[exch_count] == NULL) {
+               (void) fprintf(stderr, " Not enough memory to find the ");
+               (void) fprintf(stderr, "external procs\n");
+               exit(-1);
             }
-            buffer2[0] = -1;
-            for (j = 0; j < kk ; j++ ) buffer2[j+1] = extern_mess[j];
+            newbuffer = exch_buffers[exch_count];
+            newbuffer[0] = -1;
+            for (j = 0; j < kk ; j++ ) newbuffer[j+1] = extern_mess[j];
 
 
             exch_neighbor = partner;
@@ -2080,12 +2126,19 @@ void AZ_find_procs_for_externs(int N_update, int update[],
 
     if (flag == nprocs) flag = 1;
     else                flag = 0;
+
+    for (iii = exch_count-1 ; iii >= 0; iii--) AZ_free(exch_buffers[iii]);
+    AZ_free(exch_buffers);
+    AZ_free(ext_copy);
+#ifdef AZ_MPI
+   for (i = 0; i < send_counter; i++) 
+      MPI_Request_free( &(send_request[i]) );
+#endif
   }
 
-  free((char *) neigh_list);
-  free((char *) tempneigh);
-  free((char *) extern_mess);
-  free((char *) buffer2);
+  AZ_free((char *) neigh_list);
+  AZ_free((char *) tempneigh);
+  AZ_free((char *) extern_mess);
 
   AZ_sort(external, N_external, *extern_proc, NULL);
 
@@ -2154,11 +2207,12 @@ void AZ_find_local_indices(int N_update, int bindx[], int update[],
 
   /* set up some bins so that we will be able to use AZ_quick_find() */
 
-  bins = (int *) calloc((unsigned) (N_update / 4 + 10), sizeof(int));
+  bins = (int *) AZ_allocate((unsigned) (N_update / 4 + 10)*sizeof(int));
   if  (bins == NULL) {
     (void) fprintf(stderr, "ERROR: Not enough temp space\n");
     exit(-1);
   }
+  for (i = 0 ; i < N_update / 4 + 10 ; i++ ) bins[i] = 0;
 
   AZ_init_quick_find(update, N_update, &shift, bins);
 
@@ -2167,7 +2221,7 @@ void AZ_find_local_indices(int N_update, int bindx[], int update[],
    * the bindx[].
    */
 
-  if (mat_type == 0) {
+  if (mat_type == AZ_MSR_MATRIX) {
     start = bindx[0]; end = bindx[N_update];
   }
   else {
@@ -2202,12 +2256,12 @@ void AZ_find_local_indices(int N_update, int bindx[], int update[],
     }
   }
 
-  free((char *) bins);
+  AZ_free((char *) bins);
 
   /* temporarily record all external column indices in 'temp_ele' */
 
-  temp_ele = (int *) calloc((unsigned) *N_external, sizeof(int));
-  if ( (temp_ele == NULL) && (*N_external != 0) ) {
+  temp_ele = (int *) AZ_allocate((unsigned) (*N_external+1)*sizeof(int));
+  if (temp_ele == NULL) {
     (void) fprintf(stderr,
                    "Not enough temp space in AZ_find_local_indices()\n");
     exit(-1);
@@ -2238,15 +2292,15 @@ void AZ_find_local_indices(int N_update, int bindx[], int update[],
   /* Now store the external elements in 'external' */
 
   if (!AZ_using_fortran)
-    *external = (int *) calloc((unsigned) *N_external, sizeof(int));
-  if ( (*external == NULL) && (*N_external != 0) ) {
-    (void) fprintf(stderr, "Not enough space for external in ",
+    *external = (int *) AZ_allocate((unsigned) (*N_external+1)*sizeof(int));
+  if (*external == NULL) {
+    (void) fprintf(stderr, "Not enough space for external in %s",
                    "AZ_find_local_indices()\n");
     exit(-1);
   }
 
   for (i = 0; i < *N_external; i++) (*external)[i] = temp_ele[i];
-  free((char *) temp_ele);
+  AZ_free((char *) temp_ele);
 
   /*
    * Update 'bindx[]' so that external elements are replaced by an index into
@@ -2327,8 +2381,9 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
   int   allocated, length;
   int   cflag;
   int   partner;
-  int   proc_x, proc_y, proc_z,m;
+  int   proc_x, proc_y, proc_z;
   int   pts_x, pts_y, pts_z;
+  int   total_pts_x, total_pts_y;
   int   px, py, pz, k;
   int   start_x, start_y, start_z;
   int   end_x, end_y, end_z;
@@ -2337,11 +2392,12 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
   int   proc, nprocs;
   int   type, type2;
   FILE *fp = NULL;
-  MPI_Request request;  /* Message handle */
+  MPI_AZRequest request;  /* Message handle */
 
 
   /**************************** execution begins ******************************/
 
+  AZ__MPI_comm_space_ok();
   proc   = proc_config[AZ_node];
   nprocs = proc_config[AZ_N_procs];
 
@@ -2356,7 +2412,6 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
    */
 
   if (input_option == AZ_box) {
-    m = (int) pow( (double) N, 0.3334);
 
     /* determine the number of processors in each direction */
 
@@ -2391,8 +2446,8 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
     AZ_broadcast((char *) &pts_z , sizeof(int), proc_config, AZ_PACK);
     AZ_broadcast((char *) NULL   , 0          , proc_config, AZ_SEND);
  
-
-
+    total_pts_x = pts_x;
+    total_pts_y = pts_y;
 
 
     if ( proc_x*proc_y*proc_z != nprocs) {
@@ -2440,29 +2495,11 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
     pts_y = pts_y/proc_y;
     pts_z = pts_z/proc_z;
 
-/*
-    proc_x = (int) ((log((double) nprocs) + 0.01)/log(2.0));
-    proc_z = proc_x / 3;
-    proc_y = (proc_x - proc_z) / 2;
-    proc_x = proc_x - proc_y - proc_z;
-    proc_x = (1<<proc_x);
-    proc_y = (1<<proc_y);
-    proc_z = (1<<proc_z);
-    proc_x = (int)  pow( (double) nprocs , .3333335);
-    proc_y = proc_x;
-    proc_z = proc_x;
-*/
-
     /* compute the number of elements per processor in each direction */
 
-/*
-    pts_x = m / proc_x;
-    pts_y = m / proc_y;
-    pts_z = m / proc_z;
-*/
-
     *N_update = pts_x * pts_y * pts_z * chunk;
-    if (!AZ_using_fortran) *update     = (int *) calloc(*N_update, sizeof(int));
+    if (!AZ_using_fortran) 
+       *update     = (int *) AZ_allocate((*N_update)*sizeof(int));
 
     /* compute the lower left corner and the upper right corner */
 
@@ -2485,7 +2522,8 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
       for (j = start_y; j < end_y; j++ ) {
         for (i = start_x; i < end_x; i++ ) {
           for (ii = 0; ii < chunk; ii++ ) {
-            pt_number = (i + j * m + k * m * m) * chunk + ii;
+            pt_number = (i + j * total_pts_x + k * total_pts_x * total_pts_y) * 
+                            chunk + ii;
             (*update)[count++] = pt_number;
           }
         }
@@ -2513,8 +2551,10 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
     *N_update = t1*chunk;
     t2   *= chunk;
 
-    if (!AZ_using_fortran) *update = (int *) calloc(*N_update,sizeof(int));
-    if ( (*update == NULL) && (*N_update != 0)) {
+    if (!AZ_using_fortran) 
+       *update = (int *) AZ_allocate((*N_update+1)*sizeof(int));
+
+    if (*update == NULL) {
       (void) fprintf (stderr, "Not enough space to allocate 'update'\n");
       exit(-1);
     }
@@ -2538,7 +2578,7 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
 
     t1 = 0;            /* total number of points distributed */
     if (proc == 0) {
-      (void) printf("reading from file .update\n");
+      (void) printf("Reading from file .update\n"); fflush(stdout);
 
       if ( (fp = fopen(".update", "r")) == NULL) {
         (void) fprintf(stderr, "ERROR: file '.update' not found\n");
@@ -2554,7 +2594,7 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
         fscanf(fp, "%d", &length);
         t1 += length;
         if (i != 0)
-          md_wrap_write((void *) &length, sizeof(int), i, type, &cflag);
+          mdwrap_write((void *) &length, sizeof(int), i, type, &cflag);
 
         /*
          * If this is the last list, we allocate the right amount of space and
@@ -2569,11 +2609,11 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
         /* allocate enough space for list */
 
         if (length > allocated ) {
-          if ((*update != NULL) && (!AZ_using_fortran)) free(*update);
+          if ((*update != NULL) && (!AZ_using_fortran)) AZ_free(*update);
           allocated = length + 1;
 
           if (!AZ_using_fortran)
-            *update = (int *) calloc (allocated, sizeof(int));
+            *update = (int *) AZ_allocate(allocated*sizeof(int));
           if (*update == NULL) {
             (void) fprintf(stderr,
                            "Not enough space to allocate 'update'\n");
@@ -2585,7 +2625,7 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
 
         for (j = 0; j < length; j++ ) fscanf(fp, "%d", *update + j);
         if (i != 0)
-          md_wrap_write((void *) *update, length*sizeof(int), i, type2, &cflag);
+          mdwrap_write((void *) *update, length*sizeof(int), i, type2, &cflag);
       }
       fclose(fp);
 
@@ -2602,20 +2642,20 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
       /* read the update list from processor 0 */
 
       partner = 0;
-      md_wrap_iread((void *) N_update, sizeof(int), &partner, &type, &request);
-      md_wrap_wait((void *) N_update, sizeof(int), &partner, &type, &cflag, &request);
+      mdwrap_iread((void *) N_update, sizeof(int), &partner, &type, &request);
+      mdwrap_wait((void *) N_update, sizeof(int), &partner, &type, &cflag, &request);
 
       if (!AZ_using_fortran)
-        *update = (int *) calloc (*N_update, sizeof(int));
-      if ( (*update == NULL) && (*N_update != 0)) {
+        *update = (int *) AZ_allocate((*N_update+1)*sizeof(int));
+      if (*update == NULL)  {
         (void) fprintf(stderr, "Not enough space to allocate 'update'\n");
         exit(-1);
       }
 
       partner = 0;
-      md_wrap_iread((void *) *update, *N_update * sizeof(int), &partner, &type2,
+      mdwrap_iread((void *) *update, *N_update * sizeof(int), &partner, &type2,
             &request);
-      md_wrap_wait((void *) *update, *N_update * sizeof(int), &partner, &type2,
+      mdwrap_wait((void *) *update, *N_update * sizeof(int), &partner, &type2,
             &cflag, &request);
     }
 
@@ -2639,16 +2679,349 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
 
 
   }
-  else
+  else {
     (void) fprintf(stderr,"Unknown input option (%d) in AZ_read_update()\n",
                    input_option);
+    exit(1);
+  }
 
 
 } /* AZ_read_update */
 
 /*****************************************************************************/
 /*****************************************************************************/
+void AZ_input_update(char datafile[], int *N_update, int *update[], int proc_config[],
+                    int N, int chunk, int input_option)
+
+/*******************************************************************************
+
+Exactly the same as AZ_read_update except it reads the update information from
+a file speficied by the input argument datafile instead of .update
+
+*******************************************************************************/
+
+{
+
+  /* local variables */
+
+  int   t1, t2, i;
+  int   ii, j;
+  int   allocated, length;
+  int   cflag;
+  int   partner;
+  int   proc_x, proc_y, proc_z;
+  int   pts_x, pts_y, pts_z;
+  int   total_pts_x, total_pts_y;
+  int   px, py, pz, k;
+  int   start_x, start_y, start_z;
+  int   end_x, end_y, end_z;
+  int   pt_number;
+  int   count, check;
+  int   proc, nprocs;
+  int   type, type2;
+  FILE *fp = NULL;
+  MPI_AZRequest request;  /* Message handle */
+
+
+  /**************************** execution begins ******************************/
+
+  AZ__MPI_comm_space_ok();
+  proc   = proc_config[AZ_node];
+  nprocs = proc_config[AZ_N_procs];
+
+  /*
+   * Figure out which chunks should be assigned to this processor using a box
+   * decomposition.  That is, it is assumed that all the chunks are ordered
+   * naturally corresponding to an m x m x m box where m = N^(1/3).  Boxes of
+   * chunks are assigned to processors.
+   *
+   * NOTE: it is assumed that nprocs = 2^power and that the number of chunks in
+   * each direction is divisible by the number of processors in each direction.
+   */
+
+  if (input_option == AZ_box) {
+
+    /* determine the number of processors in each direction */
+
+    if (proc == 0) {
+       (void) fprintf(stdout,"Input the dimensions of the processor cube\n\n");
+       (void) fprintf(stdout,"Enter the number of processors along x axis>");
+       (void) fflush(stdout);
+       scanf("%d",&proc_x);
+       (void) fprintf(stdout,"Enter the number of processors along y axis>");
+       (void) fflush(stdout);
+       scanf("%d",&proc_y);
+       (void) fprintf(stdout,"Enter the number of processors along z axis>");
+       (void) fflush(stdout);
+       scanf("%d",&proc_z);
+
+       (void) fprintf(stdout,"Input the grid dimensions\n\n");
+       (void) fprintf(stdout,"Enter the number of grid points along x axis>");
+       (void) fflush(stdout);
+       scanf("%d",&pts_x);
+       (void) fprintf(stdout,"Enter the number of grid points along y axis>");
+       (void) fflush(stdout);
+       scanf("%d",&pts_y);
+       (void) fprintf(stdout,"Enter the number of grid points along z axis>");
+       (void) fflush(stdout);
+       scanf("%d",&pts_z);
+    }
+    AZ_broadcast((char *) &proc_x, sizeof(int), proc_config, AZ_PACK);
+    AZ_broadcast((char *) &proc_y, sizeof(int), proc_config, AZ_PACK);
+    AZ_broadcast((char *) &proc_z, sizeof(int), proc_config, AZ_PACK);
+    AZ_broadcast((char *) &pts_x , sizeof(int), proc_config, AZ_PACK);
+    AZ_broadcast((char *) &pts_y , sizeof(int), proc_config, AZ_PACK);
+    AZ_broadcast((char *) &pts_z , sizeof(int), proc_config, AZ_PACK);
+    AZ_broadcast((char *) NULL   , 0          , proc_config, AZ_SEND);
+ 
+    total_pts_x = pts_x;
+    total_pts_y = pts_y;
+
+
+    if ( proc_x*proc_y*proc_z != nprocs) {
+        if (proc == 0) {
+          (void) fprintf(stdout,"Error: %d x %d x %d != %d ",
+ 			 proc_x, proc_y, proc_z, nprocs);
+          (void) fprintf(stdout," (total number of processors)\n");
+        }
+	exit(1);
+    }
+
+    if ( pts_x * pts_y * pts_z != N ) {
+        if (proc == 0) {
+          (void) fprintf(stdout,"Error: %d x %d x %d != %d ",
+ 			 pts_x, pts_y, pts_z, N);
+          (void) fprintf(stdout," (total number of grid points)\n");
+        }
+	exit(1);
+    }
+    if ( pts_x%proc_x != 0 ) {
+        if (proc == 0) {
+          (void) fprintf(stdout,"Error: grid points along x axis are not an ");
+          (void) fprintf(stdout,"even multiple of processors\n");
+	  (void) fprintf(stdout,"       along x axis.");
+        }
+	exit(1);
+    }
+    if ( pts_y%proc_y != 0 ) {
+        if (proc == 0) {
+          (void) fprintf(stdout,"Error: grid points along y axis is not an ");
+          (void) fprintf(stdout,"even multiple of processors\n");
+	  (void) fprintf(stdout,"       along y axis.");
+        }
+	exit(1);
+    }
+    if ( pts_z%proc_z != 0 ) {
+        if (proc == 0) {
+          (void) fprintf(stdout,"Error: grid points along z axis is not an ");
+          (void) fprintf(stdout,"even multiple of processors\n");
+	  (void) fprintf(stdout,"       along z axis.");
+        }
+	exit(1);
+    }
+    pts_x = pts_x/proc_x;
+    pts_y = pts_y/proc_y;
+    pts_z = pts_z/proc_z;
+
+    /* compute the number of elements per processor in each direction */
+
+    *N_update = pts_x * pts_y * pts_z * chunk;
+    if (!AZ_using_fortran) 
+       *update     = (int *) AZ_allocate((*N_update)*sizeof(int));
+
+    /* compute the lower left corner and the upper right corner */
+
+    px = proc % proc_x;
+    pz = (proc-px) / proc_x;
+    py = pz % proc_y;
+    pz = (pz-py) / proc_y;
+
+    start_x = px * pts_x;
+    end_x   = start_x + pts_x;
+    start_y = py * pts_y;
+    end_y   = start_y + pts_y;
+    start_z = pz * pts_z;
+    end_z   = start_z + pts_z;
+
+    /* set update[] */
+
+    count = 0;
+    for (k = start_z; k < end_z; k++ ) {
+      for (j = start_y; j < end_y; j++ ) {
+        for (i = start_x; i < end_x; i++ ) {
+          for (ii = 0; ii < chunk; ii++ ) {
+            pt_number = (i + j * total_pts_x + k * total_pts_x * total_pts_y) * 
+                            chunk + ii;
+            (*update)[count++] = pt_number;
+          }
+        }
+      }
+    }
+  }
+
+  else if (input_option == AZ_linear) {
+
+    /*
+     * Figure out which chunks should be assigned to this processor for linear
+     * partitioning.  This means that processor 0 is assigned the chunks
+     * approximately corresponding to 0, ... , N/nprocs and processor 1 is
+     * approximately assigned the chunks 1+N/nprocs to 2*N/nprocs.
+     */
+
+    t1 = N/nprocs;
+    t2 = N - t1 * nprocs;
+
+    if ( proc >= t2) t2 += (proc * t1);
+    else {
+      t1++;
+      t2    = proc*t1;
+    }
+    *N_update = t1*chunk;
+    t2   *= chunk;
+
+    if (!AZ_using_fortran) 
+       *update = (int *) AZ_allocate((*N_update+1)*sizeof(int));
+
+    if (*update == NULL) {
+      (void) fprintf (stderr, "Not enough space to allocate 'update'\n");
+      exit(-1);
+    }
+
+    for (i = 0; i < *N_update; i++) (*update)[i] = i + t2;
+  }
+
+  else if (input_option == AZ_file) {
+
+    /* read the update elements from the data file */
+
+    type            = AZ_sys_msg_type;
+    AZ_sys_msg_type = (AZ_sys_msg_type+1-AZ_MSG_TYPE)%AZ_NUM_MSGS +AZ_MSG_TYPE;
+    type2           = AZ_sys_msg_type;
+    AZ_sys_msg_type = (AZ_sys_msg_type+1-AZ_MSG_TYPE)%AZ_NUM_MSGS +AZ_MSG_TYPE;
+
+    /*
+     * Processor 0 reads the data file and distributes the lists to the other
+     * processors.
+     */
+
+    t1 = 0;            /* total number of points distributed */
+    if (proc == 0) {
+      (void) printf("reading from file %s\n", datafile); fflush(stdout);
+
+      if ( (fp = fopen(datafile, "r")) == NULL) {
+        (void) fprintf(stderr, "ERROR: file %s not found\n", datafile);
+        exit(-1);
+      }
+
+      if (!AZ_using_fortran) *update = 0;
+      allocated   = 0;
+      for (i = nprocs - 1; i >= 0; i-- ) {
+
+        /* read in list length and send to processor i  */
+
+        fscanf(fp, "%d", &length);
+        t1 += length;
+        if (i != 0)
+          mdwrap_write((void *) &length, sizeof(int), i, type, &cflag);
+
+        /*
+         * If this is the last list, we allocate the right amount of space and
+         * keep the list instead of sending it off
+         */
+
+        if (i == 0) {
+          *N_update = length;
+          allocated       = 0;
+        }
+
+        /* allocate enough space for list */
+
+        if (length > allocated ) {
+          if ((*update != NULL) && (!AZ_using_fortran)) AZ_free(*update);
+          allocated = length + 1;
+
+          if (!AZ_using_fortran)
+            *update = (int *) AZ_allocate(allocated*sizeof(int));
+          if (*update == NULL) {
+            (void) fprintf(stderr,
+                           "Not enough space to allocate 'update'\n");
+            exit(-1);
+          }
+        }
+
+        /* read a list and send it off to proc i (if not last list) */
+
+        for (j = 0; j < length; j++ ) fscanf(fp, "%d", *update + j);
+        if (i != 0)
+          mdwrap_write((void *) *update, length*sizeof(int), i, type2, &cflag);
+      }
+      fclose(fp);
+
+      if (t1 != N*chunk) {
+        (void) fprintf(stderr,"AZ_read_update() found %d points in file\n", t1);
+        (void) fprintf(stderr,"%s instead of the requested %d\n", datafile,
+                       N*chunk);
+        exit(-1);
+      }
+    }
+
+    else {
+
+      /* read the update list from processor 0 */
+
+      partner = 0;
+      mdwrap_iread((void *) N_update, sizeof(int), &partner, &type, &request);
+      mdwrap_wait((void *) N_update, sizeof(int), &partner, &type, &cflag, &request);
+
+      if (!AZ_using_fortran)
+        *update = (int *) AZ_allocate((*N_update+1)*sizeof(int));
+      if (*update == NULL)  {
+        (void) fprintf(stderr, "Not enough space to allocate 'update'\n");
+        exit(-1);
+      }
+
+      partner = 0;
+      mdwrap_iread((void *) *update, *N_update * sizeof(int), &partner, &type2,
+            &request);
+      mdwrap_wait((void *) *update, *N_update * sizeof(int), &partner, &type2,
+            &cflag, &request);
+    }
+
+    AZ_sort(*update, *N_update, NULL, NULL);
+
+    /* check that element '0' is contained on 1 processor. That is,  */
+    /* make sure the user has numbered from 0 to n-1 instead of from */
+    /* 1 to n                                                        */
+    check = 0;
+    if ( (*N_update > 0) && ((*update)[0] == 0) ) check = 1;
+    check = AZ_gsum_int(check, proc_config);
+    if (check != 1) {
+       if (proc == 0) {
+          (void) fprintf(stderr,"Error: In AZ_read_update(), the %s", datafile);
+          (void) fprintf(stderr,"file does not contain\n       one ");
+          (void) fprintf(stderr,"occurance of row 0. Make sure that rows are");
+          (void) fprintf(stderr," numbered\n       from 0 to n-1.\n");
+       }
+       exit(1);
+    }
+
+
+  }
+  else {
+    (void) fprintf(stderr,"Unknown input option (%d) in AZ_read_update()\n",
+                   input_option);
+    exit(1);
+  }
+
+
+} /* AZ_input_update */
+
+
 /*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+extern int AZ_read_external(int N_external, int external[],
+                     int **extern_proc, FILE *fp, int proc_config[]);
 
 int AZ_read_external(int N_external, int external[],
                      int **extern_proc, FILE *fp, int proc_config[])
@@ -2696,7 +3069,7 @@ int AZ_read_external(int N_external, int external[],
   int   partner;
   int   proc, nprocs;
   int   type, type2;
-  MPI_Request request;
+  MPI_AZRequest request;
 
 
   char *yo = "AZ_read_external: ";
@@ -2704,6 +3077,7 @@ int AZ_read_external(int N_external, int external[],
 
   /**************************** execution begins ******************************/
 
+  AZ__MPI_comm_space_ok();
   proc   = proc_config[AZ_node];
   nprocs = proc_config[AZ_N_procs];
 
@@ -2731,18 +3105,18 @@ int AZ_read_external(int N_external, int external[],
         }
       }
       else {
-        md_wrap_write((char *) &length, sizeof(int), i, type, &cflag);
+        mdwrap_write((char *) &length, sizeof(int), i, type, &cflag);
       }
 
       /* allocate enough space to hold list */
 
       length *= 2;
       if (length > allocated ) {
-        if (temp_buffer != NULL)  free(temp_buffer);
+        if (temp_buffer != NULL)  AZ_free(temp_buffer);
 
         allocated = length + 1;
 
-        temp_buffer = (int *) calloc (allocated, sizeof(int));
+        temp_buffer = (int *) AZ_allocate(allocated*sizeof(int));
         if (temp_buffer == NULL) {
           (void) fprintf(stderr, "%sERROR: not enough dynamic memory to "
                          "allocate 'temp_buffer'\n", yo);
@@ -2755,7 +3129,7 @@ int AZ_read_external(int N_external, int external[],
       for (j = 0; j < length; j++ ) fscanf(fp, "%d", &(temp_buffer[j]));
 
       if (i != 0) {
-        md_wrap_write((char *) temp_buffer, length*sizeof(int), i, type2, &cflag);
+        mdwrap_write((char *) temp_buffer, length*sizeof(int), i, type2, &cflag);
       }
     }
   }
@@ -2765,8 +3139,8 @@ int AZ_read_external(int N_external, int external[],
     /* receive list from processor 0 */
 
     partner = 0;
-    md_wrap_iread((void *) &length, sizeof(int), &partner, &type, &request);
-    md_wrap_wait((void *) &length, sizeof(int), &partner, &type, &cflag,&request);
+    mdwrap_iread((void *) &length, sizeof(int), &partner, &type, &request);
+    mdwrap_wait((void *) &length, sizeof(int), &partner, &type, &cflag,&request);
 
     if (length != N_external) {
       (void) fprintf(stderr, "%sERROR: %d:number of extern elements in file is",
@@ -2778,17 +3152,17 @@ int AZ_read_external(int N_external, int external[],
 
     length *= 2;
 
-    temp_buffer = (int *) calloc (length, sizeof(int));
-    if ( (temp_buffer == NULL) && (length != 0)) {
+    temp_buffer = (int *) AZ_allocate((length+1)*sizeof(int));
+    if (temp_buffer == NULL) {
       (void) fprintf (stderr, "%sERROR: not enough dynamic memory to allocate "
                       "'temp'\n", yo);
       exit(-1);
     }
 
     partner = 0;
-    md_wrap_iread((void *) temp_buffer, length*sizeof(int), &partner, &type2, 
+    mdwrap_iread((void *) temp_buffer, length*sizeof(int), &partner, &type2, 
                   &request);
-    md_wrap_wait((void *) temp_buffer, length*sizeof(int), &partner, &type2, 
+    mdwrap_wait((void *) temp_buffer, length*sizeof(int), &partner, &type2, 
                   &cflag, &request);
   }
 
@@ -2797,11 +3171,16 @@ int AZ_read_external(int N_external, int external[],
    * external elements.
    */
 
-  if (!AZ_using_fortran) *extern_proc = (int *) calloc(N_external, sizeof(int));
-  if ( (*extern_proc == NULL) && (N_external != 0)) {
+  if (!AZ_using_fortran) {
+     *extern_proc = (int *) AZ_allocate((N_external+1)*sizeof(int));
+  }
+  if (*extern_proc == NULL) {
     (void) fprintf(stderr, "%sERROR: not enough dynamic memory for external "
                    "procs\n", yo);
     exit(-1);
+  }
+  if (!AZ_using_fortran) {
+     for (i = 0 ; i < N_external ; i++) extern_proc[i] = 0;
   }
 
   for (i = 0 ; i < N_external ; i++ ) {
@@ -2816,7 +3195,7 @@ int AZ_read_external(int N_external, int external[],
     (*extern_proc)[loc] = temp_buffer[2*i+1];
   }
 
-  free(temp_buffer);
+  AZ_free(temp_buffer);
 
   return 1;
 
@@ -2895,17 +3274,19 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
   FILE  *dfp = NULL;
   int    proc, nprocs;
   int    type, type2;
-  int    buf_len = 1000;
+  unsigned int buf_len = 1000;
   int    msr_len;
   int    count = 0;
   int    kkk, m_one = -1, need_request = 0;
   int    column0 = 0;
-  MPI_Request request;  /* Message handle */
+  MPI_AZRequest request;  /* Message handle */
+  int    totalN;
 
   char   *tchar;
 
   /**************************** execution begins ******************************/
 
+  AZ__MPI_comm_space_ok();
   type            = AZ_sys_msg_type;
   AZ_sys_msg_type = (AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS + AZ_MSG_TYPE;
   type2           = AZ_sys_msg_type;
@@ -2914,17 +3295,26 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
   proc   = proc_config[AZ_node];
   nprocs = proc_config[AZ_N_procs];
 
-  str    = (char *) calloc(buf_len, sizeof(char));
+  totalN = AZ_gsum_int(N_update, proc_config);
+  str    = (char *) AZ_allocate((buf_len+1)*sizeof(char));
+  if (str == NULL) {
+    printf("ERROR: NOT enough dynamic memory in AZ_read_msr_matrix\n");
+    exit(-1);
+  }
   msr_len = 8*N_update+2;
   if (!AZ_using_fortran) {
-    *bindx = (int *)    calloc(msr_len, sizeof(int));
-    *val   = (double *) calloc(msr_len, sizeof(double));
+    *bindx = (int *)    AZ_allocate(msr_len*sizeof(int));
+    *val   = (double *) AZ_allocate(msr_len*sizeof(double));
   }
 
   if (*val == NULL) {
     (void) fprintf(stderr,
                    "ERROR: NOT enough dynamic memory in AZ_read_msr_matrix\n");
     exit(-1);
+  }
+  if (!AZ_using_fortran) {
+     for (i = 0 ; i < msr_len; i++) (*bindx)[i] = 0;
+     for (i = 0 ; i < msr_len; i++) (*val)[i] = 0;
   }
 
   nz_ptr      = N_update + 1;
@@ -2941,21 +3331,21 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
      */
 
     for (i = 0; i < N_update; i++ ) {
-      md_wrap_write((void *) &(update[i]), sizeof(int), 0, type, &st);
+      mdwrap_write((void *) &(update[i]), sizeof(int), 0, type, &st);
       pnode = 0;
-      md_wrap_iread(str, buf_len, &pnode, &type2, &request);
-      j = md_wrap_wait(str, buf_len, &pnode, &type2, &st, &request);
+      mdwrap_iread(str, buf_len, &pnode, &type2, &request);
+      j = mdwrap_wait(str, buf_len, &pnode, &type2, &st, &request);
       while (j == sizeof(int)) {
         lil = (int *) str;
-        buf_len = lil[0];
-        str = (char *) realloc(str,buf_len*sizeof(char));
+        buf_len = (unsigned int) lil[0];
+        str = (char *) AZ_realloc(str,buf_len*sizeof(char));
         if (str == 0) {
           (void) fprintf(stderr,
                          "ERROR: NoT enough dynamic memory in AZ_read_msr()\n");
           exit(-1);
         }
-        md_wrap_iread(str, buf_len, &pnode, &type2, &request);
-        j = md_wrap_wait(str, buf_len, &pnode, &type2, &st, &request);
+        mdwrap_iread(str, buf_len, &pnode, &type2, &request);
+        j = mdwrap_wait(str, buf_len, &pnode, &type2, &st, &request);
       }
 
       AZ_add_new_row(update[i], &nz_ptr, &current, val, bindx, str, dfp,
@@ -2963,7 +3353,7 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
     }
 
     temp = -1;
-    md_wrap_write((void *) &temp, sizeof(int), 0, type, &st);
+    mdwrap_write((void *) &temp, sizeof(int), 0, type, &st);
   }
 
   else {
@@ -2994,18 +3384,25 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
 #endif
 
     if (kkk <= 0) {
-       (void) fprintf(stderr,"file '.data' is empty\n");
+       (void) fprintf(stderr,"\nfile '.data' is empty\n");
+       exit(1);
+    }
+
+    if (total != totalN) {
+       (void) fprintf(stderr,"\nError:file '.data' contains %d rows ",total);
+       (void) fprintf(stderr,"while the user's input\n     requires %d rows.\n",
+                      totalN);
        exit(1);
     }
 
     /* get the first requests from all the processors */
 
-    requests    = (int *) calloc(nprocs, sizeof(int));
+    requests    = (int *) AZ_allocate(nprocs*sizeof(int));
     requests[0] = -1;
     for (i = 1; i < nprocs; i++) {
       pnode = -1;
-      md_wrap_iread((void *) &temp, sizeof(int), &pnode, &type, &request);
-      md_wrap_wait((void *) &temp, sizeof(int), &pnode, &type, &st, &request);
+      mdwrap_iread((void *) &temp, sizeof(int), &pnode, &type, &request);
+      mdwrap_wait((void *) &temp, sizeof(int), &pnode, &type, &st, &request);
       requests[pnode] = temp;
     }
 
@@ -3053,9 +3450,9 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
            exit(1);
           }
 
-          if (j + 30 > buf_len) {
+          if (j + 30 > (int) buf_len) {
             buf_len = 2*buf_len + 30;
-            str = (char *) realloc(str,buf_len*sizeof(char));
+            str = (char *) AZ_realloc(str,buf_len*sizeof(char));
 
             if (str == 0) {
               (void) fprintf(stderr,"ERROR: Not Enough dynamic memory in "
@@ -3063,15 +3460,15 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
               exit(-1);
             }
             if (need_request != 0)  {
-               md_wrap_iread((void *) &(requests[need_request]), 
+               mdwrap_iread((void *) &(requests[need_request]), 
 		        sizeof(int), &need_request,&type,&request);
-               md_wrap_wait((void *) &(requests[need_request]), 
+               mdwrap_wait((void *) &(requests[need_request]), 
 		        sizeof(int), &need_request,&type,&st,&request);
                need_request = 0;
             }
             for (jjj = 1; jjj < nprocs; jjj++) {
               if (requests[jjj] != -1) 
-                 md_wrap_write((void *) &buf_len, sizeof(int), jjj, type2, &st);
+                 mdwrap_write((void *) &buf_len, sizeof(int), jjj, type2, &st);
 	    }
           }
 
@@ -3079,10 +3476,11 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
           /* to another processor.                                      */
 
           tchar = (char *) &temp;
-          for (kkk = 0 ; kkk < sizeof(int) ; kkk++ ) str[j+kkk] = tchar[kkk];
+          for (kkk = 0 ; kkk < (int)sizeof(int); kkk++) str[j+kkk] = tchar[kkk];
           j += sizeof(int);
           tchar = (char *) &dtemp;
-          for (kkk = 0 ; kkk < sizeof(double) ; kkk++ ) str[j+kkk] = tchar[kkk];
+          for (kkk = 0 ; kkk < (int) sizeof(double); kkk++ ) 
+             str[j+kkk] = tchar[kkk];
           j += sizeof(double);
 #ifdef binary
           kkk = fread(&temp, sizeof(int), 1, dfp);
@@ -3097,14 +3495,14 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
           if (temp == 0) column0 = 1;
         }
         tchar = (char *) &m_one;
-        for (kkk = 0 ; kkk < sizeof(int) ; kkk++ ) str[j+kkk] = tchar[kkk];
+        for (kkk = 0 ; kkk < (int)sizeof(int) ; kkk++ ) str[j+kkk] = tchar[kkk];
         j += sizeof(int);
 
         k = 0;
         if (need_request != 0)  {
-           md_wrap_iread((void *) &(requests[need_request]), sizeof(int), 
+           mdwrap_iread((void *) &(requests[need_request]), sizeof(int), 
 		    &need_request,&type,&request);
-           md_wrap_wait((void *) &(requests[need_request]), sizeof(int), 
+           mdwrap_wait((void *) &(requests[need_request]), sizeof(int), 
 		    &need_request,&type,&st, &request);
            need_request = 0;
         }
@@ -3116,14 +3514,14 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
            (void) fprintf(stderr,"assigned to any processor?\n");
            exit(1);
         }
-        md_wrap_write((void *) str, j, k, type2, &st);
+        mdwrap_write((void *) str, (unsigned int) j, k, type2, &st);
         need_request = k;  /* read is deferred until we will need it */
       }
     }
     if (need_request != 0)  {
-       md_wrap_iread((void *) &(requests[need_request]), sizeof(int), 
+       mdwrap_iread((void *) &(requests[need_request]), sizeof(int), 
 		&need_request,&type,&request);
-       md_wrap_wait((void *) &(requests[need_request]), sizeof(int), 
+       mdwrap_wait((void *) &(requests[need_request]), sizeof(int), 
 		&need_request,&type,&st,&request);
        need_request = 0;
     }
@@ -3148,14 +3546,328 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
     }
 
 
-    free(requests);
+    AZ_free(requests);
     fclose(dfp);
     (void) fprintf(stdout, "\n");
   }
 
-  free(str);
+  AZ_free(str);
 
 } /* AZ_read_msr_matrix */
+
+
+/******************************************************************************/
+/******************************************************************************/
+/******************************************************************************/
+void AZ_input_msr_matrix(char datafile[], int update[], double **val, int **bindx, 
+												 int N_update, int proc_config[])
+
+/*******************************************************************************
+
+Exactly the same as AZ_read_msr_matrix except it reads that data in from a 
+file specified by the input argument datafile instead from a file called
+.data
+
+*******************************************************************************/
+
+{
+
+  /* local variables */
+
+  int    nz_ptr;
+  char  *str;
+  int    i,j,k, jjj;
+  int    current;
+  int    st, pnode;
+  int    temp, *lil;
+  double dtemp;
+  int   *requests;
+  int    total;
+  FILE  *dfp = NULL;
+  int    proc, nprocs;
+  int    type, type2;
+  unsigned int buf_len = 1000;
+  int    msr_len;
+  int    count = 0;
+  int    kkk, m_one = -1, need_request = 0;
+  int    column0 = 0;
+  MPI_AZRequest request;  /* Message handle */
+  int    totalN;
+
+  char   *tchar;
+
+  /**************************** execution begins ******************************/
+
+  AZ__MPI_comm_space_ok();
+  type            = AZ_sys_msg_type;
+  AZ_sys_msg_type = (AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS + AZ_MSG_TYPE;
+  type2           = AZ_sys_msg_type;
+  AZ_sys_msg_type = (AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS + AZ_MSG_TYPE;
+
+  proc   = proc_config[AZ_node];
+  nprocs = proc_config[AZ_N_procs];
+
+  totalN = AZ_gsum_int(N_update, proc_config);
+  str    = (char *) AZ_allocate((buf_len+1)*sizeof(char));
+  if (str == NULL) {
+    printf("ERROR: NOT enough dynamic memory in AZ_input_msr_matrix\n");
+    exit(-1);
+  }
+  msr_len = 8*N_update+2;
+  if (!AZ_using_fortran) {
+    *bindx = (int *)    AZ_allocate(msr_len*sizeof(int));
+    *val   = (double *) AZ_allocate(msr_len*sizeof(double));
+  }
+
+  if (*val == NULL) {
+    (void) fprintf(stderr,
+                   "ERROR: NOT enough dynamic memory in AZ_input_msr_matrix\n");
+    exit(-1);
+  }
+  if (!AZ_using_fortran) {
+     for (i = 0 ; i < msr_len; i++) (*bindx)[i] = 0;
+     for (i = 0 ; i < msr_len; i++) (*val)[i] = 0;
+  }
+
+  nz_ptr      = N_update + 1;
+  (*bindx)[0] = nz_ptr;
+  current     = 0;
+
+  if (proc != 0) {
+
+    /*
+     * Send requests to processor 0.  When the response is received add the
+     * corresponding row to the matrix and make another request.  When all the
+     * requests are done, send -1 as a request to signal processor 0 that we are
+     * finished.
+     */
+
+    for (i = 0; i < N_update; i++ ) {
+      mdwrap_write((void *) &(update[i]), sizeof(int), 0, type, &st);
+      pnode = 0;
+      mdwrap_iread(str, buf_len, &pnode, &type2, &request);
+      j = mdwrap_wait(str, buf_len, &pnode, &type2, &st, &request);
+      while (j == sizeof(int)) {
+        lil = (int *) str;
+        buf_len = (unsigned int) lil[0];
+        str = (char *) AZ_realloc(str,buf_len*sizeof(char));
+        if (str == 0) {
+          (void) fprintf(stderr,
+                         "ERROR: Not enough dynamic memory in AZ_input_msr()\n");
+          exit(-1);
+        }
+        mdwrap_iread(str, buf_len, &pnode, &type2, &request);
+        j = mdwrap_wait(str, buf_len, &pnode, &type2, &st, &request);
+      }
+
+      AZ_add_new_row(update[i], &nz_ptr, &current, val, bindx, str, dfp,
+                     &msr_len,&column0);
+    }
+
+    temp = -1;
+    mdwrap_write((void *) &temp, sizeof(int), 0, type, &st);
+  }
+
+  else {
+#ifdef binary
+    dfp = fopen(datafile, "rb");
+#else
+    dfp = fopen(datafile, "r");
+#endif
+    if (dfp == NULL) {
+      (void) fprintf(stderr, "ERROR: Matrix data file %s not found\n", datafile);
+      exit(-1);
+    }
+    (void) fprintf(stdout, "Reading matrix from %s "
+                           "(current version is very slow) .",datafile);
+    (void) fflush(stdout);
+
+    /* read in number of blks */
+    /*
+      fscanf(dfp, "%d", &total);
+      for (i = 0; i <= total; i++ ) fscanf(dfp, "%d", &temp);
+      */
+
+    /* read past cnptr info (not used) */
+
+#ifdef binary
+    kkk = fread(&total, sizeof(int), 1, dfp);
+#else
+    kkk = fscanf(dfp, "%d", &total);  /* read in number of elements */
+#endif
+
+    if (kkk <= 0) {
+       (void) fprintf(stderr,"data file %s is empty\n", datafile);
+       exit(1);
+    }
+
+    if (total != totalN) {
+       (void) fprintf(stderr,"\nError: data file %s contains %d rows ",datafile, total);
+       (void) fprintf(stderr,"while the user's input\n     requires %d rows.\n",
+                      totalN);
+       exit(1);
+    }
+
+    /* get the first requests from all the processors */
+
+    requests    = (int *) AZ_allocate(nprocs*sizeof(int));
+    requests[0] = -1;
+    for (i = 1; i < nprocs; i++) {
+      pnode = -1;
+      mdwrap_iread((void *) &temp, sizeof(int), &pnode, &type, &request);
+      mdwrap_wait((void *) &temp, sizeof(int), &pnode, &type, &st, &request);
+      requests[pnode] = temp;
+    }
+
+    /*
+     * Go through all the rows, for those rows that we own add them to our local
+     * matrix.  Otherwise, read the row into a string, determine which processor
+     * has requested the row, send the string to this processor, and receive
+     * another request from this processor.
+     */
+
+    for (i = 0; i < total; i++) {
+      count++;
+      if (count%1000 == 0) {
+        (void) fprintf(stdout, ".");
+        (void) fflush(stdout);
+      }
+      if ((current < N_update) && (i == update[current])) {
+        AZ_add_new_row(i, &nz_ptr, &current, val, bindx, 0, dfp, &msr_len,
+		       &column0);
+      }
+      else {
+#ifdef binary
+        kkk = fread(&temp, sizeof(int), 1, dfp);
+#else
+        kkk = fscanf(dfp, "%d", &temp);
+#endif
+        if (kkk <= 0) {
+           (void) fprintf(stderr,"\nError: AZ_input_msr(), end-of-file reached");
+           (void) fprintf(stderr," while reading row %d.\n",i);
+           exit(1);
+        }
+        if (temp == 0) column0 = 1;
+
+        j = 0;
+
+        while (temp != -1) {
+#ifdef binary
+          kkk = fread(&dtemp, sizeof(double), 1, dfp);
+#else
+          kkk = fscanf(dfp, "%lf", &dtemp);
+#endif
+          if (kkk <= 0) {
+           (void) fprintf(stderr,"\nError: AZ_input_msr(), end-of-file reached");
+           (void) fprintf(stderr," while reading row %d.\n",i);
+           exit(1);
+          }
+
+          if (j + 30 > (int) buf_len) {
+            buf_len = 2*buf_len + 30;
+            str = (char *) AZ_realloc(str,buf_len*sizeof(char));
+
+            if (str == 0) {
+              (void) fprintf(stderr,"ERROR: Not Enough dynamic memory in "
+                             "AZ_input_msr()\n");
+              exit(-1);
+            }
+            if (need_request != 0)  {
+               mdwrap_iread((void *) &(requests[need_request]), 
+		        sizeof(int), &need_request,&type,&request);
+               mdwrap_wait((void *) &(requests[need_request]), 
+		        sizeof(int), &need_request,&type,&st,&request);
+               need_request = 0;
+            }
+            for (jjj = 1; jjj < nprocs; jjj++) {
+              if (requests[jjj] != -1) 
+                 mdwrap_write((void *) &buf_len, sizeof(int), jjj, type2, &st);
+	    }
+          }
+
+          /* put 'temp' and 'dtemp' into 'str' so that they can be sent */
+          /* to another processor.                                      */
+
+          tchar = (char *) &temp;
+          for (kkk = 0 ; kkk < (int)sizeof(int); kkk++) str[j+kkk] = tchar[kkk];
+          j += sizeof(int);
+          tchar = (char *) &dtemp;
+          for (kkk = 0 ; kkk < (int) sizeof(double); kkk++ ) 
+             str[j+kkk] = tchar[kkk];
+          j += sizeof(double);
+#ifdef binary
+          kkk = fread(&temp, sizeof(int), 1, dfp);
+#else
+          kkk = fscanf(dfp, "%d", &temp);
+#endif
+          if (kkk <= 0) {
+           (void) fprintf(stderr,"\nError: AZ_input_msr(), end-of-file reached");
+           (void) fprintf(stderr," while reading row %d.\n",i);
+           exit(1);
+          }
+          if (temp == 0) column0 = 1;
+        }
+        tchar = (char *) &m_one;
+        for (kkk = 0 ; kkk < (int)sizeof(int) ; kkk++ ) str[j+kkk] = tchar[kkk];
+        j += sizeof(int);
+
+        k = 0;
+        if (need_request != 0)  {
+           mdwrap_iread((void *) &(requests[need_request]), sizeof(int), 
+		    &need_request,&type,&request);
+           mdwrap_wait((void *) &(requests[need_request]), sizeof(int), 
+		    &need_request,&type,&st, &request);
+           need_request = 0;
+        }
+
+        while ((k < nprocs) && (requests[k] != i)) k++;
+        if (k == nprocs) {
+           (void) fprintf(stderr,"\nError: AZ_input_msr(), input file contains");
+           (void) fprintf(stderr," a row (%d)\n       that is not ",i);
+           (void) fprintf(stderr,"assigned to any processor?\n");
+           exit(1);
+        }
+        mdwrap_write((void *) str, (unsigned int) j, k, type2, &st);
+        need_request = k;  /* read is deferred until we will need it */
+      }
+    }
+    if (need_request != 0)  {
+       mdwrap_iread((void *) &(requests[need_request]), sizeof(int), 
+		&need_request,&type,&request);
+       mdwrap_wait((void *) &(requests[need_request]), sizeof(int), 
+		&need_request,&type,&st,&request);
+       need_request = 0;
+    }
+
+    /* at this point all the requests should be -1 */
+
+    for (k = 0 ; k < nprocs ; k++ ) {
+       if (requests[k] != -1) {
+          (void) fprintf(stderr,"\nError: AZ_input_msr(), processor %d ",k);
+          (void) fprintf(stderr,"requested  but never received\n       ");
+          (void) fprintf(stderr,"matrix row %d. Check data file.\n",
+                         requests[k]);
+          exit(1);
+       }
+    }
+
+    if (column0 == 0) {
+       (void) fprintf(stderr,"\nWARNING: AZ_input_msr(), column 0 contains ");
+       (void) fprintf(stderr,"no off-diagonal elements.\n         Are you ");
+       (void) fprintf(stderr,"sure that you numbered the matrix rows/columns");
+       (void) fprintf(stderr," from\n         0 to n-1 (and not 1 to n).\n");
+    }
+
+
+    AZ_free(requests);
+    fclose(dfp);
+    (void) fprintf(stdout, "\n");
+  }
+
+  AZ_free(str);
+
+} /* AZ_input_msr_matrix */
+
 
 /******************************************************************************/
 /******************************************************************************/
@@ -3233,7 +3945,7 @@ void AZ_add_new_row(int therow, int *nz_ptr, int *current, double **val,
   }
   else {
     tchar = (char *) &temp;
-    for (kk = 0 ; kk < sizeof(int) ; kk++ ) tchar[kk] = input[kk];
+    for (kk = 0 ; kk < (int) sizeof(int) ; kk++ ) tchar[kk] = input[kk];
     k    += sizeof(int);
   }
 
@@ -3254,7 +3966,7 @@ void AZ_add_new_row(int therow, int *nz_ptr, int *current, double **val,
     }
     else {
       tchar = (char *) &dtemp;
-      for (kk = 0 ; kk < sizeof(double) ; kk++ ) tchar[kk] = input[k+kk];
+      for (kk = 0 ; kk < (int) sizeof(double) ; kk++ ) tchar[kk] = input[k+kk];
       k += sizeof(double);
     }
 
@@ -3263,8 +3975,8 @@ void AZ_add_new_row(int therow, int *nz_ptr, int *current, double **val,
       if (*nz_ptr >= *msr_len) {
         *msr_len = (int) ( 1.5 * (double) *msr_len);
         if (!AZ_using_fortran) {
-          *bindx = (int *) realloc(*bindx,*msr_len*sizeof(int));
-          *val   = (double *) realloc(*val,*msr_len*sizeof(double));
+          *bindx = (int *) AZ_realloc(*bindx,*msr_len*sizeof(int));
+          *val   = (double *) AZ_realloc(*val,*msr_len*sizeof(double));
         }
         if (*val == 0) {
           (void) fprintf(stderr,
@@ -3294,7 +4006,7 @@ void AZ_add_new_row(int therow, int *nz_ptr, int *current, double **val,
     }
     else {
       tchar = (char *) &temp;
-      for (kk = 0 ; kk < sizeof(int) ; kk++ ) tchar[kk] = input[kk+k];
+      for (kk = 0 ; kk < (int) sizeof(int) ; kk++ ) tchar[kk] = input[kk+k];
       k    += sizeof(int);
     }
   }
@@ -3353,12 +4065,13 @@ void AZ_check_update(int update[], int N_update, int proc_config[])
   int proc, nprocs;
   int type, type2;
   int sum, real_sum = 0;
-  MPI_Request request;  /* Message handle */
+  MPI_AZRequest request;  /* Message handle */
 
 
 
   /**************************** execution begins ******************************/
 
+  AZ__MPI_comm_space_ok();
   proc   = proc_config[AZ_node];
   nprocs = proc_config[AZ_N_procs];
 
@@ -3413,25 +4126,25 @@ void AZ_check_update(int update[], int N_update, int proc_config[])
      */
 
     for (i = 0; i < N_update; i++ ) {
-      md_wrap_write((void *) &(update[i]), sizeof(int), 0, type, &st);
+      mdwrap_write((void *) &(update[i]), sizeof(int), 0, type, &st);
       pnode = 0;
-      md_wrap_iread((void *) &temp, sizeof(int), &pnode, &type2, &request);
-      md_wrap_wait((void *) &temp, sizeof(int), &pnode, &type2, &st, &request);
+      mdwrap_iread((void *) &temp, sizeof(int), &pnode, &type2, &request);
+      mdwrap_wait((void *) &temp, sizeof(int), &pnode, &type2, &st, &request);
     }
     temp = -1;
-    md_wrap_write((void *) &temp, sizeof(int), 0, type, &st);
+    mdwrap_write((void *) &temp, sizeof(int), 0, type, &st);
   }
   else {
 
     /* get the first requests from all the processors */
 
-    requests    = (int *) calloc(nprocs, sizeof(int));
+    requests    = (int *) AZ_allocate(nprocs*sizeof(int));
     requests[0] = -1;
 
     for (i = 1; i < nprocs; i++ ) {
       pnode = -1;
-      md_wrap_iread((void *) &temp, sizeof(int), &pnode, &type, &request);
-      md_wrap_wait((void*) &temp, sizeof(int), &pnode, &type, &st, &request);
+      mdwrap_iread((void *) &temp, sizeof(int), &pnode, &type, &request);
+      mdwrap_wait((void*) &temp, sizeof(int), &pnode, &type, &st, &request);
       requests[pnode] = temp;
     }
 
@@ -3457,14 +4170,14 @@ void AZ_check_update(int update[], int N_update, int proc_config[])
           exit(-1);
         }
 
-        md_wrap_write((void *) &temp, sizeof(int), k, type2, &st);
-        md_wrap_iread((void *) &temp, sizeof(int), &k, &type, &request);
-        md_wrap_wait((void *) &temp, sizeof(int), &k, &type, &st, &request);
+        mdwrap_write((void *) &temp, sizeof(int), k, type2, &st);
+        mdwrap_iread((void *) &temp, sizeof(int), &k, &type, &request);
+        mdwrap_wait((void *) &temp, sizeof(int), &k, &type, &st, &request);
         requests[k] = temp;
       }
     }
 
-    free(requests);
+    AZ_free(requests);
   }
 
 } /* AZ_check_update */
@@ -3574,10 +4287,13 @@ void AZ_vb2msr(int m, double val[], int indx[], int bindx[], int rpntr[],
             msr_val[realrow] = val[indx_ptr + jcol*num_blk_rows + irow];
           }
           else {
-            if (val[indx_ptr + jcol*num_blk_rows + irow] != 0.0) {
+            /* We need to stick in the zeros so that bilu */ 
+            /* works from within 'az_subdomain_driver.c'. */
+            /* if (val[indx_ptr + jcol*num_blk_rows + irow] != 0.0) { */
+
               msr_val[nz_counter] = val[indx_ptr + jcol*num_blk_rows + irow];
               msr_bindx[nz_counter++]  = realcol;
-            }
+            /* } */
           }
         }
       }
@@ -3670,6 +4386,15 @@ void AZ_transform(int proc_config[], int *external[], int bindx[], double val[],
   int        *extern_proc;
   int        *tcnptr = NULL;
 
+  AZ__MPI_comm_space_ok();
+#ifdef AZ_MPI
+  if ( proc_config[AZ_Comm_Set] != AZ_Done_by_User) {
+      printf("Error: Communicator not set. Use AZ_set_comm()\n");
+      printf("       (e.g. AZ_set_comm(proc_config,MPI_COMM_WORLD)).\n");
+      exit(1);
+  }
+#endif
+
   /*
    * Compute the external points and change the global indices to
    * local indices. That is,
@@ -3684,10 +4409,16 @@ void AZ_transform(int proc_config[], int *external[], int bindx[], double val[],
   /* compute the cnptr array for VBR matrices */
 
   if (mat_type == AZ_VBR_MATRIX) {
-    if (!AZ_using_fortran)
-      *cnptr = (int *) calloc(N_update + N_extern + 1, sizeof(int));
+    if (!AZ_using_fortran) {
+      *cnptr = (int *) AZ_allocate((N_update + N_extern + 1)*sizeof(int));
+      if (*cnptr == NULL) {
+         printf("Out of memory in AZ_transform\n");
+         exit(1);
+      }
+    }
 
     tcnptr = *cnptr;
+    for (i = 0 ; i < N_update + N_extern + 1; i++) tcnptr[i] = 0;
 
     for (i = 0; i < N_update; i++) tcnptr[i] = rnptr[i+1] - rnptr[i];
 
@@ -3726,8 +4457,8 @@ void AZ_transform(int proc_config[], int *external[], int bindx[], double val[],
    */
 
   if (!AZ_using_fortran) {
-    *update_index = (int *) calloc(N_update + 1, sizeof(int));
-    *extern_index = (int *) calloc(N_extern + 1, sizeof(int));
+    *update_index = (int *) AZ_allocate((N_update + 1)*sizeof(int));
+    *extern_index = (int *) AZ_allocate((N_extern + 1)*sizeof(int));
   }
 
   if (*extern_index == NULL)  {
@@ -3737,7 +4468,11 @@ void AZ_transform(int proc_config[], int *external[], int bindx[], double val[],
   }
 
   AZ_order_ele(*update_index, *extern_index, &N_internal, &N_border, N_update,
+#ifdef MB_MODIF
+               bnptr, bindx, extern_proc, N_extern, AZ_EXTERNS, mat_type);
+#else
                bnptr, bindx, extern_proc, N_extern, AZ_ALL, mat_type);
+#endif
 
   /*
    * Permute the matrix using the new ordering.  IMPORTANT: This routine assumes
@@ -3775,7 +4510,408 @@ void AZ_transform(int proc_config[], int *external[], int bindx[], double val[],
   }
 
   mat_name++;
-  free(extern_proc);
+  AZ_free(extern_proc);
 
 } /* AZ_transform */
 
+/**************************************************************/
+/**************************************************************/
+/**************************************************************/
+
+void AZ_msr2vbr_mem_efficient(int N, int **ibindx,double **ival, 
+	int **icpntr, int **ibpntr, int **iindx, int *N_blk_rows,
+	int name, char *label, int special) {
+/*
+ * Convert a local msr matrix to a local vbr matrix.
+ *
+ *   1) This version is fairly memory efficient.
+ *   2) The size of the blocks are deduced by comparing
+ *      the sparsity pattern of adjacent rows. That is,
+ *      two adjacent rows with the same sparsity pattern
+ *      are grouped together.
+ *
+ * Author : Ray Tuminaro, SNL, 9222 (3/5/98)
+  =======
+
+  Parameter list:
+  ===============
+
+  N:              On input, the number of rows in the msr matrix.
+
+  ibindx, ival    On input, the arrays contain the MSR matrix that will
+                  be convert to vbr format. 
+                  On output, ibindx and ival correspond to the VBR matrix.
+                  Note: ibindx is reallocated (i.e. shortened) in this
+                  routine.
+
+  icpntr, ibpntr  On output, these correspond to the resulting VBR matrix 
+  iindx           after conversion from MSR.
+                  Note: These arrays are allocated inside this routine.
+
+  N_blk_rows      On output, the number of block rows in the vbr matrix.
+
+  name            On input, indicates the name of the matrix to be used with 
+                  manage_memory calls associated with VBR matrix.
+
+  label           On input, indicates tail of string to be used for manage_memory
+                  call associated with reallocating bindx.
+*/
+
+int    *bindx, *bpntr, *indx, *cpntr;
+double *val, *dtemp;
+int    *itemp;
+int    i,j, ii, jj, next, offset;
+int    row_i,row_i_plus1,row_i_plus2;
+int    sparsity_pattern_match;
+int    row_size, col_size, block_size, nz_per_row;
+char   string[80];
+unsigned long int diff;
+
+   if (N == 0) return;
+
+   bindx = *ibindx;
+   val   = *ival;
+
+   /* allocate dtemp so that it can hold */
+   /* either N+1 integers or N+1 doubles */
+
+   i = sizeof(double);
+   if (sizeof(int) > sizeof(double)) i = sizeof(int);
+   dtemp = (double *) AZ_allocate(((unsigned int) i*((unsigned int) (N+1))));
+   if (dtemp == NULL) {
+      fprintf(stderr,"Note enough space in msr2vbr_mem_eff()\n");
+      exit(1);
+   }
+   itemp = (int    *) dtemp;
+
+
+   /* move the diagonal into the matrix (CSR) */
+
+
+   for (i = 0 ; i < N ; i++ )  dtemp[i] = val[i];
+
+   next = 0;
+   for (i = 0 ; i < N ; i++ ) {
+      val[next++] = dtemp[i];
+      for (j = bindx[i] ; j < bindx[i+1]; j++ ) val[next++] = val[j];
+   }
+
+   for (i = 0 ; i <= N ; i++ ) itemp[i] = bindx[i];
+
+   next = 0; 
+   for (i = 0 ; i < N ; i++ ) {
+      bindx[next++] = i;
+      for (j = itemp[i] ; j < itemp[i+1] ; j++ ) bindx[next++] = bindx[j];
+   }
+   for (i = 0 ; i <= N ; i++ ) itemp[i] += i - N - 1;
+
+   /* sort the columns within each row */
+
+   for (i = 0 ; i < N ; i++ ) {
+      row_i = itemp[i];  row_i_plus1 = itemp[i+1];
+      AZ_sort( &(bindx[row_i]), row_i_plus1 - row_i , NULL, &(val[row_i]));
+   }
+
+   /* To get rid of itemp, we encode the last element */
+   /* element in each row using a negative number.    */
+
+   for (i = 1 ; i <= N ; i++ )  bindx[itemp[i]-1] = -1-bindx[itemp[i]-1];
+   AZ_free(itemp);
+
+   sprintf(string,"cpntr %s",label);
+   cpntr = (int *) AZ_manage_memory((unsigned int) (N+1)*sizeof(int),
+                                 AZ_ALLOC, name,string,&i);
+   cpntr[N] = -100;
+
+   /* Calculate cpntr. We basically decide that two   */
+   /* adjacent rows should be in the same block if    */
+   /* they have the same sparsity pattern.            */
+   /* Note: After this calculation cpntr[i] indicates */
+   /*       which block row i is within.              */
+
+   *N_blk_rows = 0;
+   block_size = 1;
+   row_i = 0;
+   row_i_plus1 = row_i;
+   while( bindx[row_i_plus1] >= 0) row_i_plus1++;
+   row_i_plus1++;
+   i = 0;
+   cpntr[i] = 0;
+   while (i < N-1) {
+      row_i_plus2 = row_i_plus1;
+      while(bindx[row_i_plus2] >= 0) row_i_plus2++;
+      row_i_plus2++;
+
+      sparsity_pattern_match = 1;
+      if ( row_i_plus2-row_i_plus1!= row_i_plus1-row_i) sparsity_pattern_match = 0;
+      else {
+         for (jj = 0 ; jj < row_i_plus1-row_i ; jj++ ) {
+            if (bindx[row_i +jj] != bindx[row_i_plus1+jj]) {
+               sparsity_pattern_match = 0;
+               break;
+            }
+         }
+      }
+
+      if (sparsity_pattern_match == 1) block_size++;
+      else {
+         (*N_blk_rows)++;
+         block_size = 1;
+      }
+      i++;
+      cpntr[i] = *N_blk_rows;
+      row_i = row_i_plus1;
+      row_i_plus1   = row_i_plus2;
+   }
+   (*N_blk_rows)++;
+
+   AZ_check_block_sizes(bindx, cpntr, N, N_blk_rows);
+
+
+   /* convert bindx */
+
+   sprintf(string,"bpntr %s",label);
+   bpntr = (int *) AZ_manage_memory((unsigned int) (*N_blk_rows + 1)*sizeof(int),
+                                     AZ_ALLOC, name,string,&i);
+
+   *N_blk_rows = 0;
+   next = 0;
+   i = 0 ; 
+   bpntr[(*N_blk_rows)++] = 0;
+   row_i = 0;
+   while ( i < N ) {
+      row_i_plus1 = row_i;
+      while( bindx[row_i_plus1] >= 0) row_i_plus1++;
+      bindx[row_i_plus1] = -1 - bindx[row_i_plus1];  /* decode value */
+      row_i_plus1++;
+      nz_per_row = row_i_plus1 - row_i;
+      j = row_i;
+      while( j < row_i_plus1) {
+         jj = cpntr[bindx[j]];
+         bindx[next++] = jj;
+         j++;
+         while ((j < row_i_plus1) && (cpntr[bindx[j]] == jj)) j++;
+      }
+      bpntr[(*N_blk_rows)++] = next;
+      i++;
+      row_i += nz_per_row;
+      while ( cpntr[i] == cpntr[i-1] ) { i++; row_i += nz_per_row;}
+   }
+   (*N_blk_rows)--;
+   if (special != 1) {
+      sprintf(string,"bindx %s",label);
+      bindx = (int    *) AZ_manage_memory(((unsigned int) next)*sizeof(int),
+                                       AZ_REALLOC, name,string,&i);
+   }
+   else {
+      sprintf(string,"val %s",label);
+      diff = (unsigned long int) bindx - (unsigned long int) val;
+      val = (double *) AZ_manage_memory((unsigned int) (diff + 
+                                        (unsigned long int) next*sizeof(int)), 
+                                        AZ_SPEC_REALLOC,name,string,&i);
+      bindx = (int *) ( (unsigned long int) val + diff);
+   }
+   sprintf(string,"indx %s",label);
+   indx  = (int *) AZ_manage_memory(((unsigned int)(next+1))*sizeof(int),
+                                    AZ_ALLOC, name,string,&i);
+
+   /* compress cpntr */
+
+   next = 0;
+   j = 0;
+   for (i = 1; i < N ; i++ ) {
+      j++;
+      if ( cpntr[i-1] != cpntr[i] ) { cpntr[next++] = j; j = 0; }
+   }
+   cpntr[next] = j+1;
+ 
+   sprintf(string,"cpntr %s",label);
+   cpntr = (int *) AZ_manage_memory(((unsigned int) (next+2))*sizeof(int),
+                                AZ_REALLOC, name,string,&i);
+
+
+   /* compute the size of dtemp */
+
+   jj = -1;
+   for (i = 0 ; i < *N_blk_rows; i++ ) {
+      row_size = cpntr[i];
+      nz_per_row = 0;
+      for (j = bpntr[i]; j < bpntr[i+1] ; j++ ) nz_per_row += cpntr[bindx[j]]; 
+      ii = row_size*nz_per_row;
+      if (ii > jj) jj = ii;
+   }
+   dtemp = (double *) AZ_allocate(sizeof(double)*((unsigned int) (jj+1)));
+   if (dtemp == NULL) {
+      fprintf(stderr,"Note enough space in msr2vbr_mem_eff()\n");
+      exit(1);
+   }
+
+
+   /* compute indx and shift val */
+
+   indx[0] = 0;
+
+   for (i = 0 ; i < *N_blk_rows; i++ ) {
+      offset = indx[bpntr[i]];
+      nz_per_row = 0;
+      for (j = bpntr[i]; j < bpntr[i+1] ; j++ ) 
+         nz_per_row += cpntr[bindx[j]]; 
+      row_size = cpntr[i];
+      next = 0;
+      for (j = bpntr[i]; j < bpntr[i+1] ; j++ ) {
+         col_size = cpntr[bindx[j]];
+         indx[j+1] = indx[j] + row_size*col_size;
+         for (ii = 0; ii < row_size ; ii++ ) {
+            for (jj = 0 ; jj < col_size ; jj++ ) {
+               dtemp[next++] = val[offset+ jj + ii*nz_per_row];
+            }
+         }
+         offset += col_size;
+      }
+      next = 0;
+      for (j = bpntr[i]; j < bpntr[i+1] ; j++ ) {
+         offset = indx[j];
+         col_size = cpntr[bindx[j]];
+         for (ii = 0; ii < row_size ; ii++ ) {
+            for (jj = 0 ; jj < col_size ; jj++ ) {
+               val[offset + ii + jj*row_size] =  dtemp[next++];
+            }
+         }
+      }
+
+   }
+   AZ_free(dtemp);
+
+   /* convert cpntr[i] from the size of   */
+   /* block i to the start row of block i */
+
+   j = 0;
+   for (i = 0 ; i < *N_blk_rows ; i++ ) {
+      jj = cpntr[i];
+      cpntr[i] = j;
+      j += jj;
+   }
+   cpntr[*N_blk_rows] = j;
+
+   *ibindx = bindx;
+   *ival   = val;
+   *icpntr = cpntr;
+   *ibpntr = bpntr;
+   *iindx  = indx;
+
+}
+void AZ_find_global_ordering(int proc_config[], AZ_MATRIX *Amat, 
+                             int **global_bindx, int **update)
+
+{
+  int i, ii;
+  int N_rows, N_cols, N_blk_rows = 0, N_external, N_ext_blks = 0;
+  int n_nonzeros = 0, n_blk_nonzeros = 0;
+  int *data_org;
+  int *bindx, *rpntr, *externals = NULL;
+  double *rownums;
+  int is_VBR = 0, max_per_proc, offset;
+
+  data_org = Amat->data_org;
+
+  bindx = Amat->bindx;
+  rpntr = Amat->rpntr;
+  N_rows = data_org[AZ_N_internal] + data_org[AZ_N_border];
+  N_external = data_org[AZ_N_external];
+  N_cols = N_rows + N_external;
+
+  if (data_org[AZ_matrix_type] == AZ_VBR_MATRIX)
+    {
+      is_VBR = 1;
+      N_blk_rows = data_org[AZ_N_int_blk] + data_org[AZ_N_bord_blk];
+      N_ext_blks = data_org[AZ_N_ext_blk];
+      n_nonzeros = Amat->indx[Amat->bpntr[N_blk_rows]];
+      n_blk_nonzeros = Amat->bpntr[N_blk_rows];
+    }
+  else if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX)
+    {
+      is_VBR = 0;
+      N_blk_rows = N_rows;
+      N_ext_blks = data_org[AZ_N_external];
+      n_nonzeros = Amat->bindx[N_rows]-1;
+      n_blk_nonzeros = n_nonzeros;
+    }
+  else
+    {
+      AZ_perror("Unsupported matrix type in AZ_find_global_ordering.");
+    }
+
+  
+  *global_bindx = (int *) AZ_allocate((n_blk_nonzeros+1)*sizeof(int));
+  if ((*global_bindx) == NULL) 
+    AZ_perror("Error: Not enough space in AZ_find_global_ordering");
+  
+  if (N_ext_blks>0)
+  externals      = (int    *) AZ_allocate(N_ext_blks*sizeof(int));
+  rownums        = (double *) AZ_allocate(N_cols    *sizeof(double));
+  if (rownums == NULL) 
+    AZ_perror("Error: Not enough space in AZ_find_global_ordering");
+
+  /* 
+     Tranform the local matrices to a global matrix
+     by using the exchange boundary routine to pass indices around.
+   */
+
+  max_per_proc = AZ_gmax_int(N_blk_rows,proc_config);
+  max_per_proc++;
+  offset       = max_per_proc*proc_config[AZ_node];
+  
+  if (is_VBR)
+    {
+      for (i = 0 ; i < N_cols; i++) rownums[i] = -1.0;
+      for (i = 0 ; i < N_blk_rows; i++ ) 
+	rownums[rpntr[i]] = (double) (offset + i);
+    }
+  else
+    for (i = 0 ; i < N_blk_rows; i++ ) rownums[i] = (double) (offset + i);
+
+  AZ_exchange_bdry(rownums, data_org, proc_config);
+
+  if (is_VBR)
+    {
+      ii = 0;
+      for (i = 0 ; i < N_external ; i++ )
+	if (rownums[i + N_rows] >= 0.0)
+	  externals[ii++] = (int) rownums[i + N_rows];
+    }
+  else
+      for (i = 0 ; i < N_external ; i++ )
+	externals[i] = (int) rownums[i + N_rows];
+
+  /* change matrix columns to reflect global numbers */
+
+  if (is_VBR)
+    {
+      for ( i = 0; i < n_blk_nonzeros; i++ ) 
+	{
+	  if ( bindx[i] < N_blk_rows) (*global_bindx)[i] = bindx[i] + offset;
+	  else (*global_bindx)[i] = externals[bindx[i] - N_blk_rows];
+	}
+    }
+  else
+    {
+      for ( i = 0; i < N_rows+1; i++ ) (*global_bindx)[i] = bindx[i];
+      for ( i = N_rows+1; i < n_nonzeros+1; i++ ) 
+	{
+	  if ( bindx[i] < N_rows) (*global_bindx)[i] = bindx[i] + offset;
+	  else (*global_bindx)[i] = externals[bindx[i] - N_rows];
+	}
+    }
+  if (N_ext_blks>0)
+  AZ_free((void *) externals);
+  AZ_free((void *) rownums);
+
+  /* Build update vector */
+
+  *update = ( int *) AZ_allocate(N_rows*sizeof(int));
+
+  for (i=0; i< N_blk_rows; i++) (*update)[i] = offset +i;
+
+  /* end AZ_find_global_ordering
+   */
+}

@@ -7,14 +7,14 @@
  *
  * $Author: tuminaro $
  *
- * $Date: 1996/06/24 19:25:00 $
+ * $Date: 2000/12/12 23:32:13 $
  *
- * $Revision: 1.10 $
+ * $Revision: 1.37 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_domain_decomp.c,v 1.10 1996/06/24 19:25:00 tuminaro Exp $";
+static char rcsid[] = "$Id: az_domain_decomp.c,v 1.37 2000/12/12 23:32:13 tuminaro Exp $";
 #endif
 
 
@@ -29,29 +29,28 @@ static char rcsid[] = "$Id: az_domain_decomp.c,v 1.10 1996/06/24 19:25:00 tumina
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <float.h>
 #include "az_aztec.h"
 
-/******************************************************************************/
-/******************************************************************************/
-/******************************************************************************/
+/****************************************************************************/
+/****************************************************************************/
+/****************************************************************************/
 
-void AZ_domain_decomp(double x[], double val[], int indx[], int rpntr[],
-                   int cpntr[], int bindx[], int bpntr[], int options[],
-                   int data_org[], int proc_config[], double params[])
+
+void AZ_domain_decomp(double x[], AZ_MATRIX *Amat, int options[],
+                   int proc_config[], double params[],
+		   struct context *context)
+
 
 /*******************************************************************************
 
-  Driver for domain decomposition preconditioner.
+  Precondition 'x' using an overlapping domain decomposition method where a 
+  solver specified by options[AZ_subdomain_solve] is used on the subdomains. 
+  Note: if a factorization needs to be computed on the first iteration, this
+  will be done and stored for future iterations.
 
-  This routine preconditions x[] by backsolving 2 triangular systems. These
-  triangular systems correspond to either an lu-decomposition, an
-  ilu-decomposition, or a block ilu-decomposition. If
-  options[AZ_pre_calc] < AZ_sys_reuse, it first computes the decomposition
-  before performing the triangular solves. The specfic algorithm performed is
-  determined by options[AZ_precond]. See file 'params.txt'.
-
-  Author:          Ray S. Tuminaro, SNL, 1422
-  =======
+  Author:          Lydie Prevost, SNL, 9222
+  =======          Revised by R. Tuminaro (4/97), SNL, 9222
 
   Return code:     void
   ============
@@ -59,186 +58,678 @@ void AZ_domain_decomp(double x[], double val[], int indx[], int rpntr[],
   Parameter list:
   ===============
 
-  x:               On input, contains the residual(rhs) of the set of equations.
-                   On output contains the preconditioned residual.
+  N_unpadded:      On input, number of rows in linear system (unpadded matrix) 
+                   that will be factored (after adding values for overlapping).
 
-  val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
+  Nb_unpadded:     On input, number of block rows in linear system (unpadded) 
+                   that will be factored (after adding values for overlapping).
 
-  indx,
-  bindx,
-  rpntr,
-  cpntr,
-  bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
+  N_nz_unpadded:   On input, number of nonzeros in linear system (unpadded)
+                   that will be factored (after adding values for overlapping).
+             
+  x:               On output, x[] is preconditioned by performing the subdomain
+                   solve indicated by options[AZ_subdomain_solve].
 
-  b:               Right hand side of linear system.
+  val    indx       
+  bindx  rpntr:    On input, arrays containing matrix nonzeros (see manual). 
+  cpntr  bpntr            
 
-  options:         Determines specific solution method and other parameters.
+  options:         Determines specific solution method and other parameters.  In
+                   this routine, we are concerned with options[AZ_overlap]:
 
-  data_org:        Array containing information on the distribution of the
-                   matrix to this processor as well as communication parameters
-                   (see file params.txt).
-
-  proc_config:     Machine configuration.  proc_config[AZ_node] is the node
-                   number.  proc_config[AZ_N_procs] is the number of processors.
-
-  params:          Drop tolerance and convergence tolerance info.
+                      == AZ_none: nonoverlapping domain decomposition
+                      == AZ_diag: use rows corresponding to external variables 
+                                  but only keep the diagonal for these rows.
+                      == k      : Obtain rows that are a distance k away from
+                                  rows owned by this processor.
+                                  
+  data_org:        Contains information on matrix data distribution and 
+                   communication parameters (see manual).
 
 *******************************************************************************/
-
 {
+  int N_unpadded, Nb_unpadded, N_nz_unpadded;
+  double *x_pad = NULL, *x_reord = NULL, *ext_vals = NULL;
+  int N_nz, N_nz_padded, nz_used;
+  int mem_orig, mem_overlapped, mem_factor;
+  int name, i, bandwidth;
+  int *ordering = NULL;
+/*
+  double start_t;
+*/
+  int estimated_requirements;
+  char str[80];
+int *garbage;
 
-  /* local variables */
+  int N;
+  int *padded_data_org = NULL, *bindx, *data_org;
+  double *val;
+  int *inv_ordering = NULL;
+  int *map = NULL;
+  AZ_MATRIX *A_overlapped = NULL;
+  struct aztec_choices aztec_choices;
 
-  static int Nexp,      /* size of expanded system that will be factored */
-             Mexp,      /* # of nonzeros in expanded system.             */
-             new_blks;  /* # of blocks in the expanded system.           */
-
-  double *buffer;       /* holds matrix rows received from neighbors
-                           when overlapping domain decomposition is used */
-  int    length;        /* length of buffer                              */
-  int    N;             /* # of unknowns updated by this processor.      */
-  int    i;
-
-  double *little;
-  int type,count,j, st, from, sym_flag, total;
-  extern int AZ_sys_msg_type;
-  MPI_Request request[AZ_MAX_NEIGHBORS];  /* Message handle */
 
   /**************************** execution begins ******************************/
-
-  N = data_org[AZ_N_internal] + data_org[AZ_N_border];
-
-  if (options[AZ_overlap] == AZ_sym_full) {
-    options[AZ_overlap] = AZ_full;
-    sym_flag = 1;
+  data_org = Amat->data_org;
+  bindx    = Amat->bindx;
+  val      = Amat->val;
+  N_unpadded = data_org[AZ_N_internal] + data_org[AZ_N_border];
+  Nb_unpadded = data_org[AZ_N_int_blk]+data_org[AZ_N_bord_blk];
+  if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX) 
+     N_nz_unpadded = bindx[N_unpadded];
+  else if (data_org[AZ_matrix_type] == AZ_VBR_MATRIX)
+     N_nz_unpadded = (Amat->indx)[(Amat->bpntr)[Nb_unpadded]];
+  else {
+     if (Amat->N_nz < 0) 
+        AZ_matfree_Nnzs(Amat);
+     N_nz_unpadded = Amat->N_nz;
   }
-  else sym_flag = 0;
 
-  /* Set external points */
-
-  if (options[AZ_overlap] == AZ_none)
-    for (i = N; i < data_org[AZ_N_external] + N; i++) x[i] = 0.0;
-  else AZ_exchange_bdry(x, data_org);
-
-  /*
-   * Compute the size and the number of nonzeros in the augmented system.
-   * Note: the number of nonzeros is recomputed later if rows are exchanged
-   */
-
-  Nexp = N + data_org[AZ_N_external];
-
-  if (N == 0)
-    Mexp = 0;
-  else if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX)
-    Mexp = data_org[AZ_N_external] + bindx[N];
-  else
-    Mexp = data_org[AZ_N_external] + indx[bpntr[data_org[AZ_N_int_blk] +
-                                               data_org[AZ_N_bord_blk]]];
-
-  /* Exchanging rows for the overlap points (if this option has been set) */
+  
+  aztec_choices.options  = options;
+  aztec_choices.params   = params;
+  context->aztec_choices = &aztec_choices;
+  context->proc_config   = proc_config;
+  name                   = data_org[AZ_name];
 
 
-  if (options[AZ_pre_calc] <= AZ_recalc) {
-    if (data_org[AZ_matrix_type] == AZ_VBR_MATRIX) {
-      new_blks = 0;
-      while (cpntr[new_blks] != Nexp) new_blks++;
+  if ((options[AZ_pre_calc] >= AZ_reuse) && (context->Pmat_computed)) {
+     N               = context->N;
+     N_nz            = context->N_nz;
+     A_overlapped    = context->A_overlapped;
+     A_overlapped->data_org  = data_org;
+     A_overlapped->matvec = Amat->matvec;
+  }
+  else {
+     sprintf(str,"A_over %s",context->tag);
+     A_overlapped = (AZ_MATRIX *) AZ_manage_memory(sizeof(AZ_MATRIX), 
+                                                   AZ_ALLOC, name, str, &i);
+     AZ_matrix_init(A_overlapped, 0);
+
+     context->A_overlapped     = A_overlapped;
+     A_overlapped->data_org    = data_org;
+     A_overlapped->matvec      = Amat->matvec;
+     A_overlapped->matrix_type = AZ_MSR_MATRIX;
+
+     AZ_init_subdomain_solver(context);
+
+     AZ_compute_matrix_size(Amat, options, N_nz_unpadded, N_unpadded, 
+			 &N_nz_padded, data_org[AZ_N_external],
+		 	 &(context->max_row), &N, &N_nz, params[AZ_ilut_fill], 
+                         &(context->extra_fact_nz_per_row),
+                         Nb_unpadded,&bandwidth);
+
+     
+        estimated_requirements = N_nz;
+        if (N_nz*2 > N_nz) N_nz = N_nz*2;	/* check for overflow */
+						/* Add extra memory to N_nz. */
+                                                /* This extra memory is used */
+                                                /* as temporary space during */
+                                                /* overlapping calculation   */
+
+        /* Readjust N_nz by allocating auxilliary arrays and allocate */
+        /* the MSR matrix to check that there is enough space.        */
+
+        /* block off some space for map and padded_data_org in dd_overlap */
+
+        garbage = (int *) AZ_allocate((AZ_send_list + 2*(N-N_unpadded) +10)*
+                                      sizeof(int));
+        AZ_hold_space(context, N);
+
+   
+        if (N_nz*((int) sizeof(double)) < N_nz) N_nz=N_nz/2; /* check for overflow */
+        if (N_nz*((int) sizeof(double)) < N_nz) N_nz=N_nz/2; /* check for overflow */
+        if (N_nz*((int) sizeof(double)) < N_nz) N_nz=N_nz/2; /* check for overflow */
+        if (N_nz*((int) sizeof(double)) < N_nz) N_nz=N_nz/2; /* check for overflow */
+        if (N_nz*((int) sizeof(double)) < N_nz) N_nz=N_nz/2; /* check for overflow */
+
+        N_nz = AZ_adjust_N_nz_to_fit_memory(N_nz,
+                                 context->N_large_int_arrays,
+                                 context->N_large_dbl_arrays);
+        context->N_nz_factors = N_nz;
+
+        if (N_nz <= N_nz_unpadded) {
+           printf("Error: Not enough space for domain decomposition\n");
+           AZ_exit(1);
+        }
+
+
+        if (estimated_requirements > N_nz ) estimated_requirements = N_nz;
+
+        /* allocate matrix via AZ_manage_memory() */
+
+        sprintf(str,"bindx %s",context->tag);
+        A_overlapped->bindx =(int    *) AZ_manage_memory(N_nz*sizeof(int),
+                                                AZ_ALLOC, name, str, &i);
+        sprintf(str,"val %s",context->tag);
+        A_overlapped->val =(double *) AZ_manage_memory(N_nz*sizeof(double),
+                                                AZ_ALLOC, name, str, &i);
+        context->N_nz_allocated = N_nz;
+        AZ_free_space_holder(context);
+        AZ_free(garbage);
+
+        /* convert to MSR if necessary */
+
+        if (data_org[AZ_matrix_type] == AZ_VBR_MATRIX)
+          AZ_vb2msr(Nb_unpadded,val,Amat->indx,bindx,Amat->rpntr,Amat->cpntr,
+		    Amat->bpntr, A_overlapped->val, A_overlapped->bindx);
+        else if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX) {
+          for (i = 0 ; i < N_nz_unpadded; i++ ) {
+             A_overlapped->bindx[i] = bindx[i];
+             A_overlapped->val[i]   = val[i];
+          }
+        }
+        else AZ_matfree_2_msr(Amat,A_overlapped->val,A_overlapped->bindx,N_nz);
+
+        mem_orig = AZ_gsum_int(A_overlapped->bindx[N_unpadded],proc_config);
+
+/*
+        start_t = AZ_second();
+*/
+        AZ_pad_matrix(context, proc_config, N_unpadded, &N, 
+                      &(context->map), &(context->padded_data_org), &N_nz, 
+                      estimated_requirements);
+
+/*
+        if (proc_config[AZ_node] == 0)
+           printf("matrix padding took %e seconds\n",AZ_second()-start_t);
+*/
+
+
+        mem_overlapped = AZ_gsum_int(A_overlapped->bindx[N],proc_config);
+  
+        if (options[AZ_reorder]) {
+/*
+           start_t = AZ_second();
+*/
+           AZ_find_MSR_ordering(A_overlapped->bindx,&ordering,N,
+                                &(context->inv_ordering),name,context);
+/*
+           if (proc_config[AZ_node] == 0) 
+              printf("took %e seconds to find ordering\n", AZ_second()-start_t);
+*/
+/*
+           start_t = AZ_second();
+*/
+           AZ_mat_reorder(N,A_overlapped->bindx,A_overlapped->val,&ordering,
+                          context->inv_ordering);
+/*
+           if (proc_config[AZ_node] == 0) 
+              printf("took %e seconds to reorder\n", AZ_second()-start_t);
+*/
+                /* NOTE: ordering is freed inside AZ_mat_reorder */
+        }
+
+        /* Do a factorization if needed.  */
+
+/*
+        start_t = AZ_second();
+*/
+        AZ_factor_subdomain(context, N, N_nz, &nz_used);
+
+/*
+        start_t        = AZ_second()-start_t;
+        max_time = AZ_gmax_double(start_t,proc_config);
+        min_time = AZ_gmin_double(start_t,proc_config);
+        if (proc_config[AZ_node] == 0) 
+           printf("time for subdomain solvers ranges from %e to %e\n",
+                  min_time,max_time);
+*/
+  
+        if ( A_overlapped->matrix_type == AZ_MSR_MATRIX)
+           AZ_compress_msr(&(A_overlapped->bindx), &(A_overlapped->val),
+                     context->N_nz_allocated, nz_used, name, context);
+
+
+        context->N_nz = nz_used;
+        context->N    = N;
+        context->N_nz_allocated = nz_used;
+
+        mem_factor = AZ_gsum_int(nz_used,proc_config);
+
+        if (proc_config[AZ_node] == 0)
+           AZ_print_header(options,mem_overlapped,mem_orig,mem_factor);
+
+        if (options[AZ_overlap] >= 1) {
+           sprintf(str,"x_pad %s",context->tag);
+           context->x_pad  = (double *) AZ_manage_memory(N*sizeof(double),
+                                                   AZ_ALLOC, name, str, &i);
+           sprintf(str,"ext_vals %s",context->tag);
+           context->ext_vals = (double *) AZ_manage_memory((N-N_unpadded)*
+                                             sizeof(double), AZ_ALLOC, name, 
+                                             str, &i);
+        }
+        if (options[AZ_reorder]) {
+           sprintf(str,"x_reord %s",context->tag);
+           context->x_reord = (double *) AZ_manage_memory(N*sizeof(double),
+                                             AZ_ALLOC, name, str, &i);
+        }
+
+     }
+
+  /* Solve L u = x where the solution u overwrites x */
+
+    x_reord         = context->x_reord;
+    inv_ordering    = context->inv_ordering;
+    x_pad           = context->x_pad;
+    ext_vals        = context->ext_vals;
+    padded_data_org = context->padded_data_org;
+    map             = context->map;
+
+   if (x_pad == NULL) x_pad = x;
+
+   if (options[AZ_overlap] >= 1) {
+
+      for (i = 0 ; i < N_unpadded ; i++) x_pad[i] = x[i];
+      AZ_exchange_bdry(x_pad,padded_data_org, proc_config);
+      for (i = 0 ; i < N-N_unpadded ; i++ ) 
+         ext_vals[map[i]-N_unpadded] = x_pad[i+N_unpadded];
+      for (i = 0 ; i < N-N_unpadded ; i++ ) x_pad[i + N_unpadded] = ext_vals[i];
+   }
+   else if (options[AZ_overlap] == AZ_diag) 
+	AZ_exchange_bdry(x_pad,data_org, proc_config);
+
+   if (x_reord == NULL) x_reord = x_pad;
+   if (options[AZ_reorder]) {
+      for (i = 0 ; i < N ; i++ ) x_reord[inv_ordering[i]] = x_pad[i];
+   }
+
+   AZ_solve_subdomain(x_reord,N, context);
+
+   if (options[AZ_reorder])
+      for (i = 0; i < N; i++) x_pad[i] = x_reord[inv_ordering[i]];
+
+   AZ_combine_overlapped_values(options[AZ_type_overlap],padded_data_org, 
+                             options, x_pad, map,ext_vals,name,proc_config);
+
+   if (x_pad != x) 
+     for (i = 0 ; i < N_unpadded ; i++ ) x[i] = x_pad[i];
+
+} /* subdomain driver*/
+
+/****************************************************************************/
+/****************************************************************************/
+/****************************************************************************/
+
+void AZ_print_header(int options[], int mem_overlapped,
+                          int mem_orig, int mem_factor)
+{
+if ((options[AZ_overlap] < 1) && 
+    (options[AZ_subdomain_solve] != AZ_ilut)) return;
+   if ((options[AZ_output] != AZ_none ) && (options[AZ_output] != AZ_warnings)){
+      printf("\n\t\t*******************************************************\n");
+      if (options[AZ_overlap] > 0) {
+         printf("\t\t*****       Subdomain overlapping requires %.3e times\n", 
+                ((double) mem_overlapped)/ ((double) mem_orig));
+         printf("\t\t*****       the memory used for the nonoverlapped\n");
+         printf("\t\t*****       subdomain matrix.\n");
+      }
+      if (options[AZ_subdomain_solve] == AZ_ilut) {
+         printf("\t\t***** ilut: The ilut factors require %.3e times \n\t\t", 
+                 ((double) mem_factor)/((double) mem_overlapped));
+         printf("*****       the memory of the overlapped subdomain matrix.");
+      }
+      printf("\n\t\t*******************************************************\n");
+      printf("\n");
+   }
+}
+
+/****************************************************************************/
+/****************************************************************************/
+/****************************************************************************/
+
+void AZ_find_MSR_ordering(int bindx2[],int **ordering,int N,
+     int **inv_ordering, int name, struct context *context)
+
+/*******************************************************************************
+ 
+  Use a reverse cuthill McKee algorithm to find an ordering for the matrix.
+ 
+  Author:          R. Tuminaro
+ 
+  Return code:     void
+  ============
+ 
+  Parameter list:
+  ===============
+ 
+  bindx2:          On input, the nonzero sparsity pattern of the matrix
+                   for which we will determine a new ordering. 
+                   Note: bindx2 is changed in this routine, but then returned
+                   to its original values before exiting.
+
+  ordering:        On output, ordering[i] gives the new location of row i
+                   in the reordered system.
+
+  inv_ordering:    On output, inv_ordering[i] gives the location of row
+*/
+                   
+{
+
+   int i;
+   int *mask;
+   int root, nlvl, ccsize;
+   int total = 0;
+   char str[80];
+  
+   /* convert matrix to Fortran format */
+
+   if (N==0) return;
+
+   for (i = N+1 ; i < bindx2[N]; i++ ) bindx2[i]++;
+   for (i = 0 ; i <= N ; i++ )         bindx2[i] -= N;
+
+   /* initialize arrays for fnroot() and rcm() */
+
+   sprintf(str,"inv_ordering %s",context->tag);
+   *inv_ordering = (int *) AZ_manage_memory((N+1)*sizeof(int), AZ_ALLOC, name, 
+                                            str,&i);
+   *ordering     = (int *) AZ_allocate((N+1)*sizeof(int));
+   mask          = (int *) AZ_allocate((N+1)*sizeof(int));
+   if (mask == NULL) {
+      printf("Not enough space for RCM reordering\n");
+      AZ_exit(1);
+   }
+
+   for (i = 0 ; i < N ; i++ ) mask[i] = 1;
+   root = 1;
+   while (total != N ) {
+      fnroot_(&root,bindx2,&(bindx2[N+1]),mask, &nlvl, 
+              &((*ordering)[total]), *inv_ordering);
+      rcm_(&root,bindx2,&(bindx2[N+1]),mask,&((*ordering)[total]),
+           &ccsize, *inv_ordering);
+
+      if ( ccsize != N) {
+         for (i = 0 ; i < ccsize ; i++) mask[(*ordering)[total+i]-1] = 0;
+         for (i = 0 ; i < N ; i++ ) {
+            if ( mask[i] == 1) break;
+         }
+         root = i+1;
+      }
+      total += ccsize;
+      if (ccsize == 0) {
+         printf("Error inside reordering\n");
+         AZ_exit(1);
+      }
+   }
+
+   /* convert matrix back to C format */
+
+   for (i = 0 ; i <= N ; i++ ) bindx2[i] += N;
+   for (i = N+1 ; i < bindx2[N]; i++ ) bindx2[i]--;
+
+   /* convert ordering to C format */
+   for (i = 0 ; i < N ; i++ ) (*ordering)[i]--;
+
+   /* produce the inverse order */
+
+   for (i = 0 ; i < N ; i++) (*inv_ordering)[(*ordering)[i]] = i;
+
+   AZ_free(mask);
+}
+
+int AZ_pos( int index, int bindx[], int position[], int inv_ordering[],
+         double avg_nz_per_row, int N) 
+{
+int i = 0;
+
+i = (int) (((double)(index - N))/avg_nz_per_row);
+   while ( bindx[i+1] <= index ) i++;
+   while ( bindx[i] > index ) i--;
+   return( position[inv_ordering[i]] + (index - bindx[i]) );
+}
+
+void AZ_mat_reorder(int N, int bindx2[], double val2[], int *ordering[], 
+	int inv_ordering[])
+{
+   int count, i, ordi;
+   int mv_this_bindx, save_this_bindx;
+   double mv_this_val, save_this_val;
+   int current, temp1;
+   double avg_nz_per_row;
+
+   if (N == 0) return;
+   avg_nz_per_row = ((double) (bindx2[N] - N))/((double) N);
+
+   /* compute where row i's off-diagonals will be  */
+   /* stored and put the result in position[i].    */
+
+   count = N+1;
+   for (i = 0 ; i < N ; i++ ) {
+      ordi = (*ordering)[i];
+      (*ordering)[i] = count;
+      count += (bindx2[ordi+1] - bindx2[ordi]); 
+   }
+
+   /* move the offdiagonal elements in the rows */
+
+   current = N+1;
+   while (current < bindx2[N]) {
+      mv_this_bindx   = bindx2[current];
+      mv_this_val     = val2[current];
+      temp1 = current;
+      while ( mv_this_bindx >= 0 ) {
+         temp1 = AZ_pos(temp1,bindx2,*ordering,inv_ordering,avg_nz_per_row,N);
+         save_this_bindx = bindx2[temp1];
+         save_this_val   = val2[temp1];
+         bindx2[temp1] = -mv_this_bindx -1; /* encode this as a */
+                                            /* negative value   */
+         val2[temp1]   = mv_this_val;
+         mv_this_bindx = save_this_bindx;
+         mv_this_val   = save_this_val;
+      }
+      current++;
+   }
+
+   /* renumber the columns */
+
+   for (i = N+1 ; i < bindx2[N] ; i++ ) bindx2[i]=inv_ordering[-bindx2[i]-1];
+
+   /* renumber the off-diagonal pointers */
+
+   for (i = 0 ; i < N ; i++ ) bindx2[i] = (*ordering)[i];
+
+   for (i = 0 ; i < N; i++) (*ordering)[i] = inv_ordering[i];
+   AZ_sort(*ordering, N, NULL, val2);
+
+   AZ_free(*ordering);
+
+}
+
+void AZ_compute_matrix_size(AZ_MATRIX *Amat, int options[], int N_nz_unpadded,
+	int N_unpadded, int *N_nz_padded, int N_external, int *max_row, int *N,
+	int *N_nz, double fill, int *extra_fact_nz_per_row, int Nb_unpadded,
+        int *bandwidth)
+{
+
+   int largest_padrow, extra_rows, extra_nonzeros, extra_factor_nonzeros;
+
+   AZ_space_for_padded_matrix(options[AZ_overlap],N_nz_unpadded,N_unpadded,
+                              &extra_rows, &extra_nonzeros,
+                              N_external, &largest_padrow);
+
+   *N           =  N_unpadded    + extra_rows;
+   *N_nz        =  N_nz_unpadded + extra_nonzeros + 1;
+   *N_nz_padded = *N_nz;
+        
+   *max_row = AZ_compute_max_nz_per_row(Amat,N_unpadded,Nb_unpadded,bandwidth);
+   if (largest_padrow > *max_row ) *max_row = largest_padrow;
+
+   AZ_space_for_factors(fill, *N_nz, *N, &extra_factor_nonzeros, options,
+                        *bandwidth, *max_row);
+
+   if (*N == 0) *extra_fact_nz_per_row = 0;
+   else *extra_fact_nz_per_row = extra_factor_nonzeros/(2*(*N));
+   *N_nz += extra_factor_nonzeros;
+ 
+}
+
+void AZ_pad_matrix(struct context *context, int proc_config[], 
+   int N_unpadded, int *N, int **map, int **padded_data_org, 
+   int *N_nz, int estimated_requirements)
+{
+   static int New_N_rows;
+   int *data_org;
+   int overlap;
+   int i;
+int *bindx;
+double *val;
+int count, start, end, j;
+
+   data_org = context->A_overlapped->data_org;
+   overlap  = context->aztec_choices->options[AZ_overlap];
+   bindx    = context->A_overlapped->bindx;
+   val      = context->A_overlapped->val;
+   *map     = NULL; 
+   *padded_data_org = data_org;
+
+   if (overlap > 0) {
+           *padded_data_org = data_org;
+           New_N_rows = data_org[AZ_N_internal] + data_org[AZ_N_border];
+
+           AZ_setup_dd_olap_msr(N_unpadded, &New_N_rows, bindx, val, overlap,
+                           proc_config, padded_data_org,map, *N_nz, 
+                           data_org[AZ_name], data_org, estimated_requirements,
+			   context);
+
+           if (New_N_rows > *N) {
+              printf("Incorrectly estimated the overlap space reqirements.\n");
+              printf("N_unpadded = %d, N_external = %d, overlap = %d\n",
+		     N_unpadded, data_org[AZ_N_external], overlap);
+              printf("Guess = %d, actual number of padded rows = %d\n",
+                     *N, New_N_rows);
+              printf("\n\nTry less overlapping and maybe we'll get it right\n");
+
+              AZ_exit(1);
+           }
+
+           *N = New_N_rows;
     }
+    else if (overlap == 0) {
+       *N    = data_org[AZ_N_internal] + data_org[AZ_N_border];
+       /* remove entries corresponding to external variables */
 
-    if (options[AZ_overlap] == AZ_full) {
-      AZ_exchange_rows(val,indx, &Mexp, Nexp, &buffer, &length, bindx, 
-                       cpntr, bpntr, data_org, proc_config);
+       count = bindx[0];
+       start = count;
+       for (i = 0 ; i < *N ; i++ ) {
+          end = bindx[i+1];
+          for (j = start ; j < end ; j++) {
+             if ( bindx[j] < *N ) {
+                bindx[count] = bindx[j];
+                val[count++] = val[j];
+             }
+          }
+          bindx[i+1] = count;
+          start      = end;
+       }
+
     }
-  }
-  if (options[AZ_precond] == AZ_ilu) {
-    AZ_ilu_routine(Nexp, Mexp, x, length, buffer, val, indx, bindx, rpntr,
-                   cpntr, bpntr, options, data_org);
-  }
-#ifdef eigen
-  else if (options[AZ_precond] == AZ_slu) {
-    AZ_lu_ng(Nexp, Mexp, x, val, bindx, options, data_org, params[AZ_drop]);
-  }
+    else { /* diagonal overlapping */
+
+       *N = data_org[AZ_N_internal] + data_org[AZ_N_border];
+
+       if (*N_nz < *N + data_org[AZ_N_external]) {
+          fprintf(stderr,"Not enough memory for diagonal overlapping\n");
+          AZ_exit(1);
+       }
+
+       /* make room */
+
+       count = data_org[AZ_N_external];
+       for (i = bindx[*N]-1 ; i >= bindx[0] ; i-- ) {
+          bindx[i+count] = bindx[i];
+          val[i+count]   = val[i];
+       }
+       for (i = 0 ; i <= *N; i++) bindx[i] += count;
+       for (i = (*N)+1 ; i <= *N + data_org[AZ_N_external]; i++) 
+          bindx[i] = bindx[i-1];
+
+       /* communicate diagonal */
+
+       AZ_exchange_bdry(val, data_org, proc_config);
+
+       *N = data_org[AZ_N_internal] + data_org[AZ_N_border] + 
+                data_org[AZ_N_external];
+    }
+}
+
+#ifdef abitmoregeneral
+int AZ_pos( int index, int bindx[], int position[], int inv_ordering[],
+         double avg_nz_per_row, int N, int first_row)
+{
+int i = 0;
+
+   i = (int) (((double)(index - bindx[first_row]))/avg_nz_per_row);
+   if (i >= N) i = N-1;
+   i += first_row;
+   while ( bindx[i+1] <= index ) i++;
+   while ( bindx[i  ] >  index ) i--;
+   return( position[inv_ordering[i-first_row]] + (index - bindx[i]) );
+}
+
+void AZ_mat2_reorder(int N, int first_row, int bindx2[], double val2[],
+                     int ordering[], int inv_ordering[])
+{
+   int count, i, ordi;
+   int mv_this_bindx, save_this_bindx;
+   double mv_this_val, save_this_val;
+   int current, temp1;
+   double avg_nz_per_row;
+
+   if (N == 0) return;
+   avg_nz_per_row = ((double) (bindx2[first_row+N] - bindx2[first_row]))/
+                                                ((double) N);
+
+   /* compute where row i's off-diagonals will be  */
+   /* stored and put the result in ordering[i].    */
+
+   count = bindx2[first_row];
+   for (i = 0 ; i < N ; i++ ) {
+      ordi   = ordering[i] + first_row;
+      ordering[i] = count;
+      count += (  bindx2[ordi+1] - bindx2[ordi]);
+   }
+
+   /* move the offdiagonal elements in the rows */
+
+
+   current = bindx2[first_row];
+   while (current < bindx2[N + first_row]) {
+      mv_this_bindx   = bindx2[current];
+      mv_this_val     = val2[current];
+      temp1 = current;
+      while ( mv_this_bindx >= 0 ) {
+         temp1 = AZ_pos( temp1,bindx2, ordering,inv_ordering,avg_nz_per_row,N,
+                        first_row);
+         save_this_bindx = bindx2[temp1];
+         save_this_val   = val2[temp1];
+         bindx2[temp1] = -mv_this_bindx -1; /* encode this as a */
+                                            /* negative value   */
+         val2[temp1]   = mv_this_val;
+         mv_this_bindx = save_this_bindx;
+         mv_this_val   = save_this_val;
+      }
+      current++;
+   }
+   /* renumber the columns */
+   if (first_row == 0) {
+      for (i = bindx2[0]; i < bindx2[N] ; i++ )
+         bindx2[i]=inv_ordering[-bindx2[i]-1];
+   }
+   else {
+      for (i = bindx2[first_row]; i < bindx2[first_row+N] ; i++ )
+         bindx2[i]= -bindx2[i]-1;
+   }
+
+   /* renumber the off-diagonal pointers */
+
+   for (i = 0 ; i < N ; i++ ) bindx2[i+first_row] = ordering[i];
+
+   /* move around the diagonal elements */
+
+   for (i = 0 ; i < N; i++) ordering[i] = inv_ordering[i];
+   AZ_sort(ordering, N, NULL, &(val2[first_row]));
+
+}
 #endif
-  else if (options[AZ_precond] == AZ_lu) {
-    AZ_lu_y12m(Nexp, Mexp, x, length, buffer, val, indx, bindx, rpntr, cpntr,
-               bpntr, options, data_org, params[AZ_drop]);
-  }
-  else if (options[AZ_precond] == AZ_bilu) {
-    AZ_block_ilu(val, indx, bindx, cpntr, bpntr, new_blks, Nexp, length,
-                 buffer, x, options, data_org);
-  }
-
-  /*************************************************************/
-  /* My modification to include the block milu preconditioner. */
-  /*************************************************************/
-
-  else if (options[AZ_precond] == AZ_bmilu) {
-    AZ_block_milu(val, indx, bindx, cpntr, bpntr, new_blks, Nexp, length,
-                  buffer, x, options, data_org);
-  }
-
-  /*************************************************************/
-  /*               End of my modification.                     */
-  /*************************************************************/
-
-  /* Add the values that are redundant. That is, add the external values 
-   * to the border values that correspond to them. This will make the    
-   * operator symmetric if the incomplete factorization used above was   
-   * symmetric.                                                          */
-
-  if (sym_flag == 1) {
-
-     /* first send the external points to the neighbors */
- 
-     type            = AZ_sys_msg_type;
-     AZ_sys_msg_type = (AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS + 
-                       AZ_MSG_TYPE;
-
-     /* figure out what is the longest message to be */
-     /* received and allocate space for it.          */
- 
-     total = 0;
-     for ( i = 0 ; i < data_org[AZ_N_neigh] ; i++ )
-        total += data_org[AZ_send_length+i];
-     little = (double *) calloc(total, sizeof(double) ) ;
-
-     /* post receives */
-
-     count = 0;
-     for ( i = 0 ; i < data_org[AZ_N_neigh] ; i++ ) {
-        from = data_org[AZ_neighbors+i];
-        (void) md_wrap_iread((void *) &(little[count]),
-                  sizeof(double)*data_org[AZ_send_length+i],
-                  &from, &type, request+i);
-        count += data_org[AZ_send_length+i];
-     }
-
-     /* send messages */
-
-     count = data_org[AZ_N_internal] + data_org[AZ_N_border];
-     for ( i = 0 ; i < data_org[AZ_N_neigh] ; i++ ) {
-        (void) md_wrap_write((void *) &(x[count]), data_org[AZ_rec_length+i]*
-                     sizeof(double), data_org[AZ_neighbors+i], type, &st);
-        count += data_org[AZ_rec_length+i];
-     }
- 
-     /* receive messages and add recvd values to the send list */
- 
-     count = 0;
-     for ( i = 0 ; i < data_org[AZ_N_neigh] ; i++ ) {
-        from = data_org[AZ_neighbors+i];
-        (void) md_wrap_wait((void *) &(little[count]),
-                  sizeof(double)*data_org[AZ_send_length+i],
-                  &from, &type, &st,request+i);
-        count += data_org[AZ_send_length+i];
-     }
-     for ( j = 0 ; j < total; j++ ) 
-        x[ data_org[AZ_send_list+j] ] += little[j];
-
-     free(little);
-     options[AZ_overlap] = AZ_sym_full;
-
-  }
-
-} /* AZ_domain_decomp */

@@ -7,14 +7,14 @@
  *
  * $Author: tuminaro $
  *
- * $Date: 1996/03/11 23:48:16 $
+ * $Date: 2000/03/09 19:39:26 $
  *
- * $Revision: 1.11 $
+ * $Revision: 1.17 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_flop_cnt.c,v 1.11 1996/03/11 23:48:16 tuminaro Exp $";
+static char rcsid[] = "$Id: az_flop_cnt.c,v 1.17 2000/03/09 19:39:26 tuminaro Exp $";
 #endif
 
 
@@ -64,7 +64,7 @@ double AZ_calc_solve_flops(int options[], int total_its, double total_time,
 
   data_org:        Array containing information on the distribution of the
                    matrix to this processor as well as communication parameters
-                   (see file params.txt).
+                   (see file Aztec User's Guide).
 
   proc_config:     Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
@@ -93,7 +93,7 @@ double AZ_calc_solve_flops(int options[], int total_its, double total_time,
   /* calculate the flops required for the basic linear algebra operations */
 
   daxpy_flops  = inner_flops = 2.0*((double) gn);
-  matvec_flops = 2.0 * gnnz;
+  matvec_flops = 2.0 * gnnz - ((double) gn);
 
   if (options[AZ_scaling] == AZ_BJacobi) {
     if (N_Blk == 0) blk_size = 1.0;
@@ -214,6 +214,16 @@ double AZ_calc_iter_flops(int solver_flag, double inner_flops,
     return (gnnz + 2.0*inner_flops + matvec_flops +
       total_its*(3.0*(inner_flops + daxpy_flops) + matvec_flops + 8.0));
 
+  case AZ_analyze:
+  case AZ_fixed_pt:
+    return ( total_its*(inner_flops + 2.*daxpy_flops + matvec_flops ));
+
+  case AZ_GMRESR:  /* this is not really right */
+    return (gnnz + inner_flops + 2.0*matvec_flops +
+      total_its*(matvec_flops + 1.5*inner_flops + 14.0) +
+      0.5*total_its*K*(2.0*daxpy_flops + inner_flops + 7.0) +
+      0.5*K*K*total_its + total_its/K*(2.0*matvec_flops + inner_flops + 3.0));
+
   case AZ_gmres:
     return (gnnz + inner_flops + 2.0*matvec_flops +
       total_its*(matvec_flops + 1.5*inner_flops + 14.0) +
@@ -234,11 +244,11 @@ double AZ_calc_iter_flops(int solver_flag, double inner_flops,
 
   case AZ_lu:
     (void) fprintf(stderr,
-                   "WARNING: Flop count not implemented for lu solver\n");
+                   "\t\tWARNING: Flop count not implemented for lu solver\n");
   return -1.0;
 
   default:
-    (void) fprintf(stdout, "Flops not available for options[AZ_solver] = %d\n",
+    (void) fprintf(stdout, "\t\tFlops not available for options[AZ_solver] = %d\n",
                    solver_flag);
   return -1.0;
   }
@@ -284,7 +294,7 @@ double AZ_calc_precond_flops(int solver_flag, int options[],
 
   data_org:        Array containing information on the distribution of the
                    matrix to this processor as well as communication parameters
-                   (see file params.txt).
+                   (see file Aztec User's Guide).
 
   proc_config:     Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
@@ -370,7 +380,7 @@ double AZ_calc_precond_flops(int solver_flag, int options[],
     break;
 
   default:
-    (void) fprintf(stdout, "Flops not available for options[AZ_precond] = %d\n",
+    (void) fprintf(stdout, "\t\tFlops not available for options[AZ_precond] = %d\n",
                    options[AZ_precond]);
   return -1.0;
   }

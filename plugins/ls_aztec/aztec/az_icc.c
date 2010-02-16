@@ -1,88 +1,136 @@
-/*====================================================================
- * ------------------------
- * | CVS File Information |
- * ------------------------
- *
- * $RCSfile: az_icc.c,v $
- *
- * $Author: tuminaro $
- *
- * $Date: 1996/04/26 20:35:37 $
- *
- * $Revision: 1.8 $
- *
- * $Name:  $
- *====================================================================*/
-#ifndef lint
-static char rcsid[] = "$Id: az_icc.c,v 1.8 1996/04/26 20:35:37 tuminaro Exp $";
-#endif
-
-
-/*******************************************************************************
- * Copyright 1995, Sandia Corporation.  The United States Government retains a *
- * nonexclusive license in this software as prescribed in AL 88-1 and AL 91-7. *
- * Export of this program may require a license from the United States         *
- * Government.                                                                 *
- ******************************************************************************/
-
-
-#include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
-
+#include <stdlib.h>
 #include "az_aztec.h"
 
-/******************************************************************************/
-/******************************************************************************/
-/******************************************************************************/
-
-void icc()
-
-/*******************************************************************************
-
-  C driver for incomplete choleski factor of sparse matrix.
-
-  This routine takes a VBR format sparse matrix and determines the incomplete
-  Choleski decomposition. Then it performs the solve step on the traingular
-  systems.
-
-  Author:          John N. Shadid, SNL, 1421
-  =======
-
-  Return code:     void
-  ============
-
-  Parameter list:
-  ===============
-
-  N:               Order of linear system.
-
-  NExt:            Number of external variables.
-
-  M:               Number of nonzeros in sparse matrix A.
-
-  val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
-
-  indx,
-  bindx,
-  rpntr,
-  cpntr,
-  bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
-
-  x:               On input, contains the current solution to the linear system.
-
-*******************************************************************************/
-
+/**************************************************************/
+/**************************************************************/
+/**************************************************************/
+void AZ_lower_icc(int bindx[],double val[],int N, double rhs[])
 {
+/*
+ * Back solve the lower triangular system given by bindx
+ * and val.
+ *
+ */
+ 
+   int i,j,col;
 
-  /* local variables */
+   for (i = 0 ; i < N ; i++ ) {
+      for (j = bindx[i]; j < bindx[i+1]; j++ ) {
+         col = bindx[j];
+         rhs[col] -= (val[j]*rhs[i]);
+      }
+   }
+   for (i = 0 ; i < N ; i++ ) rhs[i] = rhs[i]*val[i];
+}
 
-  /**************************** execution begins ******************************/
+/**************************************************************/
+/**************************************************************/
+/**************************************************************/
+void AZ_upper_icc(int bindx[],double val[],int N, double rhs[])
+{
+/*
+ * Forward solve the upper triangular system given by bindx
+ * and val.
+ *
+ */
+   int i,j,col;
 
-  (void) fprintf(stderr, "WARNING: icc preconditioning not implemented\n");
-  (void) fprintf(stderr, "         Try ilu instead.\n");
-  (void) fprintf(stderr, "Returning with no preconditioning...\n");
+   for (i = N-1 ; i >= 0 ; i-- ) {
+      for (j = bindx[i]; j < bindx[i+1]; j++ ) {
+         col = bindx[j];
+         rhs[i] -= (val[j]*rhs[col]);
+      }
+   }
+}
 
-} /* icc */
+/**************************************************************/
+/**************************************************************/
+/**************************************************************/
+
+void AZ_fact_chol(int bindx[], double val[], int N)
+{
+/*
+ * Compute the Cholesky factorization of the matrix
+ * stored in bindx and val.
+ *
+ * Note: On input, it is required that the redundant
+ * entries in the lower triangular part of the matrix
+ * be given.
+ *
+ */
+    int i,j,k,kk,tk;
+    double *sum, temp;
+    int    *mark, *diag;
+    int    row, col, first, last, next_nz;
+
+    diag  = (int    *) AZ_allocate(N*sizeof(int));
+    mark  = (int    *) AZ_allocate(N*sizeof(int));
+    sum   = (double *) AZ_allocate(N*sizeof(double));
+
+    if (sum == NULL) {
+       printf("Not enough memory to perform ICC factorization\n");
+       exit(1);
+    }
+
+    for (i = 0 ; i < N; i++) sum[i]   = 0.0;
+    for (i = 0 ; i < N; i++) mark[i]  = 0;
+
+    /* find the diagonal entry in each row */
+
+    first = bindx[0];
+    for (i = 0 ; i < N ; i++) {
+       last = bindx[i+1];
+       for (j = first; j < last ; j++) 
+          if (bindx[j] > i) break;
+       diag[i] = j;
+       first = last;
+     }
+
+    /* do the factorization */
+
+    for (i = 0 ; i < N ; i++ ) {
+       val[i] -= sum[i];
+       for (kk = diag[i]; kk < bindx[i+1]; kk++) 
+          mark[bindx[kk]] = kk+1;
+       for (kk = bindx[i]; kk < diag[i]; kk++) {
+          row = bindx[kk];
+          for (k = diag[row]; k < bindx[row+1]; k++ )
+             if (bindx[k] == i) break;
+          if (bindx[k] != i) {
+             printf("The matrix is not symmetric. Can not use ICC\n");
+             exit(1);
+          }
+          temp = val[k];
+          for (tk = k+1; tk < bindx[row+1]; tk++) {
+             col = bindx[tk];
+             if (mark[col]) val[mark[col]-1] -= temp*val[tk]*val[row];
+          }
+       }
+       for (kk = diag[i]; kk < bindx[i+1]; kk++) {
+          col = bindx[kk];
+          mark[col] = 0;
+          val[kk] = val[kk]/val[i];
+          sum[col] += val[kk]*val[kk]*val[i];
+       }
+   }
+
+   /* compress out the lower triangular part */
+
+   next_nz = N+1;
+   for (i = 0 ; i < N ; i++ ) {
+      for (j = diag[i] ; j < bindx[i+1]; j++) {
+         bindx[next_nz] = bindx[j];
+         val[next_nz++] = val[j];
+      }
+   }
+   for (i = 1; i <= N; i++) 
+      bindx[i] = bindx[i-1] + bindx[i] - diag[i-1];
+   
+
+   for (i = 0 ; i < N ; i++) val[i] = 1./val[i];
+
+   AZ_free(sum);
+   AZ_free(mark);
+   AZ_free(diag);
+}

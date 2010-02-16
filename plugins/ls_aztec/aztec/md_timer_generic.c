@@ -5,41 +5,49 @@
  *
  * $RCSfile: md_timer_generic.c,v $
  *
- * $Author: glhenni $
+ * $Author: tuminaro $
  *
- * $Date: 1996/02/27 15:23:05 $
+ * $Date: 1999/09/30 17:04:27 $
  *
- * $Revision: 3.2 $
+ * $Revision: 5.1 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
 static char *cvs_timergen_id =
-  "$Id: md_timer_generic.c,v 3.2 1996/02/27 15:23:05 glhenni Exp $";
+  "$Id: md_timer_generic.c,v 5.1 1999/09/30 17:04:27 tuminaro Exp $";
 #endif
-
-/*
-     Clock rolls negative when shifts to 32nd bit
-     wrap time is about  = 2147 seconds = about 36 minutes
-     clockp = double(1<<30)*4.*1.e-6 is the proper increment
-     PARAMETER (CLOCKP = 4294.967296)
-*/
 
 #include <time.h>
 
-double second()
-/*
- * Returns system cpu and wall clock time in seconds
- */
+extern double second(void);
+double second(void)
+
+  /*
+  *    Returns system cpu and wall clock time in seconds. This
+  *    is a strictly Ansi C timer, since clock() is defined as an
+  *    Ansi C function. On some machines clock() returns type
+  *    unsigned long (HP) and on others (SUN) it returns type long.
+  *       An attempt to recover the actual time for clocks which have
+  *    rolled over is made also. However, it only works if this 
+  *    function is called fairly regularily during
+  *    the solution procedure.
+  *
+  *    clock() -> returns the time in microseconds. Division by
+  *               the macro CLOCKS_PER_SEC recovers the time in seconds.
+  */
+
 {
-  time_t  itime;
-  clock_t num_ticks, clock();
-  double  cpu, wall;
-
-  num_ticks=clock();
-  if(num_ticks==-1) cpu=-1.;
-  else cpu = ((double) num_ticks)/((double) CLOCKS_PER_SEC);
-  /* wall= ((double) time(&itime)); */
-
-  return(cpu);
+  static clock_t last_num_ticks = 0;
+  static double  inv_clocks_per_sec = 1./(double)CLOCKS_PER_SEC;
+  static double  clock_width =
+    (double)(1L<<((int)sizeof(clock_t)*8-2))*4./(double)CLOCKS_PER_SEC;
+  static int     clock_rollovers = 0;
+  double value;
+  clock_t num_ticks = clock();
+  if(num_ticks < last_num_ticks) clock_rollovers++;
+  value = num_ticks * inv_clocks_per_sec;
+  if(clock_rollovers) value += clock_rollovers * clock_width;
+  last_num_ticks = num_ticks;
+  return(value);
 }

@@ -5,16 +5,16 @@
  *
  * $RCSfile: az_dgemv2.c,v $
  *
- * $Author: sahutch $
+ * $Author: tuminaro $
  *
- * $Date: 1996/01/05 22:54:31 $
+ * $Date: 1998/05/12 19:44:51 $
  *
- * $Revision: 1.4 $
+ * $Revision: 1.5 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_dgemv2.c,v 1.4 1996/01/05 22:54:31 sahutch Exp $";
+static char rcsid[] = "$Id: az_dgemv2.c,v 1.5 1998/05/12 19:44:51 tuminaro Exp $";
 #endif
 
 
@@ -24,6 +24,7 @@ static char rcsid[] = "$Id: az_dgemv2.c,v 1.4 1996/01/05 22:54:31 sahutch Exp $"
  * Export of this program may require a license from the United States         *
  * Government.                                                                 *
  ******************************************************************************/
+extern void AZ_dgemv2(int, int, double *, double *, double *);
 
 
 void AZ_dgemv2(int m, int n, double *a, double *x, double *y)

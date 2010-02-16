@@ -7,14 +7,14 @@
  *
  * $Author: tuminaro $
  *
- * $Date: 1996/05/13 19:16:23 $
+ * $Date: 2001/08/14 21:11:16 $
  *
- * $Revision: 1.12 $
+ * $Revision: 1.29 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_matrix_util.c,v 1.12 1996/05/13 19:16:23 tuminaro Exp $";
+static char rcsid[] = "$Id: az_matrix_util.c,v 1.29 2001/08/14 21:11:16 tuminaro Exp $";
 #endif
 
 
@@ -29,7 +29,6 @@ static char rcsid[] = "$Id: az_matrix_util.c,v 1.12 1996/05/13 19:16:23 tuminaro
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <malloc.h>
 #include <float.h>
 
 #include "az_aztec.h"
@@ -57,21 +56,21 @@ double AZ_gmax_matrix_norm(double val[], int indx[],int bindx[], int rpntr[],
   ===============
 
   val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
+                   Aztec User's Guide).
 
   indx,
   bindx,
   rpntr,
   cpntr,
   bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
+                   file Aztec User's Guide).
 
   proc_config:     Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
 
   data_org:        Array containing information on the distribution of the
                    matrix to this processor as well as communication parameters
-                   (see file params.txt).
+                   (see file Aztec User's Guide).
 
 *******************************************************************************/
 
@@ -291,14 +290,14 @@ void AZ_print_vbr_matrix(int matrix_flag, int Proc, int itotal_nodes,
   ext_nodes:       Number of external nodes.
 
   val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
+                   Aztec User's Guide).
 
   indx,
   bindx,
   rpntr,
   cpntr,
   bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
+                   file Aztec User's Guide).
 
 *******************************************************************************/
 
@@ -435,9 +434,7 @@ void AZ_dtrans(int *m, int *n, double *A)
 
   /**************************** execution begins ******************************/
 
-  /* calloc temporary array */
-
-  work = (double *) calloc(*m * *n, sizeof(double));
+  work = (double *) AZ_allocate(*m * *n * sizeof(double));
 
   /* do the transpose */
 
@@ -452,9 +449,8 @@ void AZ_dtrans(int *m, int *n, double *A)
   for (i = 0; i < *m * *n; i++)
     *(A + i) = *(work + i);
 
-  /* free "work" */
 
-  free((void *) work);
+  AZ_free((void *) work);
 
   /* exchange m and n */
 
@@ -491,14 +487,14 @@ int AZ_get_sym_indx(int iblk, int jblk, int *indx, int *bindx, int *bpntr)
   indx,
   bindx,
   bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
+                   file Aztec User's Guide).
 
 *******************************************************************************/
 
 {
 
   register int i, icount = 0;
-  int          itemp, pre_num_nz_blks, num_nz_blks;
+  int          itemp, pre_num_nz_blks = 0, num_nz_blks;
   int         *bindx_ptr;
 
   itemp     = bpntr[jblk];
@@ -584,9 +580,9 @@ void AZ_print_out(int update_index[], int extern_index[], int update[],
 *******************************************************************************/
 
    int type, neighbor, cflag;
-   int ii,i,j,tj;
+   int ii,i = 1,j,tj;
    int iblk, jblk, m1, n1, ival, new_iblk, new_jblk;
-   MPI_Request request;  /* Message handle */
+   MPI_AZRequest request;  /* Message handle */
 
  
    type            = AZ_sys_msg_type;
@@ -597,8 +593,8 @@ void AZ_print_out(int update_index[], int extern_index[], int update[],
 
    neighbor = proc_config[AZ_node] - 1;
    if ( proc_config[AZ_node] != 0) {
-      md_wrap_iread((void *) &i, 0, &neighbor, &type, &request);
-      md_wrap_wait((void *) &i, 0, &neighbor, &type, &cflag, &request);
+      mdwrap_iread((void *) &i, 0, &neighbor, &type, &request);
+      mdwrap_wait((void *) &i, 0, &neighbor, &type, &cflag, &request);
    }
    printf("proc %d:\n",proc_config[AZ_node]);
 
@@ -715,7 +711,7 @@ void AZ_print_out(int update_index[], int extern_index[], int update[],
 
    neighbor = proc_config[AZ_node] + 1;
    if ( proc_config[AZ_node] != proc_config[AZ_N_procs] - 1) 
-      md_wrap_write((char *) &i, 0, neighbor, type, &cflag);
+      mdwrap_write((char *) &i, 0, neighbor, type, &cflag);
 
    i = AZ_gsum_int(i,proc_config);
 
@@ -765,3 +761,989 @@ void AZ_list_print(int ivec[] , int length1, double dvec[],int length2)
    }
    printf("\n");
 }
+
+/******************************************************************************/
+/******************************************************************************/
+/******************************************************************************/
+ 
+int AZ_compute_max_nz_per_row(AZ_MATRIX *Amat, int N, int Nb, int *largest_band)
+{
+/*******************************************************************************
+ 
+  Compute (and return) the maximum number of nonzeros in 
+  any matrix row. Also compute the largest band in the matrix 
+  and return its value in '*largest_band'.
+ 
+  Author:          Ray Tuminaro, SNL, 9222
+  =======
+ 
+  Return code:     int
+
+
+  Parameter list:
+  ===============
+ 
+  matrix_type:     On input, indicates whether we have an MSR or VBR matrix.
+
+  N:               On input, indicates order of matrix system.
+
+  Nb:              On input, indicates number of blocks for a VBR matrix.
+
+  bindx,bpntr      On input, matrix for which the maximum number of nonzeros
+  cpntr:           in a row will be computed.
+
+  largest_band:    On output, largest band in the matrix
+
+*******************************************************************************/
+
+   int i,j,largest = 0;
+   int col, col_ptr;
+   int kk,left_most,right_most;
+   int matrix_type, *bindx, *bpntr, *cpntr;
+ 
+   matrix_type = Amat->matrix_type;
+   bindx       = Amat->bindx;
+   *largest_band = -1;
+   if (matrix_type == AZ_MSR_MATRIX) {
+      for (i = 0 ; i < N; i++ ) {
+         left_most  = i;
+         right_most = i;
+         j = bindx[i+1]-bindx[i];
+         if (largest < j) largest = j;
+         for (kk = bindx[i] ; kk < bindx[i+1] ; kk++ ) {
+            if ( bindx[kk] < left_most  ) left_most  = bindx[kk];
+            if ( bindx[kk] > right_most ) right_most = bindx[kk];
+         }
+         if (*largest_band <= right_most - left_most)
+            *largest_band = right_most - left_most + 1;
+      }
+   }
+   else if (matrix_type == AZ_VBR_MATRIX) {
+      bpntr = Amat->bpntr;
+      cpntr = Amat->cpntr;
+      for  (i = 0; i < Nb ; i++) {
+         j = 0;
+         left_most  = cpntr[i];
+         right_most = cpntr[i];
+         for (col_ptr = bpntr[i]; col_ptr < bpntr[i+1]; col_ptr++ ) {
+            col  = bindx[col_ptr];
+            if (cpntr[col]   < left_most ) left_most  = cpntr[col];
+            if (cpntr[col+1] > right_most) right_most = cpntr[col+1] -1;
+            j   += (cpntr[col+1] - cpntr[col]);
+         }
+         if (*largest_band <= right_most - left_most) 
+            *largest_band = right_most - left_most + 1;
+         if (j > largest) largest = j;
+      }
+   }
+   else {
+      if ( (Amat->largest_band == -1) || (Amat->max_per_row == -1))
+          AZ_matfree_Nnzs(Amat);
+      *largest_band = Amat->largest_band;
+      largest       = Amat->max_per_row - 1;
+   }
+   (*largest_band)++;
+   largest++;
+   return(largest);
+}
+
+/****************************************************************/
+/****************************************************************/
+/****************************************************************/
+void AZ_check_block_sizes(int bindx[], int cpntr[], int Nrows, 
+			  int *new_block)
+{
+/*
+ * This routine is designed for mem_efficient_msr_2_vbr conversion.
+ * It takes cpntr[] which is composed of a set of subsequences
+ * (a subsequence is set of consecutive cpntr[] values that are 
+ * the same) and splits these subsequences if they do not corrspond
+ * to blocks in the MSR matrix (bindx,val). 
+ *
+ * Parameters
+ * ==========
+ *    bindx,          On input, an msr-LIKE matrix for which we wish
+ *                    to discover the block structure. NONZEROS are
+ *                    stored consecutively (row-wise) including the 
+ *                    diagonal. The last column number in each row
+ *                    is encoded as a negative (=  -1 - column).
+ *
+ *    cpntr[]         On input, cpntr[0] = 0. If the sparsity pattern 
+ *                    of row i and row i-1 are identical, cpntr[i] = 
+ *                    cpntr[i-1]. Otherwise, cpntr[i] = cpntr[i-1]+1.
+ *                    On output, cpntr[0] = 0. If row i and row i-1 can
+ *                    be grouped into a block, cpntr[i] = cpntr[i-1].
+ *                    Otherwise, cpntr[i] = cpntr[i-1]+1.
+ *
+ *    Nrows           On input, number of rows in the matrix.
+ * 
+ *    *new_block      On input, number of unique values in cpntr[].
+ *                    On output, number of unique values in the new cpntr[].
+ */
+ 
+   int start_blk_ptr, end_blk_ptr, start_blk_column, end_blk_column;
+   int blk_name0, blk_name1, blk_name2, blk_name3;
+   int prev_col, current_col, start_row, end_row;
+   int row, tptr, max_col, last_nz_in_row, N_blks, current;
+
+   max_col = Nrows-1; 
+
+   if (Nrows == 0) return;
+
+   start_blk_ptr = 0;
+   row = 0;
+
+   while (row < Nrows) {          /* for each row */
+      start_row = start_blk_ptr;
+      last_nz_in_row = 0;
+
+      while(!last_nz_in_row) {    /* for each nonzero within a row */
+         start_blk_column = bindx[start_blk_ptr];
+         if (start_blk_column < 0) { 
+            start_blk_column = -1 - start_blk_column; 
+            last_nz_in_row = 1;
+         }
+         prev_col = start_blk_column;
+         blk_name1   = cpntr[start_blk_column];
+
+         end_blk_ptr = start_blk_ptr + 1;
+
+         /* Find the end of the current block. If the column numbers */
+         /* corresponding to this block are not all found (i.e.      */
+         /* current_col != prev_col+1) cut the block off.            */
+
+         while (!last_nz_in_row) {
+            current_col = bindx[end_blk_ptr];
+            if (current_col < 0) { 
+                current_col = -1 - current_col; 
+		last_nz_in_row = 1;
+            }
+            if (current_col != prev_col+1) break;
+            if (cpntr[current_col] != blk_name1) break;
+            end_blk_ptr++;
+            prev_col = current_col;
+
+         }
+         end_blk_ptr--;
+
+         /* check to see if the block name associated with the  */
+         /* beginning and end of this block are different from  */
+         /* the previous and next blocks. If they are the same  */
+         /* create a new block name for this block.             */
+
+         end_blk_column = bindx[end_blk_ptr];
+         if (end_blk_column < 0) {
+            end_blk_column = -1 - end_blk_column;
+            last_nz_in_row = 1;
+         }
+         else last_nz_in_row = 0;
+
+         blk_name2 = cpntr[end_blk_column];
+
+         blk_name0 = -10; blk_name3 = -10;
+         if (start_blk_column !=       0) blk_name0 = cpntr[start_blk_column-1];
+         if (end_blk_column != max_col) blk_name3 = cpntr[end_blk_column+1];
+
+         if (blk_name1 == blk_name0) {
+            for ( tptr = start_blk_column; tptr <= end_blk_column; tptr++) 
+               cpntr[tptr] = *new_block;
+            (*new_block)++;
+         }
+         else if (blk_name2 == blk_name3) {
+            for ( tptr = start_blk_column; tptr <= end_blk_column; tptr++) 
+               cpntr[tptr] = *new_block;
+            (*new_block)++;
+         }
+         start_blk_ptr = end_blk_ptr + 1;
+      }
+      end_row = end_blk_ptr;
+
+      /* look for the next row which does not have the same */
+      /* sparsity pattern as the previous row.              */
+
+      row++;
+      while ((row < Nrows) && (cpntr[row-1] == cpntr[row])) {
+         row++;
+         start_blk_ptr += (end_row - start_row + 1);
+      }
+   }
+
+   /* Number each of the subsequences in cpntr (a subsequence  */
+   /* is series of consecutive cpntr values that are the same) */
+   /* uniquely starting from 0 and counting up.                */
+
+   N_blks = 0;
+   current = cpntr[0];
+   cpntr[0] = N_blks;
+   for (row = 1 ; row < Nrows ; row++ ) {
+      if (cpntr[row] != current) {
+         N_blks++;
+         current = cpntr[row];
+      }
+      cpntr[row] = N_blks;
+   }
+   *new_block = N_blks;
+}
+void AZ_capture_matrix(double val[], int indx[], int bindx[], int rpntr[],
+                      int cpntr[], int bpntr[], int proc_config[],
+                      int data_org[], double b[])
+
+/*******************************************************************************
+
+  Routine to capture matrix in a form acceptable to MATLAB.  Prints matrix out
+  in i,j,a(i,j) format.  Currently implemented only for one processor.  Based
+  on the routine AZ_output_matrix.
+  Test to see if we should capture matrix, rhs and partitioning info
+  in an ASCII data file.  If the file "AZ_write_matrix_now" exists in
+  the current working directory, then the files 
+
+  - AZ_capture_matrix.dat
+  - AZ_capture_rhs.dat
+  - AZ_capture_partition.dat (VBR only)
+  
+  will be appended with the current matrix in (i,j,val) format, the
+  current RHS and the current partition information.  The existence
+  of "AZ_write_matrix_now" is check each time.  Thus, capturing can
+  be turned on and off at will during the run of a simulation.
+
+
+  Author:          Michael A. Heroux, 9222, SNL.
+  =======
+
+  Return code:     void
+  ============
+
+  Parameter list:
+  ===============
+
+  val:             Array containing the nonzero entries of the matrix.
+
+  indx,
+  bindx,
+  rpntr,
+  cpntr,
+  bpntr:           Arrays used for DMSR and DVBR sparse matrix storage.
+
+  proc_config:     Machine configuration.  proc_config[AZ_node] is the node
+                   number.  proc_config[AZ_N_procs] is the number of processors.
+
+  data_org:        Array containing information on the distribution of the
+                   matrix to this processor as well as communication parameters
+                   (see file params.txt).
+  b:               Right hand side values.
+
+*******************************************************************************/
+
+{
+
+  /* local variables */
+
+  int  iblk_row, i, j, ib1, ib2, n1, jblk, m1, ipoint, jpoint;
+  int  ival = 0;
+  int  num_total_nonzeros;
+  int  num_total_nodes, num_total_equations = 0;
+  int  Proc, Num_Proc;
+
+  /********** execution begins **********/
+  { FILE *AZ_capture_flag;
+  AZ_capture_flag = fopen("AZ_write_matrix_now","r");
+  if(AZ_capture_flag)
+    {
+
+      Proc               = proc_config[AZ_node];
+      Num_Proc           = proc_config[AZ_N_procs];
+      if (Num_Proc != 1)
+	printf("\nMatrix Capture Routine currently only works for one PE\n");
+      else {
+
+	AZ_print_sync_start(Proc, AZ_TRUE, proc_config);
+
+	{ FILE *AZ_capt_matrix, *AZ_capture_rhs, *AZ_capture_partition;
+
+	if (data_org[AZ_matrix_type] == AZ_VBR_MATRIX) {
+	  num_total_nodes    = data_org[AZ_N_int_blk]+data_org[AZ_N_bord_blk];
+	  num_total_equations = rpntr[num_total_nodes];
+	  num_total_nonzeros = indx[bpntr[num_total_nodes]];
+
+     /***** Print out the VBR partitioning information for the matrix *****/
+
+	  AZ_capture_partition = fopen("AZ_capture_partition.dat","a");
+	  
+	  fprintf(AZ_capture_partition, "Start of partition\n");
+
+	  for (i = 0; i < num_total_nodes + 1; i++)
+	    fprintf(AZ_capture_partition,"%d\n", rpntr[i]);
+
+	  fclose(AZ_capture_partition);
+
+     /***** Print out the VBR i,j,a(i,j) information for the matrix *****/
+
+	  AZ_capt_matrix = fopen("AZ_capture_matrix.dat","a");
+	  fprintf(AZ_capt_matrix, "Start of VBR matrix\n");
+	  fprintf(AZ_capt_matrix, "%d %d\n", 
+		  num_total_equations, num_total_nonzeros);
+
+	  /* loop over block rows */
+
+	  for (iblk_row = 0; iblk_row < num_total_nodes; iblk_row++) {
+
+	    /* the starting point row index of the current block */
+
+	    ib1 = rpntr[iblk_row];      
+
+	    /* number of rows in the current row block */
+
+	    m1 = rpntr[iblk_row+1] - ib1;
+
+	    /* starting index of current row block */
+
+	    ival = indx[bpntr[iblk_row]];
+
+	    /* loop over all the blocks in the current block-row */
+
+	    for (j = bpntr[iblk_row]; j < bpntr[iblk_row+1]; j++) {
+	      jblk = bindx[j];
+
+	      /* the starting point column index of the current block */
+
+	      ib2 = cpntr[jblk];
+
+	      /* number of columns in the current block */
+
+	      n1 = cpntr[jblk+1] - ib2;
+
+	      for (jpoint = 0; jpoint < n1; jpoint++)
+		for (ipoint = 0; ipoint < m1; ipoint++) {
+		  fprintf(AZ_capt_matrix,"%d %d %22.16e\n", 
+			  ib1+ipoint+1, 
+			  ib2+jpoint+1, 
+			  val[ival+jpoint*m1+ipoint]);
+	  
+		}
+
+	      ival += m1*n1;
+	    }
+	  }
+	  fclose(AZ_capt_matrix);
+	}
+
+	if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX) {
+	  num_total_equations = data_org[AZ_N_internal]+data_org[AZ_N_border];
+
+	  num_total_nonzeros = bindx[num_total_equations]-1;
+
+     /***** Print out the MSR i,j,a(i,j) information for the matrix *****/
+
+	  AZ_capt_matrix = fopen("AZ_capture_matrix.dat","a");
+#ifdef MB_MODIF
+	  fprintf(AZ_capt_matrix, "* Start of MSR matrix\n");
+#else
+	  fprintf(AZ_capt_matrix, "Start of MSR matrix\n");
+#endif
+	  fprintf(AZ_capt_matrix, "%d %d\n", 
+		  num_total_equations, num_total_nonzeros);
+	  for (i = 0; i < num_total_equations; i++) {
+	    fprintf(AZ_capt_matrix,"%d %d %22.16e\n", i+1, i+1, val[i]);
+	    for (j = bindx[i]; j < bindx[i+1]; j++ )
+	      fprintf(AZ_capt_matrix,"%d %d %22.16e\n", 
+		      i+1, bindx[j]+1, val[j]);
+	  }
+	  fclose(AZ_capt_matrix);
+	}
+
+     /***** Print out the RHS information for the matrix *****/
+
+	AZ_capture_rhs = fopen("AZ_capture_rhs.dat","a");
+	fprintf(AZ_capture_rhs, "Start of RHS\n");
+	for (i = 0; i < num_total_equations; i++)
+	  fprintf(AZ_capture_rhs,"%22.16e\n", b[i]);
+	fclose(AZ_capture_rhs);
+
+	AZ_print_sync_end(proc_config, AZ_TRUE);
+	}
+      }
+      fclose(AZ_capture_flag);
+    }
+  }
+} /* AZ_capture_matrix */
+     
+
+   
+struct submat_struct {
+   int Nsub_rows, *sub_rows, Nsub_cols, *sub_cols;
+};
+
+int AZ_subMSR_getrow(int[], double[], int[], AZ_MATRIX *, int, int[], int);
+void AZ_subMSR_matvec_mult (double *, double *, struct AZ_MATRIX_STRUCT *,
+	int *);
+int AZ_blockMSR_getrow(int[], double[], int[], AZ_MATRIX *, int, int[], 
+	int);
+void AZ_blockMSR_matvec_mult (double *, double *, struct AZ_MATRIX_STRUCT *,
+	 int *);
+
+
+AZ_MATRIX *AZ_submatrix_create(AZ_MATRIX *Amat, int Nsub_rows, int sub_rows[], 
+				int Nsub_cols, int sub_cols[], int proc_config[])
+{
+	int i;
+	
+	AZ_MATRIX *sub_matrix;
+	struct submat_struct *new_dataptr;
+
+	
+	sub_matrix = AZ_matrix_create(Nsub_rows);
+	
+	new_dataptr = (struct submat_struct *)malloc(sizeof(struct submat_struct));
+	
+	new_dataptr->Nsub_rows = Nsub_rows;
+	new_dataptr->Nsub_cols = Nsub_cols;
+	new_dataptr->sub_rows = (int *) malloc(Nsub_rows * sizeof(int));
+	new_dataptr->sub_cols = (int *) malloc(Nsub_cols * sizeof(int));
+
+	if ((new_dataptr->sub_rows == NULL) || (new_dataptr->sub_cols == NULL)) {
+		printf("couldn't allocate memory for submatrix rows or cols\n");
+		exit(-1);
+	}
+
+	for (i=0; i < Nsub_rows; i++)
+		new_dataptr->sub_rows[i]=sub_rows[i];
+	for (i = 0; i < Nsub_cols; i++)
+		new_dataptr->sub_cols[i]=sub_cols[i];
+	
+	sub_matrix->bindx = Amat->bindx;
+	sub_matrix->val = Amat->val;
+
+	AZ_set_MATFREE(sub_matrix, new_dataptr, AZ_subMSR_matvec_mult);
+	AZ_set_MATFREE_getrow(sub_matrix, new_dataptr, AZ_subMSR_getrow, NULL, 0, proc_config);
+
+	return(sub_matrix);
+}
+
+void AZ_submatrix_destroy(AZ_MATRIX **submat)
+{
+	int *sub_rows, *sub_cols;
+	struct submat_struct *data;
+
+	data = (struct submat_struct *) AZ_get_matvec_data(*submat); 
+
+	if (data != NULL) {
+		sub_rows = data->sub_rows;
+		sub_cols = data->sub_cols;
+		
+		free(sub_rows);
+		free(sub_cols);
+		free(data);
+	}
+
+	AZ_matrix_destroy(submat);
+}
+	
+int  AZ_subMSR_getrow(int columns[], double values[], int row_lengths[],
+											AZ_MATRIX *Amat, int N_requested_rows,
+											int requested_rows[], int allocated_space)
+{ 
+	int    *bindx, i, j, count = 0, fullrow, count_row;
+	int     Nsub_rows, Nsub_cols, *sub_rows, *sub_cols, subrow;
+	int     fullcol, subcol;
+	double *val;
+	struct submat_struct *dataptr;
+	
+	bindx = Amat->bindx;
+	val   = Amat->val;
+	dataptr = (struct submat_struct *) AZ_get_matvec_data(Amat);
+	sub_rows=dataptr->sub_rows;
+	sub_cols=dataptr->sub_cols;
+	Nsub_rows=dataptr->Nsub_rows;
+	Nsub_cols=dataptr->Nsub_cols;
+	
+	for (i = 0; i < N_requested_rows; i++) {
+		count_row = 0;
+		subrow  = requested_rows[i];  /* row number in the local (sub) matrix */
+		if (subrow < Nsub_rows)
+			fullrow = sub_rows[subrow]; /* row number in the full matrix (of which
+																		 this matrix is a part) */
+		else {
+			printf("getrow requested row %d of a submatrix with only %d rows\n",
+						 subrow, Nsub_rows);
+			exit(-1);
+		}
+
+		/* don't know the actual length of the returned row yet, but the length
+			 of the row in the full matrix is a decent upper bound */
+		row_lengths[i] = bindx[fullrow+1] - bindx[fullrow] + 1;
+		if (count+row_lengths[i] > allocated_space) return(0);
+		
+		/* put in diagonal element if it exists */
+		if (AZ_find_index(fullrow, sub_cols, Nsub_cols) >= 0) {
+			columns[count + count_row  ] = subrow;
+			values[count  + count_row++]  = val[fullrow];
+		}
+
+
+		/* off-diagonals */		
+		for (j = bindx[fullrow] ; j < bindx[fullrow+1] ; j++) {
+			fullcol = bindx[j];
+			subcol = AZ_find_index(fullcol, sub_cols, Nsub_cols);
+			if (subcol >= 0) {
+				columns[count + count_row] = subcol;
+				values[count  + count_row++] = val[j];
+			}
+		}
+		/* now we know the real row length, so set it */
+		row_lengths[i] = count_row;
+		count += count_row;
+	}
+	return(1);
+}
+
+void AZ_subMSR_matvec_mult (double *b, double *c, struct AZ_MATRIX_STRUCT *Amat, 
+														int proc_config[])
+{
+  double *val;
+  int *data_org, *bindx, subrow, Nrows, Ncols, *rows, *cols;
+  register int j, k, bindx_row;
+  int          nzeros, fullrow, subcol;
+	struct submat_struct *dataptr;
+
+
+	dataptr = (struct submat_struct *) AZ_get_matvec_data(Amat);
+
+	Nrows=dataptr->Nsub_rows;
+	Ncols=dataptr->Nsub_cols;
+	rows=dataptr->sub_rows;
+	cols=dataptr->sub_cols;
+  val = Amat->val;
+  bindx = Amat->bindx;
+  data_org = Amat->data_org;
+
+
+
+  /* exchange boundary info */
+
+  AZ_exchange_bdry(b, data_org, proc_config);
+
+  for (subrow = 0; subrow < Nrows; subrow++) {
+		fullrow = rows[subrow];  /* this row in the full matrix */
+
+    /* compute diagonal contribution if there is one*/
+		if (AZ_find_index(fullrow, cols, Ncols) >= 0)
+			*c = val[fullrow] * b[subrow];
+		else
+			*c = 0.0;
+
+    /* nonzero off diagonal contribution */
+
+    bindx_row = bindx[fullrow];
+    nzeros    = bindx[fullrow+1] - bindx_row;
+
+		/* loop through the nonzeros in the full matrix and check to see if they're
+			 in the submatrix.  If they are, add the appropriate product to the appropriate
+			 entry */
+    for (j = 0; j < nzeros; j++) {
+      k   = bindx_row + j;
+			subcol = AZ_find_index(bindx[k], cols, Ncols);
+			if (subcol >= 0)				
+				*c += val[k] * b[subcol];
+    }
+    c++;
+  }
+ 
+} /* AZ_subMSR_matvec_mult */
+
+
+
+struct blockmat_struct {
+	int Nblock_rows, Nblock_cols;
+	int *Nsub_rows, **sub_rows, *Nsub_cols, **sub_cols, Nsub_mats;
+	AZ_MATRIX **submat_list;
+	int **submat_locs;
+	int tot_Nrows;
+};
+
+
+AZ_MATRIX *AZ_blockmatrix_create(AZ_MATRIX **submat_list, int Nsub_mats, int **submat_locs, 
+				int Nblock_rows, int Nblock_cols, int Nsub_rows[], int **sub_rows, int Nsub_cols[], 
+				int **sub_cols, int proc_config[])
+		 /* submat_locs is a Nsub_mats x 2 array of integers - the first column gives the block
+				row of each submatrix and the second column gives the block column of each submatrix */
+{
+	int i, j, tot_Nrows;
+	
+	AZ_MATRIX *block_matrix;
+	struct blockmat_struct *new_dataptr;
+
+	
+	tot_Nrows=0;
+	for (i = 0; i < Nblock_rows; i++)
+		tot_Nrows += Nsub_rows[i];
+	
+	block_matrix = AZ_matrix_create(tot_Nrows);
+	
+	new_dataptr = (struct blockmat_struct *)malloc(sizeof(struct blockmat_struct));
+	
+	new_dataptr->tot_Nrows   = tot_Nrows;
+	new_dataptr->Nblock_rows = Nblock_rows;
+	new_dataptr->Nblock_cols = Nblock_cols;
+	new_dataptr->Nsub_mats   = Nsub_mats;
+
+	/* allocate space for all the things we need to copy over */
+	new_dataptr->submat_list = (AZ_MATRIX **) malloc(Nsub_mats * sizeof (AZ_MATRIX *));
+	new_dataptr->submat_locs = (int **)  malloc(Nsub_mats   * sizeof(int *));
+	new_dataptr->Nsub_rows   = (int *)  malloc(Nblock_rows * sizeof(int));
+	new_dataptr->Nsub_cols   = (int *)  malloc(Nblock_cols * sizeof(int));
+	new_dataptr->sub_rows    = (int **) malloc(Nblock_rows * sizeof(int *));
+	new_dataptr->sub_cols    = (int **) malloc(Nblock_cols * sizeof(int *));
+	
+	if (new_dataptr->sub_cols == NULL) {
+		printf("memory allocation error\n");
+		exit(-1);
+	}
+	
+	for (i = 0; i < Nsub_mats; i++) {
+		new_dataptr->submat_list[i]=submat_list[i];
+		new_dataptr->submat_locs[i]=(int *) malloc(2*sizeof(int));
+		if (new_dataptr->submat_locs[i] == NULL) {
+			printf("memory allocation error\n");
+			exit(-1);
+		}
+		new_dataptr->submat_locs[i][0]=submat_locs[i][0];
+		new_dataptr->submat_locs[i][1]=submat_locs[i][1];
+	}
+
+	for (i = 0; i < Nblock_rows; i++) {
+		new_dataptr->Nsub_rows[i] = Nsub_rows[i];
+		new_dataptr->sub_rows[i] = (int *) malloc(Nsub_rows[i] * sizeof(int));
+		if (new_dataptr->sub_rows[i] == NULL) {
+			printf("memory allocation error\n");
+			exit(-1);
+		}
+		
+		for (j = 0; j < Nsub_rows[i]; j++)
+			new_dataptr->sub_rows[i][j]=sub_rows[i][j];
+	}
+
+	for (i = 0; i < Nblock_cols; i++) {
+		new_dataptr->Nsub_cols[i] = Nsub_cols[i];
+		new_dataptr->sub_cols[i] = (int *) malloc(Nsub_cols[i] * sizeof(int));
+		if (new_dataptr->sub_cols[i] == NULL) {
+			printf("memory allocation error\n");
+			exit(-1);
+		}
+		
+		for (j = 0; j < Nsub_cols[i]; j++)
+			new_dataptr->sub_cols[i][j]=sub_cols[i][j];
+	}
+			
+	
+	AZ_set_MATFREE(block_matrix, new_dataptr, AZ_blockMSR_matvec_mult);
+	AZ_set_MATFREE_getrow(block_matrix, new_dataptr, AZ_blockMSR_getrow, NULL, 0, proc_config);
+
+
+	return(block_matrix);
+}
+
+void AZ_blockmatrix_destroy(AZ_MATRIX **blockmat)
+{
+	int **sub_rows, **sub_cols, *Nsub_rows, *Nsub_cols, **submat_locs;
+	int i, Nblock_rows, Nblock_cols, Nsub_mats;
+	struct blockmat_struct *data;
+	AZ_MATRIX **submat_list;
+
+	data = (struct blockmat_struct *) AZ_get_matvec_data(*blockmat);
+
+	sub_rows = data->sub_rows;
+	sub_cols = data->sub_cols;
+	Nsub_rows = data->Nsub_rows;
+	Nsub_cols = data->Nsub_cols;
+	Nblock_rows = data->Nblock_rows;
+	Nblock_cols = data->Nblock_cols;
+	Nsub_mats = data->Nsub_mats;
+	submat_locs = data->submat_locs;
+	submat_list = data->submat_list;
+
+	for (i=0; i < Nblock_rows; i++)
+		free(sub_rows[i]);
+	for (i=0; i < Nblock_cols; i++)
+		free(sub_cols[i]);
+	for (i=0; i < Nsub_mats; i++)
+		free(submat_locs[i]);
+
+	free(Nsub_rows);
+	free(Nsub_cols);
+	free(submat_list);
+	free(submat_locs);
+	free(sub_rows);
+	free(sub_cols);
+	free(data);
+	AZ_matrix_destroy(blockmat);
+}
+
+
+int  AZ_blockMSR_getrow(int cols[], double vals[], int row_lengths[],
+											AZ_MATRIX *Amat, int N_requested_rows,
+											int requested_rows[], int allocated_space)
+{ 
+	int    i, j, k, ctr, count = 0, block_row, block_col, count_row;
+	int     *Nsub_rows, **sub_rows, **sub_cols, full_req_row;
+	int    local_req_row, tmp_row_len, *tmpcols, Nsub_mats, **submat_locs;
+	int    tmp_alloc_space, max_nnz_per_row=500, tmp;
+	double *tmpvals;
+	struct blockmat_struct *dataptr;
+	struct AZ_MATRIX_STRUCT *submat;
+
+	dataptr = (struct blockmat_struct *) AZ_get_matvec_data(Amat);
+	sub_rows=dataptr->sub_rows;
+	sub_cols=dataptr->sub_cols;
+	Nsub_rows=dataptr->Nsub_rows;
+	Nsub_mats=dataptr->Nsub_mats;
+	submat_locs=dataptr->submat_locs;
+
+	tmpcols = (int *) malloc(max_nnz_per_row*sizeof(int));
+	tmpvals = (double *) malloc(max_nnz_per_row*sizeof(double));
+	if (tmpvals==NULL) {
+		printf("memory allocation error\n");
+		exit(-1);
+	}
+	tmp_alloc_space = max_nnz_per_row;
+
+
+	for (i = 0; i < N_requested_rows; i++) {
+		count_row = 0;
+		full_req_row  = requested_rows[i];
+		if (full_req_row > dataptr->tot_Nrows) {
+			printf("Error: requested row %d of a matrix with %d rows\n", 
+						 full_req_row+1, dataptr->tot_Nrows);
+			exit(-1);
+		}
+			
+		ctr=0;
+		/* figure out which submatrix this row is in and which row it is 
+			 within that submatrix */
+		local_req_row=AZ_find_index(full_req_row, sub_rows[0],Nsub_rows[0]);
+		while(local_req_row < 0) {
+			ctr ++;
+			local_req_row = AZ_find_index(full_req_row, sub_rows[ctr],
+																		Nsub_rows[ctr]);			
+		}
+
+		block_row=ctr;  /* the block row where the requesed row is located */
+
+		/* now loop through the submatrices and see which ones are in this block row: */
+		for (j = 0; j < Nsub_mats; j++)
+			if (submat_locs[j][0]==block_row) { /* this matrix contains part of the requested row */
+				submat = dataptr->submat_list[j];
+				/* figure out which block column this submatrix is in and get the relavent row */
+				block_col=submat_locs[j][1];
+				tmp = submat->getrow(tmpcols, tmpvals, &tmp_row_len, submat, 1, 
+														 &local_req_row, tmp_alloc_space);
+				/* in case we didn't allocate enough space for this row, keep checking the return
+					 value of getrow until we get a positive result */
+				while (tmp == 0) {
+					free(tmpcols);
+					free(tmpvals);
+					max_nnz_per_row=max_nnz_per_row*2+1;
+					tmp_alloc_space=max_nnz_per_row;
+					tmpcols=(int *)malloc(tmp_alloc_space*sizeof(int));
+					tmpvals=(double *)malloc(tmp_alloc_space*sizeof(double));
+					tmp = submat->getrow(tmpcols, tmpvals, &tmp_row_len, submat, 1, 
+															 &local_req_row, tmp_alloc_space);
+				}
+
+				for (k = 0; k < tmp_row_len; k++) {
+					/* if we still have space in the output vector, go through and insert each
+						 value from the submatrix row into the output vector */
+					if (allocated_space > count+count_row) {
+						cols[count+count_row]   = sub_cols[block_col][tmpcols[k]];
+						vals[count+count_row++] = tmpvals[k];
+					}
+					else {
+						free(tmpcols);
+						free(tmpvals);
+						return(0);
+					}
+				}
+			}
+		count += count_row;
+		row_lengths[i]=count_row;
+	}  
+
+	free(tmpcols);
+	free(tmpvals);
+	return(1);
+}
+
+void AZ_blockMSR_matvec_mult (double *b, double *c, struct AZ_MATRIX_STRUCT *Amat, 
+														int proc_config[])
+{
+	double *tmpb, *tmpc;
+  int *data_org, Nrows;
+  register int j;
+  int          i;
+	int *submat_loc, block_row, block_col, Nsub_mats, Nsub_rows, Nsub_cols;
+	struct blockmat_struct *dataptr;
+	AZ_MATRIX *submat;
+
+  data_org = Amat->data_org;
+
+
+  /* exchange boundary info */
+
+  AZ_exchange_bdry(b, data_org, proc_config);
+
+
+	dataptr = (struct blockmat_struct *) AZ_get_matvec_data(Amat);
+
+	Nrows=dataptr->tot_Nrows;
+	tmpb= (double *) malloc(Nrows * sizeof(double));
+	tmpc= (double *) malloc(Nrows * sizeof(double));
+	if (tmpc == NULL) {
+		printf("memory allocation error\n");
+		exit(-1);
+	}
+
+	for (i = 0; i < Nrows; i++)
+		c[i] = 0.0;
+	
+	Nsub_mats= dataptr->Nsub_mats;
+
+	/* loop through all the submatrices */
+	for (i = 0; i < Nsub_mats; i++) {
+		submat = dataptr->submat_list[i];
+		submat_loc=dataptr->submat_locs[i];
+		block_row = submat_loc[0];
+		block_col = submat_loc[1];
+		Nsub_rows = dataptr->Nsub_rows[block_row];
+		Nsub_cols = dataptr->Nsub_cols[block_col];
+		/* copy the rows of b that correspond to the columns of this
+			 submatrix into a temp vector so we can run matvec on it */
+		for (j = 0; j < Nsub_cols; j++)
+			tmpb[j]=b[dataptr->sub_cols[block_col][j]];
+
+		submat->matvec(tmpb, tmpc, submat, proc_config);
+
+		/* now add the result to the appropriate rows of the output
+			 vector */
+		for (j = 0; j < Nsub_rows; j++)
+			c[dataptr->sub_rows[block_row][j]] += tmpc[j];
+	}
+ 
+} /* AZ_blockMSR_matvec_mult */
+
+
+void AZ_abs_matvec_mult(double *b, double *c,AZ_MATRIX *Amat,int proc_config[])
+
+
+/******************************************************************************
+  c = |A||b|:
+  Sparse (square) overlapped matrix-vector multiply, using the  MSR
+  data structure .
+
+  Author:          Lydie Prevost, SNL, 1422
+  =======
+
+  Return code:     void
+  ============
+
+  Parameter list:
+  ===============
+
+
+  b:               Contains the vector b.
+
+  c:               Contains the result vector c.
+
+
+
+  options:         Determines specific solution method and other parameters.
+
+  params:          Drop tolerance and convergence tolerance info.
+
+  Amat:            Structure used to represent the matrix (see file az_aztec.h
+                   and Aztec User's Guide).
+
+  proc_config:     Machine configuration.  proc_config[AZ_node] is the node
+                   number.  proc_config[AZ_N_procs] is the number of processors.
+
+******************************************************************************/
+
+
+
+{
+  double *val, *x;
+  int *data_org, *bindx;
+  register int j, k, irow, bindx_row;
+  int          N, nzeros, num_blks, bpoff, rpoff, iblk_row, ibpntr, 
+               ibpntr_next = 0;
+  int          m1, n1, irpntr, irpntr_next, ib1, ii, jj, iblk_size, jblk;
+  double       *val_pntr, *c_pntr;
+  int          *rpntr, *cpntr, *bpntr;
+
+  val      = Amat->val; 
+  bindx    = Amat->bindx;
+  data_org = Amat->data_org;
+  N = data_org[AZ_N_internal] + data_org[AZ_N_border];
+
+  /* exchange boundary info */
+
+
+  AZ_exchange_bdry(b, data_org, proc_config);
+
+  if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX) {
+     for (irow = 0; irow < N; irow++) {
+        *c = fabs(val[irow]) * fabs(b[irow]);
+        bindx_row = bindx[irow];
+        nzeros    = bindx[irow+1] - bindx_row;
+        for (j = 0; j < nzeros; j++) {
+           k   = bindx_row + j;
+           *c += fabs(val[k]) * fabs(b[bindx[k]]);
+        }
+        c++;
+     }
+  }
+  else if (data_org[AZ_matrix_type] == AZ_VBR_MATRIX) {
+     cpntr = Amat->cpntr;
+     rpntr = Amat->rpntr;
+     bpntr = Amat->bpntr;
+     num_blks = data_org[AZ_N_int_blk] + data_org[AZ_N_bord_blk];
+
+     bpoff    = *bpntr;
+     rpoff    = *rpntr;
+     val_pntr = val;
+     for (j = 0; j < rpntr[num_blks] - rpoff; c[j++] = 0.0);
+     irpntr_next = *rpntr++;
+     bpntr++;
+     c          -= rpoff;
+
+     for (iblk_row = 0; iblk_row < num_blks; iblk_row++) {
+        irpntr      = irpntr_next;
+        irpntr_next = *rpntr++;
+        ibpntr      = ibpntr_next;
+        ibpntr_next = *bpntr++ - bpoff;
+        c_pntr      = c + irpntr;
+        m1          = irpntr_next - irpntr;
+
+        /* loop over each block in the current row block */
+
+        for (j = ibpntr; j < ibpntr_next; j++) {
+           jblk = *(bindx+j);
+           ib1  = *(cpntr+jblk);
+           n1   = cpntr[jblk + 1] - ib1;
+           iblk_size = m1*n1;
+           x    = b + ib1;
+           for (ii = 0; ii < m1; ii++) {
+              for (jj = 0; jj < n1; jj++) {
+                 c_pntr[ii] += fabs(val_pntr[n1*jj + ii])*fabs(x[jj]);
+              }
+           }
+           val_pntr += iblk_size;
+       }
+     }
+
+
+  }
+  else {
+     printf("Error: AZ_expected_value convergence options can only be done with MSR or VBR matrices\n");
+     AZ_exit(1);
+  }
+ 
+} /* AZ_abs_matvec_mult */

@@ -7,14 +7,14 @@
  *
  * $Author: tuminaro $
  *
- * $Date: 1996/06/24 19:25:06 $
+ * $Date: 1999/05/05 17:07:26 $
  *
- * $Revision: 1.9 $
+ * $Revision: 1.16 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_poly.c,v 1.9 1996/06/24 19:25:06 tuminaro Exp $";
+static char rcsid[] = "$Id: az_poly.c,v 1.16 1999/05/05 17:07:26 tuminaro Exp $";
 #endif
 
 
@@ -35,10 +35,8 @@ static char rcsid[] = "$Id: az_poly.c,v 1.9 1996/06/24 19:25:06 tuminaro Exp $";
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_polynomial_expansion(double val[], int indx[], int bindx[], int rpntr[],
-                          int cpntr[], int bpntr[], double z[], int options[],
-                          int data_org[], int proc_config[])
-
+void AZ_polynomial_expansion( double z[], int options[], int proc_config[], 
+                              AZ_PRECOND *precond )
 /*******************************************************************************
 
   Uses a Neuman series expansion to approximate the inverse of a matrix. The
@@ -64,27 +62,16 @@ void AZ_polynomial_expansion(double val[], int indx[], int bindx[], int rpntr[],
   Parameter list:
   ===============
 
-  val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
-
-  indx,
-  bindx,
-  rpntr,
-  cpntr,
-  bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
-
   z:               On input, is the residual(rhs) of the set of equations.
                    On output is the result.
 
   options:         Determines specific solution method and other parameters.
 
-  data_org:        Array containing information on the distribution of the
-                   matrix to this processor as well as communication parameters
-                   (see file params.txt).
-
   proc_config:     Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
+
+  precond:         Structure used to represent the preocnditioner
+                   (see az_aztec.h and Aztec User's Guide).
 
 *******************************************************************************/
 
@@ -99,33 +86,57 @@ void AZ_polynomial_expansion(double val[], int indx[], int bindx[], int rpntr[],
   static double    c[15], inv_omega;
   int              N, power;
   double          *w, *poly_temp;
+  int          *data_org, *bindx, *indx, *cpntr, *rpntr, *bpntr;
+  double       *val;
+
 
   /**************************** execution begins ******************************/
 
+
+  data_org = precond->Pmat->data_org;
+  val =  precond->Pmat->val;
+  bindx = precond->Pmat->bindx;
+  cpntr = precond->Pmat->cpntr;
+  indx = precond->Pmat->indx;
+  rpntr = precond->Pmat->rpntr;
+  bpntr = precond->Pmat->bpntr;
   N     = data_org[AZ_N_internal] + data_org[AZ_N_border];
   power = options[AZ_poly_ord];
 
-  w         = (double *) AZ_manage_memory((N+data_org[AZ_N_external])*
+  poly_temp = (double *) AZ_manage_memory(2*(N+data_org[AZ_N_external])*
                                           sizeof(double), AZ_ALLOC, AZ_SYS,
-                                          "w", &j);
-  poly_temp = (double *) AZ_manage_memory((N+data_org[AZ_N_external])*
-                                          sizeof(double), AZ_ALLOC, AZ_SYS,
-                                          "poly_temp", &j);
+                                          "poly mem", &j);
+  w         = &(poly_temp[N+data_org[AZ_N_external]]);
 
   if (options[AZ_precond] == AZ_Neumann ) param_flag = 0;
   else                                    param_flag = 1;
 
   if (options[AZ_pre_calc] < AZ_sys_reuse) {
-    lambda_max = AZ_gmax_matrix_norm(val, indx, bindx, rpntr, cpntr, bpntr,
-                                     proc_config, data_org);
 
-    /* change sign of lambda_max if diagonal contains only negative values */
+    if (precond->Pmat->data_org[AZ_matrix_type] == AZ_USER_MATRIX) {
+       lambda_max = precond->Pmat->matrix_norm;
+       if (lambda_max < 0.0) {
+           if (proc_config[AZ_node] == 0) {
+               printf("Error: Matrix norm not given. Use ");
+               printf("AZ_set_MATFREE_matrix_norm() to set it.\n");
+           }
+           exit(1);
+       }
+    }
+    else if (precond->Pmat->data_org[AZ_matrix_type] == AZ_MSR_MATRIX ||
+             precond->Pmat->data_org[AZ_matrix_type] == AZ_VBR_MATRIX ) {
 
-    AZ_change_sign(&lambda_max, val, indx, bindx, rpntr, cpntr, bpntr,
-                   data_org);
-
+       lambda_max = AZ_gmax_matrix_norm(val, indx, bindx, rpntr, cpntr, bpntr,
+                                        proc_config, data_org);
+   
+       /* change sign of lambda_max if diagonal contains only negative values */
+   
+       AZ_change_sign(&lambda_max, val, indx, bindx, rpntr, cpntr, bpntr,
+                      data_org);
+   
+    }
     inv_omega  = 1.0 / (0.55 * lambda_max);     /* 1.1*lambda_max/2 */
-
+   
     if (param_flag)
       AZ_get_poly_coefficients(power, lambda_max, c, param_flag);
   }
@@ -136,8 +147,9 @@ void AZ_polynomial_expansion(double val[], int indx[], int bindx[], int rpntr[],
     dcopy_(&N, z, &one, w, &one);
 
     for (p = power; p > 0; p--){
-      AZ_matvec_mult(val, indx, bindx, rpntr, cpntr, bpntr, z, poly_temp, 1,
-                     data_org);
+    precond->Pmat->matvec(z, poly_temp, precond->Pmat, proc_config);
+
+
       for (i = 0; i < N; i++)
         z[i] += w[i] - inv_omega * poly_temp[i];
     }
@@ -151,8 +163,9 @@ void AZ_polynomial_expansion(double val[], int indx[], int bindx[], int rpntr[],
     dscal_(&N, c+power, z, &one);
 
     for (p = power - 1; p >= 0; p--) {
-      AZ_matvec_mult(val, indx, bindx, rpntr, cpntr, bpntr, z, poly_temp, 1,
-                     data_org);
+    precond->Pmat->matvec(z, poly_temp, precond->Pmat, proc_config);
+
+
       cp = *(c+p);
       for (i = 0; i < N; i++)
         z[i] = cp * w[i] + poly_temp[i];
@@ -279,6 +292,7 @@ void AZ_get_poly_coefficients(int power, double b, double c[], int param_flag)
 /******************************************************************************/
 /******************************************************************************/
 /******************************************************************************/
+extern void AZ_funswill(int *);
 
 void AZ_change_sign(double *lambda_max, double val[], int indx[], int bindx[],
                     int rpntr[], int cpntr[], int bpntr[], int data_org[])
@@ -300,19 +314,19 @@ void AZ_change_sign(double *lambda_max, double val[], int indx[], int bindx[],
   lambda_max:      Estimate for the largest eigenvalue of the coefficient
                    matrix.
 
-  val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
+  val:             Array containing the nonzero entries of the matrix (see
+                   Aztec User's Guide).
 
   indx,
   bindx,
   rpntr,
   cpntr,
   bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
+                   file Aztec User's Guide).
 
   data_org:        Array containing information on the distribution of the
                    matrix to this processor as well as communication parameters
-                   (see file params.txt).
+                   (see Aztec User's Guide).
 
 *******************************************************************************/
 
@@ -325,7 +339,6 @@ void AZ_change_sign(double *lambda_max, double val[], int indx[], int bindx[],
 
   /* external functions */
 
-  extern void AZ_funswill(int *);
 
   /**************************** execution begins ******************************/
 

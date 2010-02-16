@@ -7,14 +7,14 @@
  *
  * $Author: tuminaro $
  *
- * $Date: 1996/07/30 20:45:02 $
+ * $Date: 2000/06/02 16:48:31 $
  *
- * $Revision: 1.16 $
+ * $Revision: 1.28 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_qmrcgs.c,v 1.16 1996/07/30 20:45:02 tuminaro Exp $";
+static char rcsid[] = "$Id: az_qmrcgs.c,v 1.28 2000/06/02 16:48:31 tuminaro Exp $";
 #endif
 
 
@@ -32,10 +32,9 @@ static char rcsid[] = "$Id: az_qmrcgs.c,v 1.16 1996/07/30 20:45:02 tuminaro Exp 
 #include <float.h>
 #include "az_aztec.h"
 
-void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
-              int bpntr[], double b[], double x[], double weight[],
-              int options[], double params[], int data_org[], int proc_config[],
-              double status[])
+void AZ_pqmrs(double b[], double x[], double weight[], int options[], 
+	double params[], int proc_config[], double status[], AZ_MATRIX *Amat, 
+	AZ_PRECOND *precond, struct AZ_CONVERGE_STRUCT *convergence_info)
 
 /*******************************************************************************
 
@@ -61,16 +60,6 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
   Parameter list:
   ===============
 
-  val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
-
-  indx,
-  bindx,
-  rpntr,
-  cpntr,
-  bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
-
   b:               Right hand side of linear system.
 
   x:               On input, contains the initial guess. On output contains the
@@ -81,10 +70,6 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
   options:         Determines specific solution method and other parameters.
 
   params:          Drop tolerance and convergence tolerance info.
-
-  data_org:        Array containing information on the distribution of the
-                   matrix to this processor as well as communication parameters
-                   (see file params.txt).
 
   proc_config:     Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
@@ -98,6 +83,11 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
                    -3:  Internal residual differs from the computed residual due
                         to a significant loss of precision.
 
+  Amat:            Structure used to represent the matrix (see az_aztec.h
+                   and Aztec User's Guide).
+  Oprecond:         Structure used to represent the preconditionner
+                   (see file az_aztec.h and Aztec User's Guide).
+
 *******************************************************************************/
 
 {
@@ -108,18 +98,35 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
   int             N, NN, converged, one = 1, iter= 1,r_avail = AZ_FALSE, j;
   int             precond_flag, print_freq, proc;
   int             brkdown_will_occur = AZ_FALSE;
-  double          alpha, beta = 0.0, true_scaled_r;
-  double          *ubar, *v, *r_cgs, *rtilda, *Aubar, *qbar, *Aqbar, *d, *Ad;
+  double          alpha, beta = 0.0, true_scaled_r=0.0;
+  double          *ubar, *v, *r_cgs, *rtilda, *Aubar, *qbar, *Aqbar, *d, *Ad = NULL;
   double          rhonm1, rhon, est_residual, actual_residual = -1.0;
   double          scaled_r_norm, sigma, epsilon, brkdown_tol = DBL_EPSILON;
   double          omega, c, norm_r_n_cgs, norm_r_nm1_cgs;
-  double          tau_m, nu_m, eta_m, init_time;
-  double          tau_mm1, nu_mm1 = 0.0, eta_mm1 = 0.0;
+  double          tau_m, nu_m, eta_m, init_time = 0.0;
+  double          tau_mm1, nu_mm1 = 0.0, eta_mm1 = 0.0, doubleone = 1.0;
   register double dtemp;
   double          W_norm = 0.0;
   int             offset = 0;
+  int          *data_org, str_leng, first_time = AZ_TRUE;
+  char         label[64],suffix[32], prefix[64];
 
   /**************************** execution begins ******************************/
+
+  sprintf(suffix," in qmrcgs%d",options[AZ_recursion_level]);
+                                                /* set string that will be used */
+                                                /* for manage_memory label      */
+  /* set prefix for printing */
+
+  str_leng = 0;
+  for (i = 0; i < 16; i++) prefix[str_leng++] = ' ';
+  for (i = 0 ; i < options[AZ_recursion_level]; i++ ) {
+     prefix[str_leng++] = ' '; prefix[str_leng++] = ' '; prefix[str_leng++] = ' ';
+     prefix[str_leng++] = ' '; prefix[str_leng++] = ' ';
+  }
+  prefix[str_leng] = '\0';
+
+  data_org = Amat->data_org;
 
   /* pull needed values out of parameter arrays */
 
@@ -131,28 +138,24 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
 
   /* allocate memory for required vectors */
 
-  NN     = (N + data_org[AZ_N_external])*sizeof(double) + 1;
-  /* +1 :make sure everyone allocates something */
+  NN     = N + data_org[AZ_N_external];
+  if (NN == 0) NN++; /* make sure everyone allocates something */
+  NN = NN + (NN%2);
+      /* make sure things are aligned on double words for paragon */
 
-  v      = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "v     in qmr",
-                                       &j);
-  ubar   = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "ubar  in qmr",
-                                       &j);
-  r_cgs  = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "r_cgs in qmr",
-                                       &j);
-  d      = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "d     in qmr",
-                                       &j);
-  qbar   = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "qbar  in qmr",
-                                       &j);
-  Aubar  = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "Aubar in qmr",
-                                       &j);
-  Aqbar  = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "Aqbar in qmr",
-                                       &j);
-  rtilda = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "rtilda in qmr",
-                                       &j);
 
-  AZ_compute_residual(val, indx, bindx, rpntr, cpntr, bpntr, b, x, r_cgs,
-                      data_org);
+  sprintf(label,"ubar%s",suffix);
+  ubar   = (double *) AZ_manage_memory(8*NN*sizeof(double),
+				      AZ_ALLOC,AZ_SYS,label,&j);
+  v      = &(ubar[1*NN]);
+  Aubar  = &(ubar[2*NN]);
+  d      = &(ubar[3*NN]);
+  qbar   = &(ubar[4*NN]);
+  rtilda = &(ubar[5*NN]);
+  Aqbar  = &(ubar[6*NN]);
+  r_cgs  = &(ubar[7*NN]);
+
+  AZ_compute_residual(b, x, r_cgs, proc_config, Amat);
 
   /* d, qbar, Aqbar, v = 0 */
 
@@ -174,15 +177,15 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
    *       est_residual.
    */
 
-  AZ_compute_global_scalars(val, indx, bindx, rpntr, cpntr, bpntr, x, b, r_cgs,
+  AZ_compute_global_scalars(Amat, x, b, r_cgs,
                             weight, &est_residual, &scaled_r_norm, options,
                             data_org, proc_config, &r_avail, r_cgs, rtilda,
-                            &rhon, AZ_FIRST_TIME);
+                            &rhon, convergence_info);
   true_scaled_r = scaled_r_norm;
 
   if ((options[AZ_output] != AZ_none) && (options[AZ_output] != AZ_last) &&
       (options[AZ_output] != AZ_warnings) && (proc == 0))
-    (void) fprintf(stdout, "\t\titer:    0\t\tresidual = %e\n", scaled_r_norm);
+    (void) fprintf(stdout, "%siter:    0           residual = %e\n",prefix,scaled_r_norm);
 
   norm_r_nm1_cgs = est_residual;
   tau_mm1        = norm_r_nm1_cgs;
@@ -191,7 +194,9 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
   /* Set up aux-vector if we need to compute the qmr residual */
 
   if (r_avail) {
-    Ad = (double *) AZ_manage_memory(NN, AZ_ALLOC, AZ_SYS, "Ad    in qmr", &j);
+    sprintf(label,"Ad%s",suffix);
+    Ad = (double *) AZ_manage_memory(NN*sizeof(double),AZ_ALLOC,
+				     AZ_SYS, label, &j);
     for (i = 0; i < N; i++) Ad[i] = 0.0;
   }
 
@@ -217,15 +222,14 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
     if (iter==1) init_time = AZ_second();
 
     if (precond_flag)
-      AZ_precondition(val, indx, bindx, rpntr, cpntr, bpntr, ubar, options,
-                      data_org, proc_config, params);
+    precond->prec_function(ubar,options,proc_config,params,Amat,precond);
 
     if (iter==1) status[AZ_first_precond] = AZ_second() - init_time;
 
     for (i = 0; i < N; i++) ubar[i] = ubar[i] + beta * qbar[i];
 
-    AZ_matvec_mult(val, indx, bindx, rpntr,cpntr, bpntr, ubar, Aubar, 1,
-                   data_org);
+    Amat->matvec(ubar, Aubar, Amat, proc_config);
+
     daxpy_(&N, &beta, v, &one, Aqbar, &one);
     for (i = 0; i < N; i++) v[i] = Aubar[i] + beta * Aqbar[i];
 
@@ -236,9 +240,10 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
 
         /* break down */
 
-        AZ_scale_true_residual(val, indx, bindx, rpntr, cpntr, bpntr, x, b, v,
+        AZ_scale_true_residual(x, b, v,
                                weight, &actual_residual, &true_scaled_r,
-                               options, data_org, proc_config);
+                               options, data_org, proc_config, Amat,
+			       convergence_info);
 
         AZ_terminate_status_print(AZ_breakdown, iter, status, est_residual,
                                   params, true_scaled_r, actual_residual,
@@ -258,12 +263,11 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
     dcopy_(&N, v, &one, qbar, &one);
 
     if (precond_flag)
-      AZ_precondition(val, indx, bindx, rpntr, cpntr, bpntr, qbar, options,
-                      data_org, proc_config, params);
+    precond->prec_function(qbar,options,proc_config,params,Amat,precond);
 
     for (i = 0; i < N; i++) qbar[i] = ubar[i] - alpha * qbar[i];
-    AZ_matvec_mult(val, indx, bindx, rpntr, cpntr, bpntr, qbar, Aqbar, 1,
-                   data_org);
+    Amat->matvec(qbar, Aqbar, Amat, proc_config);
+
     for (i = 0; i < N; i++) r_cgs[i] = r_cgs[i] - alpha*(Aubar[i] + Aqbar[i]);
 
     /* QMRS scaling and iterates weights 5.11 */
@@ -279,9 +283,9 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
     eta_m = c * c * alpha;
 
     if (brkdown_will_occur) {
-      AZ_scale_true_residual(val, indx, bindx, rpntr, cpntr, bpntr, x, b, v,
+      AZ_scale_true_residual(x, b, v,
                              weight, &actual_residual, &true_scaled_r, options,
-                             data_org, proc_config);
+                             data_org, proc_config, Amat, convergence_info);
 
       AZ_terminate_status_print(AZ_breakdown, iter, status, est_residual,
                                 params, true_scaled_r, actual_residual, options,
@@ -311,6 +315,11 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
 
     c     = 1.0 / sqrt(1.0 + nu_m * nu_m);
     tau_m = tau_mm1 * nu_m * c;
+
+    if (options[AZ_check_update_size]) {
+       eta_m = eta_m/(c*c*alpha);
+       for (i = 0; i < N; i++) ubar[i] = eta_m*d[i];
+    }
     eta_m = c * c * alpha;
 
     dtemp = nu_mm1 * nu_mm1 * eta_mm1 / alpha;
@@ -345,9 +354,10 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
       dtemp = sqrt((double) (2 * iter + 1));
 
       if ((scaled_r_norm < epsilon * dtemp) && !offset) {
-        AZ_scale_true_residual(val,indx, bindx, rpntr, cpntr, bpntr, x, b,
+        AZ_scale_true_residual(x, b,
                                Aubar, weight, &actual_residual, &true_scaled_r,
-                               options, data_org, proc_config);
+                               options, data_org, proc_config, Amat,
+			       convergence_info);
 
         if (tau_m != 0.0) W_norm = actual_residual / tau_m;
         if (W_norm < 1.0) W_norm = 1.0;
@@ -368,21 +378,29 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
      *       is passed in. Otherwise, ||r|| is taken as est_residual.
      */
 
-    AZ_compute_global_scalars(val, indx, bindx, rpntr, cpntr, bpntr, x, b,
+    AZ_compute_global_scalars(Amat, x, b,
                               Aubar, weight, &est_residual, &scaled_r_norm,
                               options, data_org, proc_config, &r_avail, rtilda,
-                              r_cgs, &rhon, AZ_NOT_FIRST);
+                              r_cgs, &rhon, convergence_info);
 
     if ( (iter%print_freq == 0) && proc == 0 )
-      (void) fprintf(stdout, "\t\titer: %4d\t\tresidual = %e\n", iter,
+      (void) fprintf(stdout, "%siter: %4d           residual = %e\n",prefix,iter,
                      scaled_r_norm);
 
     /* convergence tests */
 
-    if (scaled_r_norm < epsilon) {
-      AZ_scale_true_residual(val, indx, bindx, rpntr, cpntr, bpntr, x, b, Aubar,
+    converged = scaled_r_norm < epsilon;
+    if (options[AZ_check_update_size] & converged) {
+      daxpy_(&N, &doubleone , d, &one, ubar, &one); 
+      converged = AZ_compare_update_vs_soln(N, -1.,eta_m, ubar, x,
+                                           params[AZ_update_reduction],
+                                           options[AZ_output], proc_config, &first_time);
+    }
+
+    if (converged) {
+      AZ_scale_true_residual(x, b, Aubar,
                              weight, &actual_residual, &true_scaled_r, options,
-                             data_org, proc_config);
+                             data_org, proc_config, Amat,convergence_info);
 
       converged = true_scaled_r < params[AZ_tol];
 
@@ -414,7 +432,7 @@ void AZ_pqmrs(double val[], int indx[], int bindx[], int rpntr[], int cpntr[],
 
   if ( (iter%print_freq != 0) && (proc == 0) && (options[AZ_output] != AZ_none)
        && (options[AZ_output] != AZ_warnings))
-    (void) fprintf(stdout, "\t\titer: %4d\t\tresidual = %e\n", iter,
+    (void) fprintf(stdout, "%siter: %4d           residual = %e\n",prefix,iter,
                    scaled_r_norm);
 
   /* check if we exceeded maximum number of iterations */

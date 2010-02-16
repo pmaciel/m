@@ -7,14 +7,14 @@
  *
  * $Author: tuminaro $
  *
- * $Date: 1996/04/12 16:52:52 $
+ * $Date: 2001/06/01 19:56:40 $
  *
- * $Revision: 1.11 $
+ * $Revision: 1.25 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_converge.c,v 1.11 1996/04/12 16:52:52 tuminaro Exp $";
+static char rcsid[] = "$Id: az_converge.c,v 1.25 2001/06/01 19:56:40 tuminaro Exp $";
 #endif
 
 
@@ -28,9 +28,7 @@ static char rcsid[] = "$Id: az_converge.c,v 1.11 1996/04/12 16:52:52 tuminaro Ex
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
-#include <malloc.h>
 #include <float.h>
 #include "az_aztec.h"
 
@@ -38,13 +36,13 @@ static char rcsid[] = "$Id: az_converge.c,v 1.11 1996/04/12 16:52:52 tuminaro Ex
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
-                               int rpntr[], int cpntr[], int bpntr[],
+void AZ_compute_global_scalars(AZ_MATRIX *Amat, 
                                double x[], double b[], double r[], double w[],
                                double *r_norm, double *scaled_r_norm,
                                int options[], int data_org[], int proc_config[],
                                int *r_avail, double v1[], double v2[],
-                               double *value, int first_time)
+                               double *value, 
+			       struct AZ_CONVERGE_STRUCT *conv_info)
 
 /*******************************************************************************
 
@@ -70,14 +68,14 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
   ===============
 
   val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
+                   Aztec User's Guide).
 
   indx,
   bindx,
   rpntr,
   cpntr,
   bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
+                   file Aztec User's Guide).
 
   x:               The current solution vector.
 
@@ -95,7 +93,7 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
 
   data_org:        Array containing information on the distribution of the
                    matrix to this processor as well as communication parameters
-                   (see file params.txt).
+                   (see file Aztec User's Guide).
 
   proc_config:     Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
@@ -129,7 +127,7 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
 
   v1,v2,value:     If v1 != NULL, *value = <v1,v2> where <.,.> is the standard
                    inner product, v1 and v2 are double precision vectors of
-                   length data_org[AZ_num_int_unk] + data_org[AZ_num_bord_unk].
+                   length data_org[AZ_N_internal] + data_org[AZ_N_border].
 
                    This is used so that 1 inner product can be grouped together
                    with the inner products required for convergence (to save
@@ -146,15 +144,32 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
   /* local variables */
 
   register int  i;
-  static double r0, amax, b_norm, *temp;
+  static double *temp, *tr;
   static int    total_N;
   int           N, j;
-  double        dots[5], tmp[5];
+  double        dots[5], tmp[5], dmax, dtemp;
   int           count = 0, one = 1;
 
   /**************************** execution begins ******************************/
 
   N = data_org[AZ_N_internal] + data_org[AZ_N_border];
+  tr = r;
+
+  if (options[AZ_ignore_scaling]) {
+     if ( (conv_info->scaling->action == AZ_left_scaling) || 
+          (conv_info->scaling->action == AZ_left_and_right_scaling) ) {
+        if (!(*r_avail) && (conv_info->not_initialized==AZ_FALSE)) {
+           printf("AZ_compute_global_scalars: Error residual is needed to \
+		   ignore scaling in convergence tests\n");
+           exit(1);
+        }
+        *r_avail = AZ_TRUE;
+        tr = AZ_manage_memory(N*sizeof(double),AZ_ALLOC,AZ_SYS, "trinconv",&j);
+        for (i = 0; i < N; i++) tr[i] = r[i];
+        AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, tr, x, proc_config, 
+                   conv_info->scaling);
+     }
+  }
 
   if (v1 != NULL) dots[count++] = ddot_(&N, v1, &one, v2, &one);
 
@@ -162,10 +177,9 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
 
   switch (options[AZ_conv]) {
 
-  case AZ_r0:
-    if ((*r_avail) || first_time) {
-      dots[count] = ddot_(&N, r, &one, r, &one);
-
+  case AZ_noscaled:
+    if ((*r_avail) || conv_info->not_initialized) {
+      dots[count] = ddot_(&N, tr, &one, tr, &one);
       AZ_gdot_vec(count + 1, dots, tmp, proc_config);
       *r_norm = sqrt(dots[count]);
     }
@@ -173,26 +187,54 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
 
     if (v1 != NULL) *value = dots[0];
 
-    if (first_time) {
-      r0 = *r_norm;
-      if (fabs(r0) < DBL_MIN) r0 = 1.0;
+    *scaled_r_norm = *r_norm ;
+    break;
+
+
+  case AZ_r0:
+    if ((*r_avail) || conv_info->not_initialized) {
+      dots[count] = ddot_(&N, tr, &one, tr, &one);
+      AZ_gdot_vec(count + 1, dots, tmp, proc_config);
+      *r_norm = sqrt(dots[count]);
+    }
+    else if (v1 != NULL) AZ_gdot_vec(1, dots, tmp, proc_config);
+
+    if (v1 != NULL) *value = dots[0];
+
+    if (conv_info->not_initialized) {
+      conv_info->r0_norm = *r_norm;
+      if (fabs(conv_info->r0_norm) < DBL_MIN) conv_info->r0_norm = 1.0;
     }
 
-    *scaled_r_norm = *r_norm / r0;
+    *scaled_r_norm = *r_norm / conv_info->r0_norm;
     break;
 
   case AZ_rhs:
-    if (first_time) {
-      dots[count++] = ddot_(&N, b, &one, b, &one);
-      dots[count  ] = ddot_(&N, r, &one, r, &one);
+    if (conv_info->not_initialized) {
+      dots[count++] = ddot_(&N, tr, &one, tr, &one);
 
+      if  ( (options[AZ_ignore_scaling]) && (tr != r) ) {
+          for (i = 0; i < N; i++) tr[i] = b[i];
+          AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, tr, x, proc_config, 
+                     conv_info->scaling);
+      }
+      else tr = b;
+      dots[count  ] = ddot_(&N, tr, &one, tr, &one);
       AZ_gdot_vec(count + 1, dots, tmp, proc_config);
-      *r_norm = sqrt(dots[count]); count--;
-      b_norm  = sqrt(dots[count]);
+
+      conv_info->b_norm = sqrt(dots[count--]);
+      if (conv_info->b_norm == 0.0) {
+	if ((proc_config[AZ_node]==0) && (options[AZ_output] != AZ_none)) {
+	    printf("AZ_compute_global_scalars: ||rhs|| = 0. Can not use AZ_rhs as a convergence option.\n");
+            printf("Changing convergence criteria to use unscaled residual norm in convergence tests.\n");
+         }
+	 conv_info->b_norm = 1.;
+      }
+      *r_norm = sqrt(dots[count]); 
     }
 
     else if (*r_avail) {
-      dots[count] = ddot_(&N, r, &one, r, &one);
+      dots[count] = ddot_(&N, tr, &one, tr, &one);
 
       AZ_gdot_vec(count + 1, dots, tmp, proc_config);
       *r_norm = sqrt(dots[count]);
@@ -202,19 +244,60 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
 
     if (v1 != NULL) *value = dots[0];
 
-    *scaled_r_norm = *r_norm / b_norm;
+    *scaled_r_norm = *r_norm / conv_info->b_norm;
     break;
 
   case AZ_Anorm:
-    if (first_time) {
-      dots[count] = ddot_(&N, r, &one, r, &one);
+    if (conv_info->not_initialized) {
+      dots[count] = ddot_(&N, tr, &one, tr, &one);
 
       AZ_gdot_vec(count+1, dots, tmp, proc_config);
       *r_norm = sqrt(dots[count]);
-      amax    = AZ_gmax_matrix_norm(val, indx, bindx, rpntr, cpntr, bpntr,
-                                    proc_config, data_org);
+      if  ((options[AZ_ignore_scaling]) && (conv_info->scaling->A_norm == 0.0)&&
+           (options[AZ_scaling] != AZ_none) &&
+           (options[AZ_pre_calc] == AZ_reuse)) {
+         if ((proc_config[AZ_node]==0) && (options[AZ_output] != AZ_none)) {
+            printf("Warning:No previous definition for A_norm found. Was ");
+            printf("AZ_iterate used\n\tpreviously and was the scaling object ");
+            printf("passed in the same as for\n\tthis invokation of ");
 
-      if (fabs(amax) < DBL_MIN) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            printf("AZ_iterate()?\n");
+         }
+       }
+
+
+      if  ((options[AZ_ignore_scaling]) && (conv_info->scaling->A_norm != 0.0))
+         conv_info->A_norm = conv_info->scaling->A_norm;
+      else conv_info->A_norm = AZ_gmax_matrix_norm(Amat->val, Amat->indx, 
+				   Amat->bindx, Amat->rpntr, Amat->cpntr, 
+				   Amat->bpntr, proc_config, Amat->data_org);
+
+      if (fabs(conv_info->A_norm) < DBL_MIN) {
         AZ_p_error("Error: ||A||_infinity = 0\n\tSomething wrong with A\n",
                    proc_config[AZ_node]);
         exit(-1);
@@ -222,7 +305,7 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
     }
 
     else if (*r_avail) {
-      dots[count] = ddot_(&N, r, &one, r, &one);
+      dots[count] = ddot_(&N, tr, &one, tr, &one);
 
       AZ_gdot_vec(count + 1, dots, tmp, proc_config);
       *r_norm = sqrt(dots[count]);
@@ -232,7 +315,7 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
 
     if (v1 != NULL) *value = dots[0];
 
-    *scaled_r_norm = *r_norm / amax;
+    *scaled_r_norm = *r_norm / conv_info->A_norm;
     break;
 
   case AZ_sol:
@@ -243,35 +326,80 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
       *value = dots[0];
     }
 
-    if (first_time) {
-      amax = AZ_gmax_matrix_norm(val, indx, bindx, rpntr, cpntr, bpntr,
-                                 proc_config, data_org);
+    *r_norm = AZ_gvector_norm(N, -1, tr, proc_config);
+    if (conv_info->not_initialized) {
+      if  ((options[AZ_ignore_scaling]) && (conv_info->scaling->A_norm == 0.0)&&
+           (options[AZ_scaling] != AZ_none) &&
+           (options[AZ_pre_calc] == AZ_reuse)) {
+         if ((proc_config[AZ_node]==0) && (options[AZ_output] != AZ_none)) {
+            printf("Warning:No previous definition for A_norm found. Was ");
+            printf("AZ_iterate used\n\tpreviously and was the scaling object ");
+            printf("passed in the same as for\n\tthis invokation of ");
+            printf("AZ_iterate()?\n");
+         }
+       }
+      if  ((options[AZ_ignore_scaling]) && (conv_info->scaling->A_norm != 0.0))
+         conv_info->A_norm = conv_info->scaling->A_norm;
+      else conv_info->A_norm = AZ_gmax_matrix_norm(Amat->val, Amat->indx, 
+				   Amat->bindx, Amat->rpntr, Amat->cpntr, 
+				   Amat->bpntr, proc_config, Amat->data_org);
 
-      if (fabs(amax) < DBL_MIN) {
+      if (fabs(conv_info->A_norm) < DBL_MIN) {
         AZ_p_error("Error: ||A||_infinity = 0\n\tSomething wrong with A\n",
                    proc_config[AZ_node]);
         exit(-1);
       }
 
-      b_norm = AZ_gvector_norm(N, -1, b, proc_config);
-    }
 
-    *r_norm = AZ_gvector_norm(N, -1, r, proc_config);
-    *scaled_r_norm = *r_norm / (amax *
-                                AZ_gvector_norm(N, 1, x, proc_config) + b_norm);
+      if  ( (options[AZ_ignore_scaling]) && (tr != r) ) {
+          for (i = 0; i < N; i++) tr[i] = b[i];
+          AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, tr, x, proc_config, 
+                     conv_info->scaling);
+      }
+      else tr = b;
+      conv_info->b_norm = AZ_gvector_norm(N, -1, tr, proc_config);
+    }
+    
+    if ((options[AZ_ignore_scaling]) && 
+        (conv_info->scaling->action == AZ_left_and_right_scaling)) {
+          for (i = 0; i < N; i++) tr[i] = x[i];
+          AZ_scale_f(AZ_INVSCALE_SOL, Amat, options, b, tr, proc_config, 
+                     conv_info->scaling);
+    }
+    else tr =x;
+    *scaled_r_norm = *r_norm / (conv_info->A_norm *
+                      AZ_gvector_norm(N, 1, tr, proc_config)+conv_info->b_norm);
     break;
 
+  case AZ_expected_values:
+    *r_avail = AZ_TRUE;
+
+    dmax = 0.0; 
+    for (i = 0; i < N; i++) {
+       dtemp = fabs(tr[i]/w[i]);
+       if (dtemp > dmax) dmax = dtemp;
+    }
+    *scaled_r_norm = AZ_gmax_double(dmax, proc_config);
+
+    if (count != 0) AZ_gdot_vec(count, dots, tmp, proc_config);
+
+    if (v1 != NULL) *value = dots[0];
+
+    *r_norm        = *scaled_r_norm;
+    break;
   case AZ_weighted:
     *r_avail = AZ_TRUE;
 
-    if (first_time) {
-      temp = AZ_manage_memory((N + data_org[AZ_N_external]) * sizeof(double),
-                              AZ_ALLOC, AZ_SYS,
-                              "temp in AZ_compute_global_scalars", &j);
+    temp = AZ_manage_memory((N + data_org[AZ_N_external]) * sizeof(double),
+                             AZ_ALLOC, AZ_SYS,
+                             "temp in AZ_compute_global_scalars", &j);
+    if (conv_info->not_initialized) {
       total_N = AZ_gsum_int(N, proc_config);
+      conv_info->total_N = (double) total_N;
     }
+    total_N = conv_info->total_N;
 
-    for (i = 0; i < N; i++) temp[i] = r[i] / w[i];
+    for (i = 0; i < N; i++) temp[i] = tr[i] / w[i];
 
     dots[count] = ddot_(&N, temp, &one, temp, &one);
 
@@ -290,6 +418,7 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
     }
     exit(-1);
   }
+  conv_info->not_initialized = AZ_FALSE;
 
 } /* AZ_compute_global_scalars */
 
@@ -297,11 +426,13 @@ void AZ_compute_global_scalars(double val[], int indx[], int bindx[],
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_scale_true_residual(double val[], int indx[], int bindx[], int rpntr[],
-                            int cpntr[], int bpntr[], double x[], double b[],
+void AZ_scale_true_residual( double x[], double b[],
                             double v[], double w[], double *actual_residual,
                             double *scaled_r_norm, int options[],
-                            int data_org[], int proc_config[])
+                            int data_org[], int proc_config[],
+                            AZ_MATRIX *Amat, 
+			    struct AZ_CONVERGE_STRUCT *conv_info)
+
 
 /*******************************************************************************
 
@@ -318,14 +449,14 @@ void AZ_scale_true_residual(double val[], int indx[], int bindx[], int rpntr[],
   ===============
 
   val:             Array containing the nonzero entries of the matrix (see file
-                   params.txt).
+                   Aztec User's Guide).
 
   indx,
   bindx,
   rpntr,
   cpntr,
   bpntr:           Arrays used for DMSR and DVBR sparse matrix storage (see
-                   file params.txt).
+                   file Aztec User's Guide).
 
   x:               The current solution vector.
 
@@ -343,7 +474,7 @@ void AZ_scale_true_residual(double val[], int indx[], int bindx[], int rpntr[],
 
   data_org:        Array containing information on the distribution of the
                    matrix to this processor as well as communication parameters
-                   (see file params.txt).
+                   (see file Aztec User's Guide).
 
   proc_config:     Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
@@ -360,13 +491,37 @@ void AZ_scale_true_residual(double val[], int indx[], int bindx[], int rpntr[],
 
   /* calculate true residual */
 
-  AZ_compute_residual(val, indx, bindx, rpntr, cpntr, bpntr, b, x, v, data_org);
+  AZ_compute_residual(b, x, v, proc_config, Amat);
 
   /* compute scaled residual */
 
-  AZ_compute_global_scalars(val, indx, bindx, rpntr, cpntr, bpntr, x, b, v, w,
+  AZ_compute_global_scalars(Amat, x, b, v, w,
                             actual_residual, scaled_r_norm, options, data_org,
                             proc_config,&r_avail, (double *) 0, (double *) 0,
-                            (double *) 0, AZ_NOT_FIRST);
+                            (double *) 0, conv_info);
 
 } /* AZ_scale_true_residual */
+
+struct AZ_CONVERGE_STRUCT *AZ_converge_create()
+{
+   struct AZ_CONVERGE_STRUCT *temp;
+
+   temp = (struct AZ_CONVERGE_STRUCT *) AZ_allocate(sizeof(struct 
+                                                    AZ_CONVERGE_STRUCT));
+   if (temp == NULL) {
+      printf("AZ_converge_create: Not enough space\n");
+      exit(1);
+   }
+   temp->r0_norm = 0.0;
+   temp->A_norm  = 0.0;
+   temp->b_norm  = 0.0;
+   temp->scaling = NULL;
+   temp->total_N       = 0;
+   temp->not_initialized = AZ_TRUE;
+   return temp;
+}
+void AZ_converge_destroy(struct AZ_CONVERGE_STRUCT **temp)
+{
+   if (*temp != NULL) AZ_free(*temp);
+   *temp = NULL;
+}

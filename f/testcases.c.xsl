@@ -78,41 +78,89 @@
    <td>
     <xsl:for-each select="system_coupled">
      <table><thead><tr><td class="h" colspan="2">system_coupled</td></tr></thead><tbody>
-      <tr><td class="h">type    </td><td><xsl:value-of select="@type"    /></td></tr>
-      <tr><td class="h">mtype   </td><td><xsl:value-of select="@mtype"   /></td></tr>
-      <tr><td class="h">output  </td><td><xsl:value-of select="@output"  /></td></tr>
-      <tr><td class="h">precond </td><td><xsl:value-of select="@precond" /></td></tr>
-      <tr><td class="h">overlap </td><td><xsl:value-of select="@overlap" /></td></tr>
-      <tr><td class="h">solver  </td><td><xsl:value-of select="@solver"  /></td></tr>
-      <tr><td class="h">max_iter</td><td><xsl:value-of select="@max_iter"/></td></tr>
-      <tr><td class="h">kspace  </td><td><xsl:value-of select="@kspace"  /></td></tr>
-      <tr><td class="h">tol     </td><td><xsl:value-of select="@tol"     /></td></tr>
+      <tr><td class="h">type      </td><td><xsl:value-of select="@type"      /></td></tr>
+      <tr><td class="h">mtype     </td><td><xsl:value-of select="@mtype"     /></td></tr>
+      <!-- aztec options -->
+      <tr><td class="h">solver    </td><td><xsl:value-of select="@solver"    /></td></tr>
+      <tr><td class="h">scaling   </td><td><xsl:value-of select="@scaling"   /></td></tr>
+      <tr><td class="h">precond   </td><td><xsl:value-of select="@precond"   /></td></tr>
+      <tr><td class="h">subdomain_solve</td><td><xsl:value-of select="@subdomain_solve"/></td></tr>
+      <tr><td class="h">conv      </td><td><xsl:value-of select="@conv"      /></td></tr>
+      <tr><td class="h">output    </td><td><xsl:value-of select="@output"    /></td></tr>
+      <tr><td class="h">pre_calc  </td><td><xsl:value-of select="@pre_calc"  /></td></tr>
+      <tr><td class="h">graph_fill</td><td><xsl:value-of select="@graph_fill"/></td></tr>
+      <tr><td class="h">max_iter  </td><td><xsl:value-of select="@max_iter"  /></td></tr>
+      <tr><td class="h">poly_ord  </td><td><xsl:value-of select="@poly_ord"  /></td></tr>
+      <tr><td class="h">overlap   </td><td><xsl:value-of select="@overlap"   /></td></tr>
+      <tr><td class="h">type_overlap   </td><td><xsl:value-of select="@type_overlap"   /></td></tr>
+      <tr><td class="h">kspace    </td><td><xsl:value-of select="@kspace"    /></td></tr>
+      <tr><td class="h">reorder   </td><td><xsl:value-of select="@reorder"   /></td></tr>
+      <tr><td class="h">keep_info </td><td><xsl:value-of select="@keep_info" /></td></tr>
+      <tr><td class="h">orthog    </td><td><xsl:value-of select="@orthog"    /></td></tr>
+      <tr><td class="h">aux_vec   </td><td><xsl:value-of select="@aux_vec"   /></td></tr>
+      <!-- aztec params -->
+      <tr><td class="h">tol      </td><td><xsl:value-of select="@tol"      /></td></tr>
+      <tr><td class="h">drop     </td><td><xsl:value-of select="@drop"     /></td></tr>
+      <tr><td class="h">ilut_fill</td><td><xsl:value-of select="@ilut_fill"/></td></tr>
+      <tr><td class="h">omega    </td><td><xsl:value-of select="@omega"    /></td></tr>
      </tbody></table>
     </xsl:for-each>
     <xsl:for-each select="system_scalar">
      <table><thead><tr><td class="h" colspan="2">system_scalar</td></tr></thead><tbody>
-      <tr><td class="h">type    </td><td><xsl:value-of select="@type"    /></td></tr>
-      <tr><td class="h">mtype   </td><td><xsl:value-of select="@mtype"   /></td></tr>
-      <tr><td class="h">output  </td><td><xsl:value-of select="@output"  /></td></tr>
-      <tr><td class="h">precond </td><td><xsl:value-of select="@precond" /></td></tr>
-      <tr><td class="h">overlap </td><td><xsl:value-of select="@overlap" /></td></tr>
-      <tr><td class="h">solver  </td><td><xsl:value-of select="@solver"  /></td></tr>
-      <tr><td class="h">max_iter</td><td><xsl:value-of select="@max_iter"/></td></tr>
-      <tr><td class="h">kspace  </td><td><xsl:value-of select="@kspace"  /></td></tr>
-      <tr><td class="h">tol     </td><td><xsl:value-of select="@tol"     /></td></tr>
+      <tr><td class="h">type      </td><td><xsl:value-of select="@type"      /></td></tr>
+      <tr><td class="h">mtype     </td><td><xsl:value-of select="@mtype"     /></td></tr>
+      <!-- aztec options -->
+      <tr><td class="h">solver    </td><td><xsl:value-of select="@solver"    /></td></tr>
+      <tr><td class="h">scaling   </td><td><xsl:value-of select="@scaling"   /></td></tr>
+      <tr><td class="h">precond   </td><td><xsl:value-of select="@precond"   /></td></tr>
+      <tr><td class="h">subdomain_solve</td><td><xsl:value-of select="@subdomain_solve"/></td></tr>
+      <tr><td class="h">conv      </td><td><xsl:value-of select="@conv"      /></td></tr>
+      <tr><td class="h">output    </td><td><xsl:value-of select="@output"    /></td></tr>
+      <tr><td class="h">pre_calc  </td><td><xsl:value-of select="@pre_calc"  /></td></tr>
+      <tr><td class="h">graph_fill</td><td><xsl:value-of select="@graph_fill"/></td></tr>
+      <tr><td class="h">max_iter  </td><td><xsl:value-of select="@max_iter"  /></td></tr>
+      <tr><td class="h">poly_ord  </td><td><xsl:value-of select="@poly_ord"  /></td></tr>
+      <tr><td class="h">overlap   </td><td><xsl:value-of select="@overlap"   /></td></tr>
+      <tr><td class="h">type_overlap   </td><td><xsl:value-of select="@type_overlap"   /></td></tr>
+      <tr><td class="h">kspace    </td><td><xsl:value-of select="@kspace"    /></td></tr>
+      <tr><td class="h">reorder   </td><td><xsl:value-of select="@reorder"   /></td></tr>
+      <tr><td class="h">keep_info </td><td><xsl:value-of select="@keep_info" /></td></tr>
+      <tr><td class="h">orthog    </td><td><xsl:value-of select="@orthog"    /></td></tr>
+      <tr><td class="h">aux_vec   </td><td><xsl:value-of select="@aux_vec"   /></td></tr>
+      <!-- aztec params -->
+      <tr><td class="h">tol      </td><td><xsl:value-of select="@tol"      /></td></tr>
+      <tr><td class="h">drop     </td><td><xsl:value-of select="@drop"     /></td></tr>
+      <tr><td class="h">ilut_fill</td><td><xsl:value-of select="@ilut_fill"/></td></tr>
+      <tr><td class="h">omega    </td><td><xsl:value-of select="@omega"    /></td></tr>
      </tbody></table>
     </xsl:for-each>
     <xsl:for-each select="system_turb">
      <table><thead><tr><td class="h" colspan="2">system_turb</td></tr></thead><tbody>
-      <tr><td class="h">type    </td><td><xsl:value-of select="@type"    /></td></tr>
-      <tr><td class="h">mtype   </td><td><xsl:value-of select="@mtype"   /></td></tr>
-      <tr><td class="h">output  </td><td><xsl:value-of select="@output"  /></td></tr>
-      <tr><td class="h">precond </td><td><xsl:value-of select="@precond" /></td></tr>
-      <tr><td class="h">overlap </td><td><xsl:value-of select="@overlap" /></td></tr>
-      <tr><td class="h">solver  </td><td><xsl:value-of select="@solver"  /></td></tr>
-      <tr><td class="h">max_iter</td><td><xsl:value-of select="@max_iter"/></td></tr>
-      <tr><td class="h">kspace  </td><td><xsl:value-of select="@kspace"  /></td></tr>
-      <tr><td class="h">tol     </td><td><xsl:value-of select="@tol"     /></td></tr>
+      <tr><td class="h">type      </td><td><xsl:value-of select="@type"      /></td></tr>
+      <tr><td class="h">mtype     </td><td><xsl:value-of select="@mtype"     /></td></tr>
+      <!-- aztec options -->
+      <tr><td class="h">solver    </td><td><xsl:value-of select="@solver"    /></td></tr>
+      <tr><td class="h">scaling   </td><td><xsl:value-of select="@scaling"   /></td></tr>
+      <tr><td class="h">precond   </td><td><xsl:value-of select="@precond"   /></td></tr>
+      <tr><td class="h">subdomain_solve</td><td><xsl:value-of select="@subdomain_solve"/></td></tr>
+      <tr><td class="h">conv      </td><td><xsl:value-of select="@conv"      /></td></tr>
+      <tr><td class="h">output    </td><td><xsl:value-of select="@output"    /></td></tr>
+      <tr><td class="h">pre_calc  </td><td><xsl:value-of select="@pre_calc"  /></td></tr>
+      <tr><td class="h">graph_fill</td><td><xsl:value-of select="@graph_fill"/></td></tr>
+      <tr><td class="h">max_iter  </td><td><xsl:value-of select="@max_iter"  /></td></tr>
+      <tr><td class="h">poly_ord  </td><td><xsl:value-of select="@poly_ord"  /></td></tr>
+      <tr><td class="h">overlap   </td><td><xsl:value-of select="@overlap"   /></td></tr>
+      <tr><td class="h">type_overlap   </td><td><xsl:value-of select="@type_overlap"   /></td></tr>
+      <tr><td class="h">kspace    </td><td><xsl:value-of select="@kspace"    /></td></tr>
+      <tr><td class="h">reorder   </td><td><xsl:value-of select="@reorder"   /></td></tr>
+      <tr><td class="h">keep_info </td><td><xsl:value-of select="@keep_info" /></td></tr>
+      <tr><td class="h">orthog    </td><td><xsl:value-of select="@orthog"    /></td></tr>
+      <tr><td class="h">aux_vec   </td><td><xsl:value-of select="@aux_vec"   /></td></tr>
+      <!-- aztec params -->
+      <tr><td class="h">tol      </td><td><xsl:value-of select="@tol"      /></td></tr>
+      <tr><td class="h">drop     </td><td><xsl:value-of select="@drop"     /></td></tr>
+      <tr><td class="h">ilut_fill</td><td><xsl:value-of select="@ilut_fill"/></td></tr>
+      <tr><td class="h">omega    </td><td><xsl:value-of select="@omega"    /></td></tr>
      </tbody></table>
     </xsl:for-each>
    </td>

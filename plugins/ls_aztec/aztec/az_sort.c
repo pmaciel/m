@@ -5,16 +5,16 @@
  *
  * $RCSfile: az_sort.c,v $
  *
- * $Author: sahutch $
+ * $Author: tuminaro $
  *
- * $Date: 1996/01/23 00:22:32 $
+ * $Date: 1999/10/07 00:07:43 $
  *
- * $Revision: 1.10 $
+ * $Revision: 1.15 $
  *
  * $Name:  $
  *====================================================================*/
 #ifndef lint
-static char rcsid[] = "$Id: az_sort.c,v 1.10 1996/01/23 00:22:32 sahutch Exp $";
+static char rcsid[] = "$Id: az_sort.c,v 1.15 1999/10/07 00:07:43 tuminaro Exp $";
 #endif
 
 
@@ -28,11 +28,21 @@ static char rcsid[] = "$Id: az_sort.c,v 1.10 1996/01/23 00:22:32 sahutch Exp $";
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <memory.h>
 #include "az_aztec.h"
+#include <string.h>
 
 int divider;
 int type_size;
+
+/* ----------------- External Definitions ---------------------------------*/
+
+extern void move_dble(double first[], double second[], unsigned int 
+		      first_length, unsigned int second_length);
+
+extern void move_ints(int first[], int second[], unsigned int first_length, 
+               unsigned int second_length);
+
+/* ------------------------------------------------------------------------*/
 
 /******************************************************************************/
 /******************************************************************************/
@@ -42,7 +52,7 @@ int AZ_quick_find(int key, int list[], int length, int shift, int bins[])
 
 /*******************************************************************************
 
-  Find 'key' in 'list' and return the index number. On exit, AZ_find_index()
+  Find 'key' in 'list' and return the indices number. On exit, AZ_find_index()
   returns:
             -1 ==> key not found
              i ==> list[i] = key
@@ -62,7 +72,7 @@ int AZ_quick_find(int key, int list[], int length, int shift, int bins[])
 
   length:          Length of list.
 
-  shift:           Integer used to compute an index into bins[]. Computed by
+  shift:           Integer used to compute an indices into bins[]. Computed by
                    AZ_init_quick_find().
 
   bins:            Used to obtain a sublist where should contain 'key'. In
@@ -135,7 +145,7 @@ void AZ_init_quick_find(int list[], int length, int *shift, int *bins)
 
   length:          Length of list.
 
-  shift:           Integer used to compute an index into bins[]. Computed by
+  shift:           Integer used to compute an indices into bins[]. Computed by
                    AZ_init_quick_find().
 
   bins:            Used to obtain a sublist where should contain 'key'. In
@@ -435,21 +445,21 @@ void AZ_sort(int list[], int N, int list2[], double list3[])
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_sortqlists(char a[], int b[], int index[], int length, int type_length,
+void AZ_sortqlists(char a[], int b[], int indices[], int length, int type_length,
                 int ind_length)
 
 /*******************************************************************************
 
   Sort the set of sublists in a[]. In particular a[] contains a sequence of k
   sublists (the length of sublist j is given by b[j] unless b=0 then the list is
-  of size 1). The array index[] contains the numbers 0 to k-1. On output, the
+  of size 1). The array indices[] contains the numbers 0 to k-1. On output, the
   sublists in a[] are ordered such that the jth list on input becomes the
-  index[j]th list on output.
+  indices[j]th list on output.
 
-  IMPORTANT: This routine assumes that index[] contains 2 sequencies of numbers
+  IMPORTANT: This routine assumes that indices[] contains 2 sequencies of numbers
   that are ordered but intertwined. For example,
 
-         index:   4 5 0 6 1 2 3 7
+         indices:   4 5 0 6 1 2 3 7
          seq 1 =>     0   1 2 3
          seq 2 => 4 5   6       7
 
@@ -467,15 +477,15 @@ void AZ_sortqlists(char a[], int b[], int index[], int length, int type_length,
                    a[b[0]-->b[0]+b[1]-1], list 2 consists of
                    a[b[0]+b[1]-->b[0]+b[1]+b[2]-1], etc.
                    On output, a[] is reordered such that list j on input
-                   becomes list index[j].
+                   becomes list indices[j].
 
   b:               b[i] is the length of list i in a[]. If b = 0 then all the
                    sublists are of length 1.
 
-  index:           Contains the numbers 0 --> number of lists. It is assumed
-                   that index[] contains 2 sequencies of numbers that are
+  indices:           Contains the numbers 0 --> number of lists. It is assumed
+                   that indices[] contains 2 sequencies of numbers that are
                    ordered but intertwined as discussed in the comments above.
-                   On output, list j on input becomes list index[j].
+                   On output, list j on input becomes list indices[j].
 
   length:          The length of a[].
 
@@ -499,14 +509,14 @@ void AZ_sortqlists(char a[], int b[], int index[], int length, int type_length,
   type_size = type_length;
 
   /*
-   * Divider is the index of the first sublist in sequence 2.  In the example
+   * Divider is the indices of the first sublist in sequence 2.  In the example
    * above, divider = 4.
    */
 
   divider = -1;
   for (i = 0; i < ind_length; i++) {
-    if (index[i] != next_ind) {
-      divider = index[i];
+    if (indices[i] != next_ind) {
+      divider = indices[i];
       break;
     }
 
@@ -520,37 +530,37 @@ void AZ_sortqlists(char a[], int b[], int index[], int length, int type_length,
     buf_len = type_length * length/2;
     while (abuffer == 0) {
       buf_len = buf_len / 2;
-      abuffer = (char *) calloc(buf_len, sizeof(char));
+      abuffer = (char *) AZ_allocate(buf_len*sizeof(char));
     }
 
     /*
      * Effectively merge together lists that are already in the correct order.
      * That is, two consecutive lists which are also to appear consecutively on
      * output are grouped together. This grouping is accomplished by changing
-     * the arrays: index and b.
+     * the arrays: indices and b.
      */
 
-    AZ_change_it(index, ind_length, &the_first, &real_lists, b);
+    AZ_change_it(indices, ind_length, &the_first, &real_lists, b);
 
     /* now sort the merged sublists */
 
     if (type_length == 4)
-      AZ_sort_ints(a, index, 0, type_length*length-1, b, &midpoint, real_lists,
+      AZ_sort_ints(a, indices, 0, type_length*length-1, b, &midpoint, real_lists,
                    abuffer, buf_len, the_first, 0);
     else if (type_length == 8)
-      AZ_sort_dble(a, index, 0, type_length*length-1, b, &midpoint, real_lists,
+      AZ_sort_dble(a, indices, 0, type_length*length-1, b, &midpoint, real_lists,
                    abuffer, buf_len, the_first, 0);
     else
       (void) fprintf(stderr, "ERROR: unknown type size in AZ_sortqlists\n");
 
-    free(abuffer);
+    AZ_free(abuffer);
 
     /*
-     * Reverse the changes made by AZ_change_it() so that the arrays: index and
+     * Reverse the changes made by AZ_change_it() so that the arrays: indices and
      * b have the same values that they had before AZ_change_it()
      */
 
-    AZ_reverse_it(index, ind_length, the_first, real_lists, b);
+    AZ_reverse_it(indices, ind_length, the_first, real_lists, b);
   }
 
 } /* AZ_sortqlists */
@@ -559,8 +569,8 @@ void AZ_sortqlists(char a[], int b[], int index[], int length, int type_length,
 /******************************************************************************/
 /******************************************************************************/
 
-void move_dble(double first[], double second[], int first_length,
-               int second_length)
+void move_dble(double first[], double second[], unsigned int first_length,
+               unsigned int second_length)
 
 /*******************************************************************************
 
@@ -605,6 +615,7 @@ void move_dble(double first[], double second[], int first_length,
 
   /**************************** execution begins ******************************/
 
+  if ((first_length == 0) || (second_length == 0)) working = 0;
   while (working) {
     if (first_length < second_length) tlength = first_length;
     else                              tlength = second_length;
@@ -634,7 +645,8 @@ void move_dble(double first[], double second[], int first_length,
 /******************************************************************************/
 /******************************************************************************/
 
-void move_ints(int first[], int second[], int first_length, int second_length)
+void move_ints(int first[], int second[], unsigned int first_length, 
+               unsigned int second_length)
 
 /*******************************************************************************
 
@@ -678,6 +690,7 @@ void move_ints(int first[], int second[], int first_length, int second_length)
 
   /**************************** execution begins ******************************/
 
+  if ((first_length == 0) || (second_length == 0)) working = 0;
   while (working) {
     if (first_length < second_length) tlength = first_length;
     else                              tlength = second_length;
@@ -726,10 +739,10 @@ void AZ_change_it(int indx[], int length, int *first, int *total, int b[])
   ===============
 
   indx:            On input, indx[] contains the numbers 0 --> 'length'-1. It is
-                   assumed that index[] contains 2 sequencies of numbers that
+                   assumed that indices[] contains 2 sequencies of numbers that
                    are ordered but intertwined as discussed in the comments for
                    AZ_sortqlists(). After AZ_sortqlists() reorders list j on
-                   input will become list index[j].
+                   input will become list indices[j].
                    On output to AZ_change_it(),
                      indx[i] - indx[i-1] i > 0
                      indx[i]             i = 0
@@ -829,10 +842,10 @@ void AZ_reverse_it(int indx[], int length, int first, int total, int b[])
   ===============
 
   indx:            On input, indx[] contains the numbers 0 --> 'length'-1. It is
-                   assumed that index[] contains 2 sequencies of numbers that
+                   assumed that indices[] contains 2 sequencies of numbers that
                    are ordered but intertwined as discussed in the comments for
                    AZ_sortqlists(). After AZ_sortqlists() reorders list j on
-                   input will become list index[j].
+                   input will become list indices[j].
                    On output to AZ_change_it(),
                      indx[i] - indx[i-1] i > 0
                      indx[i]             i = 0
@@ -934,7 +947,7 @@ void AZ_reverse_it(int indx[], int length, int first, int total, int b[])
 
 void AZ_sort_dble(char a[], int indx[], int start, int end, int b[], int *mid,
                int real_lists, char buffer[], int buf_len, int the_first,
-               int ind_index)
+               int ind_indices)
 
 /*******************************************************************************
 
@@ -1003,7 +1016,7 @@ void AZ_sort_dble(char a[], int indx[], int start, int end, int b[], int *mid,
                    the_first = 1 on input, indicates that on output the list
                    will be sorted as (l1 l3 l5 l7 ... l0 l2 l4 ...)
 
-  ind_index:       Index into  indx[] pointing to the first sublist within
+  ind_indices:       Index into  indx[] pointing to the first sublist within
                    the first merged list that will be sorted.
 
 *******************************************************************************/
@@ -1020,7 +1033,7 @@ void AZ_sort_dble(char a[], int indx[], int start, int end, int b[], int *mid,
 
   /* sort as many lists as we can directly using the buffer */
 
-  AZ_direct_sort(b, indx, buffer, a, &start, buf_len, &ind_index, &the_first,
+  AZ_direct_sort(b, indx, buffer, a, &start, buf_len, &ind_indices, &the_first,
                  &real_lists, &pre_mid);
 
   if (real_lists > 2 ) {
@@ -1034,26 +1047,26 @@ void AZ_sort_dble(char a[], int indx[], int start, int end, int b[], int *mid,
     else                first2 = 1 - the_first;
 
     if (b == 0) {
-      count = indx[ind_index+real1-1];
+      count = indx[ind_indices+real1-1];
 
-      if (ind_index != 0)
-        count -= indx[ind_index-1];
+      if (ind_indices != 0)
+        count -= indx[ind_indices-1];
       count *= type_size;
     }
     else {
       count = 0;
-      for (i = ind_index; i < ind_index+real1-1; i++)
+      for (i = ind_indices; i < ind_indices+real1-1; i++)
         count += b[indx[i]];
 
-      if (ind_index == 0) count += b[0];
-      else                count += b[indx[ind_index-1]];
+      if (ind_indices == 0) count += b[0];
+      else                count += b[indx[ind_indices-1]];
     }
 
     AZ_sort_dble(a, indx, start, start+count-1, b, &mid1, real1, buffer,
-                 buf_len, the_first, ind_index);
+                 buf_len, the_first, ind_indices);
 
     AZ_sort_dble(a, indx, start+count, end, b, &mid2, real2, buffer, buf_len,
-                 first2, ind_index + real1);
+                 first2, ind_indices + real1);
 
     /* merge the lists */
 
@@ -1073,13 +1086,13 @@ void AZ_sort_dble(char a[], int indx[], int start, int end, int b[], int *mid,
   else {
     *mid = start;
     if (real_lists == 2) {
-      if (ind_index ==0) {
+      if (ind_indices ==0) {
         if (b == 0) count = type_size * indx[0];
         else        count = b[0];
       }
       else {
-        if (b == 0) count = type_size * (indx[ind_index] - indx[ind_index-1]);
-        else        count = b[indx[ind_index-1]];
+        if (b == 0) count = type_size * (indx[ind_indices] - indx[ind_indices-1]);
+        else        count = b[indx[ind_indices-1]];
       }
 
       rest = end - (start + count) + 1;
@@ -1120,7 +1133,7 @@ void AZ_sort_dble(char a[], int indx[], int start, int end, int b[], int *mid,
 
 void AZ_sort_ints(char a[], int indx[], int start, int end, int b[], int *mid,
                   int real_lists, char buffer[], int buf_len, int the_first,
-                  int ind_index)
+                  int ind_indices)
 
 /*******************************************************************************
 
@@ -1189,7 +1202,7 @@ void AZ_sort_ints(char a[], int indx[], int start, int end, int b[], int *mid,
                    the_first = 1 on input, indicates that on output the list
                    will be sorted as (l1 l3 l5 l7 ... l0 l2 l4 ...)
 
-  ind_index:       Index into  indx[] pointing to the first sublist within
+  ind_indices:       Index into  indx[] pointing to the first sublist within
                    the first merged list that will be sorted.
 
 *******************************************************************************/
@@ -1206,7 +1219,7 @@ void AZ_sort_ints(char a[], int indx[], int start, int end, int b[], int *mid,
 
   /* sort as many lists as we can directly using the buffer */
 
-  AZ_direct_sort(b, indx, buffer, a, &start, buf_len, &ind_index, &the_first,
+  AZ_direct_sort(b, indx, buffer, a, &start, buf_len, &ind_indices, &the_first,
                  &real_lists, &pre_mid);
 
   if (real_lists > 2 ) {
@@ -1220,27 +1233,27 @@ void AZ_sort_ints(char a[], int indx[], int start, int end, int b[], int *mid,
     else                 first2 = 1 - the_first;
 
     if (b == 0) {
-      count = indx[ind_index+real1-1];
+      count = indx[ind_indices+real1-1];
 
-      if (ind_index != 0)
-        count -= indx[ind_index-1];
+      if (ind_indices != 0)
+        count -= indx[ind_indices-1];
 
       count *= type_size;
     }
     else {
       count = 0;
-      for (i = ind_index; i < ind_index+real1-1; i++)
+      for (i = ind_indices; i < ind_indices+real1-1; i++)
         count += b[indx[i]];
 
-      if (ind_index == 0) count += b[0];
-      else                count += b[indx[ind_index-1]];
+      if (ind_indices == 0) count += b[0];
+      else                count += b[indx[ind_indices-1]];
     }
 
     AZ_sort_ints(a, indx, start, start+count-1, b, &mid1, real1, buffer,
-                 buf_len, the_first, ind_index);
+                 buf_len, the_first, ind_indices);
 
     AZ_sort_ints(a, indx, start+count, end, b, &mid2, real2, buffer, buf_len,
-                 first2, ind_index+real1);
+                 first2, ind_indices+real1);
 
     /* merge the lists */
 
@@ -1259,13 +1272,13 @@ void AZ_sort_ints(char a[], int indx[], int start, int end, int b[], int *mid,
   else {
     *mid = start;
     if (real_lists == 2) {
-      if (ind_index == 0) {
+      if (ind_indices == 0) {
         if (b == 0) count = type_size * indx[0];
         else        count = b[0];
       }
       else {
-        if (b == 0) count =type_size * (indx[ind_index] - indx[ind_index-1]);
-        else        count = b[indx[ind_index-1]];
+        if (b == 0) count =type_size * (indx[ind_indices] - indx[ind_indices-1]);
+        else        count = b[indx[ind_indices-1]];
       }
 
       rest = end - (start + count) + 1;
@@ -1303,7 +1316,7 @@ void AZ_sort_ints(char a[], int indx[], int start, int end, int b[], int *mid,
 /******************************************************************************/
 
 void AZ_direct_sort(int b[], int indx[], char buffer[], char a[], int *start,
-                    int buf_len, int *ind_index, int *the_first,
+                    int buf_len, int *ind_indices, int *the_first,
                     int *real_lists, int *firstmid)
 
 /*******************************************************************************
@@ -1341,7 +1354,7 @@ void AZ_direct_sort(int b[], int indx[], char buffer[], char a[], int *start,
 
   buf_len:         Length of workspace array (buffer[]).
 
-  ind_index:       Index of the first merged list not to be sorted.
+  ind_indices:       Index of the first merged list not to be sorted.
                    On input, first list to be sorted with buffer.
                    On output, first list that was not sorted with buffer.
 
@@ -1362,13 +1375,14 @@ void AZ_direct_sort(int b[], int indx[], char buffer[], char a[], int *start,
 
   /* local variables */
 
-  int   buffer_full = 0, buf_end = 0, cur, i, si, flag, thelength;
+  int   buffer_full = 0, cur, i, si, flag;
   char *ptr1, *ptr2;
+  unsigned int buf_end = 0, thelength;
 
   /**************************** execution begins ******************************/
 
   cur = *start;
-  i   = *ind_index;
+  i   = *ind_indices;
   si  = *start;
 
   if (*the_first == 0) flag = 0;
@@ -1388,7 +1402,7 @@ void AZ_direct_sort(int b[], int indx[], char buffer[], char a[], int *start,
         else        thelength = b[indx[i-1]];
       }
 
-      if  ( buf_end+thelength > buf_len )
+      if  ( (int) (buf_end+thelength) > buf_len )
         buffer_full = 1;
       else {
         ptr1 = (char *) &(buffer[buf_end]);
@@ -1425,7 +1439,7 @@ void AZ_direct_sort(int b[], int indx[], char buffer[], char a[], int *start,
 
     i++;
     if (buffer_full == 0) {
-      if ((i- (*ind_index)) == (*real_lists) ) {
+      if ((i- (*ind_indices)) == (*real_lists) ) {
         buffer_full = 1;
         i++;
       }
@@ -1441,9 +1455,9 @@ void AZ_direct_sort(int b[], int indx[], char buffer[], char a[], int *start,
   memcpy(ptr1, buffer, buf_end);
   cur += buf_end;
 
-  *real_lists = *real_lists - (i - *ind_index);
+  *real_lists = *real_lists - (i - *ind_indices);
   *start      = cur;
   *the_first  = 1;
-  *ind_index  = i;
+  *ind_indices  = i;
 
 } /* AZ_direct_sort */

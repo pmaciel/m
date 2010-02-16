@@ -7,9 +7,9 @@
  *
  * $Author: tuminaro $
  *
- * $Date: 1996/04/26 20:40:52 $
+ * $Date: 2002/12/03 23:51:50 $
  *
- * $Revision: 1.19 $
+ * $Revision: 1.65 $
  *
  * $Name:  $
  *====================================================================*/
@@ -21,6 +21,38 @@
  * Export of this program may require a license from the United States         *
  * Government.                                                                 *
  ******************************************************************************/
+
+#ifndef __AZTECDEFSH__
+
+#define __AZTECDEFSH__
+#ifndef __AZTECH__
+#ifdef AZ_MPI
+#include <mpi.h>
+#define MPI_AZRequest MPI_Request
+#define MPI_AZComm    MPI_Comm
+#else
+#define MPI_AZRequest int
+#define MPI_AZComm    int
+#endif
+#endif
+
+#define AZ_NOT_MPI 1
+
+/******************************************************************************
+ *
+ *             version information
+ *
+ *****************************************************************************/
+#define AZ_ver2_1_0_1
+#define AZ_ver2_1_0_2
+#define AZ_ver2_1_0_3
+#define AZ_ver2_1_0_4
+#define AZ_ver2_1_0_5
+#define AZ_ver2_1_0_6
+#define AZ_ver2_1_0_7
+#define AZ_ver2_1_0_8
+#define AZ_ver2_1_0_9
+#define AZ_ver2_1_1_0
 
 
 /*******************************************************************************
@@ -66,18 +98,6 @@
 
 /*******************************************************************************
  *
- *              Array sizes for declarations
- *
- ******************************************************************************/
-
-#define AZ_OPTIONS_SIZE       15
-#define AZ_PARAMS_SIZE         5
-#define AZ_PROC_SIZE           3
-#define AZ_STATUS_SIZE         7
-#define AZ_COMM_SIZE          (10 + 3*AZ_MAX_NEIGHBORS)
-
-/*******************************************************************************
- *
  *              constants for solver types
  *
  ******************************************************************************/
@@ -89,7 +109,10 @@
 #define AZ_bicgstab         4 /* preconditioned stabilized bi-cg method       */
 #define AZ_slu              5 /* super LU direct method.                      */
 #define AZ_symmlq           6 /* indefinite symmetric like symmlq             */
-#define AZ_lu               8 /* sparse LU direct method. Also used for a     */
+#define AZ_GMRESR           7 /* recursive GMRES (not supported)              */
+#define AZ_fixed_pt         8 /* fixed point iteration                        */
+#define AZ_analyze          9 /* fixed point iteration                        */
+#define AZ_lu              10 /* sparse LU direct method. Also used for a     */
                               /* preconditioning option.  NOTE: this should   */
                               /* be the last solver so that AZ_check_input()  */
                               /* works properly.                              */
@@ -106,7 +129,8 @@
 #define AZ_row_sum          3 /* point row-sum scaling                        */
 #define AZ_sym_diag         4 /* symmetric diagonal scaling                   */
 #define AZ_sym_row_sum      5 /* symmetric diagonal scaling                   */
-#define AZ_sym_BJacobi      6 /* symmetric block Jacobi scaling. NOTE: this   */
+#define AZ_equil            6 /* equilib scaling */
+#define AZ_sym_BJacobi      7 /* symmetric block Jacobi scaling. NOTE: this   */
                               /* should be last so that AZ_check_input()      */
                               /* works properly.                              */
 
@@ -125,33 +149,38 @@
 #define AZ_ls               4 /* least-squares polynomial preconditioning     */
 #define AZ_ilu              6 /* domain decomp with  ilu in subdomains        */
 #define AZ_bilu             7 /* domain decomp with block ilu in subdomains   */
-/* #define AZ_lu            8    domain decomp with   lu in subdomains        */
+/* #define AZ_lu           10    domain decomp with   lu in subdomains        */
+#define AZ_icc              8 /* domain decomp with incomp Choleski in domains*/
+#define AZ_ilut             9 /* domain decomp with ilut in subdomains        */
+#define AZ_rilu            11 /* domain decomp with rilu in subdomains        */
+#define AZ_recursive       12 /* Recursive call to AZ_iterate()               */
+#define AZ_smoother        13 /* Recursive call to AZ_iterate()               */
+#define AZ_dom_decomp      14 /* Domain decomposition using subdomain solver  */
+                              /* given by options[AZ_subdomain_solve]         */
+#define AZ_multilevel      15 /* Do multiplicative domain decomp with coarse  */
+                              /* grid (not supported).                        */
+#define AZ_user_precond    16 /*  user's preconditioning */
+/* Begin Aztec 2.1 mheroux mod */
+#define AZ_bilu_ifp        17 /* dom decomp with bilu using ifpack in subdom  */
+/* End Aztec 2.1 mheroux mod */
 
-/******************************************************************************/
-/*       my own modifaction to include the block milu preconditioner          */
-/******************************************************************************/
-
-#define AZ_bmilu            9 /* domain decomp with block milu in subdomains  */
-#define AZ_icc             10 /* domain decomp with incomp Choleski in domains*/
-                              /* NOTE: AZ_icc should be last so that          */
-                              /* AZ_check_input() works properly.             */
-
-/******************************************************************************/
-/*                      end of my modification                                */
-/******************************************************************************/
 
 /*******************************************************************************
  *
  *              constants for convergence types
  *
  ******************************************************************************/
-
+/*                                                                            */
+/* DO NOT change these numbers as they are hard-wired in MPSalsa !!!!         */
+/*                                                                            */
 #define AZ_r0               0 /* ||r||_2 / ||r^{(0)}||_2                      */
 #define AZ_rhs              1 /* ||r||_2 / ||b||_2                            */
 #define AZ_Anorm            2 /* ||r||_2 / ||A||_infty                        */
 #define AZ_sol              3 /* ||r||_infty/(||A||_infty ||x||_1+||b||_infty)*/
 #define AZ_weighted         4 /* ||r||_WRMS                                   */
-                              /* NOTE: AZ_weighted should be last so that     */
+#define AZ_expected_values  5 /* ||r||_WRMS with weights taken as |A||x0|     */
+#define AZ_noscaled         6 /* ||r||_2                                      */
+                              /* NOTE: AZ_noscaled should be last so that     */
                               /* AZ_check_input() works properly.             */
 
 /*******************************************************************************
@@ -215,11 +244,19 @@
  ******************************************************************************/
 
 /* #define AZ_none          0    No overlap                                   */
-#define AZ_diag             1 /* Use diagonal blocks for overlapping          */
-#define AZ_sym_full         2 /* Use external rows (symmetric) for overlapping*/
-#define AZ_full             3 /* Use external rows   for overlapping          */
+#define AZ_diag            -1 /* Use diagonal blocks for overlapping          */
+#define AZ_full             1 /* Use external rows   for overlapping          */
                               /* Note: must be highest value so that          */
                               /*       AZ_check_input() works properly.       */
+
+/*******************************************************************************
+ *
+ *              constants to determine if overlapped values are added
+ *              (symmetric) or just taken from the closest processor.
+ *
+ ******************************************************************************/
+#define AZ_standard         0
+#define AZ_symmetric        1
 
 /*******************************************************************************
  *
@@ -267,10 +304,23 @@
 #define AZ_max_iter            6
 #define AZ_poly_ord            7
 #define AZ_overlap             8
-#define AZ_kspace              9
-#define AZ_orthog              10
-#define AZ_aux_vec             11
-#define AZ_print_freq          12
+#define AZ_type_overlap        9
+#define AZ_kspace              10
+#define AZ_orthog              11
+#define AZ_aux_vec             12
+#define AZ_reorder             13
+#define AZ_keep_info           14
+#define AZ_recursion_level     15
+#define AZ_print_freq          16
+#define AZ_graph_fill          17
+#define AZ_subdomain_solve     18
+#define AZ_init_guess          19
+#define AZ_keep_kvecs          20
+#define AZ_apply_kvecs         21
+#define AZ_orth_kvecs          22
+#define AZ_ignore_scaling      23
+#define AZ_check_update_size   24
+#define AZ_extreme             25
 
 /*******************************************************************************
  *
@@ -279,8 +329,17 @@
  ******************************************************************************/
 
 #define AZ_tol                 0
-#define AZ_drop                2
-#define AZ_weights             3
+#define AZ_drop                1
+#define AZ_ilut_fill           2
+#define AZ_omega               3
+/* Begin Aztec 2.1 mheroux mod */
+#define AZ_rthresh             4
+#define AZ_athresh             5
+#define AZ_update_reduction    6
+#define AZ_temp                7
+#define AZ_weights             8 /* this parameter should be the last one */
+/* End Aztec 2.1 mheroux mod */
+
 
 /*******************************************************************************
  *
@@ -298,10 +357,35 @@
 #define AZ_N_neigh             7
 #define AZ_total_send          8
 #define AZ_name                9
-#define AZ_neighbors           10
-#define AZ_rec_length          (10 +   AZ_MAX_NEIGHBORS)
-#define AZ_send_length         (10 + 2*AZ_MAX_NEIGHBORS)
-#define AZ_send_list           (10 + 3*AZ_MAX_NEIGHBORS)
+#define AZ_internal_use        10
+#define AZ_N_rows              11
+#define AZ_neighbors           12
+#define AZ_rec_length          (12 +   AZ_MAX_NEIGHBORS)
+#define AZ_send_length         (12 + 2*AZ_MAX_NEIGHBORS)
+#define AZ_send_list           (12 + 3*AZ_MAX_NEIGHBORS)
+
+/*******************************************************************************
+ *
+ *              Array sizes for declarations (MUST APPEAR AFTER DATA_ORG)
+ *
+ ******************************************************************************/
+
+#define SIZEOF_MPI_AZCOMM     20
+        /* MPI Communicators are kludged into Aztec's integer proc_config[] */
+        /* array. SIZEOF_MPI_AZComm must be greater or equal to             */
+        /*             sizeof(MPI_AZComm)/sizeof(int).                      */
+        /* If this is not true, an error message will be generated and you  */
+        /* will be asked to change this value.                              */
+
+#define AZ_OPTIONS_SIZE       27
+/* Begin Aztec 2.1 mheroux mod */
+#define AZ_PARAMS_SIZE         9
+/* End Aztec 2.1 mheroux mod */
+#define AZ_PROC_SIZE           (6+SIZEOF_MPI_AZCOMM)
+#define AZ_STATUS_SIZE         11
+#define AZ_COMM_SIZE          AZ_send_list
+#define AZ_CONV_INFO_SIZE      8
+#define AZ_COMMLESS_DATA_ORG_SIZE  AZ_neighbors
 
 /*******************************************************************************
  *
@@ -319,6 +403,10 @@
                                      /* intention is time factorization     */
                                      /* routines. Note: not mentioned in    */
                                      /* manual                              */
+#define AZ_solve_time          6     /* This is used to record the time for */
+                                     /* the entire solve.                   */
+#define AZ_Aztec_version       7     /* This is used to record the current  */
+                                     /* version of Aztec.                   */
 
 /*******************************************************************************
  *
@@ -326,9 +414,13 @@
  *
  ******************************************************************************/
 
-#define AZ_node                0
-#define AZ_N_procs             1
-#define AZ_dim                 2
+#define AZ_Comm_MPI            0
+#define AZ_node                (SIZEOF_MPI_AZCOMM+1)
+#define AZ_N_procs             (SIZEOF_MPI_AZCOMM+2)
+#define AZ_dim                 (SIZEOF_MPI_AZCOMM+3)
+#define AZ_Comm_Set            (SIZEOF_MPI_AZCOMM+4)
+
+#define AZ_Done_by_User        7139
 
 /*******************************************************************************
  *
@@ -349,9 +441,18 @@
 #define AZ_ALLOC               0
 #define AZ_CLEAR               1
 #define AZ_REALLOC             2
+#define AZ_SELECTIVE_CLEAR     3
+#define AZ_SPEC_REALLOC        4
+#define AZ_RESET_STRING        5
+#define AZ_SUBSELECTIVE_CLEAR  6
+#define AZ_EVERYBODY_BUT_CLEAR  7
+#define AZ_EMPTY                8
+#define AZ_LOOKFOR_PRINT        9
 #define AZ_SYS                 -14901
 #define AZ_OLD_ADDRESS         0
 #define AZ_NEW_ADDRESS         1
+#define AZ_SPECIAL             13
+#define AZ_SOLVER_PARAMS       -100
 
 /*******************************************************************************
  *
@@ -359,9 +460,9 @@
  *
  ******************************************************************************/
 
-#define AZ_MSR_MATRIX          0
-#define AZ_VBR_MATRIX          1
-#define AZ_USER_MATRIX         2
+#define AZ_MSR_MATRIX          1
+#define AZ_VBR_MATRIX          2
+#define AZ_USER_MATRIX         3
 
 /*******************************************************************************
  *
@@ -369,8 +470,12 @@
  *
  ******************************************************************************/
 
-#define AZ_SCALE_MAT           0
-#define AZ_RESCALE_SOL         1
+#define AZ_SCALE_MAT_RHS_SOL   0
+#define AZ_SCALE_RHS           1
+#define AZ_INVSCALE_RHS        2
+#define AZ_SCALE_SOL           3
+#define AZ_INVSCALE_SOL        4
+
 
 /*******************************************************************************
  *
@@ -412,6 +517,27 @@
 #define AZ_PACK             0
 #define AZ_SEND             1
 
+#define AZ_CONVERT_TO_LOCAL 0
+#define AZ_CONVERT_BACK_TO_GLOBAL 1
+
+#define AZ_NO_EXTRA_SPACE 0
+#define AZ_NOT_USING_AZTEC_MATVEC (int *) NULL
+
+#define AZ_ZERO     0
+#define AZ_NOT_ZERO 1
+#define AZ_Nspace 0
+#define AZ_Nkept 1
+
+/* #define AZ_none                  0     do nothing                */
+#define AZ_left_scaling             1 /*  scaling on left           */
+#define AZ_right_scaling            2 /*  scaling on right          */
+#define AZ_left_and_right_scaling   3 /*  scaling on left and right */
+#define AZ_call_scale_f             4 /*  use scaling subroutine    */
+#define AZ_inv_scaling              5 /*  within scaling routine    */
+                                      /*  perform inverse operation */
+#define AZ_low             0
+#define AZ_high            1
+
 
 /*******************************************************************************
  *
@@ -424,3 +550,9 @@
 #define AZ_EXTERNS          2 /* Only external elements are reordered.        */
 #define AZ_GLOBAL           1 /* MSR entries correspond to global columns     */
 #define AZ_LOCAL            2 /* MSR entries correspond to local columns      */
+
+#define AZ_get_matvec_data(Amat) ((Amat)->matvec_data)
+#define AZ_get_getrow_data(Amat) ((Amat)->getrow_data)
+#define AZ_get_precond_data(precond) ((precond)->precond_data)
+
+#endif
