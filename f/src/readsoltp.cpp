@@ -121,26 +121,59 @@ void readsoltp(const std::string& infile, int read_soln)
   cout << "readsoltp: copy/initialize solution." << endl;
 
 
-  cout << "readsoltp: convert boundaries (boundary-node) connectivities..." << endl;
+  // count boundary elements
   Nbface = 0;
   for (unsigned i=1; i<M.z(); ++i)
     Nbface += (int) M.e(i);
+
+
   if (Nbface) {
-    boost::progress_display pbar(Nbface);
+    // allocate structures
     Fab_cell .resize(Nbface);
     Fab_node .resize(Nbface);
     Fab_inc  .resize(Nbface);
     Fab_group.resize(Nbface);
-    int ifc = 0;
-    for (unsigned i=1; i<M.z(); ++i)
-      for (unsigned j=0; j<M.e(i); ++j, ++ifc, ++pbar) {
-        fab(
-          e2n, M.vz[i].e2n[j].n,
-          &Fab_cell[ifc], &Fab_node[ifc], &Fab_inc[ifc]);
-        Fab_group[ifc] = (int) i;
-      }
+
+    // check for the boundary-node connectivity file and generate or read it
+    const std::string infilefab = infile + ".fab";
+    std::fstream f(infilefab.c_str(),std::ios::in);
+    if (!f) {
+      cout << "readsoltp: generate boundary-node connectivity (\"" << infilefab << "\")..." << endl;
+      f.open(infilefab.c_str(),std::ios::out|std::ios_base::trunc);
+
+      boost::progress_display pbar(Nbface);
+      f << Nbface << endl;
+      int ifc = 0;
+      for (unsigned i=1; i<M.z(); ++i)
+        for (unsigned j=0; j<M.e(i); ++j, ++ifc, ++pbar) {
+          fab(
+            e2n, M.vz[i].e2n[j].n,
+            &Fab_cell[ifc], &Fab_node[ifc], &Fab_inc[ifc]);
+          Fab_group[ifc] = (int) i;
+          f << Fab_group[ifc] << ' '
+            << Fab_cell [ifc] << ' '
+            << Fab_node [ifc] << ' '
+            << Fab_inc  [ifc] << endl;
+        }
+
+      f.close();
+      cout << "readsoltp: generate boundary-node connectivity." << endl;
+    }
+    else {
+      cout << "readsoltp: read boundary-node connectivity (\"" << infilefab << "\")..." << endl;
+      int ifc = 0;
+      f >> ifc;
+      if (ifc!=Nbface)
+        nrerror("The boundary-node file does not correspond to this mesh");
+      boost::progress_display pbar(Nbface);
+      for (ifc=0; ifc<Nbface && f; ++ifc, ++pbar)
+        f >> Fab_group[ifc] >> Fab_cell[ifc] >> Fab_node[ifc] >> Fab_inc[ifc];
+      if (!f)
+        nrerror("The boundary-node file is badly-formed");
+      cout << "readsoltp: read boundary-node connectivity." << endl;
+    }
+
   }
-  cout << "readsoltp: convert boundaries (boundary-node) connectivities." << endl;
 
 
   if (periodic) {

@@ -62,6 +62,6 @@ def build(ctx):
     if 'cshlib' in t.features.join(' ').split(' '):
       t.defines = t.defines.split(' ') + ['M_CSHLIB']
 
-  # nice target
-  ctx.new_task_gen(name='love', rule='echo not war?')
+  ## nice target
+  #ctx.new_task_gen(name='love', rule='echo not war?')
 
