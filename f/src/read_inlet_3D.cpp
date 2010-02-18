@@ -50,8 +50,8 @@ void read_inlet_3D(const std::string& finlet,int ig)
   double *inlet_data_x;
   double *inlet_data_y;
   double **inlet_data_ve;
-  double *inlet_data_temp;
-  double **inlet_data_turb;
+  double *inlet_data_temp  = NULL;
+  double **inlet_data_turb = NULL;
   char dummystr[100];
 
 

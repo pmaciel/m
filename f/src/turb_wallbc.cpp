@@ -58,7 +58,7 @@ void turb_wallbc(int iv1, int iv2, LS *ls1, LS *ls2)
     double vtan[3];
     double norm[3];
     double ypmax = 0.,    ypmin = 1.e20;
-    double utmax,         utmin;
+    double utmax = 0.,    utmin = 1.e20;
     int    in_ypmax = -1, in_ypmin = -1;
     int Nwnode   = 0;
     int nyp_near = 0;

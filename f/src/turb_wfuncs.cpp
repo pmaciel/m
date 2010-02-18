@@ -5,14 +5,31 @@
 
 void turb_wfuncs(double *res)
 {
-  int inwf, inu, id, i, iv, nyp_near=0, nyp_far=0, in_ypmax, in_ypmin ;
-  double vdotn, vt, vtan[3], norm[3], modn, utau2, wdist, kturb, lnEystar ;
-  double yplus, ypmax=0.0, ypmin=1.e20 ;
-  double cmu25, cmu50, cmu75 ;
+  int inwf;
+  int inu;
+  int id;
+  int i;
+  int iv;
+  int nyp_near = 0;
+  int nyp_far  = 0;
+  int in_ypmax = -1;
+  int in_ypmin = -1;
+  double vdotn;
+  double vt;
+  double vtan[3];
+  double norm[3];
+  double modn;
+  double utau2;
+  double wdist;
+  double kturb;
+  double lnEystar;
+  double yplus;
+  double ypmax = 0.;
+  double ypmin = 1.e20;
 
-  cmu25 = pow(Cmu,0.25) ;
-  cmu50 = sqrt(Cmu) ;
-  cmu75 = pow(Cmu,0.75) ;
+  const double cmu25 = pow(Cmu,0.25);
+  const double cmu50 = sqrt(Cmu);
+  const double cmu75 = pow(Cmu,0.75);
 
   if ( turmod==ITKEHR )
   for ( inwf=0 ; inwf<(int) WFnodes.size() ; inwf++ ) {

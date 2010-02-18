@@ -20,9 +20,9 @@ void read_inlet_2D(const std::string& finlet,int ig)
   double turbin;
   double tempin;
   double **inlet_data_vel;
-  double **inlet_data_temp;
-  double **inlet_data_turb1;
-  double **inlet_data_turb2;
+  double **inlet_data_temp  = NULL;
+  double **inlet_data_turb1 = NULL;
+  double **inlet_data_turb2 = NULL;
   char dummystr[300];
 
 
