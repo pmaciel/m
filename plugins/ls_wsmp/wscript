@@ -3,9 +3,9 @@
 
 def configure(ctx):
   ctx.env.m_mlibraries.append('ls_wsmp')
-  ctx.env['LIB_WSMP']       = ['wsmp64','blas','gfortran'] #pwsmp64 for MPI version
-  ctx.env['LIBPATH_WSMP']   = ['/home/pedro/wsmp']
-  ctx.env['RPATH_WSMP']     = ['/home/pedro/wsmp']
+  ctx.env['LIB_WSMP']       = ['wsmp64','blas','gfortran']
+  ctx.env['LIBPATH_WSMP']   = ['/home/pedro/workspace/external/wsmp/lib/GNU']
+  ctx.env['RPATH_WSMP']     = ['/home/pedro/workspace/external/wsmp/lib/GNU']
   ctx.env['LINKFLAGS_WSMP'] = ['-fopenmp']
 
 
