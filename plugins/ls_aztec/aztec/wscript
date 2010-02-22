@@ -1,37 +1,17 @@
 #!/usr/bin/env python
 
 
-def set_options(opt):
-
-  # options provided by the compilers, and some extra ones
-  opt.tool_options('compiler_cc')
-  opt.tool_options('compiler_fortran')
-  opt.add_option('--build', type='string', default='', dest='m_build', help='build environment ([default|debug|release])')
-  opt.add_option('--flags', type='string', default='', dest='m_flags', help='C/Fortran compilation flags')
-
-
 def configure(ctx):
-  import Options
 
   # set compilers options and build environment
   ctx.check_tool('compiler_cc')
   ctx.check_tool('compiler_fortran')
-  if len(Options.options.m_flags):
-    ctx.env['CCFLAGS'] += Options.options.m_flags.split(',')
-    ctx.env['FCFLAGS'] += Options.options.m_flags.split(',')
-  if    Options.options.m_build=='debug':
-    ctx.env['CCFLAGS'] += ['-Wall','-O0','-g','-ggdb']
-    ctx.env['FCFLAGS'] += ['-Wall','-O0','-g','-ggdb']
-  elif  Options.options.m_build=='release':
-    ctx.env['CCFLAGS'] += ['-Wall','-O3']
-    ctx.env['FCFLAGS'] += ['-Wall','-O3']
-  else: Options.options.m_build = 'default'
-  print 'Info: C/Fortran compilation flags       (',Options.options.m_build,'): ',ctx.env['CCFLAGS']
+  ctx.env['CCFLAGS'] = ctx.env['FCFLAGS'] = ctx.env['CXXFLAGS']
+  print 'Info: C/Fortran compilation flags: ',ctx.env['CCFLAGS']
   #ctx.env['FORTRANMODPATH']    = ['mfloupi']
   #ctx.env['FORTRANMODOUTPATH'] = ['floupi']
-  #ctx.env['CPPPATH']           = ['hfloupi']
 
-  # check Fortran compilation, Fortran/C library, mangling and if dummy main is needed
+  # Fortran compilation checks
   if not ctx.check_fortran():
     ctx.fatal('cannot compile a simple fortran program!')
   #ctx.check_fortran_clib()
@@ -53,32 +33,29 @@ def build(ctx):
     includes = ['.'],
     source   = [
       # aztec
-      'az_bilu.c',             'az_cg.c',               'az_cgs.c',
-      'az_cgstab.c',           'az_check.c',            'az_comm.c',
-      'az_converge.c',         'az_dd_overlap.c',       'az_dgemv2.c',
-      'az_dgemv3.c',           'az_domain_decomp.c',    'az_fortran_wrap.c',
-      'az_scaling.c',          'az_flop_cnt.c',         'az_gmres.c',
-      'az_gmresr.c',           'az_ilu_util.c',         'az_ilut.c',
-      'az_interface.c',        'az_lu_y12.c',           'az_matrix_util.c',
-      'az_matvec_mult.c',      'az_old_matvec_mult.c',  'az_pad_utils.c',
-      'az_poly.c',             'az_precond.c',          'az_qmrcgs.c',
-      'az_reorder.f',          'az_rilu.c',             'az_solve.c',
-      'az_sort.c',             'az_subdomain_solver.c', 'az_tools.c',
-      'az_util.c',             'az_icc.c',              'az_fix_pt.c',
-      'md_wrap_scalar_c.c',    'md_timer_generic.c',
+      'az_bilu.c', 'az_cg.c', 'az_cgs.c', 'az_cgstab.c', 'az_check.c',
+      'az_comm.c', 'az_converge.c', 'az_dd_overlap.c', 'az_dgemv2.c',
+      'az_dgemv3.c', 'az_domain_decomp.c', 'az_fortran_wrap.c', 'az_scaling.c',
+      'az_flop_cnt.c', 'az_gmres.c', 'az_gmresr.c', 'az_ilu_util.c',
+      'az_ilut.c', 'az_interface.c', 'az_lu_y12.c', 'az_matrix_util.c',
+      'az_matvec_mult.c', 'az_old_matvec_mult.c', 'az_pad_utils.c', 'az_poly.c',
+      'az_precond.c', 'az_qmrcgs.c', 'az_reorder.f', 'az_rilu.c', 'az_solve.c',
+      'az_sort.c', 'az_subdomain_solver.c', 'az_tools.c', 'az_util.c',
+      'az_icc.c', 'az_fix_pt.c', 'md_wrap_scalar_c.c', 'md_timer_generic.c',
       # netlib BLAS, Y12M and Lapack
-      'blas/blas1.f', 'blas/blas2.f', 'blas/blas3.f', 'blas/xerbla.f',
-      'blas/lsame.f',
-      'y12m/y12m.f',   'y12m/y12mae.f', 'y12m/y12maf.f', 'y12m/y12mbe.f',
-      'y12m/y12mbf.f', 'y12m/y12mce.f', 'y12m/y12mcf.f', 'y12m/y12mde.f',
-      'y12m/y12mdf.f', 'y12m/y12mfe.f', 'y12m/y12mge.f', 'y12m/y12mhe.f',
-      'y12m/y12cck.f',
-      'lapack/la_dgetrf.f', 'lapack/la_dgetri.f', 'lapack/la_ilaenv.f',
-      'lapack/la_dgetf2.f', 'lapack/la_dlaswp.f', 'lapack/la_dtrtri.f',
-      'lapack/la_dtrti2.f', 'lapack/la_dgetrs.f', 'lapack/la_dgeco.f',
-      'lapack/la_dgedi.f',  'lapack/la_dgefa.f',  'lapack/la_dpotf2.f',
-      'lapack/la_dpotrf.f', 'lapack/la_dlamch.f', 'lapack/la_dlaic1.f',
-      'lapack/la_ieeeck.f', 'lapack/la_iparmq.f' ] )
+     'blas/blas1.f', 'blas/blas2.f', 'blas/blas3.f', 'blas/xerbla.f',
+     'blas/lsame.f',
+     'y12m/y12m.f', 'y12m/y12mae.f', 'y12m/y12maf.f', 'y12m/y12mbe.f',
+     'y12m/y12mbf.f', 'y12m/y12mce.f', 'y12m/y12mcf.f', 'y12m/y12mde.f',
+     'y12m/y12mdf.f', 'y12m/y12mfe.f', 'y12m/y12mge.f', 'y12m/y12mhe.f',
+     'y12m/y12cck.f',
+     'lapack/la_dgetrf.f', 'lapack/la_dgetri.f', 'lapack/la_ilaenv.f',
+     'lapack/la_dgetf2.f', 'lapack/la_dlaswp.f', 'lapack/la_dtrtri.f',
+     'lapack/la_dtrti2.f', 'lapack/la_dgetrs.f', 'lapack/la_dgeco.f',
+     'lapack/la_dgedi.f', 'lapack/la_dgefa.f', 'lapack/la_disnan.f',
+     'lapack/la_dlaisnan.f', 'lapack/la_dpotf2.f', 'lapack/la_dpotrf.f',
+     'lapack/la_dlamch.f', 'lapack/la_dlaic1.f', 'lapack/la_ieeeck.f',
+     'lapack/la_iparmq.f' ] )
   ctx.new_task_gen(
     features = 'cc fortran cshlib',
     target   = l.target,

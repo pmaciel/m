@@ -16,19 +16,21 @@ def init():
 
 def set_options(opt):
 
-  # options provided by compiler_cxx, and some extra ones
+  # options provided by the compilers, and some extra ones
   opt.tool_options('compiler_cxx')
-  opt.add_option('--build',    type='string', default='',     dest='m_build',    help='build environment ([default|debug|release])')
-  opt.add_option('--cxxflags', type='string', default='',     dest='m_cxxflags', help='compilation flags (like -fopenmp)')
-  opt.add_option('--plugins',  type='string', default='auto', dest='m_plugins',  help='plugins directories (''auto'' looks recursively into plugins directory)')
+  opt.tool_options('compiler_cc')
+  opt.tool_options('compiler_fortran')
+  opt.add_option('--build',   type='string', default='',     dest='m_build',   help='build environment ([default|debug|release])')
+  opt.add_option('--flags',   type='string', default='',     dest='m_flags',   help='C++/C/Fortran compilation flags (like -fPIC,-fopenmp,...)')
+  opt.add_option('--plugins', type='string', default='auto', dest='m_plugins', help='plugins directories (''auto'' looks recursively into plugins directory)')
 
 
 def configure(ctx):
   import Options
 
-  # set compiler_cxx options and build environment
+  # set compilers options and build environment
   ctx.check_tool('compiler_cxx')
-  if len(Options.options.m_cxxflags):        ctx.env['CXXFLAGS'] += Options.options.m_cxxflags.split(',')
+  if len(Options.options.m_flags):           ctx.env['CXXFLAGS'] += Options.options.m_flags.split(',')
   if    Options.options.m_build=='debug':    ctx.env['CXXFLAGS'] += ['-Wall','-O0','-g','-ggdb']
   elif  Options.options.m_build=='release':  ctx.env['CXXFLAGS'] += ['-Wall','-O3']
   else: Options.options.m_build = 'default'
