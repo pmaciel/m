@@ -1,13 +1,46 @@
 #!/usr/bin/env python
 
 
+# the following two variables are used by the target "waf dist"
+VERSION='2.1'
+APPNAME='aztec'
+
+# these variables are mandatory ('/' are converted automatically)
+srcdir = '.'
+blddir = 'build'
+
+
+def set_options(ctx):
+  ctx.tool_options('compiler_cc')
+  ctx.tool_options('compiler_fortran')
+  ctx.add_option('--flags',    type='string', default='', dest='m_flags',    help='Compilation flags (generic, like -fPIC,...)')
+  ctx.add_option('--ccflags',  type='string', default='', dest='m_ccflags',  help='Compilation flags (C)')
+  ctx.add_option('--fcflags',  type='string', default='', dest='m_fcflags',  help='Compilation flags (Fortran)')
+
+
 def configure(ctx):
-  pass
+  import Options
+
+  ctx.check_tool('compiler_cc')
+  if len(Options.options.m_flags):   ctx.env['CCFLAGS']  += Options.options.m_flags.split(',')
+  if len(Options.options.m_ccflags): ctx.env['CCFLAGS']  += Options.options.m_ccflags.split(',')
+
+  ctx.check_tool('compiler_fortran')
+  if len(Options.options.m_flags):   ctx.env['FCFLAGS']  += Options.options.m_flags.split(',')
+  if len(Options.options.m_fcflags): ctx.env['FCFLAGS']  += Options.options.m_fcflags.split(',')
+  if not ctx.check_fortran():
+    ctx.fatal('cannot compile a simple fortran program!')
+  #ctx.check_fortran_clib()
+  ##st, mangler = ctx.check_fortran_mangling()
+  ##if not st:
+  ##  ctx.fatal('cannot detect the mangling scheme')
+  # check Fortran if dummy main routine is needed
+  ctx.check_fortran_dummy_main()
 
 
 def build(ctx):
 
-  # aztec static/dynamic library (to use within m build)
+  # aztec static/dynamic library (standalone version)
   l = ctx(
     features = 'fortran cc cstaticlib',
     target   = 'aztec',
@@ -41,6 +74,7 @@ def build(ctx):
      'lapack/la_iparmq.f' ] )
   ctx.new_task_gen(
     features = 'fortran cc cshlib',
+    ccflags  = ['-fPIC'],
     target   = l.target,
     defines  = l.defines,
     lib      = l.lib,
