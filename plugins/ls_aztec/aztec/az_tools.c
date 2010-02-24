@@ -28,7 +28,7 @@ static char rcsid[] = "$Id: az_tools.c,v 1.59 2002/08/20 20:02:06 tuminaro Exp $
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <malloc.h>
+//include <malloc.h>  FIXED: already part of stdlib.h
 #include <float.h>
 #include "az_aztec.h"
 
