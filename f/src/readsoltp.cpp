@@ -96,6 +96,12 @@ void readsoltp(const std::string& infile, int read_soln)
   cout << "readsoltp: reading m::mmesh." << endl;
 
 
+  cout << "readsoltp: check wall distance..." << endl;
+  if (walldist && ((unsigned) No_wd.size()!=M.n()))
+    nrerror("wall distance required and not present (or incorrect)");
+  cout << "readsoltp: check wall distance." << endl;
+
+
   cout << "readsoltp: set mesh sizes..." << endl;
   Nnode = (int) M.n();
   Ncell = (int) e2n.size();
