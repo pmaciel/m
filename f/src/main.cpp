@@ -72,10 +72,6 @@ int main(int argc, char **argv)
       cout << "main: switching to Newton." << endl;
     }
 
-    /* zero nodal turbulent viscosity store */
-    if (turmod)
-      No_nuturb.assign(Nnode,0.);
-
     if (temperature && buoyancy) {
       cout << "main: calculate bulk temperature (boussinesq buoyancy)..." << endl;
       To  = 0.;
@@ -93,111 +89,121 @@ int main(int argc, char **argv)
     }
 
 
-    ls_coupled->reset();  // zero jacobian, residual and vector
-    No_dt.assign(Nnode,0.);     // updated during assembly
+    if (Jacobian>=0) {
 
-    cout << "main: linear system assembly..." << endl;
-    if      (Jacobian==0)  IJacobian_P();
-    else if (Jacobian==1)  IJacobian_A();
-    else if (Jacobian==2)  IJacobian_N();
-    cout << "main: linear system assembly." << endl;
-
-
-    /* calculate residuals for coupled system */
-    for (int iv=0; iv<Ncoupled; iv++)
-      rescalc(iv,iv,&(ls_coupled->m_B)[0],Ncoupled);
+      // zero jacobian, residual and vector, nodal turbulent viscosity and nodal
+      // dt contribution (set at assembly)
+      ls_coupled->reset();
+      if (turmod)
+        No_nuturb.assign(Nnode,0.);
+      No_dt.assign(Nnode,0.);
 
 
-    for (int n=0; n<Nnode; n++)
+      cout << "main: linear system assembly..." << endl;
+      if      (Jacobian==0)  IJacobian_P();
+      else if (Jacobian==1)  IJacobian_A();
+      else if (Jacobian==2)  IJacobian_N();
+      cout << "main: linear system assembly." << endl;
+
+
+      /* calculate residuals for coupled system */
       for (int iv=0; iv<Ncoupled; iv++)
-        ls_coupled->B(n,iv) *= linrlx;
+        rescalc(iv,iv,&(ls_coupled->m_B)[0],Ncoupled);
 
 
-    if (dtrelax) {
-      cout << "main: add time-step (backward-euler) to Jacobian..." << endl;
+      for (int n=0; n<Nnode; n++)
+        for (int iv=0; iv<Ncoupled; iv++)
+          ls_coupled->B(n,iv) *= linrlx;
 
-      if (dtrelax==1) {
-        /* global time-step */
-        double tmax     = 0.;
-        double kplusmax = 0.;
-        for (int inu=0; inu<Nnode; inu++) {
-          kplusmax = std::max< double >(0.,No_dt[inu]);
-          tmax     = std::max< double >(tmax,kplusmax/No_vol[inu]);
+
+      if (dtrelax) {
+        cout << "main: add time-step (backward-euler) to Jacobian..." << endl;
+
+        if (dtrelax==1) {
+          /* global time-step */
+          double tmax     = 0.;
+          double kplusmax = 0.;
+          for (int inu=0; inu<Nnode; inu++) {
+            kplusmax = std::max< double >(0.,No_dt[inu]);
+            tmax     = std::max< double >(tmax,kplusmax/No_vol[inu]);
+          }
+          tmax = 1./tmax;
+
+          for (int inu=0; inu<Nnode; inu++)
+            No_dt[inu] = -No_vol[inu]/tmax;
         }
-        tmax = 1./tmax;
+        else if (dtrelax==2) {
+          /* local time step */
+          for (int inu=0; inu<Nnode; inu++)
+            No_dt[inu] = -No_dt[inu];
+        }
 
-        for (int inu=0; inu<Nnode; inu++)
-          No_dt[inu] = -No_vol[inu]/tmax;
+        for (int inu=0; inu<Nnode; ++inu)
+          for (int iv=1; iv<Ncoupled; ++iv)
+            ls_coupled->A(inu,inu,iv,iv) += No_dt[inu]/CFL;
+
+        if (logL2[iverr]<newton_thresh)
+          CFL *= 1.5;
+
+        cout << "main: add time-step (backward-euler) to Jacobian..." << endl;
       }
-      else if (dtrelax==2) {
-        /* local time step */
-        for (int inu=0; inu<Nnode; inu++)
-          No_dt[inu] = -No_dt[inu];
+
+      cout << "main: solve linear system..." << endl;
+      {
+        boost::progress_timer t(cout);
+        ls_coupled->solve();
+        cout << "main: timer: ";
       }
-
-      for (int inu=0; inu<Nnode; ++inu)
-        for (int iv=1; iv<Ncoupled; ++iv)
-          ls_coupled->A(inu,inu,iv,iv) += No_dt[inu]/CFL;
-
-      if (logL2[iverr]<newton_thresh)
-        CFL *= 1.5;
-
-      cout << "main: add time-step (backward-euler) to Jacobian..." << endl;
-    }
-
-    cout << "main: solve linear system..." << endl;
-    {
-      boost::progress_timer t(cout);
-      ls_coupled->solve();
-      cout << "main: timer: ";
-    }
-    cout << "main: solve linear system." << endl;
+      cout << "main: solve linear system." << endl;
 
 
-    /*
-     * Carry out decoupled turbulence and temperature updates using
-     * old velocities (before update). This is slower but more stable
-     * and handy for fully-decoupled temperature solutions
-     *
-     * if (temperature && !scalar_coupling)
-     *   Update_temperature();
-     */
+      /*
+       * Carry out decoupled turbulence and temperature updates using
+       * old velocities (before update). This is slower but more stable
+       * and handy for fully-decoupled temperature solutions
+       *
+       * if (temperature && !scalar_coupling)
+       *   Update_temperature();
+       */
 
 
-    cout << "main: update solution..." << endl;
+      cout << "main: update solution..." << endl;
 
-    /* pressure-velocity system */
-    for (int n=0; n<Nnode; ++n)
-      for (int iv=0; iv<=Ndim; ++iv)
-        No_W[iv][n] -= /*linrlx**/ls_coupled->X(n,iv);
-
-    /* temperature */
-    if (temperature && scalar_coupling) {
+      /* pressure-velocity system */
       for (int n=0; n<Nnode; ++n)
-        No_W[iv_temp][n] -= linrlx_scalar*ls_coupled->X(n,iv_temp);
+        for (int iv=0; iv<=Ndim; ++iv)
+          No_W[iv][n] -= /*linrlx**/ls_coupled->X(n,iv);
+
+      /* temperature */
+      if (temperature && scalar_coupling) {
+        for (int n=0; n<Nnode; ++n)
+          No_W[iv_temp][n] -= linrlx_scalar*ls_coupled->X(n,iv_temp);
+      }
+
+      /* turbulence */
+      if (turmod && turbulence_coupling==2) {
+        int nkneg = 0;
+        int neneg = 0;
+        for (int n=0; n<Nnode; ++n) {
+          const double k = No_W[iv_turb1][n] - linrlx_turb*ls_coupled->X(n,iv_turb1);
+          const double e = No_W[iv_turb2][n] - linrlx_turb*ls_coupled->X(n,iv_turb2);
+          if (k<0.) ++nkneg; else No_W[iv_turb1][n] = k;
+          if (e<0.) ++neneg; else No_W[iv_turb2][n] = e;
+        }
+        cout << "*** negative k/e nodes: " << nkneg << '/' << neneg << endl;
+      }
+
     }
 
-    /* turbulence */
-    if (turmod && turbulence_coupling==2) {
-      int nkneg = 0;
-      int neneg = 0;
-      for (int n=0; n<Nnode; ++n) {
-        const double k = No_W[iv_turb1][n] - linrlx_turb*ls_coupled->X(n,iv_turb1);
-        const double e = No_W[iv_turb2][n] - linrlx_turb*ls_coupled->X(n,iv_turb2);
-        if (k<0.) ++nkneg; else No_W[iv_turb1][n] = k;
-        if (e<0.) ++neneg; else No_W[iv_turb2][n] = e;
-      }
-      cout << "*** negative k/e nodes: " << nkneg << '/' << neneg << endl;
-    }
 
     if (temperature && !scalar_coupling)
       Update_temperature();
 
     if (periodic) {
-      for (int ig=1; ig<=Nbcgroup; ig++)
+      for (int ig=1; ig<=Nbcgroup; ++ig)
         if (BCgroup[ig].type==IBPERE)
-          for (int inb=1; inb<=BCgroup[ig].nnode; inb++)
-            for (int iv=0; iv<Ncoupled; iv++)
+          for (int inb=1; inb<=BCgroup[ig].nnode; ++inb)
+            for (int iv=0; iv<Ncoupled; ++iv)
               No_W[iv][Nobg[ig][inb].node] = No_W[iv][Nobg[ig][inb].twin];
     }
 
@@ -209,6 +215,10 @@ int main(int argc, char **argv)
         Update_turbulence_coupled();
       }
     }
+
+    /* mitrem */
+    if (mitremassembler.ok && (iter>mitremassembler.iterinit))
+      Update_mitrem();
 
     cout << "main: update solution." << endl;
 
@@ -232,11 +242,12 @@ int main(int argc, char **argv)
 
 
   cout << "main: linear systems deallocation..." << endl;
-  if (temperature && !scalar_coupling)  delete ls_scalar;
-  if (turbulence_coupling==1)           delete ls_turb;
-  if (turmod && turbulence_coupling==0) delete ls_turb1;
-  if (turmod && turbulence_coupling==0) delete ls_turb2;
   if (true)                             delete ls_coupled;
+  if (turmod && turbulence_coupling==0) delete ls_turb2;
+  if (turmod && turbulence_coupling==0) delete ls_turb1;
+  if (turbulence_coupling==1)           delete ls_turb;
+  if (temperature && !scalar_coupling)  delete ls_scalar;
+  if (mitremassembler.ok)               delete mitremassembler.ls;
   cout << "main: linear systems deallocation." << endl;
 
 

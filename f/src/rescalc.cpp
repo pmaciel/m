@@ -21,6 +21,10 @@ void rescalc(int iv, int iv_local, double *res, int Nsize)
   resL1new /= (double) nnint;
   resL2new  = sqrt(resL2new/(double) nnint);
 
+  resL1new = resL1new<epsilon? epsilon:resL1new;
+  resL2new = resL2new<epsilon? epsilon:resL2new;
+  resLinew = resLinew<epsilon? epsilon:resLinew;
+
   if (iter<=1) {
     logL1[iv] = 0.;
     logL2[iv] = 0.;

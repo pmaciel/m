@@ -93,35 +93,39 @@ void readsoltp(const std::string& infile, int read_soln)
     M.vv.pop_back();
     M.vn.pop_back();
   }
-  cout << "readsoltp: reading m::mmesh." << endl;
-
-
-  cout << "readsoltp: check wall distance..." << endl;
   if (walldist && ((unsigned) No_wd.size()!=M.n()))
     nrerror("wall distance required and not present (or incorrect)");
-  cout << "readsoltp: check wall distance." << endl;
+  cout << "readsoltp: reading m::mmesh." << endl;
 
 
   cout << "readsoltp: set mesh sizes..." << endl;
   Nnode = (int) M.n();
   Ncell = (int) e2n.size();
   const int Nvar = (int) M.v() - (int) M.d();
-  if (read_soln && Nvar!=Nsys)
+  if (read_soln && Nvar!=(Nsys+Nmit))
     nrerror("Not enough variables in solution file for restart");
   if (!read_soln) {
-    M.vn.resize(Ndim+Nsys);
-    M.vv.resize(Ndim+Nsys);
+    M.vn.resize(Ndim+Nsys+Nmit);
+    M.vv.resize(Ndim+Nsys+Nmit);
     for (int i=0; i<Nsys; ++i) {
       M.vn[Ndim+i] = m_vars_label[i];
       M.vv[Ndim+i].assign(Nnode,m_vars_init[i]);
+    }
+    for (int i=0; i<mitremassembler.Nions; ++i) {
+      M.vn[Ndim+Nsys+i] = (mitremassembler.m_mitrem)->getIonLabel(i);
+      M.vv[Ndim+Nsys+i].assign(Nnode,mitremassembler.bulk[i]);
+    }
+    if (Nmit) {
+      M.vn[Ndim+Nsys+mitremassembler.Nions] = "UU";
+      M.vv[Ndim+Nsys+mitremassembler.Nions].assign(Nnode,0.);
     }
   }
   cout << "readsoltp: set mesh sizes." << endl;
 
 
   cout << "readsoltp: copy/initialize solution..." << endl;
-  No_W.assign(Nsys,std::vector< double > (Nnode,0.));
-  for (int i=0; i<Nsys; ++i)
+  No_W.assign(Nsys+Nmit,std::vector< double > (Nnode,0.));
+  for (int i=0; i<Nsys+Nmit; ++i)
     for (int n=0; n<Nnode; ++n)
       No_W[i][n] = M.vv[Ndim+i][n];
   cout << "readsoltp: copy/initialize solution." << endl;
@@ -261,6 +265,12 @@ void readsoltp(const std::string& infile, int read_soln)
   cout << "readsoltp: setup sparsity." << endl;
 
 
+  if (mitremassembler.ok) {
+    cout << "readsoltp: mitremassembler.ls setup..." << endl;
+    (mitremassembler.ls)->initialize(Nnode,Nnode,mitremassembler.Nions+1);
+    if ((mitremassembler.ls)->issparse) (mitremassembler.ls)->initialize(nz);
+    cout << "readsoltp: mitremassembler.ls setup." << endl;
+  }
   if (temperature && !scalar_coupling) {
     cout << "readsoltp: ls_scalar setup..." << endl;
     ls_scalar->initialize(Nnode,Nnode,1);

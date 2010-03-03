@@ -5,10 +5,15 @@
 #include <string>
 #include <cmath>
 
+#include "ext/xmlParser.h"
 #include "mfactory.h"
 #include "mkernel.h"
 #include "mlinearsystem.h"
 #include "utils.h"
+
+// for mitremassembler library
+#include "MITReM.h"
+#include "ElementMatrixAssembler.h"
 
 // boundary conditions, scalar convection scheme and turbulence model identifiers
 enum IBid { IBNONE=0,
@@ -59,6 +64,19 @@ struct bound_node_struct
   double dist;  /* store e.g. for wall distance */
 };
 
+struct mitremassembler_struct
+{
+  XMLNode x;       // xml for setup
+  bool ok;         // if electrochemistry is to be run
+  int iterinit;    // start calculations after this number of iterations
+  int iv;          // index in W vector
+  int Nions;       // number of ions
+  double linrelx;  // linear relaxation
+  std::vector< double > bulk;  // bulk concentrations
+  LS *ls;        // linear system solver
+  MITReM* m_mitrem;                     // MITReM object
+  ElementMatrixAssembler* m_assembler;  // ElementMatrixAssembler object
+};
 
 /* main functions forward declarations */
 void cellgeom(int ic, local_node_struct *No_loc, double *vol, int *inc_min);
@@ -86,6 +104,7 @@ void turb_source_P(int model, double k, double turb2, double nu_t, double nu_l, 
 double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, double vol);
 void turb_wallbc(int iv1, int iv2, LS *ls1, LS *ls2);
 void turb_wfuncs(double *res);
+void Update_mitrem();
 void Update_temperature();
 void Update_turbulence_coupled();
 void Update_turbulence_sequential();
@@ -123,6 +142,7 @@ extern std::vector< double > No_nuturb;
 extern std::vector< double > No_dissipation;
 extern std::vector< double > No_wd;
 extern std::vector< double > No_lenturb;
+extern mitremassembler_struct mitremassembler;
 
 extern std::vector< std::string > m_vars_label;
 extern std::vector< double      > m_vars_init;
@@ -130,7 +150,8 @@ extern std::vector< double > logL1, logL2, logLi;
 extern std::vector< double > resL1, resL2, resLi;
 
 extern int iverr;          // variable for error check
-extern int Nsys;           // number of system variables
+extern int Nsys;           // number of system variables (excluding MITReM)
+extern int Nmit;           // number of system variables (for MITReM)
 extern int Neqns;          // number of equations solved
 extern int Ncoupled;       // number of coupled equations
 extern int Nvtfce;         // number of vertices per face

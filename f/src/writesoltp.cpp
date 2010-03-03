@@ -13,11 +13,11 @@ void writesoltp(const std::string& outfile)
   std::cout << "writesoltp: writing \"" << fn.str() << "\"..." << std::endl;
 */
   std::cout << "writesoltp: writing \"" << outfile << "\"..." << std::endl;
-
+//--smurf-solutiontime
   // copy variables: pressure (iv=0) is multiplied by density (rho)
   for (int n=0; n<Nnode; ++n)
     M.vv[Ndim+0][n] = No_W[0][n]*rho;
-  for (int iv=1; iv<Nsys; ++iv)
+  for (int iv=1; iv<Nsys+Nmit; ++iv)
     for (int n=0; n<Nnode; ++n)
       M.vv[Ndim+iv][n] = No_W[iv][n];
 

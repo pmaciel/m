@@ -1,7 +1,6 @@
 
 /* read start file for input settings */
 
-#include "ext/xmlParser.h"
 #include "common.h"
 
 
@@ -91,6 +90,56 @@ void readstart(const std::string& ccase)
   walldist       = turmod==ITKWHR || turmod==ITKWLR || turmod==ITKWPD || !turmod || wall_functions? 0:1;
 
 
+  // <mitremassembler/>
+  mitremassembler.x  = c.getChildNode("mitremassembler");
+  mitremassembler.ok = !(mitremassembler.x.isEmpty());
+  if (mitremassembler.ok) {
+    cout << "readstart: mitremassembler setup..." << endl;
+
+    mitremassembler.m_mitrem = new MITReM(
+      mitremassembler.x.getChildNode("MITReM").getAttribute< std::string >("file"),
+      mitremassembler.x.getChildNode("MITReM").getAttribute< std::string >("label") );
+
+    XMLNode ema = mitremassembler.x.getChildNode("ElementMatrixAssembler");
+    mitremassembler.m_assembler = new ElementMatrixAssembler(
+      (Ndim==2? "2D":"3D"),
+      mitremassembler.m_mitrem,
+      ema.getAttribute< std::string >("convectionScheme"),
+      ema.getAttribute< std::string >("diffusionScheme"),
+      ema.getAttribute< std::string >("migrationScheme"),
+      ema.getAttribute< std::string >("magneticScheme"),
+      ema.getAttribute< std::string >("homReactionScheme"),
+      ema.getAttribute< std::string >("electrostaticsScheme"),
+      ema.getAttribute< std::string >("timeScheme"),
+      ema.getAttribute< std::string >("elecReactionScheme"),
+      ema.getAttribute< std::string >("gasReactionScheme") );
+
+    XMLNode ls = mitremassembler.x.getChildNode("ls");
+    mitremassembler.ls = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
+    for (int a=0; a<ls.nAttribute(); ++a)
+      (mitremassembler.ls)->xml.updateAttribute(ls.getAttribute(a).lpszValue,NULL,ls.getAttribute(a).lpszName);
+
+    mitremassembler.iterinit = mitremassembler.x.getChildNode("iterinit").getAttribute< int >("value",0);
+    mitremassembler.iv       = Neqns;
+    mitremassembler.Nions    = (int) (mitremassembler.m_mitrem)->getNIons();
+    mitremassembler.linrelx  = mitremassembler.x.getChildNode("linrelx").getAttribute< double >("value",1.);
+
+    // set bulk concentrations
+    mitremassembler.bulk.resize(mitremassembler.Nions);
+    for (int i=0; i<mitremassembler.Nions; ++i)
+      mitremassembler.bulk[i] = (mitremassembler.m_mitrem)->getIonInletConcentration(i);
+    (mitremassembler.m_mitrem)->calcEquilibrium(mitremassembler.bulk);
+    for (int i=0; i<mitremassembler.Nions; ++i)
+      cout << " bulk(" << (mitremassembler.m_mitrem)->getIonLabel(i) << "): " << mitremassembler.bulk[i] << endl;
+
+    cout << "readstart: mitremassembler setup." << endl;
+  }
+  else {
+    cout << "readstart: mitremassembler not active." << endl;
+  }
+  Nmit  = mitremassembler.ok? (mitremassembler.Nions+1) : 0;
+
+
   // <solver_nonlinear/>
   Niter               = c.getChildNode("solver_nonlinear").getAttribute< int    >("maxiterations");
   conv_thresh         = c.getChildNode("solver_nonlinear").getAttribute< double >("convergence_level");
@@ -112,20 +161,12 @@ void readstart(const std::string& ccase)
   turb_iterinit = restart? 0 : turb_iterinit;
 
   // set non-linear method
-  Jacobian = (method=="Picard"? 0 :    // Picard
-             (method=="Approx"? 1 :    // Newton, approximate
-                                2 ));  // Newton
-
-  // set convergence variable
-  iverr = (convergence_variable=="p"? 0 :
-          (convergence_variable=="u"? 1 :
-          (convergence_variable=="v"? 2 :
-          (convergence_variable=="w" && Ndim>2?  3        :
-          (convergence_variable=="t" && iv_temp? iv_temp  :
-          (convergence_variable=="k" && turmod?  iv_turb1 :
-          (convergence_variable=="e" && turmod?  iv_turb2 :
-          (convergence_variable=="w" && turmod?  iv_turb2 :
-                                      0 ))))))));
+  Jacobian = (method=="Picard"?  0 :  // Picard
+             (method=="Approx"?  1 :  // Newton, approximate
+             (method=="Newton"?  2 :  // Newton (full)
+                                -1 )));
+  if (Jacobian<0)
+    cout << "readstart: <solver_nonlinear method!=\"(Picard|Approx|Newton)\" />, coupled system calculation will be skipped!" << endl;
 
   // set linear or global/local time-step relaxation
   dtrelax        = (relax_puvw_type=="dt-global"? 1 : (relax_puvw_type=="dt-local"?  2 : 0 ));
@@ -187,15 +228,33 @@ void readstart(const std::string& ccase)
   // <vars/>
   if (c.getChildNode("vars").nChildNode("v")!=Neqns)
     nrerror("readstart: number of variables not correct with the settings");
-  m_vars_label.assign(Neqns,"");
-  m_vars_init.assign(Neqns,0.);
+  m_vars_label.assign(Neqns+Nmit,"");
+  m_vars_init .assign(Neqns+Nmit,0.);
   for (int i=0; i<Neqns; ++i) {
     XMLNode v = c.getChildNode("vars").getChildNode("v",i);
     m_vars_label[i] = v.getAttribute< string >("label","?");
     m_vars_init [i] = v.getAttribute< double >("init",0.);
   }
-  logL1 = logL2 = logLi = std::vector< double >(Neqns,0.);
-  resL1 = resL2 = resLi = std::vector< double >(Neqns,0.);
+  if (Nmit) {
+    for (int i=0; i<mitremassembler.Nions; ++i) {
+      m_vars_label[Neqns+i] = (mitremassembler.m_mitrem)->getIonLabel(i);
+      m_vars_init [Neqns+i] = (mitremassembler.m_mitrem)->getIonInletConcentration(i);
+    }
+    m_vars_label[Neqns+mitremassembler.Nions] = "UU";
+    m_vars_init [Neqns+mitremassembler.Nions] = 0.;
+  }
+  logL1 = logL2 = logLi = std::vector< double >(Neqns+Nmit,0.);
+  resL1 = resL2 = resLi = std::vector< double >(Neqns+Nmit,0.);
+
+
+  // set convergence variable
+  iverr = 0;
+  for (int i=0; i<(int) m_vars_label.size(); ++i)
+    if (convergence_variable==m_vars_label[i]) {
+      iverr = i;
+      break;
+    }
+  cout << "readstart: convergence variable: \"" << m_vars_label[iverr] << '"' << endl;
 
 
   // <bcs/>

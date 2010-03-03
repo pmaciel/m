@@ -13,7 +13,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/laminar_cavity_001kn.plt"
   />
   <terms
@@ -77,7 +77,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/laminar_cavity_001kn.plt"
   />
   <terms
@@ -142,7 +142,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/laminar_bfstep_006kn.plt"
   />
   <terms
@@ -209,7 +209,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/laminar_bfstep_006kn.plt"
   />
   <terms
@@ -278,7 +278,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/laminar_buoyancy_001kn_ra=1e5.plt"
   />
   <terms
@@ -346,7 +346,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/laminar_buoyancy_001kn_ra=1e6.plt"
   />
   <terms
@@ -414,7 +414,7 @@
   </comment>
   <setup
    dimensions="3"
-   restart="0"
+   restart="false"
    file_input="testcases/laminar_duct_3d_001kn.plt"
   />
   <terms
@@ -496,7 +496,7 @@
   </comment>
   <setup
    dimensions="3"
-   restart="0"
+   restart="false"
    file_input="testcases/laminar_duct_3d_001kn.plt"
   />
   <terms
@@ -564,7 +564,7 @@
   </comment>
   <setup
    dimensions="3"
-   restart="0"
+   restart="false"
    file_input="testcases/laminar_pipe_bend_014kn.plt"
   />
   <terms
@@ -642,7 +642,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/turbulent_bfstep_ds_022kn.plt"
    file_inlet="testcases/turbulent_bfstep_ds_inlet_ke.dat"
    file_output="turbulent_bfstep_ds_akn.smurf"
@@ -725,7 +725,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/turbulent_bfstep_ds_022kn.plt"
    file_inlet="testcases/turbulent_bfstep_ds_inlet_kw.dat"
   />
@@ -808,7 +808,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/turbulent_bfstep_jd_021kn.plt"
    file_inlet="testcases/turbulent_bfstep_jd_inlet_ke.dat"
   />
@@ -893,7 +893,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/turbulent_bfstep_jd_021kn.plt"
    file_inlet="testcases/turbulent_bfstep_jd_inlet_kw.dat"
   />
@@ -977,7 +977,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/turbulent_bfstep_ve_028kn.plt"
    file_inlet="testcases/turbulent_bfstep_ve_inlet_ke.dat"
   />
@@ -1063,7 +1063,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="1"
+   restart="true"
    file_input="testcases/turbulent_bfstep_ve_028kn.plt"
    file_inlet="testcases/turbulent_bfstep_ve_inlet_ke.dat"
   />
@@ -1159,7 +1159,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/turbulent_channel_138n_yp=1.plt"
   />
   <terms
@@ -1239,7 +1239,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/turbulent_channel_543n_yp=1.plt"
   />
   <terms
@@ -1319,7 +1319,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/turbulent_channel_273n_yp=1.plt"
   />
   <terms
@@ -1399,7 +1399,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/turbulent_channel_543n_yp=0.1.plt"
   />
   <terms
@@ -1478,7 +1478,7 @@
   </comment>
   <setup
    dimensions="2"
-   restart="0"
+   restart="false"
    file_input="testcases/turbulent_ribbed_channel_012kn.plt"
   />
   <terms
@@ -1553,5 +1553,110 @@
    <bc zone="Boundary7" label="wall-u" type="wall"/>
   </bcs>
  </c>
+ <c label="bfstep_supersaturation">
+  <comment/>
+  <setup
+   dimensions="2"
+   restart="true"
+   file_input="bfstep_supersaturation_016kn.plt"
+   file_output="bfstep_supersaturation.smurf"
+  />
+  <terms
+   density="1000."
+   kviscosity="0.801e-6"
+   prandtl="0.7"
+   vardensity_value="1.e-3"
+   gx="0."
+   gy="0."
+   scalarscheme="PSI"
+   diffusion="true"
+   turbulence="NONE"
+   temperature="false"
+   vardensity="false"
+   buoyancy="false"
+  />
+  <mitremassembler>
+   <MITReM
+    file="electrochemistry.ec.xml"
+    label="Na2SO4_and_H2SO4_2009-10-13"
+   />
+   <ElementMatrixAssembler
+    convectionScheme="N"
+    diffusionScheme="Galerkin"
+    migrationScheme="Galerkin"
+    magneticScheme="Empty"
+    homReactionScheme="Galerkin"
+    electrostaticsScheme="Galerkin"
+    timeScheme="Galerkin"
+    elecReactionScheme="Pointwise"
+    gasReactionScheme="Galerkin"
+   />
+   <ls
+    type="ls_pardiso"
+    mtype="vbr"
+    output="none"
+    kspace="50"
+    max_iter="250"
+    overlap="none"
+    precond="dom_decomp"
+    graph_fill="0"
+    subdomain_solve="bilu"
+    solver="gmres"
+    tol="1.0e-4"
+   />
+   <iterinit value="0" />
+   <linrelx  value="1." />
+   <bcs>
+    <bc type="bulk"      label="inlet"      zone="inlet" />
+    <bc type="electrode" label="WElectrode" zone="e0" metalpotential="-0.1" elecreaction="H2EvolutionFromH:H2EvolutionFromH2O:O2Evolution" gasreaction="H2ToGas" />
+    <bc type="electrode" label="CElectrode" zone="e1" metalpotential=" 0.1" elecreaction="H2EvolutionFromH:H2EvolutionFromH2O:O2Evolution" />
+    <bc type="electrode" label="GasWall"    zone="w0:w1:w2" gasreaction="H2ToGas" />
+   </bcs>
+  </mitremassembler>
+  <solver_nonlinear
+   maxiterations="200"
+   convergence_level="-10."
+   convergence_variable="p"
+   relax_puvw_type="linear"
+   relax_puvw_value="1."
+   relax_t_type="linear"
+   relax_t_value="1."
+   relax_ke_type="linear"
+   relax_ke_value="1."
+   method="Newton"
+   newton_eps="1.e-8"
+   newton_switch="-4."
+   couple_t="false"
+   couple_ke="false"
+  />
+  <system_coupled
+   type="ls_pardiso"
+   mtype="vbr"
+   output="none"
+   kspace="50"
+   max_iter="250"
+   overlap="none"
+   precond="dom_decomp"
+   graph_fill="0"
+   subdomain_solve="bilu"
+   solver="gmres"
+   tol="1.0e-4"
+  />
+  <vars>
+   <v label="p" init="0."/>
+   <v label="u" init="0.02"/>
+   <v label="v" init="0.001"/>
+  </vars>
+  <bcs>
+   <bc zone="Boundary1" label="inlet" type="fixv" option="p" values="0.02 0. 1."/>
+   <bc zone="Boundary2" label="w0" type="wall"/>
+   <bc zone="Boundary3" label="w1" type="wall"/>
+   <bc zone="Boundary4" label="e0" type="wall"/>
+   <bc zone="Boundary4" label="w2" type="wall"/>
+   <bc zone="Boundary5" label="outlet" type="fixp" option="x" values="0."/>
+   <bc zone="Boundary6" label="w3" type="wall"/>
+   <bc zone="Boundary7" label="e1" type="wall"/>
+   <bc zone="Boundary8" label="w4" type="wall"/>
+  </bcs>
+ </c>
 </cdb>
-

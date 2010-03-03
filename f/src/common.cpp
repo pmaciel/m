@@ -29,6 +29,7 @@ std::vector< double > No_nuturb;
 std::vector< double > No_dissipation;
 std::vector< double > No_wd;
 std::vector< double > No_lenturb;
+mitremassembler_struct mitremassembler;
 
 std::vector< std::string > m_vars_label;
 std::vector< double      > m_vars_init;
@@ -36,7 +37,8 @@ std::vector< double > logL1, logL2, logLi;
 std::vector< double > resL1, resL2, resLi;
 
 int iverr;          // variable for error check
-int Nsys;           // number of system variables
+int Nsys;           // number of system variables (excluding MITReM)
+int Nmit;           // number of system variables (for MITReM)
 int Neqns;          // number of equations solved
 int Ncoupled;       // number of coupled equations
 int Nvtfce;         // number of vertices per face

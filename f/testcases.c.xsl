@@ -8,6 +8,7 @@
    	border-width: 1px;
    }
    td.h { background-color: #EEEEEE }
+   td.H { background-color: #DDDDDD }
 </style>
  </head>
  <body style="font-family:sans-serif;font-size:small">
@@ -21,12 +22,13 @@
    <td>solver_linear</td>
    <td>vars</td>
    <td>bcs</td>
+   <td>mitremassembler</td>
   </tr>
  </thead>
  <tbody>
   <xsl:for-each select="cdb/c">
-   <tr><td class="h">label</td><td class="h" colspan="5"><xsl:value-of select="@label"/></td></tr>
-   <tr><td class="h">comment</td><td colspan="5"><xsl:value-of select="comment"/></td></tr>
+   <tr><td class="h">label</td><td class="h" colspan="6"><xsl:value-of select="@label"/></td></tr>
+   <tr><td class="h">comment</td><td colspan="6"><xsl:value-of select="comment"/></td></tr>
   <tr valign="top">
 
    <!-- setup -->
@@ -79,8 +81,8 @@
     <xsl:for-each select="system_coupled">
      <table><thead><tr><td class="h" colspan="2">system_coupled</td></tr></thead><tbody>
       <tr><td class="h">type      </td><td><xsl:value-of select="@type"      /></td></tr>
-      <tr><td class="h">mtype     </td><td><xsl:value-of select="@mtype"     /></td></tr>
       <!-- aztec options -->
+      <tr><td class="h">mtype     </td><td><xsl:value-of select="@mtype"     /></td></tr>
       <tr><td class="h">solver    </td><td><xsl:value-of select="@solver"    /></td></tr>
       <tr><td class="h">scaling   </td><td><xsl:value-of select="@scaling"   /></td></tr>
       <tr><td class="h">precond   </td><td><xsl:value-of select="@precond"   /></td></tr>
@@ -108,8 +110,8 @@
     <xsl:for-each select="system_scalar">
      <table><thead><tr><td class="h" colspan="2">system_scalar</td></tr></thead><tbody>
       <tr><td class="h">type      </td><td><xsl:value-of select="@type"      /></td></tr>
-      <tr><td class="h">mtype     </td><td><xsl:value-of select="@mtype"     /></td></tr>
       <!-- aztec options -->
+      <tr><td class="h">mtype     </td><td><xsl:value-of select="@mtype"     /></td></tr>
       <tr><td class="h">solver    </td><td><xsl:value-of select="@solver"    /></td></tr>
       <tr><td class="h">scaling   </td><td><xsl:value-of select="@scaling"   /></td></tr>
       <tr><td class="h">precond   </td><td><xsl:value-of select="@precond"   /></td></tr>
@@ -137,8 +139,8 @@
     <xsl:for-each select="system_turb">
      <table><thead><tr><td class="h" colspan="2">system_turb</td></tr></thead><tbody>
       <tr><td class="h">type      </td><td><xsl:value-of select="@type"      /></td></tr>
-      <tr><td class="h">mtype     </td><td><xsl:value-of select="@mtype"     /></td></tr>
       <!-- aztec options -->
+      <tr><td class="h">mtype     </td><td><xsl:value-of select="@mtype"     /></td></tr>
       <tr><td class="h">solver    </td><td><xsl:value-of select="@solver"    /></td></tr>
       <tr><td class="h">scaling   </td><td><xsl:value-of select="@scaling"   /></td></tr>
       <tr><td class="h">precond   </td><td><xsl:value-of select="@precond"   /></td></tr>
@@ -193,6 +195,47 @@
      <td><xsl:value-of select="@option"/></td>
      <td><xsl:value-of select="@values"/></td>
     </tr></xsl:for-each></tbody>
+   </table></td>
+
+   <!-- mitremassembler -->
+   <td><table>
+    <tr><td><xsl:for-each select="mitremassembler">
+     <table><tbody>
+      <tr><td class="H" colspan="3">mitremassembler</td></tr>
+      <tr><td class="H" rowspan="2">MITReM</td>
+          <td class="h">file </td><td><xsl:value-of select="MITReM/@file" /></td></tr>
+      <tr><td class="h">label</td><td><xsl:value-of select="MITReM/@label"/></td></tr>
+      <tr><td class="H" rowspan="9">Element<br/>Matrix<br/>Assembler</td>
+          <td class="h">convectionScheme    </td><td><xsl:value-of select="ElementMatrixAssembler/@convectionScheme"    /></td></tr>
+      <tr><td class="h">diffusionScheme     </td><td><xsl:value-of select="ElementMatrixAssembler/@diffusionScheme"     /></td></tr>
+      <tr><td class="h">migrationScheme     </td><td><xsl:value-of select="ElementMatrixAssembler/@migrationScheme"     /></td></tr>
+      <tr><td class="h">magneticScheme      </td><td><xsl:value-of select="ElementMatrixAssembler/@magneticScheme"      /></td></tr>
+      <tr><td class="h">homReactionScheme   </td><td><xsl:value-of select="ElementMatrixAssembler/@homReactionScheme"   /></td></tr>
+      <tr><td class="h">electrostaticsScheme</td><td><xsl:value-of select="ElementMatrixAssembler/@electrostaticsScheme"/></td></tr>
+      <tr><td class="h">timeScheme          </td><td><xsl:value-of select="ElementMatrixAssembler/@timeScheme"          /></td></tr>
+      <tr><td class="h">elecReactionScheme  </td><td><xsl:value-of select="ElementMatrixAssembler/@elecReactionScheme"  /></td></tr>
+      <tr><td class="h">gasReactionScheme   </td><td><xsl:value-of select="ElementMatrixAssembler/@gasReactionScheme"   /></td></tr>
+      <tr><td class="H" rowspan="6">ls</td>
+          <td class="h">type           </td><td><xsl:value-of select="ls/@type"      /></td></tr>
+      <!-- aztec options -->
+      <tr><td class="h">mtype          </td><td><xsl:value-of select="ls/@mtype"     /></td></tr>
+      <tr><td class="h">solver         </td><td><xsl:value-of select="ls/@solver"    /></td></tr>
+      <tr><td class="h">precond        </td><td><xsl:value-of select="ls/@precond"   /></td></tr>
+      <tr><td class="h">subdomain_solve</td><td><xsl:value-of select="ls/@subdomain_solve"/></td></tr>
+      <tr><td class="h" colspan="2" align="center">(...)</td></tr><!-- skip parameters, otherwise it looks like the bible-->
+      <tr><td class="H">iterinit</td><td class="h">value</td><td><xsl:value-of select="iterinit/@value"/></td></tr>
+      <tr><td class="H">linrelx </td><td class="h">value</td><td><xsl:value-of select="linrelx/@value" /></td></tr>
+      <xsl:for-each select="bcs/bc">
+       <tr><td class="H" rowspan="6">bcs/bc</td>
+           <td class="h">type          </td><td><xsl:value-of select="@type"          /></td></tr>
+       <tr><td class="h">label         </td><td><xsl:value-of select="@label"         /></td></tr>
+       <tr><td class="h">zone          </td><td><xsl:value-of select="@zone"          /></td></tr>
+       <tr><td class="h">metalpotential</td><td><xsl:value-of select="@metalpotential"/></td></tr>
+       <tr><td class="h">elecreaction  </td><td><xsl:value-of select="@elecreaction"  /></td></tr>
+       <tr><td class="h">gasreaction   </td><td><xsl:value-of select="@gasreaction"   /></td></tr>
+      </xsl:for-each>
+     </tbody></table>
+    </xsl:for-each></td></tr>
    </table></td>
 
   </tr></xsl:for-each>

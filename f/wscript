@@ -2,7 +2,11 @@
 
 
 def configure(ctx):
-  pass
+  ctx.env['LIB_MITREM']     = ['mitremassembler']
+  ctx.env['CPPPATH_MITREM'] = \
+  ctx.env['LIBPATH_MITREM'] = \
+  ctx.env['RPATH_MITREM']   = \
+    ['/home/pedro/local/x86_64/local/mitrem']
 
 
 def build(ctx):
@@ -12,6 +16,7 @@ def build(ctx):
     features = 'cxx cprogram',
     target   = 'f',
     includes = ['src','../mkernel'],
+    uselib   = ['MITREM'],
     uselib_local = ctx.env.m_mlibraries,
     rpath    = ctx.env['PREFIX'],
     source   = [
@@ -42,6 +47,7 @@ def build(ctx):
       'src/turb_viscosity.cpp',
       'src/turb_wallbc.cpp',
       'src/turb_wfuncs.cpp',
+      'src/Update_mitrem.cpp',
       'src/Update_temperature.cpp',
       'src/Update_turbulence_coupled.cpp',
       'src/Update_turbulence_sequential.cpp',
