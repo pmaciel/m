@@ -73,7 +73,8 @@ struct mitremassembler_struct
   int Nions;       // number of ions
   double linrelx;  // linear relaxation
   std::vector< double > bulk;  // bulk concentrations
-  LS *ls;        // linear system solver
+  LS *ls;          // linear system solver
+  m::mmesh Mj;     // mmesh structure for electrode reactions current density
   MITReM* m_mitrem;                     // MITReM object
   ElementMatrixAssembler* m_assembler;  // ElementMatrixAssembler object
 };

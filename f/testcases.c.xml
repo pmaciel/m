@@ -1557,9 +1557,12 @@
   <comment/>
   <setup
    dimensions="2"
-   restart="true"
-   file_input="bfstep_supersaturation_016kn.plt"
-   file_output="bfstep_supersaturation.smurf"
+   restart="false"
+   file_input="testcases/bfstep_supersaturation_016kn.plt"
+   file_output="bfstep_supersaturation_flow.plt"
+   __restart="true"
+   __file_input="bfstep_supersaturation_flow.plt"
+   __file_output="bfstep_supersaturation_ec.plt"
   />
   <terms
    density="1000."
@@ -1591,20 +1594,9 @@
     elecReactionScheme="Pointwise"
     gasReactionScheme="Galerkin"
    />
-   <ls
-    type="ls_pardiso"
-    mtype="vbr"
-    output="none"
-    kspace="50"
-    max_iter="250"
-    overlap="none"
-    precond="dom_decomp"
-    graph_fill="0"
-    subdomain_solve="bilu"
-    solver="gmres"
-    tol="1.0e-4"
-   />
-   <iterinit value="0" />
+   <ls type="ls_pardiso" />
+   <iterinit value="1000" />
+   <__iterinit value="0" />
    <linrelx  value="1." />
    <bcs>
     <bc type="bulk"      label="inlet"      zone="inlet" />
@@ -1624,24 +1616,13 @@
    relax_ke_type="linear"
    relax_ke_value="1."
    method="Newton"
+   __method="__Newton"
    newton_eps="1.e-8"
    newton_switch="-4."
    couple_t="false"
    couple_ke="false"
   />
-  <system_coupled
-   type="ls_pardiso"
-   mtype="vbr"
-   output="none"
-   kspace="50"
-   max_iter="250"
-   overlap="none"
-   precond="dom_decomp"
-   graph_fill="0"
-   subdomain_solve="bilu"
-   solver="gmres"
-   tol="1.0e-4"
-  />
+  <system_coupled type="ls_pardiso" />
   <vars>
    <v label="p" init="0."/>
    <v label="u" init="0.02"/>

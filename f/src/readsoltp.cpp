@@ -123,6 +123,20 @@ void readsoltp(const std::string& infile, int read_soln)
   cout << "readsoltp: set mesh sizes." << endl;
 
 
+  if (mitremassembler.ok) {
+    cout << "readsoltp: set mmesh structure for electrode reactions current density..." << endl;
+
+    const unsigned Ner = (mitremassembler.m_mitrem)->getNElecReactions();
+    mitremassembler.Mj.vn.resize(Ndim+Ner);
+    for (int      d=0; d<Ndim; ++d) mitremassembler.Mj.vn[d] = M.vn[d];
+    for (unsigned i=0; i<Ner;  ++i) mitremassembler.Mj.vn[Ndim+i] =
+      "J(" + (mitremassembler.m_mitrem)->getElecReactionLabel(i) + ") [A.m-2]";
+    mitremassembler.Mj.vv.resize(Ndim+Ner);
+
+    cout << "readsoltp: set mmesh structure for electrode reactions current density." << endl;
+  }
+
+
   cout << "readsoltp: copy/initialize solution..." << endl;
   No_W.assign(Nsys+Nmit,std::vector< double > (Nnode,0.));
   for (int i=0; i<Nsys+Nmit; ++i)

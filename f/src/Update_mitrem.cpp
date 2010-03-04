@@ -1,10 +1,11 @@
 
+#include <memory>
 #include "boost/progress.hpp"
 #include "common.h"
 
 
 // forward declarations
-enum PostAction { ASSEMBLY, CURRENT, GAS };
+enum CALL { ASSEMBLY, CURRENT, GAS };
 void assembleMITReM(const std::vector< m::melem >& e2n);
 void assembleBulk(const std::vector< m::melem >& e2n);
 double assembleElectrode(
@@ -12,7 +13,7 @@ double assembleElectrode(
   const std::vector< unsigned >& greactions,
   const std::vector< unsigned >& ereactions,
   const double& v,
-  const PostAction& action=ASSEMBLY);
+  const CALL& action=ASSEMBLY);
 
 // forward declarations (utility functions)
 std::vector< unsigned > getZones(const std::string& l);
@@ -84,7 +85,9 @@ void Update_mitrem()
   }
 
 
-  // calculate current and gas production rate
+  // calculate current, current densities and gas production rate
+  for (unsigned i=0; i<(m.m_mitrem)->getNElecReactions(); ++i)
+    m.Mj.vv[Ndim+i].assign(Nnode,0.);
   for (int i=0; i<m.x.getChildNode("bcs").nChildNode("bc"); ++i) {
     const XMLNode b = m.x.getChildNode("bcs").getChildNode("bc",i);
     const vector< unsigned > z = getZones(b.getAttribute< string >("zone"));
@@ -97,15 +100,36 @@ void Update_mitrem()
         cout << "Update_mitrem:"
              << " electrode:\""  << b.getAttribute("label") << '"'
              << " zone:\""       << M.vz[z[j]].n            << '"'
-             << " current [A]: " << assembleElectrode( M.vz[z[j]].e2n,gr,er,v,CURRENT) << endl;
+             << " current [A]: " << assembleElectrode(M.vz[z[j]].e2n,gr,er,v,CURRENT) << endl;
       if (gr.size())
         cout << "Update_mitrem:"
              << " electrode:\""  << b.getAttribute("label") << '"'
              << " zone:\""       << M.vz[z[j]].n            << '"'
-             << " gas production rate [m3.s-1]: " << assembleElectrode( M.vz[z[j]].e2n,gr,er,v,GAS) << endl;
+             << " gas production rate [m3.s-1]: " << assembleElectrode(M.vz[z[j]].e2n,gr,er,v,GAS) << endl;
 
     }
   }
+
+
+  string outfile = file_output + ".j" + extension(file_output);
+  cout << "Update_mitrem: writing current densities to \"" << outfile << "\"..." << endl;
+  {
+    m.Mj.vz.swap(M.vz);          // (hack)
+    m.Mj.vz[0].e2n.swap(e2n);    // ...
+    for (int d=0; d<Ndim; ++d)   // ...
+      m.Mj.vv[d].swap(M.vv[d]);  // ...
+
+    auto_ptr< m::mfoutput > p(m::mfactory< m::mfoutput  >::instance()->Create(extension(outfile)));
+    char* argv[] = { (char*) "", const_cast< char* >(outfile.c_str()) };
+    GetPot o2(2,argv);
+    p->write(o2,m.Mj);
+
+    for (int d=0; d<Ndim; ++d)   // (hack back)
+      m.Mj.vv[d].swap(M.vv[d]);  // ...
+    m.Mj.vz[0].e2n.swap(e2n);    // ...
+    m.Mj.vz.swap(M.vz);          // ...
+  }
+  cout << "Update_mitrem: writing current densities." << endl;
 }
 
 
@@ -147,7 +171,7 @@ void assembleMITReM(const vector< m::melem >& e2n)
 
     // assemble element: Ax = b
     // (get element matrix contribution)
-    DoubleMatrix emat_ = m.m_assembler->calcElementMat(
+    DoubleMatrix emat_ = (m.m_assembler)->calcElementMat(
       coordinates, velocities, concentrations, &potentials[0],
       &temperatures[0], &densities[0], &voidfractions[0], bvectors );
 
@@ -169,7 +193,7 @@ void assembleMITReM(const vector< m::melem >& e2n)
 
     // assemble element: K = AMat + AJac - dB/dX (K*dx = r)
     // (get element jacobian matrix contribution)
-    emat_ = m.m_assembler->calcElementJac(
+    emat_ = (m.m_assembler)->calcElementJac(
       coordinates, velocities, concentrations, &potentials[0],
       &temperatures[0], &densities[0], &voidfractions[0], bvectors );
 
@@ -215,7 +239,7 @@ double assembleElectrode(
   const vector< unsigned >& greactions,
   const vector< unsigned >& ereactions,
   const double& v,
-  const PostAction& action)
+  const CALL& action)
 {
   double r = 0.;
 
@@ -248,12 +272,12 @@ double assembleElectrode(
 
     if (action==ASSEMBLY) {
       // assemble: get face matrix and residual vector contributions
-      DoubleMatrix fmat = m.m_assembler->calcBoundaryElementJac(
+      DoubleMatrix fmat = (m.m_assembler)->calcBoundaryElementJac(
         coordinates, concentrations, &potentials[0],
         &temperatures[0], &densities[0], &sgasfractions[0],
         ereactions.size(), p_ereactions, v,
         greactions.size(), p_greactions );
-      DoubleVector fres = m.m_assembler->calcBoundaryElementVec(
+      DoubleVector fres = (m.m_assembler)->calcBoundaryElementVec(
         coordinates, concentrations, &potentials[0],
         &temperatures[0], &densities[0], &sgasfractions[0],
         ereactions.size(), p_ereactions, v,
@@ -269,15 +293,23 @@ double assembleElectrode(
         }
     }
     else if (action==CURRENT) {
-      // calculate total current
-      r += m.m_assembler->calcCurrent(
+      // calculate total current (by accumulation)
+      r += (m.m_assembler)->calcCurrent(
         coordinates, concentrations, &potentials[0],
         &temperatures[0], &densities[0], &sgasfractions[0],
         ereactions.size(), p_ereactions, v );
+      // calculate current density
+      DoubleListList j = (m.m_assembler)->calcElecReactionCurrentDensities(
+        coordinates, concentrations, &potentials[0],
+        &temperatures[0], &densities[0], &sgasfractions[0],
+        ereactions.size(), p_ereactions, v );
+      for (int i=0; i<Nenod; ++i)
+        for (unsigned r=0; r<ereactions.size(); ++r)
+          m.Mj.vv[Ndim+ereactions[r]][(e->n)[i]] = j[i][r];
     }
     else if (action==GAS) {
-      // calculate total gas production rate
-      r += m.m_assembler->calcGasGeneration(
+      // calculate total gas production rate (by accumulation)
+      r += (m.m_assembler)->calcGasGeneration(
         coordinates, concentrations, &potentials[0],
         &temperatures[0], &densities[0], &sgasfractions[0],
         greactions.size(), p_greactions);
