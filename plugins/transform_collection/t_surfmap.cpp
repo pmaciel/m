@@ -22,7 +22,7 @@ Register< mtransform,t_surfmap > mt_surfmap(5,"-tsurfmap","[str] [real] [real] [
 #define NEXT(i) ((i)<2 ? (i)+1 : (i)-2)
 #define PREV(i) ((i)>0 ? (i)-1 : (i)+2)
 #ifndef M_PI
-# define M_PI 3.14159265358979323846
+#define M_PI 3.14159265358979323846
 #endif
 
 // edge definition
@@ -43,9 +43,10 @@ struct EDGELT {
 };
 typedef Vec< 3,double > PNT;
 struct TRI {
-  Vec< 3,int > v;
-  int          i;
-  double       w;
+  Vec< 3,int > v;  // (splitted) triangle mmesh node indices
+  double       w;  // (splitted) tri. contribution weight (start with 1.)
+  int          i;  // (original) tri. mmesh cell index
+  double       a;  // (original) tri. area
 };
 inline ostream& operator<< (ostream& os, const TRI& t) {
   for (int i=0; i<3; ++i)
@@ -53,10 +54,12 @@ inline ostream& operator<< (ostream& os, const TRI& t) {
   return os << ' ';
 }
 struct MNODE {
-  MNODE() : pnt(0.,0.,0.) {}
-  PNT  pnt;
-  vector< int    > ni;
-  vector< double > nw;
+  PNT nucsite_xyz;      // nucleation site (in xyz)
+  PNT nucsite_uv;       // nucleation site (in uv)
+  PNT    qcenter;       // quad. center (in uv)
+  double qarea;         // quad. area (intersected with zone)
+  vector< int    > ni;  // contributing triangle index
+  vector< double > nw;  // contributing triangle weight
 };
 
 
@@ -93,10 +96,12 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
 
     for (unsigned i=0; i<mold.e(0); ++i) {
       const vector< unsigned >& en = mold.vz[0].e2n[i].n;
+      const PNT tnormal = trinorm(points[en[0]].first,points[en[1]].first,points[en[2]].first);
       tri[i].v = Vec<3,int>(en[0],en[1],en[2]);
-      tri[i].i = (int) i;
       tri[i].w = 1.;
-      pn += trinorm(points[en[0]].first,points[en[1]].first,points[en[2]].first);
+      tri[i].i = (int) i;       // kept constant throughout splitting
+      tri[i].a = len(tnormal);  // ...
+      pn += tnormal;
     }
     pn /= (double) mold.e(0);
 
@@ -139,12 +144,12 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
 
 
   cout << "info: project at rotation angle [deg]: " << angled << "..." << endl;
+  const double r[4] = { cos(angled*M_PI/180.), -sin(angled*M_PI/180.),
+                        sin(angled*M_PI/180.),  cos(angled*M_PI/180.) };
   vector< double > gridu,
                    gridv;
   {
-    // set rotation matrix and bounding box min/max u/v
-    const double r[4] = { cos(angled*M_PI/180.), -sin(angled*M_PI/180.),
-                          sin(angled*M_PI/180.),  cos(angled*M_PI/180.) };
+    // set bounding box min/max u/v
     double bbox[4] = { 1.e32, -1.e32, 1.e32, -1.e32 };
 
     for (unsigned i=0; i<(unsigned) points.size(); ++i) {
@@ -168,11 +173,9 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
 
 
   cout << "info: split triangles..." << endl;
-  unsigned pass=0;
-
   // u coordinates splitting
   pair< unsigned,unsigned > splits(0,0);
-  for (bool ok=false; !ok; ++pass) {
+  for (bool ok=false; !ok; ) {
     ok = true;
     const unsigned Ntri = (unsigned) tri.size();
     cout << "info: new pass, triangles to check: " << Ntri << "..." << endl;
@@ -184,15 +187,15 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
                   D = points.size();      // (possible) intersection node
         const double w = trisplit(gridu,points[A].second[0],points[B].second[0]);
         if (w>0. && w<1.) {
-          points.push_back(pair< PNT,PNT >( points[A].first*(1.-w)  + points[B].first*w,
+          points.push_back(pair< PNT,PNT >( points[A].first *(1.-w) + points[B].first *w,
                                             points[A].second*(1.-w) + points[B].second*w ));
           isedge.push_back(isedge[A] && isedge[B]);
           const double wacc = tri[i].w;
           tri.push_back(TRI());
           TRI& t1 = tri[i];
           TRI& t2 = tri.back();
-          t1.v = Vec< 3,int >(C,A,D);  t1.i = tri[i].i;  t1.w = wacc*w;
-          t2.v = Vec< 3,int >(C,D,B);  t2.i = tri[i].i;  t2.w = wacc*(1.-w);
+          t1.v = Vec< 3,int >(C,A,D);  t1.i = tri[i].i;  t1.a = tri[i].a;  t1.w = wacc*w;
+          t2.v = Vec< 3,int >(C,D,B);  t2.i = tri[i].i;  t2.a = tri[i].a;  t2.w = wacc*(1.-w);
           if (isedge.back()) {
             edge.erase(EDGE(A,B));
             edge.insert(EDGE(A,D));
@@ -211,7 +214,7 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
 
   // v coordinates splitting
   splits = pair< unsigned,unsigned >(0,0);
-  for (bool ok=false; !ok; ++pass) {
+  for (bool ok=false; !ok; ) {
     ok = true;
     const unsigned Ntri = (unsigned) tri.size();
     cout << "info: new pass, triangles to check: " << Ntri << "..." << endl;
@@ -223,15 +226,15 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
                   D = points.size();      // (possible) intersection node
         const double w = trisplit(gridv,points[A].second[1],points[B].second[1]);
         if (w>0. && w<1.) {
-          points.push_back(pair< PNT,PNT >( points[A].first*(1.-w)  + points[B].first*w,
+          points.push_back(pair< PNT,PNT >( points[A].first *(1.-w) + points[B].first *w,
                                             points[A].second*(1.-w) + points[B].second*w ));
           isedge.push_back(isedge[A] && isedge[B]);
           const double wacc = tri[i].w;
           tri.push_back(TRI());
           TRI& t1 = tri[i];
           TRI& t2 = tri.back();
-          t1.v = Vec< 3,int >(C,A,D);  t1.i = tri[i].i;  t1.w = wacc*w;
-          t2.v = Vec< 3,int >(C,D,B);  t2.i = tri[i].i;  t2.w = wacc*(1.-w);
+          t1.v = Vec< 3,int >(C,A,D);  t1.i = tri[i].i;  t1.a = tri[i].a;  t1.w = wacc*w;
+          t2.v = Vec< 3,int >(C,D,B);  t2.i = tri[i].i;  t2.a = tri[i].a;  t2.w = wacc*(1.-w);
           if (isedge.back()) {
             edge.erase(EDGE(A,B));
             edge.insert(EDGE(A,D));
@@ -263,17 +266,20 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
     for (unsigned i=0; i<(unsigned) gridu.size(); ++i) {
       for (unsigned j=0; j<(unsigned) gridv.size(); ++j, ++pbar) {
         MNODE& n = table[j*gridu.size() + i];
-        vector< int > qedge;
+
+        // quadrilateral min/max x/y and center
         const double quad[4] = { gridu[i],gridu[i+1], gridv[j],gridv[j+1] };
+        n.qcenter = PNT((quad[0]+quad[1])*.5,(quad[2]+quad[3])*.5,0.);
+        n.nucsite_xyz = n.qcenter;
 
         // collect indices and weights withing quadrilateral...
         // ... and accumulate their contributions through a std::set< WPAIR >
         set< WPAIR,WPAIRLT > setwpair;
+        vector< int > qedge;
         for (vector< TRI >::const_iterator t=tri.begin(); t!=tri.end(); ++t) {
-          PNT tc( points[ t->v[0] ].second
-                + points[ t->v[1] ].second
-                + points[ t->v[2] ].second );
-          tc /= 3.;
+          const PNT tc(( points[ t->v[0] ].second
+                       + points[ t->v[1] ].second
+                       + points[ t->v[2] ].second )/3.);
           if (tc[0]>quad[0] && tc[0]<quad[1] && tc[1]>quad[2] && tc[1]<quad[3]) {
             pair< set< WPAIR,WPAIRLT >::iterator,bool > r = setwpair.insert(WPAIR(t->i,t->w));
             if (!r.second /*if this index was already present*/) {
@@ -297,20 +303,19 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
 
         // project onto xyz space by finding contaning triangle...
         // ... and interpolate using laplacian coordinates
-        n.pnt = PNT((quad[0]+quad[1])*.5, (quad[2]+quad[3])*.5, 0.);
-        const PNT P2(n.pnt);
         bool found = false;
         for (vector< TRI >::const_iterator t=tri.begin(); t!=tri.end() && !found; ++t) {
           const PNT &A2 = points[ t->v[0] ].second, &A3 = points[ t->v[0] ].first,
                     &B2 = points[ t->v[1] ].second, &B3 = points[ t->v[1] ].first,
                     &C2 = points[ t->v[2] ].second, &C3 = points[ t->v[2] ].first;
-          if (tricheck(P2[0],A2[0],B2[0],C2[0],
-                       P2[1],A2[1],B2[1],C2[1])) {
-            const double a  = triarea(A2[0],B2[0],C2[0],A2[1],B2[1],C2[1]);
-            const double ka = triarea(B2[0],C2[0],P2[0],B2[1],C2[1],P2[1])/a,
-                         kb = triarea(C2[0],A2[0],P2[0],C2[1],A2[1],P2[1])/a,
-                         kc = triarea(A2[0],B2[0],P2[0],A2[1],B2[1],P2[1])/a;
-            n.pnt = A3*ka + B3*kb + C3*kc;
+          if (tricheck(n.qcenter[0],A2[0],B2[0],C2[0],
+                       n.qcenter[1],A2[1],B2[1],C2[1])) {
+            const double a  = len(trinorm(A2,B2,C2)),
+                         ka = len(trinorm(B2,C2,n.qcenter))/a,
+                         kb = len(trinorm(C2,A2,n.qcenter))/a,
+                         kc = len(trinorm(A2,B2,n.qcenter))/a;
+            n.nucsite_xyz = A3*ka + B3*kb + C3*kc;
+            n.nucsite_uv  = n.qcenter;
             found = true;
           }
         }
@@ -325,14 +330,19 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
           double mind = sqrt(du*du+dv*dv)+1.;
           int    mini = -1;
           for (vector< int >::const_iterator i=qedge.begin(); i!=qedge.end(); ++i) {
-            const double d = dist(n.pnt,points[*i].second);
+            const double d = dist(n.nucsite_xyz,points[*i].second);
             if (d<mind) {
               mind = d;
               mini = *i;
             }
           }
-          if (mini>=0)
-            n.pnt = points[mini].first;
+          if (mini>=0) {
+            n.nucsite_xyz = points[mini].first;
+            const double u = (n.nucsite_xyz-pc)^pu,
+                         v = (n.nucsite_xyz-pc)^pv,
+                         w = (n.nucsite_xyz-pc)^pn;
+            n.nucsite_uv = PNT( r[0]*u+r[1]*v, r[2]*u+r[3]*v, w );
+          }
           else {
             n.ni.clear();
             n.nw.clear();
@@ -340,6 +350,11 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
           nin   += (mini<0? 0:1);  nout  += (mini<0? 1:0);
           nrcvy += (mini<0? 0:1);  nfail += (mini<0? 1:0);
         }
+
+        // update (accumulate) quadrilateral area (intersected with zone)
+        n.qarea = 0.;
+        for (size_t j=0; j<n.ni.size(); ++j)
+          n.qarea += tri[ n.ni[j] ].a * n.nw[j];
 
       }
     }
@@ -376,7 +391,11 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
     f << "<surfmapdb>" << endl
       << "  <surfmap zonename=\"" << zonename << "\" du=\"" << du << "\" dv=\"" << dv << "\" angled=\"" << angled << "\" n=\"" << table.size() << "\">" << endl;
     for (vector< MNODE >::const_iterator n=table.begin(); n!=table.end(); ++n) {
-      f << "    <n x=\"" << (n->pnt)[0] << "\" y=\"" << (n->pnt)[1] << "\" z=\"" << (n->pnt)[2] << "\" e=\"" << (n->ni).size() << "\">" << endl;
+      f << "    <n"
+        << " x=\"" << (n->nucsite_xyz)[0] << "\""
+        << " y=\"" << (n->nucsite_xyz)[1] << "\""
+        << " z=\"" << (n->nucsite_xyz)[2] << "\""
+        << " e=\"" << (n->ni).size() << "\">" << endl;
       for (unsigned i=0; i<(n->ni).size(); ++i)
         f << "      <e i=\"" << (n->ni)[i] << "\" w=\"" << (n->nw)[i] << "\" />" << endl;
       f << "    </n>" << endl;
@@ -387,56 +406,95 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
   }
 
   {
-    const string fn = "surfmap.table.plt";
-    ofstream f;
-    if (!ifstream(fn.c_str())) {
-      f.open(fn.c_str(),ios::trunc);
-      f << "VARIABLES = x y z w" << endl;
+    const string fn2 = "surfmap.table.uv.plt";
+    const string fn3 = "surfmap.table.xyz.plt";
+    ofstream f2;
+    ofstream f3;
+    if (!ifstream(fn2.c_str()) || !ifstream(fn3.c_str())) {
+      f2.open(fn2.c_str(),ios::trunc);
+      f3.open(fn3.c_str(),ios::trunc);
+      f2 << "VARIABLES = \"u\" \"v\"       \"weight\" \"area\"" << endl;
+      f3 << "VARIABLES = \"x\" \"y\" \"z\" \"weight\" \"area\"" << endl;
     }
-    else {
-      f.open(fn.c_str(),ios::app);
-    }
+    cout << "info: dump table (\"" << fn2 << "\" and \"" << fn3 << "\")..." << endl;
 
-    cout << "info: dump table (\"" << fn << "\")..." << endl;
-    f << "ZONE I=" << table.size() << " ZONETYPE=ORDERED DATAPACKING=POINT" << endl;
-    for (unsigned i=0; i<(unsigned) table.size(); ++i)
-      f << table[i].pnt << "0." << endl;
+    // triangulated (original) mesh
     for (unsigned i=0; i<(unsigned) table.size(); ++i) {
-      f << "ZONE N=" << mold.n() << " E=" << mold.e(0) << " ZONETYPE=FETRIANGLE DATAPACKING=BLOCK VARLOCATION=([4]=CELLCENTERED)" << (i? " VARSHARELIST=([1-3]=2)":"") << " SOLUTIONTIME=" << (double) i << endl;
+      const MNODE &N = table[i];
 
-      // point cloud
-      if (!i)
-        for (unsigned d=0; d<3; ++d) {
-          for (unsigned j=0; j<mold.n(); ++j)
-            f << ' ' << points[j].first[d] << ((j+1)%500? ' ':'\n');
-          f << endl;
-        }
+      f2 << "ZONE T=\"site " << i+1 << " contributions\""
+         << " N=" << mold.n() << " E=" << mold.e(0)
+         << " ZONETYPE=FETRIANGLE"
+         << " DATAPACKING=BLOCK"
+         << " VARLOCATION=([3-4]=CELLCENTERED)"
+         << (i? " VARSHARELIST=([1-2,4]=1)":"") << endl;
+      f3 << "ZONE T=\"site " << i+1 << " contributions\""
+         << " N=" << mold.n() << " E=" << mold.e(0)
+         << " ZONETYPE=FETRIANGLE"
+         << " DATAPACKING=BLOCK"
+         << " VARLOCATION=([4-5]=CELLCENTERED)"
+         << (i? " VARSHARELIST=([1-3,5]=1)":"") << endl;
+
+      for (unsigned d=0; d<2 && !i; ++d) {
+        for (unsigned j=0; j<mold.n(); ++j)
+          f2 << ' ' << points[j].second[d] << ((j+1)%500? ' ':'\n');
+        f2 << endl;
+      }
+      for (unsigned d=0; d<3 && !i; ++d) {
+        for (unsigned j=0; j<mold.n(); ++j)
+          f3 << ' ' << points[j].first[d] << ((j+1)%500? ' ':'\n');
+        f3 << endl;
+      }
       for (int j=0; j<(int) mold.e(0); ++j) {
         double w = 0.;
-        for (unsigned k=0; k<table[i].ni.size(); ++k)
-          w += table[i].ni[k]==j? table[i].nw[k] : 0.;
-        f << ' ' << w << ((j+1)%500? ' ':'\n');
+        for (unsigned k=0; k<N.ni.size(); ++k)
+          w += N.ni[k]==j? N.nw[k] : 0.;
+        f2 << ' ' << w << ((j+1)%500? ' ':'\n');
+        f3 << ' ' << w << ((j+1)%500? ' ':'\n');
       }
-      f << endl;
+      for (unsigned j=0; j<mold.e(0) && !i; ++j) {
+        f2 << ' ' << tri[j].a << ((j+1)%500? ' ':'\n');
+        f3 << ' ' << tri[j].a << ((j+1)%500? ' ':'\n');
+      }
+      f2 << endl;
+      f3 << endl;
 
-      // elements list
-      for (int j=0; j<(int) mold.e(0); ++j)
-        f << mold.vz[0].e2n[j].n[0]+1 << ' ' << mold.vz[0].e2n[j].n[1]+1 << ' ' << mold.vz[0].e2n[j].n[2]+1 << endl;
+      for (int j=0; j<(int) mold.e(0); ++j) {
+        f2 << mold.vz[0].e2n[j].n[0]+1 << ' ' << mold.vz[0].e2n[j].n[1]+1 << ' ' << mold.vz[0].e2n[j].n[2]+1 << endl;
+        f3 << mold.vz[0].e2n[j].n[0]+1 << ' ' << mold.vz[0].e2n[j].n[1]+1 << ' ' << mold.vz[0].e2n[j].n[2]+1 << endl;
+      }
     }
-    cout << "info: dump table." << endl;
+
+    // nucleation site and size/quadrilaterals (contribution area)
+    for (unsigned i=0; i<(unsigned) table.size(); ++i) {
+      const MNODE &N = table[i];
+
+      f2 << "ZONE T=\"site " << i+1 << "\" I=1"
+         << " ZONETYPE=ORDERED"
+         << " DATAPACKING=BLOCK"
+         << " VARLOCATION=([4-5]=CELLCENTERED)" << endl
+         << N.nucsite_uv[0] << endl
+         << N.nucsite_uv[1] << endl
+         << "0." << ' ' << N.qarea << endl;
+      f3 << "ZONE T=\"site " << i+1 << "\" I=1"
+         << " ZONETYPE=ORDERED"
+         << " DATAPACKING=BLOCK"
+         << " VARLOCATION=([3-4]=CELLCENTERED)" << endl
+         << N.nucsite_xyz << endl
+         << "0." << ' ' << N.qarea << endl;
+      f2 << "ZONE T=\"quad " << i+1 << "\" N=4 E=1"
+         << " ZONETYPE=FEQUADRILATERAL"
+         << " DATAPACKING=BLOCK"
+         << " VARLOCATION=([3-4]=CELLCENTERED)" << endl
+         << N.qcenter[0]-du*.5 << ' ' << N.qcenter[0]-du*.5 << ' ' << N.qcenter[0]+du*.5 << ' ' << N.qcenter[0]+du*.5 << endl
+         << N.qcenter[1]-dv*.5 << ' ' << N.qcenter[1]+dv*.5 << ' ' << N.qcenter[1]+dv*.5 << ' ' << N.qcenter[1]-dv*.5 << endl
+         << "0." << ' ' << N.qarea << endl
+         << "1 2 3 4" << endl;
+
+    }
+
+    cout << "info: dump table. (\"" << fn3 << "\")." << endl;
   }
-}
-
-
-pair< mpoint,mpoint > t_surfmap::findpoints(const mzone& z, const vector< vector< double > >& vv)
-{
-  return pair< mpoint,mpoint >();
-}
-
-
-mpoint t_surfmap::findnormal(const mzone& z, const vector< vector< double > >& vv)
-{
-  return mpoint();
 }
 
 
@@ -464,13 +522,3 @@ bool t_surfmap::tricheck( const double& x, const double& xa, const double& xb, c
                v = (dot00*dot12 - dot01*dot02) * f;
   return (u>=0) && (v>=0) && (u+v<=1);
 }
-
-
-double t_surfmap::triarea( const double& xa, const double& xb, const double& xc,
-                           const double& ya, const double& yb, const double& yc )
-{
-  return 0.5 * ( xb*yc-yb*xc
-                -xa*yc+ya*xc
-                +xa*yb-ya*xb );
-}
-
