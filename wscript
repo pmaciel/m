@@ -6,8 +6,8 @@ VERSION='0.4.0'
 APPNAME='m'
 
 # these variables are mandatory ('/' are converted automatically)
-srcdir = '.'
-blddir = 'build'
+top = '.'
+out = 'build'
 
 
 def set_options(ctx):

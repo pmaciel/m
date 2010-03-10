@@ -5,14 +5,9 @@
 
 double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, double vol)
 {
-  int iv;
-  int inc;
-  int id;
   double nuturb = 0.;
-  double kturb;
   double eturb  = 0.;
   double wturb  = 0.;
-  double turb2;
   double ystar;
   double dwallc = 0.;
   double len    = 0.;
@@ -23,29 +18,32 @@ double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, doub
   double F2;
   double arg2;
   double Omega;
-  double gradv[3][3];
 
 /* If wall distance is required calculate its cell-average value */
   if ( walldist ) {
-    for ( inc=0, dwallc=0., len=0. ; inc<Nvtcell ; inc++ ) {
-      dwallc += No_wd[No_loc[inc].node] ;
-      len += No_lenturb[No_loc[inc].node] ;
+    dwallc = 0.;
+    len    = 0.;
+    for (int inc=0; inc<Nvtcell; inc++ ) {
+      dwallc += No_wd[No_loc[inc].node];
+      len    += No_lenturb[No_loc[inc].node];
     }
-    dwallc /= dNvtcell ;
-    len /= dNvtcell ;
+    dwallc /= dNvtcell;
+    len    /= dNvtcell;
   }
 
-  for ( inc=0, kturb=0., turb2=0. ; inc<Nvtcell ; inc++ ) {
-    kturb += No_loc[inc].W[iv_turb1] ;
-    turb2 += No_loc[inc].W[iv_turb2] ;
+  double kturb = 0.;
+  double turb2 = 0.;
+  for (int inc=0; inc<Nvtcell; inc++ ) {
+    kturb += No_loc[inc].W[iv_turb1];
+    turb2 += No_loc[inc].W[iv_turb2];
   }
-  kturb /= dNvtcell ;
-  turb2 /= dNvtcell ;
+  kturb /= dNvtcell;
+  turb2 /= dNvtcell;
 
   if ( (turmod/10)==ITMGKE )
-    eturb=turb2 ;
+    eturb=turb2;
   else if ( (turmod/10)==ITMGKW )
-    wturb=turb2 ;
+    wturb=turb2;
 
 /* Calculate cell-average turbulent viscosity */
   if ( turmod==ITKEHR || turmod==ITKEHG ) {       /* high-Re k-e model */
@@ -92,19 +90,23 @@ double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, doub
     nuturb = kturb/wturb ;
   }
   else if ( turmod==ITKWSS ) {                    /* k-w SST model */
-    for ( iv=1 ; iv<=Ndim ; iv++ )
-    for ( id=0 ; id<Ndim ; id++ ) {
-      gradv[iv-1][id] = 0. ;
-      for ( inc=0 ; inc<Nvtcell ; inc++ )
-        gradv[iv-1][id] += No_loc[inc].W[iv]*No_loc[inc].norm[id] ;
-      gradv[iv-1][id] = gradv[iv-1][id]/(dNvtfce*vol) ;
+    double gradv[3][3];
+    for (int i=0; i<3; ++i)
+      for (int j=0; j<3; ++j)
+        gradv[i][j] = 0.;
+    for (int i=0; i<Ndim; ++i) {
+      for (int j=0; j<Ndim; ++j) {
+        for (int inc=0 ; inc<Nvtcell ; ++inc)
+          gradv[i][j] += No_loc[inc].W[i+1]*No_loc[inc].norm[j];
+        gradv[i][j] = gradv[i][j]/(dNvtfce*vol);
+      }
     }
-    Omega = (gradv[1][0]-gradv[0][1])*(gradv[1][0]-gradv[0][1]) ;
+    Omega = (gradv[1][0]-gradv[0][1])*(gradv[1][0]-gradv[0][1]);
     if ( Ndim==3 ) {
-      Omega += (gradv[2][1]-gradv[1][2])*(gradv[2][1]-gradv[1][2]) ;
-      Omega += (gradv[0][2]-gradv[2][0])*(gradv[0][2]-gradv[2][0]) ;
+      Omega += (gradv[2][1]-gradv[1][2])*(gradv[2][1]-gradv[1][2]);
+      Omega += (gradv[0][2]-gradv[2][0])*(gradv[0][2]-gradv[2][0]);
     }
-    Omega = sqrt(Omega) ;
+    Omega = sqrt(Omega);
 
     arg2 = std::max< double >(2.0*sqrt(kturb)/(0.09*wturb*dwallc),500.0*nulam/(dwallc*dwallc*wturb)) ;
     F2 = tanh(arg2*arg2) ;

@@ -6,7 +6,7 @@ def configure(ctx):
   ctx.env['CPPPATH_MITREM'] = \
   ctx.env['LIBPATH_MITREM'] = \
   ctx.env['RPATH_MITREM']   = \
-    ['/home/pedro/local/x86_64/local/mitrem']
+    ['/home/pedro/workspace/mitrem1/Projects/build_optim']
 
 
 def build(ctx):
