@@ -12,7 +12,6 @@ def build(ctx):
     features = 'fortran cc cstaticlib',
     target   = 'aztec',
     defines  = ['append_','AZ_SERIAL'],
-    lib      = ['gfortran'],
     includes = ['.'],
     source   = [
       # aztec
@@ -25,25 +24,15 @@ def build(ctx):
       'az_precond.c', 'az_qmrcgs.c', 'az_reorder.f', 'az_rilu.c', 'az_solve.c',
       'az_sort.c', 'az_subdomain_solver.c', 'az_tools.c', 'az_util.c',
       'az_icc.c', 'az_fix_pt.c', 'md_wrap_scalar_c.c', 'md_timer_generic.c',
-      # netlib BLAS, Y12M and Lapack
-     'blas/blas1.f', 'blas/blas2.f', 'blas/blas3.f', 'blas/xerbla.f',
-     'blas/lsame.f',
+      # netlib Y12M
      'y12m/y12m.f', 'y12m/y12mae.f', 'y12m/y12maf.f', 'y12m/y12mbe.f',
      'y12m/y12mbf.f', 'y12m/y12mce.f', 'y12m/y12mcf.f', 'y12m/y12mde.f',
      'y12m/y12mdf.f', 'y12m/y12mfe.f', 'y12m/y12mge.f', 'y12m/y12mhe.f',
-     'y12m/y12cck.f',
-     'lapack/la_dgetrf.f', 'lapack/la_dgetri.f', 'lapack/la_ilaenv.f',
-     'lapack/la_dgetf2.f', 'lapack/la_dlaswp.f', 'lapack/la_dtrtri.f',
-     'lapack/la_dtrti2.f', 'lapack/la_dgetrs.f', 'lapack/la_dgeco.f',
-     'lapack/la_dgedi.f', 'lapack/la_dgefa.f', 'lapack/la_disnan.f',
-     'lapack/la_dlaisnan.f', 'lapack/la_dpotf2.f', 'lapack/la_dpotrf.f',
-     'lapack/la_dlamch.f', 'lapack/la_dlaic1.f', 'lapack/la_ieeeck.f',
-     'lapack/la_iparmq.f' ] )
+     'y12m/y12cck.f' ] )
   ctx.new_task_gen(
     features = 'fortran cc cshlib',
     target   = l.target,
     defines  = l.defines,
-    lib      = l.lib,
     includes = l.includes,
     source   = l.source )
 
