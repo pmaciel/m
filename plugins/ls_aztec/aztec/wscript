@@ -11,7 +11,7 @@ def build(ctx):
   l = ctx(
     features = 'fortran cc cstaticlib',
     target   = 'aztec',
-    defines  = ['append_','AZ_SERIAL'],
+    defines  = ['append_','AZ_SERIAL','lint'],
     includes = ['.'],
     source   = [
       # aztec

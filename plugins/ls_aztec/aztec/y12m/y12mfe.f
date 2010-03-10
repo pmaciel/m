@@ -1,9 +1,12 @@
       subroutine y12mfe(n,a,snr,nn,rnr,nn1,a1,sn,nz,ha,iha,b,b1,x,y,
      1 aflag,iflag,ifail)
       implicit real(a-b,d,g,p,t-y),integer(c,f,h-n,r-s,z)
-      double precision ext,er,er1,er2,err,e
+      double precision er,er1,er2
       real a(nn),b(n),b1(n),x(n),y(n),a1(nz),aflag(11)
       integer snr(nn),rnr(nn1),ha(iha,13),sn(nz),iflag(12)
+      real dd,xm
+      dd = 0.0
+      xm = 0.0
 c
 c  store the non-zero elements,their column numbers,information about
 c  row starts,information about row ends and the right-hand side.

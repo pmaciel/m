@@ -13,8 +13,8 @@ void IJacobian_P()
   double lwfac;
 
   double Cscalar[4][4];
-  double Cturb1[4][4];
-  double Cturb2[4][4];
+  double Cturb1[4][4]; for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) Cturb1[i][j] = 0.;
+  double Cturb2[4][4]; for (int i=0; i<4; ++i) for (int j=0; j<4; ++j) Cturb2[i][j] = 0.;
   local_node_struct No_local[4];
 
 

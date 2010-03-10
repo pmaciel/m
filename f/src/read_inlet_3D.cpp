@@ -53,6 +53,8 @@ void read_inlet_3D(const std::string& finlet,int ig)
   double *inlet_data_temp  = NULL;
   double **inlet_data_turb = NULL;
   char dummystr[100];
+  int   ret = 0;
+  char* rec = NULL;
 
 
   std::cout << "read_inlet_3D: reading file \"" << finlet << "\"..." << std::endl;
@@ -61,15 +63,15 @@ void read_inlet_3D(const std::string& finlet,int ig)
     nrerror("Inlet file needed for FIXV-R inlet option, not found");
 
 
-  fscanf(fid,"unstprim grid data %d %d\n",&Nxid,&Nyid);
-  fscanf(fid,"%d %d",&Ncid,&Nnid);
-  fgets(dummystr,100,fid);
+  ret = fscanf(fid,"unstprim grid data %d %d\n",&Nxid,&Nyid);
+  ret = fscanf(fid,"%d %d",&Ncid,&Nnid);
+  rec = fgets(dummystr,100,fid);
 
   if (Nnid!=(Nxid*Nyid))
     nrerror("In file 'inlet.xpl' number of nodes not equal to Nx*Ny");
 
   for (ic=0; ic<Ncid+2; ic++)
-    fgets(dummystr,100,fid);
+    rec = fgets(dummystr,100,fid);
 
   inlet_data_x=dvector(1,Nxid);
   inlet_data_y=dvector(1,Nyid);
@@ -83,13 +85,13 @@ void read_inlet_3D(const std::string& finlet,int ig)
   for (i=1; i<=Nxid; i++)
   for (j=1; j<=Nyid; j++) {
     ij++;
-    fscanf(fid,"%lf %lf %le %le %le %le",&inlet_data_x[i],&inlet_data_y[j],
+    ret = fscanf(fid,"%lf %lf %le %le %le %le",&inlet_data_x[i],&inlet_data_y[j],
       &inlet_data_ve[1][ij],&inlet_data_ve[2][ij],&rdum,&inlet_data_ve[3][ij]);
     if (temperature)
-      fscanf(fid,"%le",&inlet_data_temp[ij]);
+      ret = fscanf(fid,"%le",&inlet_data_temp[ij]);
     if (turmod)
-      fscanf(fid,"%le %le",&inlet_data_turb[1][ij],&inlet_data_turb[2][ij]);
-    fgets(dummystr,300,fid);
+      ret = fscanf(fid,"%le %le",&inlet_data_turb[1][ij],&inlet_data_turb[2][ij]);
+    rec = fgets(dummystr,100,fid);
     if (j>1)
       if (inlet_data_y[j]<=inlet_data_y[j-1])
         nrerror("Incorrect ordering in 'inlet.xpl' file: must be structured i j (column by column)");

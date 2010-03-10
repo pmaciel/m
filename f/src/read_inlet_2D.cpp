@@ -24,6 +24,8 @@ void read_inlet_2D(const std::string& finlet,int ig)
   double **inlet_data_turb1 = NULL;
   double **inlet_data_turb2 = NULL;
   char dummystr[300];
+  int   ret = 0;
+  char* rec = NULL;
 
 
   std::cout << "read_inlet_2D: reading file \"" << finlet << "\"..." << std::endl;
@@ -32,38 +34,38 @@ void read_inlet_2D(const std::string& finlet,int ig)
     nrerror("Inlet file needed for FIXV-R inlet option, not found");
 
 
-  fgets(dummystr,300,fid);
-  fscanf(fid,"%d",&Nint);
-  fgets(dummystr,300,fid);
+  rec = fgets(dummystr,300,fid);
+  ret = fscanf(fid,"%d",&Nint);
+  rec = fgets(dummystr,300,fid);
 
   inlet_data_vel=dmatrix(0,1,1,Nint);
 
   for (i=1; i<=Nint; i++) {
-    fscanf(fid,"%lf %le",&inlet_data_vel[0][i],&inlet_data_vel[1][i]);
-    fgets(dummystr,300,fid);
+    ret = fscanf(fid,"%lf %le",&inlet_data_vel[0][i],&inlet_data_vel[1][i]);
+    rec = fgets(dummystr,300,fid);
     if (i>1)
       if (inlet_data_vel[0][i]<=inlet_data_vel[0][i-1])
         nrerror("Incorrect ordering in 'inlet.dat' file: coordinate must be increasing");
   }
 
   if (turmod) {
-    fscanf(fid,"%d",&Nint_turb1);
-    fgets(dummystr,300,fid);
+    ret = fscanf(fid,"%d",&Nint_turb1);
+    rec = fgets(dummystr,300,fid);
     inlet_data_turb1=dmatrix(0,1,1,Nint_turb1);
     for (i=1; i<=Nint_turb1; i++) {
-      fscanf(fid,"%le %le",&inlet_data_turb1[0][i],&inlet_data_turb1[1][i]);
-      fgets(dummystr,300,fid);
+      ret = fscanf(fid,"%le %le",&inlet_data_turb1[0][i],&inlet_data_turb1[1][i]);
+      rec = fgets(dummystr,300,fid);
       if (i>1)
         if (inlet_data_turb1[0][i]<=inlet_data_turb1[0][i-1])
           nrerror("Incorrect ordering in 'inlet.dat' file: coordinate must be increasing");
     }
 
-    fscanf(fid,"%d",&Nint_turb2);
-    fgets(dummystr,300,fid);
+    ret = fscanf(fid,"%d",&Nint_turb2);
+    rec = fgets(dummystr,300,fid);
     inlet_data_turb2=dmatrix(0,1,1,Nint_turb2);
     for (i=1; i<=Nint_turb2; i++) {
-      fscanf(fid,"%le %le",&inlet_data_turb2[0][i],&inlet_data_turb2[1][i]);
-      fgets(dummystr,300,fid);
+      ret = fscanf(fid,"%le %le",&inlet_data_turb2[0][i],&inlet_data_turb2[1][i]);
+      rec = fgets(dummystr,300,fid);
       if (i>1)
         if (inlet_data_turb2[0][i]<=inlet_data_turb2[0][i-1])
           nrerror("Incorrect ordering in 'inlet.dat' file: coordinate must be increasing");
@@ -71,12 +73,12 @@ void read_inlet_2D(const std::string& finlet,int ig)
   }
 
   if (temperature) {
-    fscanf(fid,"%d",&Nint_temp);
-    fgets(dummystr,300,fid);
+    ret = fscanf(fid,"%d",&Nint_temp);
+    rec = fgets(dummystr,300,fid);
     inlet_data_temp=dmatrix(0,1,1,Nint_temp);
     for (i=1; i<=Nint_temp; i++) {
-      fscanf(fid,"%le %le",&inlet_data_temp[0][i],&inlet_data_temp[1][i]);
-      fgets(dummystr,300,fid);
+      ret = fscanf(fid,"%le %le",&inlet_data_temp[0][i],&inlet_data_temp[1][i]);
+      rec = fgets(dummystr,300,fid);
       if (i>1)
         if (inlet_data_temp[0][i]<=inlet_data_temp[0][i-1])
           nrerror("Incorrect ordering in 'inlet.dat' file: coordinate must be increasing");

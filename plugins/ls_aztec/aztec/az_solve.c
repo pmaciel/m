@@ -820,7 +820,7 @@ void AZ_print_call_iter_solve(int options[], double params[], int az_proc,
      (void) printf("\n\t\t****************************************"
                    "***************\n");
 
-  (void) printf(prefix);
+  (void) printf("%s",prefix);
 
   /* first, print out chosen solver */
 
@@ -852,7 +852,7 @@ void AZ_print_call_iter_solve(int options[], double params[], int az_proc,
 
   /* next output preconditioning options */
 
-  (void) printf(prefix);
+  (void) printf("%s",prefix);
 
   if ((precond != NULL) && (precond->prec_function != AZ_precondition)) {
     if (precond->print_string == NULL) (void) printf("user ");
@@ -884,13 +884,13 @@ void AZ_print_call_iter_solve(int options[], double params[], int az_proc,
     else if (options[AZ_subdomain_solve] == AZ_bilu_ifp) {
        printf("IFPACK BILU(%d) ( ATHRESH = %.3e, RTHRESH = %.3e)\n ",
               options[AZ_graph_fill],params[AZ_athresh], params[AZ_rthresh]);
-       printf(prefix); printf("with");
+       printf("%s",prefix); printf("with");
     }
 /* End Aztec 2.1 mheroux mod */
     else if (options[AZ_subdomain_solve] == AZ_ilut) {
        printf("ILUT( fill-in = %.3e, drop = %.3e)\n ",
               params[AZ_ilut_fill], params[AZ_drop]);
-       printf(prefix); printf("with");
+       printf("%s",prefix); printf("with");
     }
     else if (options[AZ_subdomain_solve] == AZ_ilu)
        printf("ILU(%d) domain decomp. with", options[AZ_graph_fill]);
@@ -928,7 +928,7 @@ void AZ_print_call_iter_solve(int options[], double params[], int az_proc,
 
   (void) printf("\n");
 
-  (void) printf(prefix);
+  (void) printf("%s",prefix);
 
   /* lastly, print out the scaling information */
 

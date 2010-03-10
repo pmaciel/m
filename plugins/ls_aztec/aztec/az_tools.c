@@ -2393,6 +2393,7 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
   int   type, type2;
   FILE *fp = NULL;
   MPI_AZRequest request;  /* Message handle */
+  int ret = 0;
 
 
   /**************************** execution begins ******************************/
@@ -2419,24 +2420,24 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
        (void) fprintf(stdout,"Input the dimensions of the processor cube\n\n");
        (void) fprintf(stdout,"Enter the number of processors along x axis>");
        (void) fflush(stdout);
-       scanf("%d",&proc_x);
+       ret = scanf("%d",&proc_x);
        (void) fprintf(stdout,"Enter the number of processors along y axis>");
        (void) fflush(stdout);
-       scanf("%d",&proc_y);
+       ret = scanf("%d",&proc_y);
        (void) fprintf(stdout,"Enter the number of processors along z axis>");
        (void) fflush(stdout);
-       scanf("%d",&proc_z);
+       ret = scanf("%d",&proc_z);
 
        (void) fprintf(stdout,"Input the grid dimensions\n\n");
        (void) fprintf(stdout,"Enter the number of grid points along x axis>");
        (void) fflush(stdout);
-       scanf("%d",&pts_x);
+       ret = scanf("%d",&pts_x);
        (void) fprintf(stdout,"Enter the number of grid points along y axis>");
        (void) fflush(stdout);
-       scanf("%d",&pts_y);
+       ret = scanf("%d",&pts_y);
        (void) fprintf(stdout,"Enter the number of grid points along z axis>");
        (void) fflush(stdout);
-       scanf("%d",&pts_z);
+       ret = scanf("%d",&pts_z);
     }
     AZ_broadcast((char *) &proc_x, sizeof(int), proc_config, AZ_PACK);
     AZ_broadcast((char *) &proc_y, sizeof(int), proc_config, AZ_PACK);
@@ -2591,7 +2592,7 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
 
         /* read in list length and send to processor i  */
 
-        fscanf(fp, "%d", &length);
+        ret = fscanf(fp, "%d", &length);
         t1 += length;
         if (i != 0)
           mdwrap_write((void *) &length, sizeof(int), i, type, &cflag);
@@ -2623,7 +2624,7 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
 
         /* read a list and send it off to proc i (if not last list) */
 
-        for (j = 0; j < length; j++ ) fscanf(fp, "%d", *update + j);
+        for (j = 0; j < length; j++ ) ret = fscanf(fp, "%d", *update + j);
         if (i != 0)
           mdwrap_write((void *) *update, length*sizeof(int), i, type2, &cflag);
       }
@@ -2721,6 +2722,7 @@ a file speficied by the input argument datafile instead of .update
   int   type, type2;
   FILE *fp = NULL;
   MPI_AZRequest request;  /* Message handle */
+  int ret = 0;
 
 
   /**************************** execution begins ******************************/
@@ -2747,24 +2749,24 @@ a file speficied by the input argument datafile instead of .update
        (void) fprintf(stdout,"Input the dimensions of the processor cube\n\n");
        (void) fprintf(stdout,"Enter the number of processors along x axis>");
        (void) fflush(stdout);
-       scanf("%d",&proc_x);
+       ret = scanf("%d",&proc_x);
        (void) fprintf(stdout,"Enter the number of processors along y axis>");
        (void) fflush(stdout);
-       scanf("%d",&proc_y);
+       ret = scanf("%d",&proc_y);
        (void) fprintf(stdout,"Enter the number of processors along z axis>");
        (void) fflush(stdout);
-       scanf("%d",&proc_z);
+       ret = scanf("%d",&proc_z);
 
        (void) fprintf(stdout,"Input the grid dimensions\n\n");
        (void) fprintf(stdout,"Enter the number of grid points along x axis>");
        (void) fflush(stdout);
-       scanf("%d",&pts_x);
+       ret = scanf("%d",&pts_x);
        (void) fprintf(stdout,"Enter the number of grid points along y axis>");
        (void) fflush(stdout);
-       scanf("%d",&pts_y);
+       ret = scanf("%d",&pts_y);
        (void) fprintf(stdout,"Enter the number of grid points along z axis>");
        (void) fflush(stdout);
-       scanf("%d",&pts_z);
+       ret = scanf("%d",&pts_z);
     }
     AZ_broadcast((char *) &proc_x, sizeof(int), proc_config, AZ_PACK);
     AZ_broadcast((char *) &proc_y, sizeof(int), proc_config, AZ_PACK);
@@ -2919,7 +2921,7 @@ a file speficied by the input argument datafile instead of .update
 
         /* read in list length and send to processor i  */
 
-        fscanf(fp, "%d", &length);
+        ret = fscanf(fp, "%d", &length);
         t1 += length;
         if (i != 0)
           mdwrap_write((void *) &length, sizeof(int), i, type, &cflag);
@@ -2951,7 +2953,7 @@ a file speficied by the input argument datafile instead of .update
 
         /* read a list and send it off to proc i (if not last list) */
 
-        for (j = 0; j < length; j++ ) fscanf(fp, "%d", *update + j);
+        for (j = 0; j < length; j++ ) ret = fscanf(fp, "%d", *update + j);
         if (i != 0)
           mdwrap_write((void *) *update, length*sizeof(int), i, type2, &cflag);
       }
@@ -3070,6 +3072,7 @@ int AZ_read_external(int N_external, int external[],
   int   proc, nprocs;
   int   type, type2;
   MPI_AZRequest request;
+  int ret = 0;
 
 
   char *yo = "AZ_read_external: ";
@@ -3093,7 +3096,7 @@ int AZ_read_external(int N_external, int external[],
       /* read list length send to proc i */
 
       length = -1;
-      fscanf (fp, "%d", &length);
+      ret = fscanf (fp, "%d", &length);
 
       if (i == 0) {
         if (length != N_external) {
@@ -3126,7 +3129,7 @@ int AZ_read_external(int N_external, int external[],
 
       /* read list and send it to proc i */
 
-      for (j = 0; j < length; j++ ) fscanf(fp, "%d", &(temp_buffer[j]));
+      for (j = 0; j < length; j++ ) ret = fscanf(fp, "%d", &(temp_buffer[j]));
 
       if (i != 0) {
         mdwrap_write((char *) temp_buffer, length*sizeof(int), i, type2, &cflag);

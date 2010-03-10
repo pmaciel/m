@@ -10,6 +10,12 @@ c
 c  information which is necessary to begin the elimination is stored.
 c
       integer snr(nn),rnr(nn1),ha(iha,11), iflag(10)
+      integer l3,rcoll,rpivot,rrow,zz
+      l3     = 0
+      rcoll  = 0
+      rpivot = 0
+      rrow   = 0
+      zz     = 0
       ifail=0
       if(iflag(1).ne.-1)ifail=2
       if(aflag(1).lt.1.0d0)aflag(1)=1.0005 d0
