@@ -225,6 +225,8 @@
       <tr><td class="h" colspan="2" align="center">(...)</td></tr><!-- skip parameters, otherwise it looks like the bible-->
       <tr><td class="H">iterinit</td><td class="h">value</td><td><xsl:value-of select="iterinit/@value"/></td></tr>
       <tr><td class="H">linrelx </td><td class="h">value</td><td><xsl:value-of select="linrelx/@value" /></td></tr>
+      <tr><td class="H" rowspan="2">surfacegasfraction</td><td class="h">min</td><td><xsl:value-of select="surfacegasfraction/@min" /></td></tr>
+      <tr>                                                 <td class="h">max</td><td><xsl:value-of select="surfacegasfraction/@max" /></td></tr>
       <xsl:for-each select="bcs/bc">
        <tr><td class="H" rowspan="6">bcs/bc</td>
            <td class="h">type          </td><td><xsl:value-of select="@type"          /></td></tr>

@@ -27,12 +27,9 @@ using namespace std;
 
 void Update_mitrem()
 {
-  // zero jacobian and residual, update solution vector
+  // zero jacobian matrix, solution and residual vectors
   mitremassembler_struct& m = mitremassembler;
   (m.ls)->reset();
-  for (int n=0; n<Nnode; ++n)
-    for (int i=0; i<m.Nions+1; ++i)
-      (m.ls)->X(n,i) = No_W[m.iv+i][n];
 
 
   cout << "Update_mitrem: assemble MITReM equations..." << endl;
@@ -250,14 +247,14 @@ double assembleElectrode(
   const int Nsys  = m.Nions+1;
   const unsigned* p_ereactions = (ereactions.size()? &ereactions[0]:NULL);
   const unsigned* p_greactions = (greactions.size()? &greactions[0]:NULL);
-  const vector< double > temperatures (Nenod,(m.m_mitrem)->getSolutionTemperature());
-  const vector< double > densities    (Nenod,(m.m_mitrem)->getSolutionDensity());
-  const vector< double > sgasfractions(Nenod,0.);
 
   // allocate auxiliary variables
+  const vector< double > temperatures(Nenod,(m.m_mitrem)->getSolutionTemperature());
+  const vector< double > densities   (Nenod,(m.m_mitrem)->getSolutionDensity());
   double **coordinates    = dmatrix(0,Nenod-1,0,Ndim-1);
   double **concentrations = dmatrix(0,Nenod-1,0,Nions-1);
-  vector< double > potentials(Nenod);
+  vector< double > potentials   (Nenod);
+  vector< double > sgasfractions(Nenod,0.);
 
   // cycle elements
   for (vector< m::melem >::const_iterator e=e2n.begin(); e!=e2n.end(); ++e) {
@@ -267,7 +264,10 @@ double assembleElectrode(
       const unsigned N = (e->n)[n];
       for (int d=0; d<Ndim;  ++d) coordinates   [n][d] = M.vv[d][N];
       for (int i=0; i<Nions; ++i) concentrations[n][i] = No_W[m.iv+i][N];
-      potentials[n] = No_W[m.iv+Nions][N];
+      potentials   [n] = No_W[m.iv+Nions][N];
+      if (greactions.size())
+        sgasfractions[n] = min(m.surfacegasfraction_max,
+                           max(m.surfacegasfraction_min,sgasfractions[n]));
     }
 
     if (action==ASSEMBLY) {

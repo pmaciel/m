@@ -1597,7 +1597,8 @@
    <ls type="ls_pardiso" />
    <iterinit value="1000" />
    <__iterinit value="0" />
-   <linrelx  value="1." />
+   <linrelx value="1." />
+   <surfacegasfraction min="0." max="1." />
    <bcs>
     <bc type="bulk"      label="inlet"      zone="inlet" />
     <bc type="electrode" label="WElectrode" zone="e0" metalpotential="-0.1" elecreaction="H2EvolutionFromH:H2EvolutionFromH2O:O2Evolution" gasreaction="H2ToGas" />

@@ -71,6 +71,8 @@ struct mitremassembler_struct
   int iterinit;    // start calculations after this number of iterations
   int iv;          // index in W vector
   int Nions;       // number of ions
+  double surfacegasfraction_min;  // surface gas fraction minimum
+  double surfacegasfraction_max;  // ... maximum
   double linrelx;  // linear relaxation
   std::vector< double > bulk;  // bulk concentrations
   LS *ls;          // linear system solver

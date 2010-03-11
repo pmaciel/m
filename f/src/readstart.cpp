@@ -123,6 +123,10 @@ void readstart(const std::string& ccase)
     mitremassembler.iv       = Neqns;
     mitremassembler.Nions    = (int) (mitremassembler.m_mitrem)->getNIons();
     mitremassembler.linrelx  = mitremassembler.x.getChildNode("linrelx").getAttribute< double >("value",1.);
+    mitremassembler.surfacegasfraction_min = mitremassembler.x.getChildNode("surfacegasfraction").getAttribute< double >("min",0.);
+    mitremassembler.surfacegasfraction_max = mitremassembler.x.getChildNode("surfacegasfraction").getAttribute< double >("max",1.);
+    mitremassembler.surfacegasfraction_min = std::max(0.,mitremassembler.surfacegasfraction_min);
+    mitremassembler.surfacegasfraction_max = std::min(1.,mitremassembler.surfacegasfraction_max);
 
     // set bulk concentrations
     mitremassembler.bulk.resize(mitremassembler.Nions);
