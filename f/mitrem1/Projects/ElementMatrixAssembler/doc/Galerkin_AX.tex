@@ -1,0 +1,1094 @@
+%% LyX 1.4.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,letterpaper,lmargin=2cm,rmargin=2cm}
+\usepackage{amssymb}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Bold symbol macro for standard LaTeX users
+\providecommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
+
+
+\usepackage{babel}
+\makeatother
+\begin{document}
+
+\title{Galerkin AX}
+
+\maketitle
+
+\section{Equations}
+
+
+\subsection{Mass conservation}
+
+\begin{equation}
+\frac{\partial c_{i}}{\partial t}=-\vec{\nabla}.\vec{N}_{i}+R_{i}\label{eq:mass conservation}\end{equation}
+with\begin{equation}
+\vec{N}_{i}=c_{i}\vec{v}-\sum_{j}D_{ij}\vec{\nabla}c_{j}-w_{i}c_{i}\vec{\nabla}U\label{eq:flux}\end{equation}
+
+
+
+\subsection{Poisson's equation}
+
+\begin{equation}
+\vec{\nabla}^{2}U+\frac{F}{\epsilon}\sum_{i}z_{i}c_{i}=0\label{eq:Poisson}\end{equation}
+
+
+
+\subsection{Butler-Volmer kinetics}
+
+\begin{equation}
+v=k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]c_{red}-k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]c_{ox}\label{eq:Butler-Volmer}\end{equation}
+
+
+
+\section{Element matrix}
+
+Note
+
+\[
+\vec{\nabla}N^{m}=\frac{\vec{n}^{m}}{2S}\]
+
+
+
+\subsection{Convection\label{sub:Convection matrix}}
+
+
+\subsubsection{Fluctuation in node}
+
+\[
+\Delta c_{i}^{m}=\int_{S}-\vec{v}.\vec{\nabla}c_{i}N^{m}rdS\]
+
+
+
+\subsubsection{Element contribution to fluctuation in node }
+
+Assume that $\vec{v}$ varies linearly.
+
+\[
+\mathcal{R}^{11}=6r^{1}+2r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{22}=2r^{1}+6r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{33}=2r^{1}+2r^{2}+6r^{3}\]
+
+
+\[
+\mathcal{R}^{12}=\mathcal{R}^{21}=2r^{1}+2r^{2}+r^{3}\]
+
+
+\[
+\mathcal{R}^{13}=\mathcal{R}^{31}=2r^{1}+r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{23}=\mathcal{R}^{32}=r^{1}+2r^{2}+2r^{3}\]
+\[
+\vec{\mathcal{V}}^{1}=\mathcal{R}^{11}\vec{v}^{1}+\mathcal{R}^{12}\vec{v}^{2}+\mathcal{R}^{13}\vec{v}^{3}\]
+
+
+\[
+\vec{\mathcal{V}}^{2}=\mathcal{R}^{21}\vec{v}^{1}+\mathcal{R}^{22}\vec{v}^{2}+\mathcal{R}^{23}\vec{v}^{3}\]
+
+
+\[
+\vec{\mathcal{V}}^{3}=\mathcal{R}^{31}\vec{v}^{1}+\mathcal{R}^{32}\vec{v}^{2}+\mathcal{R}^{33}\vec{v}^{3}\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\\
+\Delta c_{i}^{3}\end{array}\right\} =\frac{1}{120}\left[\begin{array}{ccc}
+\vec{\mathcal{V}}^{1}.\vec{n}^{1} & \vec{\mathcal{V}}^{1}.\vec{n}^{2} & \vec{\mathcal{V}}^{1}.\vec{n}^{3}\\
+\vec{\mathcal{V}}^{2}.\vec{n}^{1} & \vec{\mathcal{V}}^{2}.\vec{n}^{2} & \vec{\mathcal{V}}^{2}.\vec{n}^{3}\\
+\vec{\mathcal{V}}^{3}.\vec{n}^{1} & \vec{\mathcal{V}}^{3}.\vec{n}^{2} & \vec{\mathcal{V}}^{3}.\vec{n}^{3}\end{array}\right]\left\{ \begin{array}{c}
+c_{i}^{1}\\
+c_{i}^{2}\\
+c_{i}^{3}\end{array}\right\} \label{eq:element matrix convection}\end{equation}
+
+
+
+\subsubsection{Examples: binary electrolyte}
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{A}^{1}\\
+\Delta c_{B}^{1}\\
+\Delta U^{1}\\
+\Delta c_{A}^{2}\\
+\Delta c_{B}^{2}\\
+\Delta U^{2}\\
+\Delta c_{A}^{3}\\
+\Delta c_{B}^{3}\\
+\Delta U^{3}\end{array}\right\} =\left[\begin{array}{ccccccccc}
+V^{11} & 0 & 0 & V^{12} & 0 & 0 & V^{13} & 0 & 0\\
+0 & V^{11} & 0 & 0 & V^{12} & 0 & 0 & V^{13} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+V^{21} & 0 & 0 & V^{22} & 0 & 0 & V^{23} & 0 & 0\\
+0 & V^{21} & 0 & 0 & V^{22} & 0 & 0 & V^{23} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+V^{31} & 0 & 0 & V^{32} & 0 & 0 & V^{33} & 0 & 0\\
+0 & V^{31} & 0 & 0 & V^{32} & 0 & 0 & V^{33} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\end{array}\right]\left\{ \begin{array}{c}
+c_{A}^{1}\\
+c_{B}^{1}\\
+U^{1}\\
+c_{A}^{2}\\
+c_{B}^{2}\\
+U^{2}\\
+c_{A}^{3}\\
+c_{B}^{3}\\
+U^{3}\end{array}\right\} \label{eq:element matrix convection example}\end{equation}
+
+
+\[
+V^{mn}=\frac{\vec{\mathcal{V}}^{m}.\vec{n}^{n}}{120}\]
+
+
+
+
+
+\subsection{Diffusion\label{sub:Diffusion matrix}}
+
+
+\subsubsection{Fluctuation in node}
+
+\[
+\begin{array}{rcl}
+\Delta c_{i}^{m} & = & \int_{S}\vec{\nabla}.\left(\sum_{j}D_{ij}\vec{\nabla}c_{j}\right)N^{m}rdS\\
+ & = & -\int_{S}\left(\sum_{j}D_{ij}\vec{\nabla}c_{j}\right).\vec{\nabla}N^{m}rdS\end{array}\]
+
+
+
+\subsubsection{Element contribution to fluctuation in node}
+
+Assume that $D_{ij}$ varies linearly.
+
+\[
+\mathcal{R}^{1}=2r^{1}+r^{2}+r^{3}\]
+
+
+\[
+\mathcal{R}^{2}=r^{1}+2r^{2}+r^{3}\]
+
+
+\[
+\mathcal{R}^{3}=r^{1}+r^{2}+2r^{3}\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\\
+\Delta c_{i}^{3}\end{array}\right\} =-\sum_{j}\frac{\mathcal{R}^{1}D_{ij}^{1}+\mathcal{R}^{2}D_{ij}^{2}+\mathcal{R}^{3}D_{ij}^{3}}{48S}\left[\begin{array}{ccc}
+\vec{n}^{1}.\vec{n}^{1} & \vec{n}^{1}.\vec{n}^{2} & \vec{n}^{1}.\vec{n}^{3}\\
+\vec{n}^{2}.\vec{n}^{1} & \vec{n}^{2}.\vec{n}^{2} & \vec{n}^{2}.\vec{n}^{3}\\
+\vec{n}^{3}.\vec{n}^{1} & \vec{n}^{3}.\vec{n}^{2} & \vec{n}^{3}.\vec{n}^{3}\end{array}\right]\left\{ \begin{array}{c}
+c_{j}^{1}\\
+c_{j}^{2}\\
+c_{j}^{3}\end{array}\right\} \label{eq:element matrix diffusion}\end{equation}
+
+
+
+\subsubsection{Example: binary electrolyte}
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{A}^{1}\\
+\Delta c_{B}^{1}\\
+\Delta U^{1}\\
+\Delta c_{A}^{2}\\
+\Delta c_{B}^{2}\\
+\Delta U^{2}\\
+\Delta c_{A}^{3}\\
+\Delta c_{B}^{3}\\
+\Delta U^{3}\end{array}\right\} =\left[\begin{array}{ccccccccc}
+D_{AA}^{11} & D_{AB}^{11} & 0 & D_{AA}^{12} & D_{AB}^{12} & 0 & D_{AA}^{13} & D_{AB}^{13} & 0\\
+D_{BA}^{11} & D_{BB}^{11} & 0 & D_{BA}^{12} & D_{BB}^{12} & 0 & D_{BA}^{13} & D_{BB}^{13} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+D_{AA}^{21} & D_{AB}^{21} & 0 & D_{AA}^{22} & D_{AB}^{22} & 0 & D_{AA}^{23} & D_{AB}^{23} & 0\\
+D_{BA}^{21} & D_{BB}^{21} & 0 & D_{BA}^{22} & D_{BB}^{22} & 0 & D_{BA}^{23} & D_{BB}^{23} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+D_{AA}^{31} & D_{AB}^{31} & 0 & D_{AA}^{32} & D_{AB}^{32} & 0 & D_{AA}^{33} & D_{AB}^{33} & 0\\
+D_{BA}^{31} & D_{BB}^{31} & 0 & D_{BA}^{32} & D_{BB}^{32} & 0 & D_{BA}^{33} & D_{BB}^{33} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\end{array}\right]\left\{ \begin{array}{c}
+c_{A}^{1}\\
+c_{B}^{1}\\
+U^{1}\\
+c_{A}^{2}\\
+c_{B}^{2}\\
+U^{2}\\
+c_{A}^{3}\\
+c_{B}^{3}\\
+U^{3}\end{array}\right\} \label{eq:element matrix diffusion example}\end{equation}
+with
+
+\[
+D_{ij}^{mn}=-\frac{\mathcal{R}^{1}D_{ij}^{1}+\mathcal{R}^{2}D_{ij}^{2}+\mathcal{R}^{3}D_{ij}^{3}}{48S}\vec{n}^{m}.\vec{n}^{n}\]
+
+
+
+\subsection{Migration\label{sub:Migration matrix}}
+
+
+\subsubsection{Fluctuation in node}
+
+\[
+\begin{array}{rcl}
+\Delta c_{i}^{m} & = & \int_{S}\vec{\nabla}.\left(w_{i}c_{i}\vec{\nabla}U\right)N^{m}rdS\\
+ & = & -\int_{S}\left(w_{i}c_{i}\vec{\nabla}U\right).\vec{\nabla}N^{m}rdS\end{array}\]
+
+
+
+\subsubsection{Element contribution to fluctuation in node}
+
+Assume that $w_{i}$ varies linearly.
+
+\[
+\mathcal{R}^{11}=6r^{1}+2r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{22}=2r^{1}+6r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{33}=2r^{1}+2r^{2}+6r^{3}\]
+
+
+\[
+\mathcal{R}^{12}=\mathcal{R}^{21}=2r^{1}+2r^{2}+r^{3}\]
+
+
+\[
+\mathcal{R}^{13}=\mathcal{R}^{31}=2r^{1}+r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{23}=\mathcal{R}^{32}=r^{1}+2r^{2}+2r^{3}\]
+\[
+\mathcal{W}_{i}^{1}=\mathcal{R}^{11}w_{i}^{1}+\mathcal{R}^{12}w_{i}^{2}+\mathcal{R}^{13}w_{i}^{3}\]
+
+
+\[
+\mathcal{W}_{i}^{2}=\mathcal{R}^{21}w_{i}^{1}+\mathcal{R}^{22}w_{i}^{2}+\mathcal{R}^{23}w_{i}^{3}\]
+
+
+\[
+\mathcal{W}_{i}^{3}=\mathcal{R}^{31}w_{i}^{1}+\mathcal{R}^{32}w_{i}^{2}+\mathcal{R}^{33}w_{i}^{3}\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\\
+\Delta c_{i}^{3}\end{array}\right\} =-\frac{\mathcal{W}_{i}^{1}c_{i}^{1}+\mathcal{W}_{i}^{2}c_{i}^{2}+\mathcal{W}_{i}^{3}c_{i}^{3}}{240S}\left[\begin{array}{ccc}
+\vec{n}^{1}.\vec{n}^{1} & \vec{n}^{1}.\vec{n}^{2} & \vec{n}^{1}.\vec{n}^{3}\\
+\vec{n}^{2}.\vec{n}^{1} & \vec{n}^{2}.\vec{n}^{2} & \vec{n}^{2}.\vec{n}^{3}\\
+\vec{n}^{3}.\vec{n}^{1} & \vec{n}^{3}.\vec{n}^{2} & \vec{n}^{3}.\vec{n}^{3}\end{array}\right]\left\{ \begin{array}{c}
+U^{1}\\
+U^{2}\\
+U^{3}\end{array}\right\} \label{eq:element matrix migration}\end{equation}
+
+
+
+\subsubsection{Example: binary electrolyte}
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{A}^{1}\\
+\Delta c_{B}^{1}\\
+\Delta U^{1}\\
+\Delta c_{A}^{2}\\
+\Delta c_{B}^{2}\\
+\Delta U^{2}\\
+\Delta c_{A}^{3}\\
+\Delta c_{B}^{3}\\
+\Delta U^{3}\end{array}\right\} =\left[\begin{array}{ccccccccc}
+0 & 0 & M_{A}^{11} & 0 & 0 & M_{A}^{12} & 0 & 0 & M_{A}^{13}\\
+0 & 0 & M_{B}^{11} & 0 & 0 & M_{B}^{12} & 0 & 0 & M_{B}^{13}\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & M_{A}^{21} & 0 & 0 & M_{A}^{22} & 0 & 0 & M_{A}^{23}\\
+0 & 0 & M_{B}^{21} & 0 & 0 & M_{B}^{22} & 0 & 0 & M_{B}^{23}\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & M_{A}^{31} & 0 & 0 & M_{A}^{32} & 0 & 0 & M_{A}^{33}\\
+0 & 0 & M_{B}^{31} & 0 & 0 & M_{B}^{32} & 0 & 0 & M_{B}^{33}\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\end{array}\right]\left\{ \begin{array}{c}
+c_{A}^{1}\\
+c_{B}^{1}\\
+U^{1}\\
+c_{A}^{2}\\
+c_{B}^{2}\\
+U^{2}\\
+c_{A}^{3}\\
+c_{B}^{3}\\
+U^{3}\end{array}\right\} \label{eq:element matrix migration example}\end{equation}
+with
+
+\[
+M_{i}^{mn}=-\frac{\mathcal{W}_{i}^{1}c_{i}^{1}+\mathcal{W}_{i}^{2}c_{i}^{2}+\mathcal{W}_{i}^{3}c_{i}^{3}}{240S}\vec{n}^{m}.\vec{n}^{n}\]
+
+
+
+\subsection{Homogeneous reactions\label{sub:Homogeneous reactions matrix}}
+
+
+\subsubsection{Fluctuation in node}
+
+\[
+R_{i}=\sum_{r}s_{i,r}v_{r}\]
+
+
+\begin{itemize}
+\item Monomolecular 
+\end{itemize}
+\[
+v=kc_{j}\]
+
+
+\[
+\Delta c_{i}^{m}=\int_{S}kc_{j}N^{m}rdS\]
+
+
+\begin{itemize}
+\item Bimolecular
+\end{itemize}
+\[
+v=kc_{j}c_{k}\]
+
+
+\[
+\begin{array}{rcl}
+\Delta c_{i}^{m} & = & \int_{S}kc_{j}c_{k}N^{m}rdS\\
+ & = & \frac{1}{2}\int_{S}kc_{k}c_{j}N^{m}rdS+\frac{1}{2}\int_{S}kc_{j}c_{k}N^{m}rdS\end{array}\]
+
+
+
+\subsubsection{Element contribution to fluctuation in node}
+
+Assume that $k$ varies linearly.
+
+\begin{itemize}
+\item Monomolecular
+\end{itemize}
+\[
+\mathcal{R}^{111}=12r^{1}+3r^{2}+3r^{3}\]
+
+
+\[
+\mathcal{R}^{222}=3r^{1}+12r^{2}+3r^{3}\]
+
+
+\[
+\mathcal{R}^{333}=3r^{1}+3r^{2}+12r^{3}\]
+
+
+\[
+\mathcal{R}^{112}=\mathcal{R}^{121}=\mathcal{R}^{211}=3r^{1}+2r^{2}+r^{3}\]
+
+
+\[
+\mathcal{R}^{113}=\mathcal{R}^{131}=\mathcal{R}^{311}=3r^{1}+r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{221}=\mathcal{R}^{122}=\mathcal{R}^{212}=2r^{1}+3r^{2}+r^{3}\]
+
+
+\[
+\mathcal{R}^{223}=\mathcal{R}^{232}=\mathcal{R}^{322}=r^{1}+3r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{331}=\mathcal{R}^{133}=\mathcal{R}^{313}=2r^{1}+r^{2}+3r^{3}\]
+
+
+\[
+\mathcal{R}^{332}=\mathcal{R}^{233}=\mathcal{R}^{323}=r^{1}+2r^{2}+3r^{3}\]
+
+
+\[
+\mathcal{R}^{123}=\mathcal{R}^{213}=\mathcal{R}^{132}=\mathcal{R}^{312}=\mathcal{R}^{231}=\mathcal{R}^{321}=r^{1}+r^{2}+r^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{11}=\mathcal{R}^{111}k^{1}+\mathcal{R}^{112}k^{2}+\mathcal{R}^{113}k^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{22}=\mathcal{R}^{221}k^{1}+\mathcal{R}^{222}k^{2}+\mathcal{R}^{223}k^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{33}=\mathcal{R}^{331}k^{1}+\mathcal{R}^{332}k^{2}+\mathcal{R}^{333}k^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{12}=\mathcal{H}_{j}^{21}=\mathcal{R}^{121}k^{1}+\mathcal{R}^{122}k^{2}+\mathcal{R}^{123}k^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{13}=\mathcal{H}_{j}^{31}=\mathcal{R}^{131}k^{1}+\mathcal{R}^{132}k^{2}+\mathcal{R}^{133}k^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{23}=\mathcal{H}_{j}^{32}=\mathcal{R}^{231}k^{1}+\mathcal{R}^{232}k^{2}+\mathcal{R}^{233}k^{3}\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\\
+\Delta c_{i}^{3}\end{array}\right\} =\frac{S}{180}\left[\begin{array}{ccc}
+\mathcal{H}_{j}^{11} & \mathcal{H}_{j}^{12} & \mathcal{H}_{j}^{13}\\
+\mathcal{H}_{j}^{21} & \mathcal{H}_{j}^{22} & \mathcal{H}_{j}^{23}\\
+\mathcal{H}_{j}^{31} & \mathcal{H}_{j}^{32} & \mathcal{H}_{j}^{33}\end{array}\right]\left\{ \begin{array}{c}
+c_{j}^{1}\\
+c_{j}^{2}\\
+c_{j}^{3}\end{array}\right\} \label{eq:element matrix homogeneous reaction monomolecular}\end{equation}
+
+
+\begin{itemize}
+\item Bimolecular
+\end{itemize}
+\[
+\mathcal{R}^{1111}=60r^{1}+12r^{2}+12r^{3}\]
+
+
+\[
+\mathcal{R}^{2222}=12r^{1}+60r^{2}+12r^{3}\]
+
+
+\[
+\mathcal{R}^{3333}=12r^{1}+12r^{2}+60r^{3}\]
+
+
+\[
+\mathcal{R}^{1112}=\mathcal{R}^{1121}=\mathcal{R}^{1211}=\mathcal{R}^{2111}=12r^{1}+6r^{2}+3r^{3}\]
+
+
+\[
+\mathcal{R}^{1113}=\mathcal{R}^{1131}=\mathcal{R}^{1311}=\mathcal{R}^{3111}=12r^{1}+3r^{2}+6r^{3}\]
+
+
+\[
+\mathcal{R}^{2221}=\mathcal{R}^{1222}=\mathcal{R}^{2122}=\mathcal{R}^{2212}=6r^{1}+12r^{2}+3r^{3}\]
+
+
+\[
+\mathcal{R}^{2223}=\mathcal{R}^{2232}=\mathcal{R}^{2322}=\mathcal{R}^{3222}=3r^{1}+12r^{2}+6r^{3}\]
+
+
+\[
+\mathcal{R}^{3331}=\mathcal{R}^{1333}=\mathcal{R}^{3133}=\mathcal{R}^{3313}=6r^{1}+3r^{2}+12r^{3}\]
+
+
+\[
+\mathcal{R}^{3332}=\mathcal{R}^{2333}=\mathcal{R}^{3233}=\mathcal{R}^{3323}=3r^{1}+6r^{2}+12r^{3}\]
+
+
+\[
+\mathcal{R}^{1122}=\mathcal{R}^{1212}=\mathcal{R}^{2112}=\mathcal{R}^{1221}=\mathcal{R}^{2121}=\mathcal{R}^{2211}=6r^{1}+6r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{1133}=\mathcal{R}^{1313}=\mathcal{R}^{3113}=\mathcal{R}^{1331}=\mathcal{R}^{3131}=\mathcal{R}^{33111}=6r^{1}+2r^{2}+6r^{3}\]
+
+
+\[
+\mathcal{R}^{2233}=\mathcal{R}^{2323}=\mathcal{R}^{3223}=\mathcal{R}^{2332}=\mathcal{R}^{3232}=\mathcal{R}^{3322}=2r^{1}+6r^{2}+6r^{3}\]
+
+
+\[
+\mathcal{R}^{1123}=\mathcal{R}^{1213}=\mathcal{R}^{2113}=\mathcal{R}^{1132}=\mathcal{R}^{1312}=\mathcal{R}^{3112}=\mathcal{R}^{1231}=\mathcal{R}^{2131}=\mathcal{R}^{1321}=\mathcal{R}^{3121}=\mathcal{R}^{2311}=\mathcal{R}^{3211}=3r^{1}+2r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{2213}=\mathcal{R}^{2123}=\mathcal{R}^{1223}=\mathcal{R}^{2231}=\mathcal{R}^{2321}=\mathcal{R}^{3221}=\mathcal{R}^{2132}=\mathcal{R}^{1232}=\mathcal{R}^{2312}=\mathcal{R}^{3212}=\mathcal{R}^{1322}=\mathcal{R}^{3122}=2r^{1}+3r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{3312}=\mathcal{R}^{3132}=\mathcal{R}^{1332}=\mathcal{R}^{3321}=\mathcal{R}^{3231}=\mathcal{R}^{2331}=\mathcal{R}^{3123}=\mathcal{R}^{1323}=\mathcal{R}^{3213}=\mathcal{R}^{2313}=\mathcal{R}^{1233}=\mathcal{R}^{2133}=2r^{1}+2r^{2}+3r^{3}\]
+
+
+\[
+\mathcal{K}^{111}=\mathcal{R}^{1111}k^{1}+\mathcal{R}^{1112}k^{2}+\mathcal{R}^{1113}k^{3}\]
+
+
+\[
+\mathcal{K}^{222}=\mathcal{R}^{2221}k^{1}+\mathcal{R}^{2222}k^{2}+\mathcal{R}^{2223}k^{3}\]
+
+
+\[
+\mathcal{K}^{333}=\mathcal{R}^{3331}k^{1}+\mathcal{R}^{3332}k^{2}+\mathcal{R}^{3333}k^{3}\]
+
+
+\[
+\mathcal{K}^{112}=\mathcal{K}^{121}=\mathcal{K}^{211}=\mathcal{R}^{1121}k^{1}+\mathcal{R}^{1122}k^{2}+\mathcal{R}^{1123}k^{3}\]
+
+
+\[
+\mathcal{K}^{113}=\mathcal{K}^{131}=\mathcal{K}^{311}=\mathcal{R}^{1131}k^{1}+\mathcal{R}^{1132}k^{2}+\mathcal{R}^{1133}k^{3}\]
+
+
+\[
+\mathcal{K}^{221}=\mathcal{K}^{122}=\mathcal{K}^{212}=\mathcal{R}^{2211}k^{1}+\mathcal{R}^{2212}k^{2}+\mathcal{R}^{2213}k^{3}\]
+
+
+\[
+\mathcal{K}^{223}=\mathcal{K}^{232}=\mathcal{K}^{322}=\mathcal{K}^{2231}k^{1}+\mathcal{R}^{2232}k^{2}+\mathcal{R}^{2233}k^{3}r^{3}\]
+
+
+\[
+\mathcal{K}^{331}=\mathcal{K}^{133}=\mathcal{K}^{313}=\mathcal{R}^{3311}k^{1}+\mathcal{R}^{3312}k^{2}+\mathcal{R}^{3313}k^{3}\]
+
+
+\[
+\mathcal{K}^{332}=\mathcal{K}^{233}=\mathcal{K}^{323}=\mathcal{R}^{3321}k^{1}+\mathcal{R}^{3322}k^{2}+\mathcal{R}^{3323}k^{3}\]
+
+
+\[
+\mathcal{K}^{123}=\mathcal{K}^{213}=\mathcal{K}^{132}=\mathcal{K}^{312}=\mathcal{K}^{231}=\mathcal{K}^{321}=\mathcal{R}^{1231}k^{1}+\mathcal{R}^{1232}k^{2}+\mathcal{R}^{1233}k^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{11}=\mathcal{K}^{111}c_{k}^{1}+\mathcal{K}^{112}c_{k}^{2}+\mathcal{K}^{113}c_{k}^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{22}=\mathcal{K}^{221}c_{k}^{1}+\mathcal{K}^{222}c_{k}^{2}+\mathcal{K}^{223}c_{k}^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{33}=\mathcal{K}^{331}c_{k}^{1}+\mathcal{K}^{332}c_{k}^{2}+\mathcal{K}^{333}c_{k}^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{12}=\mathcal{H}_{j}^{21}=\mathcal{K}^{121}c_{k}^{1}+\mathcal{K}^{122}c_{k}^{2}+\mathcal{K}^{123}c_{k}^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{13}=\mathcal{H}_{j}^{31}=\mathcal{K}^{131}c_{k}^{1}+\mathcal{K}^{132}c_{k}^{2}+\mathcal{K}^{133}c_{k}^{3}\]
+
+
+\[
+\mathcal{H}_{j}^{23}=\mathcal{H}_{j}^{32}=\mathcal{K}^{231}c_{k}^{1}+\mathcal{K}^{232}c_{k}^{2}+\mathcal{K}^{233}c_{k}^{3}\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\\
+\Delta c_{i}^{3}\end{array}\right\} =\frac{S}{2520}\left[\begin{array}{cccccc}
+\mathcal{H}_{j}^{11} & \mathcal{H}_{k}^{11} & \mathcal{H}_{j}^{12} & \mathcal{H}_{k}^{12} & \mathcal{H}_{j}^{13} & \mathcal{H}_{k}^{13}\\
+\mathcal{H}_{j}^{21} & \mathcal{H}_{k}^{21} & \mathcal{H}_{j}^{22} & \mathcal{H}_{k}^{22} & \mathcal{H}_{j}^{23} & \mathcal{H}_{k}^{23}\\
+\mathcal{H}_{j}^{31} & \mathcal{H}_{k}^{31} & \mathcal{H}_{j}^{32} & \mathcal{H}_{k}^{32} & \mathcal{H}_{j}^{33} & \mathcal{H}_{k}^{33}\end{array}\right]\left\{ \begin{array}{c}
+c_{j}^{1}\\
+c_{k}^{1}\\
+c_{j}^{2}\\
+c_{k}^{2}\\
+c_{j}^{3}\\
+c_{k}^{3}\end{array}\right\} \label{eq:element matrix homogeneous reaction bimolecular}\end{equation}
+
+
+
+\subsubsection{Example: monomolecular-monomolecular reversible reaction $A\rightleftharpoons B$}
+
+\[
+v=k_{f}c_{A}-k_{b}c_{B}\]
+
+
+\[
+R_{A}=-v\]
+
+
+\[
+R_{B}=v\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{A}^{1}\\
+\Delta c_{B}^{1}\\
+\Delta U^{1}\\
+\Delta c_{A}^{2}\\
+\Delta c_{B}^{2}\\
+\Delta U^{2}\\
+\Delta c_{A}^{3}\\
+\Delta c_{B}^{3}\\
+\Delta U^{3}\end{array}\right\} =\left[\begin{array}{ccccccccc}
+-H_{A}^{11} & H_{B}^{11} & 0 & -H_{A}^{12} & H_{B}^{12} & 0 & -H_{A}^{13} & H_{B}^{13} & 0\\
+H_{A}^{11} & -H_{B}^{11} & 0 & H_{A}^{12} & -H_{B}^{12} & 0 & H_{A}^{13} & -H_{B}^{13} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+-H_{A}^{21} & H_{B}^{21} & 0 & -H_{A}^{22} & H_{B}^{22} & 0 & -H_{A}^{23} & H_{B}^{23} & 0\\
+H_{A}^{21} & -H_{B}^{21} & 0 & H_{A}^{22} & -H_{B}^{22} & 0 & H_{A}^{23} & -H_{B}^{23} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+-H_{A}^{31} & H_{B}^{31} & 0 & -H_{A}^{32} & H_{B}^{32} & 0 & -H_{A}^{33} & H_{B}^{33} & 0\\
+H_{A}^{31} & -H_{B}^{31} & 0 & H_{A}^{32} & -H_{B}^{32} & 0 & H_{A}^{33} & -H_{B}^{33} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\end{array}\right]\left\{ \begin{array}{c}
+c_{A}^{1}\\
+c_{B}^{1}\\
+U^{1}\\
+c_{A}^{2}\\
+c_{B}^{2}\\
+U^{2}\\
+c_{A}^{3}\\
+c_{B}^{3}\\
+U^{3}\end{array}\right\} \label{eq:element matrix homogeneous reaction monomolecular example}\end{equation}
+with for the forward reaction (replace $k$ by $k_{f}$ in the formulae!)
+
+\[
+H_{A}^{mn}=\frac{S}{180}\mathcal{H}_{A}^{mn}\]
+and for the backward reaction (replace $k$ by $k_{b}$ in the formulae!)
+
+\[
+H_{B}^{mn}=\frac{S}{180}\mathcal{H}_{B}^{mn}\]
+
+
+
+\subsection{Poisson's equation\label{sub:Poisson's equation matrix}}
+
+
+\subsubsection{Fluctuation in node}
+
+\[
+\begin{array}{ccc}
+\Delta U^{m} & = & \int_{S}\vec{\nabla}^{2}UN^{m}rdS+\int_{S}\frac{F}{\epsilon}\sum_{i}z_{i}c_{i}N^{m}rdS\\
+ & = & -\int_{S}\vec{\nabla}U.\vec{\nabla}N^{m}rdS+\sum_{i}\frac{z_{i}F}{\epsilon}\int_{S}c_{i}N^{m}rdS\end{array}\]
+
+
+
+\subsubsection{Element contribution to fluctuation in node}
+
+\[
+\mathcal{R}=r^{1}+r^{2}+r^{3}\]
+
+
+\[
+\mathcal{R}^{11}=6r^{1}+2r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{22}=2r^{1}+6r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{33}=2r^{1}+2r^{2}+6r^{3}\]
+
+
+\[
+\mathcal{R}^{12}=\mathcal{R}^{21}=2r^{1}+2r^{2}+r^{3}\]
+
+
+\[
+\mathcal{R}^{13}=\mathcal{R}^{31}=2r^{1}+r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{23}=\mathcal{R}^{32}=r^{1}+2r^{2}+2r^{3}\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta U^{1}\\
+\Delta U^{2}\\
+\Delta U^{3}\end{array}\right\} =\left[\begin{array}{cccccc}
+\frac{S\mathcal{R}^{11}}{60}\frac{z_{i}F}{\epsilon} & -\frac{\vec{n}^{1}.\vec{n}^{1}}{12S}\mathcal{R} & \frac{S\mathcal{R}^{12}}{60}\frac{z_{i}F}{\epsilon} & -\frac{\vec{n}^{1}.\vec{n}^{2}}{12S}\mathcal{R} & \frac{S\mathcal{R}^{13}}{60}\frac{z_{i}F}{\epsilon} & -\frac{\vec{n}^{1}.\vec{n}^{3}}{12S}\mathcal{R}\\
+\frac{S\mathcal{R}^{21}}{60}\frac{z_{i}F}{\epsilon} & -\frac{\vec{n}^{2}.\vec{n}^{1}}{12S}\mathcal{R} & \frac{S\mathcal{R}^{22}}{60}\frac{z_{i}F}{\epsilon} & -\frac{\vec{n}^{2}.\vec{n}^{2}}{12S}\mathcal{R} & \frac{S\mathcal{R}^{23}}{60}\frac{z_{i}F}{\epsilon} & -\frac{\vec{n}^{2}.\vec{n}^{3}}{12S}\mathcal{R}\\
+\frac{S\mathcal{R}^{31}}{60}\frac{z_{i}F}{\epsilon} & -\frac{\vec{n}^{3}.\vec{n}^{1}}{12S}\mathcal{R} & \frac{S\mathcal{R}^{32}}{60}\frac{z_{i}F}{\epsilon} & -\frac{\vec{n}^{3}.\vec{n}^{2}}{12S}\mathcal{R} & \frac{S\mathcal{R}^{33}}{60}\frac{z_{i}F}{\epsilon} & -\frac{\vec{n}^{3}.\vec{n}^{3}}{12S}\mathcal{R}\end{array}\right]\left\{ \begin{array}{c}
+c_{i}^{1}\\
+U^{1}\\
+c_{i}^{2}\\
+U^{2}\\
+c_{i}^{3}\\
+U^{3}\end{array}\right\} \label{eq:element matrix electrostatics}\end{equation}
+
+
+
+\subsubsection{Example: binary electrolyte }
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{A}^{1}\\
+\Delta c_{B}^{1}\\
+\Delta U^{1}\\
+\Delta c_{A}^{2}\\
+\Delta c_{B}^{2}\\
+\Delta U^{2}\\
+\Delta c_{A}^{3}\\
+\Delta c_{B}^{3}\\
+\Delta U^{3}\end{array}\right\} =\left[\begin{array}{ccccccccc}
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+Z_{A}^{11} & Z_{B}^{11} & n^{11} & Z_{A}^{12} & Z_{B}^{12} & n^{12} & Z_{A}^{13} & Z_{B}^{13} & n^{13}\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+Z_{A}^{21} & Z_{B}^{21} & n^{21} & Z_{A}^{22} & Z_{B}^{22} & n^{22} & Z_{A}^{23} & Z_{B}^{23} & n^{23}\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+Z_{A}^{31} & Z_{B}^{31} & n^{31} & Z_{A}^{32} & Z_{B}^{32} & n^{32} & Z_{A}^{33} & Z_{B}^{33} & n^{33}\end{array}\right]\left\{ \begin{array}{c}
+c_{A}^{1}\\
+c_{B}^{1}\\
+U^{1}\\
+c_{A}^{2}\\
+c_{B}^{2}\\
+U^{2}\\
+c_{A}^{3}\\
+c_{B}^{3}\\
+U^{3}\end{array}\right\} \label{eq:element matrix electrostatics example}\end{equation}
+with
+
+\[
+Z_{i}^{mn}=\frac{S\mathcal{R}^{mn}}{60}\frac{z_{i}F}{\epsilon}\]
+
+
+\[
+n^{mn}=-\frac{\vec{n}^{m}.\vec{n}^{n}}{12S}\mathcal{R}\]
+
+
+
+\subsection{Time\label{sub:Time matrix}}
+
+
+\subsubsection{Fluctuation in node}
+
+\[
+\Delta c_{i}^{m}=\int_{S}\frac{\partial c_{i}}{\partial t}N^{m}rdS\]
+
+
+
+\subsubsection{Element contribution to fluctuation in node}
+
+\[
+\mathcal{R}^{11}=6r^{1}+2r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{22}=2r^{1}+6r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{33}=2r^{1}+2r^{2}+6r^{3}\]
+
+
+\[
+\mathcal{R}^{12}=\mathcal{R}^{21}=2r^{1}+2r^{2}+r^{3}\]
+
+
+\[
+\mathcal{R}^{13}=\mathcal{R}^{31}=2r^{1}+r^{2}+2r^{3}\]
+
+
+\[
+\mathcal{R}^{23}=\mathcal{R}^{32}=r^{1}+2r^{2}+2r^{3}\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\\
+\Delta c_{i}^{3}\end{array}\right\} =\frac{S}{60}\left[\begin{array}{ccc}
+\mathcal{R}^{11} & \mathcal{R}^{12} & \mathcal{R}^{13}\\
+\mathcal{R}^{21} & \mathcal{R}^{22} & \mathcal{R}^{23}\\
+\mathcal{R}^{31} & \mathcal{R}^{32} & \mathcal{R}^{33}\end{array}\right]\left\{ \begin{array}{c}
+\frac{\partial c_{i}^{1}}{\partial t}\\
+\frac{\partial c_{i}^{2}}{\partial t}\\
+\frac{\partial c_{i}^{3}}{\partial t}\end{array}\right\} \label{eq:element matrix time}\end{equation}
+
+
+
+
+
+\section{Boundary element vector}
+
+
+\subsection{Electrode reactions\label{sub:Electrode reactions vector}}
+
+
+\subsubsection{Fluctuation in node}
+
+\[
+R_{i}=\sum_{r}s_{i,r}v_{r}\]
+
+
+\[
+v=k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]c_{red}-k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]c_{ox}\]
+
+
+\[
+\Delta c_{i}^{m}=\int_{L}R_{i}N^{m}rdL\]
+
+
+
+\subsubsection{Boundary element contribution to fluctuation in node }
+
+Assume that the normal flux varies linearly on the boundary. 
+
+\[
+\mathcal{R}^{11}=3r^{1}+r^{2}\]
+
+
+\[
+\mathcal{R}^{22}=r^{1}+3r^{2}\]
+
+
+\[
+\mathcal{R}^{12}=\mathcal{R}^{21}=r^{1}+r^{2}\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\end{array}\right\} =\frac{L}{12}\left\{ \begin{array}{c}
+\mathcal{R}^{11}R_{i}^{1}+\mathcal{R}^{12}R_{i}^{2}\\
+\mathcal{R}^{21}R_{i}^{1}+\mathcal{R}^{22}R_{i}^{2}\end{array}\right\} \label{eq:boundary element vector}\end{equation}
+
+
+
+
+
+\subsubsection{Example: binary electrolyte, $A\rightleftharpoons B+ne^{-}$}
+
+\[
+v=k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]c_{B}-k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]c_{A}\]
+
+
+\[
+R_{A}=-v\]
+
+
+\[
+R_{B}=v\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{A}^{1}\\
+\Delta c_{B}^{1}\\
+\Delta U^{1}\\
+\Delta c_{A}^{2}\\
+\Delta c_{B}^{2}\\
+\Delta U^{2}\end{array}\right\} =\left\{ \begin{array}{c}
+-\frac{L}{12}\left(\mathcal{R}^{11}v^{1}+\mathcal{R}^{12}v^{2}\right)\\
+\frac{L}{12}\left(\mathcal{R}^{11}v^{1}+\mathcal{R}^{12}v^{2}\right)\\
+0\\
+-\frac{L}{12}\left(\mathcal{R}^{21}v^{1}+\mathcal{R}^{22}v^{2}\right)\\
+\frac{L}{12}\left(\mathcal{R}^{21}v^{1}+\mathcal{R}^{22}v^{2}\right)\\
+0\end{array}\right\} \label{eq:boundary element vector example}\end{equation}
+
+
+
+\section{Element jacobian}
+
+
+\subsection{Convection\label{sub:Convection jacobian}}
+
+Zero contribution.
+
+
+\subsection{Diffusion\label{sub:Diffusion jacobian}}
+
+Zero contribution (approximately).
+
+
+\subsection{Migration\label{sub:Migration jacobian}}
+
+
+\subsubsection{Element contribution to fluctuation in node}
+
+\[
+\vec{\nabla}U=\frac{\vec{n}^{1}U^{1}+\vec{n}^{2}U^{2}+\vec{n}^{3}U^{3}}{2S}\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\\
+\Delta c_{i}^{3}\end{array}\right\} =-\frac{\vec{\nabla}U}{120}.\left[\begin{array}{ccc}
+\vec{n}^{1}\mathcal{W}_{i}^{1} & \vec{n}^{1}\mathcal{W}_{i}^{2} & \vec{n}^{1}\mathcal{W}_{i}^{3}\\
+\vec{n}^{2}\mathcal{W}_{i}^{1} & \vec{n}^{2}\mathcal{W}_{i}^{2} & \vec{n}^{2}\mathcal{W}_{i}^{3}\\
+\vec{n}^{3}\mathcal{W}_{i}^{1} & \vec{n}^{3}\mathcal{W}_{i}^{2} & \vec{n}^{3}\mathcal{W}_{i}^{3}\end{array}\right]\left\{ \begin{array}{c}
+c_{i}^{1}\\
+c_{i}^{2}\\
+c_{i}^{3}\end{array}\right\} \label{eq:element jacobian migration}\end{equation}
+
+
+
+\subsubsection{Example: binary electrolyte}
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{A}^{1}\\
+\Delta c_{B}^{1}\\
+\Delta U^{1}\\
+\Delta c_{A}^{2}\\
+\Delta c_{B}^{2}\\
+\Delta U^{2}\\
+\Delta c_{A}^{3}\\
+\Delta c_{B}^{3}\\
+\Delta U^{3}\end{array}\right\} =\left[\begin{array}{ccccccccc}
+\tilde{M}_{A}^{11} & 0 & 0 & \tilde{M}_{A}^{12} & 0 & 0 & \tilde{M}_{A}^{13} & 0 & 0\\
+0 & \tilde{M}_{B}^{11} & 0 & 0 & \tilde{M}_{B}^{12} & 0 & 0 & \tilde{M}_{B}^{13} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+\tilde{M}_{A}^{21} & 0 & 0 & \tilde{M}_{A}^{22} & 0 & 0 & \tilde{M}_{A}^{23} & 0 & 0\\
+0 & \tilde{M}_{B}^{21} & 0 & 0 & \tilde{M}_{B}^{22} & 0 & 0 & \tilde{M}_{B}^{23} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+\tilde{M}_{A}^{31} & 0 & 0 & \tilde{M}_{A}^{32} & 0 & 0 & \tilde{M}_{A}^{33} & 0 & 0\\
+0 & \tilde{M}_{B}^{31} & 0 & 0 & \tilde{M}_{B}^{32} & 0 & 0 & \tilde{M}_{B}^{33} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\end{array}\right]\left\{ \begin{array}{c}
+c_{A}^{1}\\
+c_{B}^{1}\\
+U^{1}\\
+c_{A}^{2}\\
+c_{B}^{2}\\
+U^{2}\\
+c_{A}^{3}\\
+c_{B}^{3}\\
+U^{3}\end{array}\right\} \label{eq:element jacobian migration example}\end{equation}
+with
+
+\[
+\tilde{M}_{i}^{mn}=-\vec{\nabla}U.\vec{n}^{m}\frac{\mathcal{W}_{i}^{n}}{120}\]
+
+
+
+
+
+
+
+\subsection{Homogeneous reactions\label{sub:Homogeneous reactions jacobian}}
+
+
+\subsubsection{Element contribution to fluctuation in node}
+
+\begin{itemize}
+\item Monomolecular 
+\end{itemize}
+Zero contribution (approximately).
+
+\begin{itemize}
+\item Bimolecular
+\end{itemize}
+Because of the symmetry it is the same contribution.
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\\
+\Delta c_{i}^{3}\end{array}\right\} =\frac{S}{2520}\left[\begin{array}{cccccc}
+\mathcal{H}_{j}^{11} & \mathcal{H}_{k}^{11} & \mathcal{H}_{j}^{12} & \mathcal{H}_{k}^{12} & \mathcal{H}_{j}^{13} & \mathcal{H}_{k}^{13}\\
+\mathcal{H}_{j}^{21} & \mathcal{H}_{k}^{21} & \mathcal{H}_{j}^{22} & \mathcal{H}_{k}^{22} & \mathcal{H}_{j}^{23} & \mathcal{H}_{k}^{23}\\
+\mathcal{H}_{j}^{31} & \mathcal{H}_{k}^{31} & \mathcal{H}_{j}^{32} & \mathcal{H}_{k}^{32} & \mathcal{H}_{j}^{33} & \mathcal{H}_{k}^{33}\end{array}\right]\left\{ \begin{array}{c}
+c_{j}^{1}\\
+c_{k}^{1}\\
+c_{j}^{2}\\
+c_{k}^{2}\\
+c_{j}^{3}\\
+c_{k}^{3}\end{array}\right\} \label{eq:element jacobian homogeneous reaction bimolecular}\end{equation}
+
+
+
+
+
+\subsection{Poisson's equation\label{sub:Poisson's equation jacobian}}
+
+Zero contribution.
+
+
+\subsection{Time\label{sub:Time jacobian}}
+
+Zero contribution.
+
+
+
+
+\section{Boundary element jacobian}
+
+
+\subsection{Electrode reactions\label{sub:Electrode reactions jacobian}}
+
+
+
+
+\subsubsection{Partial derivatives }
+
+\[
+\frac{\partial v}{\partial U}=-\frac{\alpha_{ox}nF}{RT}k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]c_{red}-\frac{\alpha_{red}nF}{RT}k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]c_{ox}\]
+
+
+\[
+\frac{\partial v}{\partial c_{ox}}=-k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]\]
+
+
+\[
+\frac{\partial v}{\partial c_{red}}=k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\end{array}\right\} =\frac{L}{12}\left[\begin{array}{cccc}
+\mathcal{R}^{11}\frac{\partial R_{i}^{1}}{\partial c_{j}^{1}} & \mathcal{R}^{11}\frac{\partial R_{i}^{1}}{\partial U^{1}} & \mathcal{R}^{12}\frac{\partial R_{i}^{2}}{\partial c_{j}^{2}} & \mathcal{R}^{12}\frac{\partial R_{i}^{2}}{\partial U^{2}}\\
+\mathcal{R}^{21}\frac{\partial R_{i}^{1}}{\partial c_{j}^{1}} & \mathcal{R}^{21}\frac{\partial R_{i}^{1}}{\partial U^{1}} & \mathcal{R}^{22}\frac{\partial R_{i}^{2}}{\partial c_{j}^{2}} & \mathcal{R}^{22}\frac{\partial R_{i}^{2}}{\partial U^{2}}\end{array}\right]\left\{ \begin{array}{c}
+c_{j}^{1}\\
+U^{1}\\
+c_{j}^{2}\\
+U^{2}\end{array}\right\} \label{eq:boundary element jacobian}\end{equation}
+
+
+
+\subsubsection{Example: binary electrolyte, $A\rightleftharpoons B+ne^{-}$}
+
+\[
+\frac{\partial v}{\partial U}=-\frac{\alpha_{ox}nF}{RT}k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]c_{B}-\frac{\alpha_{red}nF}{RT}k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]c_{A}\]
+
+
+\[
+\frac{\partial v}{\partial c_{A}}=-k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]\]
+
+
+\[
+\frac{\partial v}{\partial c_{B}}=k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{A}^{1}\\
+\Delta c_{B}^{1}\\
+\Delta U^{1}\\
+\Delta c_{A}^{2}\\
+\Delta c_{B}^{2}\\
+\Delta U^{2}\end{array}\right\} =\left[\begin{array}{cccccc}
+-\tilde{C}_{A}^{11} & -\tilde{C}_{B}^{11} & -\tilde{U}^{11} & -\tilde{C}_{A}^{12} & -\tilde{C}_{B}^{12} & -\tilde{U}^{12}\\
+\tilde{C}_{A}^{11} & \tilde{C}_{B}^{11} & \tilde{U}^{11} & \tilde{C}_{A}^{12} & \tilde{C}_{B}^{12} & \tilde{U}^{12}\\
+0 & 0 & 0 & 0 & 0 & 0\\
+-\tilde{C}_{A}^{21} & -\tilde{C}_{B}^{21} & -\tilde{U}^{21} & -\tilde{C}_{A}^{22} & -\tilde{C}_{B}^{22} & -\tilde{U}^{22}\\
+\tilde{C}_{A}^{21} & \tilde{C}_{B}^{21} & \tilde{U}^{21} & \tilde{C}_{A}^{22} & \tilde{C}_{B}^{22} & \tilde{U}^{22}\\
+0 & 0 & 0 & 0 & 0 & 0\end{array}\right]\left\{ \begin{array}{c}
+c_{A}^{1}\\
+c_{B}^{1}\\
+U^{1}\\
+c_{A}^{2}\\
+c_{B}^{2}\\
+U^{2}\end{array}\right\} \label{eq:boundary element jacobian example}\end{equation}
+with
+
+\[
+\tilde{C}_{i}^{mn}=\frac{L\mathcal{R}^{mn}}{12}\frac{\partial v^{n}}{\partial c_{i}^{n}}\]
+
+
+\[
+\tilde{U}^{mn}=\frac{L\mathcal{R}^{mn}}{12}\frac{\partial v^{n}}{\partial U^{n}}\]
+
+\end{document}

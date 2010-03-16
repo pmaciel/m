@@ -1,0 +1,17 @@
+Versie 1.0
+[nElecReactions] = 2
+	<label> = DissolutionA	<type> = BV	<nElectrons> = 3	<E0> = 0	<kOxi> = 1e-6	<kRed> = 1e-6	<aOxi> = 0.5	<aRed> = 0.5
+	<label> = RedoxB	<type> = BV	<nElectrons> = 2	<E0> = 0	<kOxi> = 1e-6	<kRed> = 1e-6	<aOxi> = 0.5	<aRed> = 0.5
+
+[nAgentsRed0] = 0
+[nAgentsOxi0] = 1
+	<label> = A3+	<stoich> = 1	<order> = 1
+
+[nAgentsRed1] = 1
+	<label> = C	<stoich> = -1	<order> = 1
+[nAgentsOxi1] = 1
+	<label> = B+	<stoich> = 2	<order> = 1
+
+
+[nGasReactions] = 1
+	<label> = CToGas	<k> = 1e-3	<cSat> = 0.00075	<dissolvedGas> = C

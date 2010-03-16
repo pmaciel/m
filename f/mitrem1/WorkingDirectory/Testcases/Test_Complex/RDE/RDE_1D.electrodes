@@ -1,0 +1,12 @@
+Versie 1.0
+[nElectrodes] = 1
+	<label> = WorkingElectrode
+
+[nBoundaries0] = 1
+	<boundary> = 0
+
+[nElecReactions0] = 2
+	<label> = DissolutionA
+	<label> = RedoxB
+
+[nGasReactions0] = 0

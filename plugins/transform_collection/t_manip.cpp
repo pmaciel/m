@@ -9,12 +9,12 @@ using namespace m;
 
 
 Register< mtransform,t_manip > mt_manip(7,"-tvrm", "[str:...] variable removal, by name",
-                                          "-tvmv", "[str=str:...] variable moving, from name, to before name",
-                                          "-tvren","[str=str:...] variable rename, from name, to name",
-                                          "-tvadd","[str=fun:...] variable addition, specifying a function",
+                                          "-tvmv", "[str=str:...]   variable moving, from name, to before name",
+                                          "-tvren","[str=str:...]   variable rename, from name, to name",
+                                          "-tvadd","[str[=fun]:...] variable addition, optionally set by function",
                                           "-tzrm", "[str:...] zone removal, by name",
-                                          "-tzmv", "[str=str:...] zone moving, from name, to before name",
-                                          "-tzren","[str=str:...] zone rename, from name, to name");
+                                          "-tzmv", "[str=str:...]   zone moving, from name, to before name",
+                                          "-tzren","[str=str:...]   zone rename, from name, to name");
 
 
 void t_manip::transform(GetPot& o, mmesh& m)
@@ -53,22 +53,20 @@ void t_manip::vren(mmesh& m, const unsigned i, const string& n)
 
 void t_manip::vadd(mmesh& m, const string& n, const string& f)
 {
-  if (!f.length()) {
-    cerr << "error: function is empty!" << endl;
-    throw 42;
-  }
-
-  // set mfunction and add new variable in the end
-  // (uses only the coordinates variables, for your own safety)
+  // add a new variable (with zeros) in the end
   const unsigned Ndim  = m.d();
   const unsigned Nnode = m.n();
+  m.vn.push_back(n);
+  m.vv.push_back(vector< double >(Nnode,0.));
+  if (!f.length())
+    return;
+
+  // set mfunction (uses only the coordinates variables, for your own safety)
   const vector< string > vnames(m.vn.begin(),m.vn.begin()+Ndim);
   mfunction mf(f,vnames);
-  m.vn.push_back(n);
-  m.vv.push_back(vector< double >(m.n(),0.));
-  vector< double >& v = m.vv.back();
 
   // evaluate at each node
+  vector< double >& v = m.vv.back();
   vector< double > c(Ndim,0.);
   for (unsigned n=0; n<Nnode; ++n) {
     for (unsigned d=0; d<Ndim; ++d)

@@ -1,0 +1,224 @@
+%% LyX 1.4.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,letterpaper,lmargin=2cm,rmargin=2cm}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Bold symbol macro for standard LaTeX users
+\providecommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
+
+
+\usepackage{babel}
+\makeatother
+\begin{document}
+
+\title{Convection 2D}
+
+\maketitle
+
+\section{Equations}
+
+
+\subsection{Mass conservation}
+
+\begin{equation}
+\frac{\partial c_{i}}{\partial t}=-\vec{\nabla}.\vec{N}_{i}+R_{i}\label{eq:mass conservation}\end{equation}
+with\begin{equation}
+\vec{N}_{i}=c_{i}\vec{v}-\sum_{j}D_{ij}\vec{\nabla}c_{j}-w_{i}c_{i}\vec{\nabla}U\label{eq:flux}\end{equation}
+
+
+
+\subsection{Poisson's equation}
+
+\begin{equation}
+\vec{\nabla}^{2}U+\frac{F}{\epsilon}\sum_{i}z_{i}c_{i}=0\label{eq:Poisson}\end{equation}
+
+
+
+\subsection{Butler-Volmer kinetics}
+
+\begin{equation}
+v=k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]c_{red}-k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]c_{ox}\label{eq:Butler-Volmer}\end{equation}
+
+
+
+\section{Element matrix}
+
+
+\subsection{Convection\label{sub:Convection matrix}}
+
+
+\subsubsection{Fluctuation in node}
+
+\[
+\Delta c_{i}^{m}=\sum_{e}\alpha_{e}^{m}\Phi_{e}\]
+
+
+
+\subsubsection{Element contribution to fluctuation in node }
+
+\[
+\begin{array}{rcl}
+\Phi & = & \int_{S}-\vec{v}.\vec{\nabla}c_{i}dS\\
+ & = & -\left(\frac{\vec{n}^{1}c_{i}^{1}+\vec{n}^{2}c_{i}^{2}+\vec{n}^{3}c_{i}^{3}}{2}\right).\vec{v}_{av}\\
+ & = & -\left(k^{1}c_{i}^{1}+k^{2}c_{i}^{2}+k^{3}c_{i}^{3}\right)\end{array}\]
+
+
+\begin{itemize}
+\item One target (e.g. node 1)
+\end{itemize}
+\[
+\alpha^{1}=1\]
+
+
+\[
+\alpha^{2}=\alpha^{3}=0\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\\
+\Delta c_{i}^{3}\end{array}\right\} =\left[\begin{array}{ccc}
+-k^{1} & -k^{2} & -k^{3}\\
+0 & 0 & 0\\
+0 & 0 & 0\end{array}\right]\left\{ \begin{array}{c}
+c_{i}^{1}\\
+c_{i}^{2}\\
+c_{i}^{3}\end{array}\right\} \label{eq:element matrix convection 1 target}\end{equation}
+
+
+\begin{itemize}
+\item Two target: LDA-scheme (e.g. nodes 1 and 2)
+\end{itemize}
+\[
+\alpha^{1}=-\frac{k^{1}}{k^{3}}\]
+
+
+\[
+\alpha^{2}=-\frac{k^{2}}{k^{3}}\]
+
+
+\[
+\alpha^{3}=0\]
+
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\\
+\Delta c_{i}^{3}\end{array}\right\} =\left[\begin{array}{ccc}
+\frac{\left(k^{1}\right)^{2}}{k^{3}} & \frac{k^{1}k^{2}}{k^{3}} & k^{1}\\
+\frac{k^{2}k^{1}}{k^{3}} & \frac{\left(k^{2}\right)^{2}}{k^{3}} & k^{2}\\
+0 & 0 & 0\end{array}\right]\left\{ \begin{array}{c}
+c_{i}^{1}\\
+c_{i}^{2}\\
+c_{i}^{3}\end{array}\right\} \label{eq:element matrix convection 2 target LDA}\end{equation}
+
+
+
+
+\begin{itemize}
+\item Two target: N-scheme (e.g. nodes 1 and 2)
+\end{itemize}
+\emph{Note: the distribution coefficients are undefined!}
+
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{i}^{1}\\
+\Delta c_{i}^{2}\\
+\Delta c_{i}^{3}\end{array}\right\} =\left[\begin{array}{ccc}
+-k^{1} & 0 & k^{1}\\
+0 & -k^{2} & k^{2}\\
+0 & 0 & 0\end{array}\right]\left\{ \begin{array}{c}
+c_{i}^{1}\\
+c_{i}^{2}\\
+c_{i}^{3}\end{array}\right\} \label{eq:element matrix convection 2 target N}\end{equation}
+
+
+
+\subsubsection{Examples: binary electrolyte}
+
+\begin{itemize}
+\item One target (node 1)
+\end{itemize}
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{A}^{1}\\
+\Delta c_{B}^{1}\\
+\Delta U^{1}\\
+\Delta c_{A}^{2}\\
+\Delta c_{B}^{2}\\
+\Delta U^{2}\\
+\Delta c_{A}^{3}\\
+\Delta c_{B}^{3}\\
+\Delta U^{3}\end{array}\right\} =\left[\begin{array}{ccccccccc}
+-k^{1} & 0 & 0 & -k^{2} & 0 & 0 & -k^{3} & 0 & 0\\
+0 & -k^{1} & 0 & 0 & -k^{2} & 0 & 0 & -k^{3} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\end{array}\right]\left\{ \begin{array}{c}
+c_{A}^{1}\\
+c_{B}^{1}\\
+U^{1}\\
+c_{A}^{2}\\
+c_{B}^{2}\\
+U^{2}\\
+c_{A}^{3}\\
+c_{B}^{3}\\
+U^{3}\end{array}\right\} \label{eq:element matrix convection 1 target example}\end{equation}
+
+
+\begin{itemize}
+\item Two target: N-scheme (nodes 1 and 2)
+\end{itemize}
+\begin{equation}
+\left\{ \begin{array}{c}
+\Delta c_{A}^{1}\\
+\Delta c_{B}^{1}\\
+\Delta U^{1}\\
+\Delta c_{A}^{2}\\
+\Delta c_{B}^{2}\\
+\Delta U^{2}\\
+\Delta c_{A}^{3}\\
+\Delta c_{B}^{3}\\
+\Delta U^{3}\end{array}\right\} =\left[\begin{array}{ccccccccc}
+-k^{1} & 0 & 0 & 0 & 0 & 0 & k^{1} & 0 & 0\\
+0 & -k^{1} & 0 & 0 & 0 & 0 & 0 & k^{1} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & -k^{2} & 0 & 0 & k^{2} & 0 & 0\\
+0 & 0 & 0 & 0 & -k^{2} & 0 & 0 & k^{2} & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\end{array}\right]\left\{ \begin{array}{c}
+c_{A}^{1}\\
+c_{B}^{1}\\
+U^{1}\\
+c_{A}^{2}\\
+c_{B}^{2}\\
+U^{2}\\
+c_{A}^{3}\\
+c_{B}^{3}\\
+U^{3}\end{array}\right\} \label{eq:element matrix convection 2 target example}\end{equation}
+
+
+
+
+
+\section{Element jacobian}
+
+
+\subsection{Convection\label{sub:Convection jacobian}}
+
+Zero contribution.
+\end{document}

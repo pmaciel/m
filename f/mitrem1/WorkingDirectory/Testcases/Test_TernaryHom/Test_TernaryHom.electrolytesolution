@@ -1,0 +1,12 @@
+Versie 1.0
+[solventDielectricConstant] = 6.933104e-10
+[solutionKinematicViscosity] = 1e-6
+[solutionTemperature] = 298.15
+[nIons] = 4
+	<label> = A+	<z> = +1	<D> = 1e-9	<cInlet> = 250
+	<label> = B+	<z> = +1	<D> = 1.5e-9	<cInlet> = 250
+	<label> = C-	<z> = -1	<D> = 2e-9	<cInlet> = 500
+	<label> = D	<z> = 0	<D> = 0.5e-9	<cInlet> = 0
+
+
+

@@ -1,0 +1,157 @@
+%% LyX 1.4.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,letterpaper,lmargin=2cm,rmargin=2cm}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Bold symbol macro for standard LaTeX users
+\providecommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+%% LyX 1.4.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+
+
+
+
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Bold symbol macro for standard LaTeX users
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+%% LyX 1.4.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+
+
+
+
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Bold symbol macro for standard LaTeX users
+
+
+
+
+\makeatother
+
+
+
+\makeatother
+
+\usepackage{babel}
+\makeatother
+\begin{document}
+
+\title{Time integration}
+
+\maketitle
+
+\section{Equations}
+
+
+\subsection{Mass conservation}
+
+\begin{equation}
+\frac{\partial c_{i}}{\partial t}=-\vec{\nabla}.\vec{N}_{i}+R_{i}\label{eq:mass conservation}\end{equation}
+ with\begin{equation}
+\vec{N}_{i}=c_{i}\vec{v}-\sum_{j}D_{ij}\vec{\nabla}c_{j}-w_{i}c_{i}\vec{\nabla}U\label{eq:flux}\end{equation}
+
+
+
+\subsection{Poisson's equation}
+
+\begin{equation}
+\vec{\nabla}^{2}U+\frac{F}{\epsilon}\sum_{i}z_{i}c_{i}=0\label{eq:Poisson}\end{equation}
+
+
+
+\subsection{Butler-Volmer kinetics}
+
+\begin{equation}
+v=k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]c_{red}-k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]c_{ox}\label{eq:Butler-Volmer}\end{equation}
+
+
+
+
+
+\section{Time integration}
+
+
+\subsection{Two parameter discretization schemes}
+
+\begin{equation}
+\begin{array}{l}
+\left[T\right]\left(\frac{1+\epsilon}{\Delta t}\left(\left\{ x^{t+1}\right\} -\left\{ x^{t}\right\} \right)-\frac{\epsilon}{\Delta t_{-1}}\left(\left\{ x^{t}\right\} -\left\{ x^{t-1}\right\} \right)\right)\\
+=\theta\left(\left(\left[C\right]+\left[D\right]+\left[M\right]+\left[H\right]+\left[P\right]\right)\left\{ x^{t+1}\right\} +\left\{ E\right\} \right)\\
++\left(1-\theta\right)\left(\left(\left[C\right]+\left[D\right]+\left[M\right]+\left[H\right]+\left[P\right]\right)\left\{ x^{t}\right\} +\left\{ E\right\} \right)\end{array}\label{eq:time integration}\end{equation}
+ with
+
+\begin{itemize}
+\item $\left[T\right]$ the time matrix
+\item $\left[C\right]$ the convection matrix
+\item $\left[D\right]$ the diffusion matrix
+\item $\left[M\right]$ the migration matrix
+\item $\left[H\right]$ the homogeneous reactions matrix
+\item $\left[P\right]$ the Poisson's equation matrix
+\item $\left\{ E\right\} $ the electrode reactions vector
+\item $\left\{ x^{t+1}\right\} $, $\left\{ x^{t}\right\} $ and $\left\{ x^{t-1}\right\} $
+the vector of unknowns at time $t+1$, $t$ and $t-1$ 
+\end{itemize}
+The matrices may depend on the unknowns. The equation holds at the
+element level as well as the global level.
+
+\begin{itemize}
+\item $\epsilon=0$, $\theta=0$ : explicit
+\item $\epsilon=0$, $\theta=1$ : Euler backwards
+\item $\epsilon=0$, $\theta=\frac{1}{2}$ : Crank-Nicolson
+\item $\epsilon=\frac{1}{2}$, $\theta=1$ : 3 point backwards (this is
+the one used)
+\end{itemize}
+
+\subsection{Newton iterations}
+
+Define
+
+\begin{equation}
+\begin{array}{rcl}
+\left\{ \Psi\right\}  & = & \left(\frac{1+\epsilon}{\Delta t}\left[T^{t+1}\right]-\theta\left(\left[C^{t+1}\right]+\left[D^{t+1}\right]+\left[M^{t+1}\right]+\left[H^{t+1}\right]+\left[P^{t+1}\right]\right)\right)\left\{ x^{t+1}\right\} -\theta\left\{ E^{t+1}\right\} \\
+ &  & -\left(\left(\frac{1+\epsilon}{\Delta t}+\frac{\epsilon}{\Delta t_{-1}}\right)\left[T^{t}\right]+\left(1-\theta\right)\left(\left[C^{t}\right]+\left[D^{t}\right]+\left[M^{t}\right]+\left[H^{t}\right]+\left[P^{t}\right]\right)\right)\left\{ x^{t}\right\} -\left(1-\theta\right)\left\{ E^{t}\right\} \\
+ &  & +\frac{\epsilon}{\Delta t_{-1}}\left[T^{t-1}\right]\left\{ x^{t-1}\right\} \\
+ & = & \left\{ 0\right\} \end{array}\label{eq:Psi}\end{equation}
+
+
+First order Taylor expansion
+
+\begin{equation}
+\left\{ \Psi^{p+1}\right\} \approx\left\{ \Psi^{p}\right\} +\left[\frac{\partial\Psi^{p}}{\partial X}\right]\left\{ \Delta X^{p}\right\} =\left\{ 0\right\} \label{eq:Taylor}\end{equation}
+ with \[
+X=\left\{ x^{t+1}\right\} \]
+
+
+\[
+\left[\frac{\partial\Psi^{p}}{\partial X}\right]=\frac{1+\epsilon}{\Delta t}\left(\left[T^{p}\right]+\left[\tilde{T}^{p}\right]\right)-\theta\left(\left[C^{p}\right]+\left[\tilde{C}^{p}\right]+\left[D^{p}\right]+\left[\tilde{D}^{p}\right]+\left[M^{p}\right]+\left[\tilde{M}^{p}\right]+\left[H^{p}\right]+\left[\tilde{H}^{p}\right]+\left[P^{p}\right]+\left[\tilde{P}^{p}\right]+\left[\tilde{E}^{p}\right]\right)\]
+ and
+
+\begin{itemize}
+\item $\left[\tilde{T}\right]$ the time jacobian
+\item $\left[\tilde{C}\right]$ the convection jacobian
+\item $\left[\tilde{D}\right]$ the diffusion jacobian
+\item $\left[\tilde{M}\right]$ the migration jacobian
+\item $\left[\tilde{H}\right]$ the homogeneous reactions jacobian
+\item $\left[\tilde{P}\right]$ the Poisson's equation jacobian
+\item $\left[\tilde{E}\right]$ the electrode reactions jacobian
+\end{itemize}
+
+\end{document}

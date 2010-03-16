@@ -1,0 +1,16 @@
+Versie 1.0
+[timeAccurate] = false
+[nElectrodePotentials] = 13
+	<t> = 0	<VWorkingElectrode> = 0.4
+	<t> = 0	<VWorkingElectrode> = 0.3
+	<t> = 0	<VWorkingElectrode> = 0.2
+	<t> = 0	<VWorkingElectrode> = 0.1
+	<t> = 0	<VWorkingElectrode> = 0.0
+	<t> = 0	<VWorkingElectrode> = -0.1
+	<t> = 0	<VWorkingElectrode> = -0.2
+	<t> = 0	<VWorkingElectrode> = -0.3
+	<t> = 0	<VWorkingElectrode> = -0.4
+	<t> = 0	<VWorkingElectrode> = -0.5
+	<t> = 0	<VWorkingElectrode> = -0.6
+	<t> = 0	<VWorkingElectrode> = -0.7
+	<t> = 0	<VWorkingElectrode> = -0.8

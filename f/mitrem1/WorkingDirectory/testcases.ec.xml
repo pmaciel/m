@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ec [
+ <!ENTITY year "2008">
+ <!ENTITY author "Vrije Universiteit Brussel">
+ <!ENTITY author-note "&author;, &year;">
+]>
+<ecdb>
+ <ec label="Test_Binary" version="1.0">
+  <electrolyte model="Ideal">
+   <solvent dielectricconstant="6.933104e-10"/>
+   <solution kinematicviscosity="1e-6" temperature="298.15"/>
+   <species label="A+" z="+1" D="1e-9" cInlet="500"/>
+   <species label="B-" z="-1" D="2e-9" cInlet="500"/>
+  </electrolyte>
+  <elecreactions>
+   <reaction label="Deposition" model="BV" nElectrons="1" kOxi="1e-6" kRed="1e-6" aOxi="0.5" aRed="0.5">
+    <agent label="A+" type="oxi" stoich="1" order="1"/>
+   </reaction>
+  </elecreactions>
+  <homreactions/>
+  <gasreactions/>
+  <models>
+   <conductivity value="0"/>
+   <electrostatics model="Electroneutrality"/>
+  </models>
+ </ec>
+ <ec label="Test_Complex" version="1.0">
+  <electrolyte model="Ideal">
+   <solvent dielectricconstant="6.933104e-10"/>
+   <solution kinematicviscosity="1e-6" temperature="298.15"/>
+   <species label="A3+" z="3" D="0.5e-9" cInlet="1"/>
+   <species label="B+" z="1" D="9e-9" cInlet="100"/>
+   <species label="C" z="0" D="2e-9" cInlet="0"/>
+   <species label="D" z="0" D="2.3e-9" cInlet="55000"/>
+   <species label="E-" z="-1" D="5e-9" cInlet="0"/>
+   <species label="F2+" z="2" D="0.6e-9" cInlet="0"/>
+   <species label="G-" z="-1" D="2e-9" cInlet="103"/>
+  </electrolyte>
+  <elecreactions>
+   <reaction label="DissolutionA" model="BV" nElectrons="3" kOxi="1e-6" kRed="1e-6" aOxi="0.5" aRed="0.5">
+    <agent label="A3+" type="oxi" stoich="1" order="1"/>
+   </reaction>
+   <reaction label="RedoxB" model="BV" nElectrons="2" kOxi="1e-6" kRed="1e-6" aOxi="0.5" aRed="0.5">
+    <agent label="C" type="red" stoich="-1" order="1"/>
+    <agent label="B+" type="oxi" stoich="2" order="1"/>
+   </reaction>
+  </elecreactions>
+  <homreactions>
+   <reaction label="Reaction1" kf="1e8" kb="1e-5">
+    <reagent label="B+" stoich="-1"/>
+    <reagent label="E-" stoich="-1"/>
+    <product label="D" stoich="1"/>
+   </reaction>
+   <reaction label="Reaction2" kf="1e6" kb="1e4">
+    <reagent label="A3+" stoich="-1"/>
+    <product label="F2+" stoich="1"/>
+    <product label="B+" stoich="1"/>
+   </reaction>
+  </homreactions>
+  <gasreactions/>
+  <models>
+   <conductivity value="0"/>
+   <electrostatics model="Electroneutrality"/>
+  </models>
+ </ec>
+ <ec label="Test_ComplexGas" version="1.0">
+  <electrolyte model="Ideal">
+   <solvent dielectricconstant="6.933104e-10"/>
+   <solution kinematicviscosity="1e-6" temperature="298.15"/>
+   <species label="A3+" z="+3" D="0.5e-9" cInlet="1"/>
+   <species label="B+" z="+1" D="9e-9" cInlet="100"/>
+   <species label="C" z="0" D="2e-9" cInlet="0"/>
+   <species label="D" z="0" D="2.3e-9" cInlet="55000"/>
+   <species label="E-" z="-1" D="5e-9" cInlet="0"/>
+   <species label="F2+" z="+2" D="0.6e-9" cInlet="0"/>
+   <species label="G-" z="-1" D="2e-9" cInlet="103"/>
+  </electrolyte>
+  <elecreactions>
+   <reaction label="DissolutionA" model="BV" nElectrons="3" kOxi="1e-6" kRed="1e-6" aOxi="0.5" aRed="0.5">
+    <agent label="A3+" type="oxi" stoich="1" order="1"/>
+   </reaction>
+   <reaction label="RedoxB" model="BV" nElectrons="2" kOxi="1e-6" kRed="1e-6" aOxi="0.5" aRed="0.5">
+    <agent label="C" type="red" stoich="-1" order="1"/>
+    <agent label="B+" type="oxi" stoich="2" order="1"/>
+   </reaction>
+  </elecreactions>
+  <gasreactions>
+   <reaction label="CToGas" k="1e-3" cSat="0.00075" dissolvedGas="C"/>
+  </gasreactions>
+  <homreactions>
+   <reaction label="Reaction1" kf="1e8" kb="1e-5">
+    <reagent label="B+" stoich="-1"/>
+    <reagent label="E-" stoich="-1"/>
+    <product label="D" stoich="1"/>
+   </reaction>
+   <reaction label="Reaction2" kf="1e6" kb="1e4">
+    <reagent label="A3+" stoich="-1"/>
+    <product label="F2+" stoich="1"/>
+    <product label="B+" stoich="1"/>
+   </reaction>
+  </homreactions>
+  <models>
+   <conductivity value="0"/>
+   <electrostatics model="Electroneutrality"/>
+  </models>
+ </ec>
+ <ec label="Test_Gas" version="1.0">
+  <electrolyte model="Ideal">
+   <solvent dielectricconstant="6.933104e-10"/>
+   <solution kinematicviscosity="1e-6" temperature="298.15"/>
+   <species label="A+" z="+1" D="1e-9" cInlet="1"/>
+   <species label="A" z="0" D="2e-9" cInlet="0"/>
+   <species label="B+" z="+1" D="1.5e-9" cInlet="499"/>
+   <species label="C-" z="-1" D="2e-9" cInlet="500"/>
+  </electrolyte>
+  <elecreactions>
+   <reaction label="ReductionA" model="BV" nElectrons="2" kOxi="0" kRed="1e-6" aOxi="0.5" aRed="0.5">
+    <agent label="A" type="red" stoich="-1" order="1"/>
+    <agent label="A+" type="oxi" stoich="2" order="1"/>
+   </reaction>
+   <reaction label="DissolutionB" model="BV" nElectrons="1" kOxi="1e-6" kRed="0" aOxi="0.5" aRed="0.5">
+    <agent label="B+" type="oxi" stoich="1" order="1"/>
+   </reaction>
+  </elecreactions>
+  <gasreactions>
+   <reaction label="AToGas" k="1e-3" cSat="0.00075" dissolvedGas="A"/>
+  </gasreactions>
+  <homreactions/>
+  <models>
+   <conductivity value="0"/>
+   <electrostatics model="Electroneutrality"/>
+  </models>
+ </ec>
+ <ec label="Test_Ternary" version="1.0">
+  <electrolyte model="Ideal">
+   <solvent dielectricconstant="6.933104e-10"/>
+   <solution kinematicviscosity="1e-6" temperature="298.15"/>
+   <species label="A+" z="+1" D="1e-9" cInlet="1"/>
+   <species label="B+" z="+1" D="1.5e-9" cInlet="499"/>
+   <species label="C-" z="-1" D="2e-9" cInlet="500"/>
+  </electrolyte>
+  <elecreactions>
+   <reaction label="Deposition" model="BV" nElectrons="1" kOxi="1e-6" kRed="1e-6" aOxi="0.5" aRed="0.5">
+    <agent label="A+" type="oxi" stoich="1" order="1"/>
+   </reaction>
+  </elecreactions>
+  <homreactions/>
+  <gasreactions/>
+  <models>
+   <conductivity value="0"/>
+   <electrostatics model="Electroneutrality"/>
+  </models>
+ </ec>
+ <ec label="Test_TernaryHom" version="1.0">
+  <electrolyte model="Ideal">
+   <solvent dielectricconstant="6.933104e-10"/>
+   <solution kinematicviscosity="1e-6" temperature="298.15"/>
+   <species label="A+" z="+1" D="1e-9" cInlet="250"/>
+   <species label="B+" z="+1" D="1.5e-9" cInlet="250"/>
+   <species label="C-" z="-1" D="2e-9" cInlet="500"/>
+   <species label="D" z="0" D="0.5e-9" cInlet="0"/>
+  </electrolyte>
+  <elecreactions>
+   <reaction label="Deposition" model="BV" nElectrons="1" kOxi="1e-6" kRed="1e-6" aOxi="0.5" aRed="0.5">
+    <agent label="A+" type="oxi" stoich="1" order="1"/>
+   </reaction>
+  </elecreactions>
+  <homreactions>
+   <reaction label="Reaction" kf="1" kb="1">
+    <reagent label="A+" stoich="-1"/>
+    <reagent label="C-" stoich="-1"/>
+    <product label="D" stoich="1"/>
+   </reaction>
+  </homreactions>
+  <gasreactions/>
+  <models>
+   <conductivity value="0"/>
+   <electrostatics model="Electroneutrality"/>
+  </models>
+ </ec>
+</ecdb>
