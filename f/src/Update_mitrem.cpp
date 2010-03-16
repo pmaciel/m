@@ -8,6 +8,9 @@
 enum CALL { ASSEMBLY, CURRENT, GAS };
 void assembleMITReM(const std::vector< m::melem >& e2n);
 void assembleBulk(const std::vector< m::melem >& e2n);
+void assembleDirichlet(const std::vector< m::melem >& e2n,
+  const std::vector< unsigned >& vlabels,
+  const std::vector< double   >& vvalues);
 double assembleElectrode(
   const std::vector< m::melem >& e2n,
   const std::vector< unsigned >& greactions,
@@ -17,6 +20,8 @@ double assembleElectrode(
 
 // forward declarations (utility functions)
 std::vector< unsigned > getZones(const std::string& l);
+std::vector< unsigned > getVLabels(const std::string& l);
+std::vector< double   > getVValues(const std::string& l);
 std::vector< unsigned > getEReactions(const std::string& l);
 std::vector< unsigned > getGReactions(const std::string& l);
 std::vector< std::string > getVStrings(const std::string& l);
@@ -45,10 +50,13 @@ void Update_mitrem()
       cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[z[j]].n << "\"..." << endl;
 
       if      (t=="bulk")      assembleBulk(      M.vz[z[j]].e2n );
+      else if (t=="dirichlet") assembleDirichlet( M.vz[z[j]].e2n,
+        getVLabels(b.getAttribute< string >("vlabels")),
+        getVValues(b.getAttribute< string >("vvalues")) );
       else if (t=="electrode") assembleElectrode( M.vz[z[j]].e2n,
-          getGReactions(b.getAttribute< string >("gasreaction")),
-          getEReactions(b.getAttribute< string >("elecreaction")),
-          b.getAttribute< double >("metalpotential") );
+        getGReactions(b.getAttribute< string >("gasreaction")),
+        getEReactions(b.getAttribute< string >("elecreaction")),
+        b.getAttribute< double >("metalpotential") );
 
       cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[z[j]].n << "\"." << endl;
     }
@@ -226,8 +234,28 @@ void assembleBulk(const vector< m::melem >& e2n)
       for (int i=0; i<m.Nions; ++i) {
         (m.ls)->zerorow(*n,i);
         (m.ls)->A(*n,*n,i,i) = 1.;
-        (m.ls)->B(*n,i)      = No_W[m.iv+i][*n] - m.bulk[i];
+        (m.ls)->B(*n,i)      = m.bulk[i] - No_W[m.iv+i][*n];
       }
+}
+
+
+void assembleDirichlet(
+  const vector<m::melem> &e2n,
+  const vector< unsigned > &vlabels,
+  const vector< double   > &vvalues)
+{
+  mitremassembler_struct& m = mitremassembler;
+  for (vector< m::melem >::const_iterator e=e2n.begin(); e!=e2n.end(); ++e)
+    for (vector< unsigned >::const_iterator n=e->n.begin(); n!=e->n.end(); ++n) {
+      // variable index and value iterators
+      vector< unsigned >::const_iterator i = vlabels.begin();
+      vector< double   >::const_iterator v = vvalues. begin();
+      for (; i!=vlabels.end() && v!=vvalues.end(); ++i, ++v) {
+        (m.ls)->zerorow(*n,*i);
+        (m.ls)->A(*n,*n,*i,*i) = 1.;
+        (m.ls)->B(*n,*i)       = *v - No_W[m.iv+*i][*n];
+      }
+    }
 }
 
 
@@ -334,6 +362,36 @@ vector< unsigned > getZones(const string& l)
         r.push_back(i);
         break;
       }
+  return r;
+}
+
+
+vector< unsigned > getVLabels(const string& l)
+{
+  vector< unsigned > r;
+  vector< string > list = getVStrings(l);
+  for (vector< string >::const_iterator l=list.begin(); l!=list.end(); ++l)
+    if (*l=="UU")  r.push_back((unsigned) mitremassembler.Nions);
+    else {
+      for (unsigned i=0; i<(mitremassembler.m_mitrem)->getNIons(); ++i)
+        if ((mitremassembler.m_mitrem)->getIonLabel(i)==*l) {
+          r.push_back(i);
+          break;
+        }
+    }
+  return r;
+}
+
+
+vector< double > getVValues(const string& l)
+{
+  vector< double > r;
+  vector< string > list = getVStrings(l);
+  for (vector< string >::const_iterator l=list.begin(); l!=list.end(); ++l) {
+    istringstream iss(*l);
+    r.push_back(0.);
+    iss >> r.back();
+  }
   return r;
 }
 
