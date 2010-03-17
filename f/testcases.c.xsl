@@ -205,7 +205,7 @@
       <tr><td class="H" rowspan="2">MITReM</td>
           <td class="h">file </td><td><xsl:value-of select="MITReM/@file" /></td></tr>
       <tr><td class="h">label</td><td><xsl:value-of select="MITReM/@label"/></td></tr>
-      <tr><td class="H" rowspan="9">Element<br/>Matrix<br/>Assembler</td>
+      <tr><td class="H" rowspan="12">Element<br/>Matrix<br/>Assembler</td>
           <td class="h">convectionScheme    </td><td><xsl:value-of select="ElementMatrixAssembler/@convectionScheme"    /></td></tr>
       <tr><td class="h">diffusionScheme     </td><td><xsl:value-of select="ElementMatrixAssembler/@diffusionScheme"     /></td></tr>
       <tr><td class="h">migrationScheme     </td><td><xsl:value-of select="ElementMatrixAssembler/@migrationScheme"     /></td></tr>
@@ -215,6 +215,9 @@
       <tr><td class="h">timeScheme          </td><td><xsl:value-of select="ElementMatrixAssembler/@timeScheme"          /></td></tr>
       <tr><td class="h">elecReactionScheme  </td><td><xsl:value-of select="ElementMatrixAssembler/@elecReactionScheme"  /></td></tr>
       <tr><td class="h">gasReactionScheme   </td><td><xsl:value-of select="ElementMatrixAssembler/@gasReactionScheme"   /></td></tr>
+      <tr><td class="h">is_bubble                    </td><td><xsl:value-of select="ElementMatrixAssembler/@is_bubble"                     /></td></tr>
+      <tr><td class="h">charge_flux                  </td><td><xsl:value-of select="ElementMatrixAssembler/@charge_flux"                   /></td></tr>
+      <tr><td class="h">swap_first_and_last_equations</td><td><xsl:value-of select="ElementMatrixAssembler/@swap_first_and_last_equations" /></td></tr>
       <tr><td class="H" rowspan="6">ls</td>
           <td class="h">type           </td><td><xsl:value-of select="ls/@type"      /></td></tr>
       <!-- aztec options -->

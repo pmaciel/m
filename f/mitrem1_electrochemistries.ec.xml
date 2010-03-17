@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ec [
+ <!ENTITY year "2008">
+ <!ENTITY author "Vrije Universiteit Brussel">
+ <!ENTITY author-note "&author;, &year;">
+]>
+<ecdb>
+ <ec label="Test_Ternary" version="1.0">
+  <electrolyte model="Ideal">
+   <solvent dielectricconstant="6.933104e-10"/>
+   <solution kinematicviscosity="1e-6" temperature="298.15"/>
+   <species label="A+" z="+1" D="1e-9" cInlet="1"/>
+   <species label="B+" z="+1" D="1.5e-9" cInlet="499"/>
+   <species label="C-" z="-1" D="2e-9" cInlet="500"/>
+  </electrolyte>
+  <elecreactions>
+   <reaction label="Deposition" model="BV" nElectrons="1" kOxi="1e-6" kRed="1e-6" aOxi="0.5" aRed="0.5">
+    <agent label="A+" type="oxi" stoich="1" order="1"/>
+   </reaction>
+  </elecreactions>
+  <homreactions/>
+  <gasreactions/>
+  <models>
+   <conductivity value="0"/>
+   <electrostatics model="Electroneutrality"/>
+  </models>
+ </ec>
+ <ec label="Test_TernaryHom" version="1.0">
+  <electrolyte model="Ideal">
+   <solvent dielectricconstant="6.933104e-10"/>
+   <solution kinematicviscosity="1e-6" temperature="298.15"/>
+   <species label="A+" z="+1" D="1e-9" cInlet="250"/>
+   <species label="B+" z="+1" D="1.5e-9" cInlet="250"/>
+   <species label="C-" z="-1" D="2e-9" cInlet="500"/>
+   <species label="D" z="0" D="0.5e-9" cInlet="0"/>
+  </electrolyte>
+  <elecreactions>
+   <reaction label="Deposition" model="BV" nElectrons="1" kOxi="1e-6" kRed="1e-6" aOxi="0.5" aRed="0.5">
+    <agent label="A+" type="oxi" stoich="1" order="1"/>
+   </reaction>
+  </elecreactions>
+  <homreactions>
+   <reaction label="Reaction" kf="1" kb="1">
+    <reagent label="A+" stoich="-1"/>
+    <reagent label="C-" stoich="-1"/>
+    <product label="D" stoich="1"/>
+   </reaction>
+  </homreactions>
+  <gasreactions/>
+  <models>
+   <conductivity value="0"/>
+   <electrostatics model="Electroneutrality"/>
+  </models>
+ </ec>
+ <ec label="Test_Single" version="1.0">
+  <electrolyte model="Ideal">
+   <solvent dielectricconstant="6.933104e-10"/>
+   <solution kinematicviscosity="1e-6" temperature="298.15"/>
+   <species label="A" z="0" D="1.e-9" cInlet="1."/>
+  </electrolyte>
+  <elecreactions/>
+  <homreactions/>
+  <gasreactions/>
+  <models>
+   <conductivity value="0"/>
+   <electrostatics model="Electroneutrality"/>
+  </models>
+ </ec>
+</ecdb>

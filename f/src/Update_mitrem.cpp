@@ -36,9 +36,11 @@ void Update_mitrem()
   mitremassembler_struct& m = mitremassembler;
   (m.ls)->reset();
 
+  // set main connectivity in the right place...
+  e2n.swap(M.vz[0].e2n);
 
   cout << "Update_mitrem: assemble MITReM equations..." << endl;
-  assembleMITReM(e2n);
+  assembleMITReM(M.vz[0].e2n);
   cout << "Update_mitrem: assemble MITReM equations." << endl;
 
   for (int i=0; i<m.x.getChildNode("bcs").nChildNode("bc"); ++i) {
@@ -46,21 +48,24 @@ void Update_mitrem()
     const string  t = b.getAttribute("type");
     const string  l = b.getAttribute("label");
     const vector< unsigned > z = getZones(b.getAttribute< string >("zone"));
-    for (unsigned j=0; j<(unsigned) z.size(); ++j) {
-      cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[z[j]].n << "\"..." << endl;
+    for (vector< unsigned >::const_iterator j=z.begin(); j!=z.end(); ++j) {
+      cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[*j].n << "\"..." << endl;
 
-      if      (t=="bulk")      assembleBulk(      M.vz[z[j]].e2n );
-      else if (t=="dirichlet") assembleDirichlet( M.vz[z[j]].e2n,
+      if      (t=="bulk")      assembleBulk(      M.vz[*j].e2n );
+      else if (t=="dirichlet") assembleDirichlet( M.vz[*j].e2n,
         getVLabels(b.getAttribute< string >("vlabels")),
         getVValues(b.getAttribute< string >("vvalues")) );
-      else if (t=="electrode") assembleElectrode( M.vz[z[j]].e2n,
+      else if (t=="electrode") assembleElectrode( M.vz[*j].e2n,
         getGReactions(b.getAttribute< string >("gasreaction")),
         getEReactions(b.getAttribute< string >("elecreaction")),
         b.getAttribute< double >("metalpotential") );
 
-      cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[z[j]].n << "\"." << endl;
+      cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[*j].n << "\"." << endl;
     }
   }
+
+  // set back main connectivity
+  e2n.swap(M.vz[0].e2n);
 
 
   cout << "Update_mitrem: solve linear system..." << endl;
@@ -80,7 +85,7 @@ void Update_mitrem()
       No_W[m.iv+i][n] += dx*m.linrelx;
       l2              += dx*dx;
     }
-    logL2[m.iv+i] = log10(sqrt(l2/(double) Nnode));
+    logL2[m.iv+i] = max( log10(sqrt(l2/(double) Nnode)), -42. );
   }
   for (int g=1; periodic && g<=Nbcgroup; ++g) {
     if (BCgroup[g].type==IBPERE)
@@ -356,7 +361,7 @@ vector< unsigned > getZones(const string& l)
 {
   vector< unsigned > r;
   vector< string > list = getVStrings(l);
-  for (unsigned i=1; i<M.z(); ++i)
+  for (unsigned i=0; i<M.z(); ++i)
     for (unsigned j=0; j<(unsigned) list.size(); ++j)
       if (M.vz[i].n==list[j]) {
         r.push_back(i);

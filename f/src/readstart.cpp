@@ -112,7 +112,10 @@ void readstart(const std::string& ccase)
       ema.getAttribute< std::string >("electrostaticsScheme"),
       ema.getAttribute< std::string >("timeScheme"),
       ema.getAttribute< std::string >("elecReactionScheme"),
-      ema.getAttribute< std::string >("gasReactionScheme") );
+      ema.getAttribute< std::string >("gasReactionScheme"),
+      ema.getAttribute< std::string >("is_bubble","false")=="true",
+      ema.getAttribute< std::string >("charge_flux","true")=="true",
+      ema.getAttribute< std::string >("swap_first_and_last_equations","true")=="true" );
 
     XMLNode ls = mitremassembler.x.getChildNode("ls");
     mitremassembler.ls = m::Create< LS >(ls.getAttribute< string >("type","ls_aztec"));
