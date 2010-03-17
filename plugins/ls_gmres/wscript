@@ -8,7 +8,6 @@ def configure(ctx):
 def build(ctx):
   ctx.new_task_gen(
     features = 'cxx cshlib',
-    name     = 'ls_gmres',
     target   = 'ls_gmres',
     includes = ['.','../../mkernel'],
     source   = ['ls_gmres.cpp'] )

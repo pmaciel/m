@@ -22,7 +22,6 @@ def build(ctx):
   # msmurf library (to use with m)
   ctx.new_task_gen(
     features = 'cxx cshlib',
-    name     = 'msmurf',
     target   = 'msmurf',
     includes = l.includes + ['../../mkernel'],
     source   = l.source   + ['f_smurf.cpp','f_plt.cpp'] )

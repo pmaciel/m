@@ -12,7 +12,6 @@ def configure(ctx):
 def build(ctx):
   ctx.new_task_gen(
     features = 'cxx cshlib',
-    name     = 'ls_wsmp',
     target   = 'ls_wsmp',
     includes = ['.','../../mkernel'],
     source   = ['ls_wsmp.cpp'],

@@ -4,7 +4,7 @@ def configure(ctx):
 
   ctx.env.m_mlibraries.append('mkernel')
 
-  # set configuration header
+  # set configuration header options
   # (with import/export symbols depending on compiler)
   ctx.undefine('MVERSION')
   ctx.define('MVERSION',ctx.env.m_mversion)
@@ -16,7 +16,6 @@ def configure(ctx):
   elif ctx.env['CXX_NAME']=='msvc':
     ctx.define('M_SYMBOL_EXPORT','__declspec(dllexport)',0)
     ctx.define('M_SYMBOL_IMPORT','__declspec(dllimport)',0)
-  ctx.write_config_header('mconfig.h')
 
 
 def build(ctx):
@@ -24,7 +23,6 @@ def build(ctx):
   # mkernel library
   ctx.new_task_gen(
     features = 'cxx cshlib',
-    name     = 'mkernel',
     target   = 'mkernel',
     includes = ['.'],
     source   = [
@@ -38,8 +36,7 @@ def build(ctx):
   ctx.new_task_gen(
     features = 'cxx cprogram',
     target   = 'm',
-    includes = ['.'],
-    source   = ['m.cpp'],
     uselib_local = ctx.env.m_mlibraries,
-    rpath    = ctx.env['PREFIX'] )
+    includes = ['.'],
+    source   = ['m.cpp'] )
 

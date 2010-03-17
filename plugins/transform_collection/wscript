@@ -8,7 +8,6 @@ def configure(ctx):
 def build(ctx):
   ctx.new_task_gen(
     features = 'cxx cshlib',
-    name     = 'mtransform_collection',
     target   = 'mtransform_collection',
     includes = ['.','../../mkernel','../format_smurf'],
     source   = [

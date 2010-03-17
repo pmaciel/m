@@ -141,6 +141,7 @@ def build(ctx):
   ctx.new_task_gen(
     features = 'cxx cprogram',
     target   = 'f',
+    uselib_local = ctx.env.m_mlibraries + ['mitremassembler'],
     includes = [
       'src',
       '../mkernel',
@@ -153,9 +154,6 @@ def build(ctx):
       'mitrem1/Projects/MITReM/src',
       'mitrem1/Projects/MathematicsPhysics/include',
       'mitrem1/Projects/MathematicsPhysics/src' ],
-    uselib   = ['MITREM'],
-    uselib_local = ctx.env.m_mlibraries + ['mitremassembler'],
-    rpath    = ctx.env['PREFIX'],
     source   = [
       'src/cellgeom.cpp',
       'src/common.cpp',
