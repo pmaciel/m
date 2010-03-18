@@ -89,8 +89,11 @@ void HomReactionTerm_1D_MDC::calcMat(EmptyDoubleMatrix elementMat, DoubleVectorL
 					elementMat[eq(m,reagents[0])][var(n,reagents[j])] -= Hfmj[n];
 					elementMat[eq(m,reagents[1])][var(m,reagents[j])] -= Hfmj[m];
 					elementMat[eq(m,reagents[1])][var(n,reagents[j])] -= Hfmj[n];
-					elementMat[eq(m,products[0])][var(m,reagents[j])] += Hfmj[m];
-					elementMat[eq(m,products[0])][var(n,reagents[j])] += Hfmj[n];
+					for (unsigned h = 0; h < nProducts; h++)
+					{
+						elementMat[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
+						elementMat[eq(m,products[h])][var(n,reagents[j])] += Hfmj[n];
+					}
 				}				
 			}
 
@@ -125,8 +128,11 @@ void HomReactionTerm_1D_MDC::calcMat(EmptyDoubleMatrix elementMat, DoubleVectorL
 					elementMat[eq(m,products[0])][var(n,products[j])] -= Hbmj[n];
 					elementMat[eq(m,products[1])][var(m,products[j])] -= Hbmj[m];
 					elementMat[eq(m,products[1])][var(n,products[j])] -= Hbmj[n];
-					elementMat[eq(m,reagents[0])][var(m,products[j])] += Hbmj[m];
-					elementMat[eq(m,reagents[0])][var(n,products[j])] += Hbmj[n];
+					for (unsigned h = 0; h < nReagents; h++)
+					{
+						elementMat[eq(m,reagents[h])][var(m,products[j])] += Hbmj[m];
+						elementMat[eq(m,reagents[h])][var(n,products[j])] += Hbmj[n];
+					}
 				}				
 			}
 		}
@@ -195,8 +201,11 @@ void HomReactionTerm_1D_MDC::calcJac(EmptyDoubleMatrix elementJac, DoubleVectorL
 					elementJac[eq(m,reagents[0])][var(n,reagents[j])] -= Hfmj[n];
 					elementJac[eq(m,reagents[1])][var(m,reagents[j])] -= Hfmj[m];
 					elementJac[eq(m,reagents[1])][var(n,reagents[j])] -= Hfmj[n];
-					elementJac[eq(m,products[0])][var(m,reagents[j])] += Hfmj[m];
-					elementJac[eq(m,products[0])][var(n,reagents[j])] += Hfmj[n];
+					for (unsigned h = 0; h < nProducts; h++)
+					{
+						elementJac[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
+						elementJac[eq(m,products[h])][var(n,reagents[j])] += Hfmj[n];
+					}
 				}				
 			}
 
@@ -218,8 +227,11 @@ void HomReactionTerm_1D_MDC::calcJac(EmptyDoubleMatrix elementJac, DoubleVectorL
 					elementJac[eq(m,products[0])][var(n,products[j])] -= Hbmj[n];
 					elementJac[eq(m,products[1])][var(m,products[j])] -= Hbmj[m];
 					elementJac[eq(m,products[1])][var(n,products[j])] -= Hbmj[n];
-					elementJac[eq(m,reagents[0])][var(m,products[j])] += Hbmj[m];
-					elementJac[eq(m,reagents[0])][var(n,products[j])] += Hbmj[n];
+					for (unsigned h = 0; h < nReagents; h++)
+					{
+						elementJac[eq(m,reagents[h])][var(m,products[j])] += Hbmj[m];
+						elementJac[eq(m,reagents[h])][var(n,products[j])] += Hbmj[n];
+					}
 				}				
 			}
 		}

@@ -11,6 +11,7 @@
 #include "MigrationTerm_1D_Galerkin.h"
 #include "HomReactionTerm_1D_Galerkin.h"
 #include "HomReactionTerm_1D_Galerkin_Diagonalized.h"
+#include "HomReactionTerm_1D_Galerkin_Diagonalized_M.h"
 #include "ElectrostaticsTerm_1D_Galerkin.h"
 #include "TimeTerm_1D_Galerkin.h"
 #include "ElecReactionTerm_1D_Galerkin.h"
@@ -35,6 +36,7 @@
 #include "MagneticTerm_2D_Galerkin.h"
 #include "HomReactionTerm_2D_Galerkin.h"
 #include "HomReactionTerm_2D_Galerkin_Diagonalized.h"
+#include "HomReactionTerm_2D_Galerkin_Diagonalized_M.h"
 #include "ElectrostaticsTerm_2D_Galerkin.h"
 #include "TimeTerm_2D_Galerkin.h"
 #include "ElecReactionTerm_2D_Galerkin.h"
@@ -52,6 +54,8 @@
 #include "DiffusionTerm_AX_Galerkin.h"
 #include "MigrationTerm_AX_Galerkin.h"
 #include "HomReactionTerm_AX_Galerkin.h"
+#include "HomReactionTerm_AX_Galerkin_Diagonalized.h"
+#include "HomReactionTerm_AX_Galerkin_Diagonalized_M.h"
 #include "ElectrostaticsTerm_AX_Galerkin.h"
 #include "TimeTerm_AX_Galerkin.h"
 #include "ElecReactionTerm_AX_Galerkin.h"
@@ -73,6 +77,7 @@
 #include "MagneticTerm_3D_Galerkin.h"
 #include "HomReactionTerm_3D_Galerkin.h"
 #include "HomReactionTerm_3D_Galerkin_Diagonalized.h"
+#include "HomReactionTerm_3D_Galerkin_Diagonalized_M.h"
 #include "ElectrostaticsTerm_3D_Galerkin.h"
 #include "TimeTerm_3D_Galerkin.h"
 #include "ElecReactionTerm_3D_Galerkin.h"
@@ -207,6 +212,10 @@ ElementMatrixAssembler::ElementMatrixAssembler(
 		else if (homReactionScheme == "Galerkin_Diagonal")
 		{
 			homReactionTerm = new HomReactionTerm_1D_Galerkin_Diagonalized(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
+		}
+		else if (homReactionScheme == "Galerkin_Diagonal_M")
+		{
+			homReactionTerm = new HomReactionTerm_1D_Galerkin_Diagonalized_M(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
 		}
 		else if (homReactionScheme == "MDC")
 		{
@@ -384,6 +393,10 @@ ElementMatrixAssembler::ElementMatrixAssembler(
 		{
 			homReactionTerm = new HomReactionTerm_2D_Galerkin_Diagonalized(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
 		}
+		else if (homReactionScheme == "Galerkin_Diagonal_M")
+		{
+			homReactionTerm = new HomReactionTerm_2D_Galerkin_Diagonalized_M(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
+		}
 		else if (homReactionScheme == "MDC")
 		{
 			homReactionTerm = new HomReactionTerm_2D_MDC(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
@@ -543,6 +556,14 @@ ElementMatrixAssembler::ElementMatrixAssembler(
 		else if (homReactionScheme == "Galerkin")
 		{
 			homReactionTerm = new HomReactionTerm_AX_Galerkin(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
+		}
+		else if (homReactionScheme == "Galerkin_Diagonal")
+		{
+			homReactionTerm = new HomReactionTerm_AX_Galerkin_Diagonalized(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
+		}
+		else if (homReactionScheme == "Galerkin_Diagonal_M")
+		{
+			homReactionTerm = new HomReactionTerm_AX_Galerkin_Diagonalized_M(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
 		}
 		else if (homReactionScheme == "MDC")
 		{
@@ -715,6 +736,10 @@ ElementMatrixAssembler::ElementMatrixAssembler(
 		else if (homReactionScheme == "Galerkin_Diagonal")
 		{
 			homReactionTerm = new HomReactionTerm_3D_Galerkin_Diagonalized(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
+		}
+		else if (homReactionScheme == "Galerkin_Diagonal_M")
+		{
+			homReactionTerm = new HomReactionTerm_3D_Galerkin_Diagonalized_M(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
 		}
 		else if (homReactionScheme == "MDC")
 		{

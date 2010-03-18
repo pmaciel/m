@@ -1,28 +1,28 @@
 //---------------------------------------------------------------------------
 
-#include "HomReactionTerm_1D_Galerkin_Diagonalized.h"
+#include "HomReactionTerm_3D_Galerkin_Diagonalized.h"
 
 //---------------------------------------------------------------------------
 
 
 //---------------------------------------------------------------------------
-HomReactionTerm_1D_Galerkin_Diagonalized::HomReactionTerm_1D_Galerkin_Diagonalized(unsigned nDimensions_, unsigned nNodes_, unsigned nVariables_, MITReM* mitrem_, ElementProps* elementProps_) 
+HomReactionTerm_3D_Galerkin_Diagonalized::HomReactionTerm_3D_Galerkin_Diagonalized(unsigned nDimensions_, unsigned nNodes_, unsigned nVariables_, MITReM* mitrem_, ElementProps* elementProps_) 
 	: HomReactionTerm(nDimensions_, nNodes_,nVariables_, mitrem_, elementProps_)
 {
 }
 //---------------------------------------------------------------------------
-HomReactionTerm_1D_Galerkin_Diagonalized::~HomReactionTerm_1D_Galerkin_Diagonalized()
+HomReactionTerm_3D_Galerkin_Diagonalized::~HomReactionTerm_3D_Galerkin_Diagonalized()
 {
 }
 //---------------------------------------------------------------------------
-void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix elementMat, DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors)
+void HomReactionTerm_3D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix elementMat, DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors)
 {
 	double volumeGasFraction = 0.;
 	for (unsigned m=0; m<nNodes; m++)
 	{
 		volumeGasFraction += volumeGasFractions[m];
 	}
-	volumeGasFraction *= 0.5;
+	volumeGasFraction *= 0.25;
 	
 	// Calculate coefficients
 	for (unsigned m=0; m<nNodes; m++) 
@@ -35,7 +35,7 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix element
 		}
 	}
 	elementSize = elementProps->calcSize(coordinates);
-	double elementSize6 = elementSize/6.;
+	double elementSize20 = elementSize/20.;
 	
 	// Add to element matrix
 	for (unsigned r=0; r<nHomReactions; r++) 
@@ -55,12 +55,14 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix element
 
 		for (unsigned m=0; m<nNodes; m++) 
 		{
-			unsigned n = (m+1)%2;
+			unsigned n = (m+1)%4;
+			unsigned p = (m+2)%4;
+			unsigned q = (m+3)%4;
 
 			// Forward reaction
 			if (nReagents == 1) 
 			{
-				Hfmj[m] = (2.*kf[m][r] + kf[n][r])*elementSize6;
+				Hfmj[m] = (2.*kf[m][r] +    kf[n][r] +    kf[p][r] +    kf[q][r])*elementSize20;
 
 				elementMat[eq(m,reagents[0])][var(m,reagents[0])] -= Hfmj[m];
 				for (unsigned j=0; j<nProducts; j++)
@@ -70,7 +72,7 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix element
 			}
 			else if (nReagents == 2) 
 			{
-				Hfmjk[m][m] = (2.*kf[m][r] +    kf[n][r])*elementSize6;
+				Hfmjk[m][m] = ( 2.*kf[m][r] +    kf[n][r] +    kf[p][r] +    kf[q][r])*elementSize20;
 
 				for (unsigned j=0; j<nReagents; j++)
 				{
@@ -83,13 +85,14 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix element
 					{
 						elementMat[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
 					}
+
 				}				
 			}
 
 			// Backward reaction
 			if (nProducts == 1) 
 			{
-				Hbmj[m] = (2.*kb[m][r] + kb[n][r])*elementSize6;
+				Hbmj[m] = (2.*kb[m][r] +    kb[n][r] +    kb[p][r] +    kb[q][r])*elementSize20;
 
 				elementMat[eq(m,products[0])][var(m,products[0])] -= Hbmj[m];
 				for (unsigned j=0; j<nReagents; j++)
@@ -99,7 +102,7 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix element
 			}
 			else if (nProducts == 2) 
 			{
-				Hbmjk[m][m] = (2.*kb[m][r] +   kb[n][r])*elementSize6;
+				Hbmjk[m][m] = ( 2.*kb[m][r] +    kb[n][r] +    kb[p][r] +    kb[q][r])*elementSize20;
 
 				for (unsigned j=0; j<nProducts; j++)
 				{
@@ -112,6 +115,7 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix element
 					{
 						elementMat[eq(m,reagents[h])][var(m,products[j])] += Hbmj[m];
 					}
+
 				}				
 			}
 		}
@@ -120,14 +124,14 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix element
 	}
 }
 //---------------------------------------------------------------------------
-void HomReactionTerm_1D_Galerkin_Diagonalized::calcJac(EmptyDoubleMatrix elementJac, DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors)
+void HomReactionTerm_3D_Galerkin_Diagonalized::calcJac(EmptyDoubleMatrix elementJac, DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors)
 {
 	double volumeGasFraction = 0.;
 	for (unsigned m=0; m<nNodes; m++)
 	{
 		volumeGasFraction += volumeGasFractions[m];
 	}
-	volumeGasFraction *= 0.5;
+	volumeGasFraction *= 0.25;
 	
 	// Calculate coefficients
 	for (unsigned m=0; m<nNodes; m++) 
@@ -140,7 +144,7 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcJac(EmptyDoubleMatrix element
 		}
 	}
 	elementSize = elementProps->calcSize(coordinates);
-	double elementSize6 = elementSize/6.;
+	double elementSize20 = elementSize/20.;
 	
 	// Add to element matrix
 	for (unsigned r=0; r<nHomReactions; r++) 
@@ -160,12 +164,14 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcJac(EmptyDoubleMatrix element
 
 		for (unsigned m=0; m<nNodes; m++) 
 		{
-			unsigned n = (m+1)%2;
+			unsigned n = (m+1)%4;
+			unsigned p = (m+2)%4;
+			unsigned q = (m+3)%4;
 
 			// Forward reaction
 			if (nReagents == 2) 
 			{
-				Hfmjk[m][m] = (2.*kf[m][r] +    kf[n][r])*elementSize6;
+				Hfmjk[m][m] = ( 2.*kf[m][r] +    kf[n][r] +    kf[p][r] +    kf[q][r])*elementSize20;
 
 				for (unsigned j=0; j<nReagents; j++)
 				{
@@ -178,13 +184,14 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcJac(EmptyDoubleMatrix element
 					{
 						elementJac[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
 					}
+
 				}				
 			}
 
 			// Backward reaction
 			if (nProducts == 2) 
 			{
-				Hbmjk[m][m] = (2.*kb[m][r] +   kb[n][r])*elementSize6;
+				Hbmjk[m][m] = ( 2.*kb[m][r] +    kb[n][r] +    kb[p][r] +    kb[q][r])*elementSize20;
 
 				for (unsigned j=0; j<nProducts; j++)
 				{
@@ -200,6 +207,7 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcJac(EmptyDoubleMatrix element
 				}				
 			}
 		}
+
 		delete[] products;
 		delete[] reagents;
 	}

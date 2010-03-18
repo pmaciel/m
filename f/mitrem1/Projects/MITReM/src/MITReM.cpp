@@ -655,11 +655,13 @@ MITReM::MITReM(const std::string& s_database, const std::string& s_ec_label)
                 << std::endl;
 
     // check for correctness
-    // FIXME: the assertion is not true (in all cases), hence the 'false &&'
-    if (false && electrolyteSolution->getIonChargeNumber(0)==0) {
-      std::cout << "The first ion can not be a neutral species, because this gives rise to linearly dependent equations." << std::endl;
-      system("pause");
-      exit(1);
+    // FIXME: the assertion is not true (in all cases), hence the 'false'
+    if (electrolyteSolution->getIonChargeNumber(0)==0) {
+      std::cout << "Warning: the first ion should not be a neutral species, because this can give rise to linearly dependent equations." << std::endl;
+      if (false) {
+        system("pause");
+        exit(1);
+      }
     }
   }
 

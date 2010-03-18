@@ -76,8 +76,7 @@ void HomReactionTerm_AX_Galerkin::calcMat(EmptyDoubleMatrix elementMat, DoubleVe
 	}
 	elementSize = elementProps->calcSize(coordinates);
 	double elementSize180 = elementSize/180.;
-	//double elementSize2520 = elementSize/2520.; BUG?
-	double elementSize1260 = elementSize/1260;
+	double elementSize2520 = elementSize/2520.;
 	
 	// Add to element matrix
 	for (unsigned r=0; r<nHomReactions; r++) 
@@ -119,14 +118,14 @@ void HomReactionTerm_AX_Galerkin::calcMat(EmptyDoubleMatrix elementMat, DoubleVe
 			}
 			else if (nReagents == 2) 
 			{
-				Hfmjk[m][m] = (R2[m][m][m][m]*kf[m][r] + R2[m][m][m][n]*kf[n][r] + R2[m][m][m][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hfmjk[n][n] = (R2[m][n][n][m]*kf[m][r] + R2[m][n][n][n]*kf[n][r] + R2[m][n][n][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hfmjk[p][p] = (R2[m][p][p][m]*kf[m][r] + R2[m][p][p][n]*kf[n][r] + R2[m][p][p][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hfmjk[m][n] = (R2[m][m][n][m]*kf[m][r] + R2[m][m][n][n]*kf[n][r] + R2[m][m][n][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hfmjk[m][m] = (R2[m][m][m][m]*kf[m][r] + R2[m][m][m][n]*kf[n][r] + R2[m][m][m][p]*kf[p][r])*elementSize2520; 
+				Hfmjk[n][n] = (R2[m][n][n][m]*kf[m][r] + R2[m][n][n][n]*kf[n][r] + R2[m][n][n][p]*kf[p][r])*elementSize2520; 
+				Hfmjk[p][p] = (R2[m][p][p][m]*kf[m][r] + R2[m][p][p][n]*kf[n][r] + R2[m][p][p][p]*kf[p][r])*elementSize2520; 
+				Hfmjk[m][n] = (R2[m][m][n][m]*kf[m][r] + R2[m][m][n][n]*kf[n][r] + R2[m][m][n][p]*kf[p][r])*elementSize2520; 
 				Hfmjk[n][m] = Hfmjk[m][n];
-				Hfmjk[m][p] = (R2[m][m][p][m]*kf[m][r] + R2[m][m][p][n]*kf[n][r] + R2[m][m][p][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hfmjk[m][p] = (R2[m][m][p][m]*kf[m][r] + R2[m][m][p][n]*kf[n][r] + R2[m][m][p][p]*kf[p][r])*elementSize2520; 
 				Hfmjk[p][m] = Hfmjk[m][p];
-				Hfmjk[n][p] = (R2[m][n][p][m]*kf[m][r] + R2[m][n][p][n]*kf[n][r] + R2[m][n][p][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hfmjk[n][p] = (R2[m][n][p][m]*kf[m][r] + R2[m][n][p][n]*kf[n][r] + R2[m][n][p][p]*kf[p][r])*elementSize2520; 
 				Hfmjk[p][n] = Hfmjk[n][p];
 
 				for (unsigned j=0; j<nReagents; j++)
@@ -142,9 +141,12 @@ void HomReactionTerm_AX_Galerkin::calcMat(EmptyDoubleMatrix elementMat, DoubleVe
 					elementMat[eq(m,reagents[1])][var(m,reagents[j])] -= Hfmj[m];
 					elementMat[eq(m,reagents[1])][var(n,reagents[j])] -= Hfmj[n];
 					elementMat[eq(m,reagents[1])][var(p,reagents[j])] -= Hfmj[p];
-					elementMat[eq(m,products[0])][var(m,reagents[j])] += Hfmj[m];
-					elementMat[eq(m,products[0])][var(n,reagents[j])] += Hfmj[n];
-					elementMat[eq(m,products[0])][var(p,reagents[j])] += Hfmj[p];
+					for (unsigned h = 0; h < nProducts; h++)
+					{
+						elementMat[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
+						elementMat[eq(m,products[h])][var(n,reagents[j])] += Hfmj[n];
+						elementMat[eq(m,products[h])][var(p,reagents[j])] += Hfmj[p];
+					}
 				}				
 			}
 
@@ -167,14 +169,14 @@ void HomReactionTerm_AX_Galerkin::calcMat(EmptyDoubleMatrix elementMat, DoubleVe
 			}
 			else if (nProducts == 2) 
 			{
-				Hbmjk[m][m] = (R2[m][m][m][m]*kb[m][r] + R2[m][m][m][n]*kb[n][r] + R2[m][m][m][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hbmjk[n][n] = (R2[m][n][n][m]*kb[m][r] + R2[m][n][n][n]*kb[n][r] + R2[m][n][n][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hbmjk[p][p] = (R2[m][p][p][m]*kb[m][r] + R2[m][p][p][n]*kb[n][r] + R2[m][p][p][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hbmjk[m][n] = (R2[m][m][n][m]*kb[m][r] + R2[m][m][n][n]*kb[n][r] + R2[m][m][n][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hbmjk[m][m] = (R2[m][m][m][m]*kb[m][r] + R2[m][m][m][n]*kb[n][r] + R2[m][m][m][p]*kb[p][r])*elementSize2520; 
+				Hbmjk[n][n] = (R2[m][n][n][m]*kb[m][r] + R2[m][n][n][n]*kb[n][r] + R2[m][n][n][p]*kb[p][r])*elementSize2520; 
+				Hbmjk[p][p] = (R2[m][p][p][m]*kb[m][r] + R2[m][p][p][n]*kb[n][r] + R2[m][p][p][p]*kb[p][r])*elementSize2520; 
+				Hbmjk[m][n] = (R2[m][m][n][m]*kb[m][r] + R2[m][m][n][n]*kb[n][r] + R2[m][m][n][p]*kb[p][r])*elementSize2520; 
 				Hbmjk[n][m] = Hbmjk[m][n];
-				Hbmjk[m][p] = (R2[m][m][p][m]*kb[m][r] + R2[m][m][p][n]*kb[n][r] + R2[m][m][p][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hbmjk[m][p] = (R2[m][m][p][m]*kb[m][r] + R2[m][m][p][n]*kb[n][r] + R2[m][m][p][p]*kb[p][r])*elementSize2520; 
 				Hbmjk[p][m] = Hbmjk[m][p];
-				Hbmjk[n][p] = (R2[m][n][p][m]*kb[m][r] + R2[m][n][p][n]*kb[n][r] + R2[m][n][p][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hbmjk[n][p] = (R2[m][n][p][m]*kb[m][r] + R2[m][n][p][n]*kb[n][r] + R2[m][n][p][p]*kb[p][r])*elementSize2520; 
 				Hbmjk[p][n] = Hbmjk[n][p];
 
 				for (unsigned j=0; j<nProducts; j++)
@@ -190,9 +192,12 @@ void HomReactionTerm_AX_Galerkin::calcMat(EmptyDoubleMatrix elementMat, DoubleVe
 					elementMat[eq(m,products[1])][var(m,products[j])] -= Hbmj[m];
 					elementMat[eq(m,products[1])][var(n,products[j])] -= Hbmj[n];
 					elementMat[eq(m,products[1])][var(p,products[j])] -= Hbmj[p];
-					elementMat[eq(m,reagents[0])][var(m,products[j])] += Hbmj[m];
-					elementMat[eq(m,reagents[0])][var(n,products[j])] += Hbmj[n];
-					elementMat[eq(m,reagents[0])][var(p,products[j])] += Hbmj[p];
+					for (unsigned h = 0; h < nReagents; h++)
+					{
+						elementMat[eq(m,reagents[h])][var(m,products[j])] += Hbmj[m];
+						elementMat[eq(m,reagents[h])][var(n,products[j])] += Hbmj[n];
+						elementMat[eq(m,reagents[h])][var(p,products[j])] += Hbmj[p];
+					}
 				}				
 			}
 		}
@@ -251,8 +256,7 @@ void HomReactionTerm_AX_Galerkin::calcJac(EmptyDoubleMatrix elementJac, DoubleVe
 		R2[m][n][p][p] = R2[m][p][p][n];
 	}
 	elementSize = elementProps->calcSize(coordinates);
-	//double elementSize2520 = elementSize/2520.; BUG?
-	double elementSize1260 = elementSize/1260;
+	double elementSize2520 = elementSize/2520.;
 	
 	// Add to element matrix
 	for (unsigned r=0; r<nHomReactions; r++) 
@@ -278,14 +282,14 @@ void HomReactionTerm_AX_Galerkin::calcJac(EmptyDoubleMatrix elementJac, DoubleVe
 			// Forward reaction
 			if (nReagents == 2) 
 			{
-				Hfmjk[m][m] = (R2[m][m][m][m]*kf[m][r] + R2[m][m][m][n]*kf[n][r] + R2[m][m][m][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hfmjk[n][n] = (R2[m][n][n][m]*kf[m][r] + R2[m][n][n][n]*kf[n][r] + R2[m][n][n][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hfmjk[p][p] = (R2[m][p][p][m]*kf[m][r] + R2[m][p][p][n]*kf[n][r] + R2[m][p][p][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hfmjk[m][n] = (R2[m][m][n][m]*kf[m][r] + R2[m][m][n][n]*kf[n][r] + R2[m][m][n][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hfmjk[m][m] = (R2[m][m][m][m]*kf[m][r] + R2[m][m][m][n]*kf[n][r] + R2[m][m][m][p]*kf[p][r])*elementSize2520; 
+				Hfmjk[n][n] = (R2[m][n][n][m]*kf[m][r] + R2[m][n][n][n]*kf[n][r] + R2[m][n][n][p]*kf[p][r])*elementSize2520; 
+				Hfmjk[p][p] = (R2[m][p][p][m]*kf[m][r] + R2[m][p][p][n]*kf[n][r] + R2[m][p][p][p]*kf[p][r])*elementSize2520; 
+				Hfmjk[m][n] = (R2[m][m][n][m]*kf[m][r] + R2[m][m][n][n]*kf[n][r] + R2[m][m][n][p]*kf[p][r])*elementSize2520; 
 				Hfmjk[n][m] = Hfmjk[m][n];
-				Hfmjk[m][p] = (R2[m][m][p][m]*kf[m][r] + R2[m][m][p][n]*kf[n][r] + R2[m][m][p][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hfmjk[m][p] = (R2[m][m][p][m]*kf[m][r] + R2[m][m][p][n]*kf[n][r] + R2[m][m][p][p]*kf[p][r])*elementSize2520; 
 				Hfmjk[p][m] = Hfmjk[m][p];
-				Hfmjk[n][p] = (R2[m][n][p][m]*kf[m][r] + R2[m][n][p][n]*kf[n][r] + R2[m][n][p][p]*kf[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hfmjk[n][p] = (R2[m][n][p][m]*kf[m][r] + R2[m][n][p][n]*kf[n][r] + R2[m][n][p][p]*kf[p][r])*elementSize2520; 
 				Hfmjk[p][n] = Hfmjk[n][p];
 
 				for (unsigned j=0; j<nReagents; j++)
@@ -301,23 +305,26 @@ void HomReactionTerm_AX_Galerkin::calcJac(EmptyDoubleMatrix elementJac, DoubleVe
 					elementJac[eq(m,reagents[1])][var(m,reagents[j])] -= Hfmj[m];
 					elementJac[eq(m,reagents[1])][var(n,reagents[j])] -= Hfmj[n];
 					elementJac[eq(m,reagents[1])][var(p,reagents[j])] -= Hfmj[p];
-					elementJac[eq(m,products[0])][var(m,reagents[j])] += Hfmj[m];
-					elementJac[eq(m,products[0])][var(n,reagents[j])] += Hfmj[n];
-					elementJac[eq(m,products[0])][var(p,reagents[j])] += Hfmj[p];
+					for (unsigned h = 0; h < nProducts; h++)
+					{
+						elementJac[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
+						elementJac[eq(m,products[h])][var(n,reagents[j])] += Hfmj[n];
+						elementJac[eq(m,products[h])][var(p,reagents[j])] += Hfmj[p];
+					}
 				}				
 			}
 
 			// Backward reaction
 			if (nProducts == 2) 
 			{
-				Hbmjk[m][m] = (R2[m][m][m][m]*kb[m][r] + R2[m][m][m][n]*kb[n][r] + R2[m][m][m][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hbmjk[n][n] = (R2[m][n][n][m]*kb[m][r] + R2[m][n][n][n]*kb[n][r] + R2[m][n][n][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hbmjk[p][p] = (R2[m][p][p][m]*kb[m][r] + R2[m][p][p][n]*kb[n][r] + R2[m][p][p][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
-				Hbmjk[m][n] = (R2[m][m][n][m]*kb[m][r] + R2[m][m][n][n]*kb[n][r] + R2[m][m][n][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hbmjk[m][m] = (R2[m][m][m][m]*kb[m][r] + R2[m][m][m][n]*kb[n][r] + R2[m][m][m][p]*kb[p][r])*elementSize2520; 
+				Hbmjk[n][n] = (R2[m][n][n][m]*kb[m][r] + R2[m][n][n][n]*kb[n][r] + R2[m][n][n][p]*kb[p][r])*elementSize2520; 
+				Hbmjk[p][p] = (R2[m][p][p][m]*kb[m][r] + R2[m][p][p][n]*kb[n][r] + R2[m][p][p][p]*kb[p][r])*elementSize2520; 
+				Hbmjk[m][n] = (R2[m][m][n][m]*kb[m][r] + R2[m][m][n][n]*kb[n][r] + R2[m][m][n][p]*kb[p][r])*elementSize2520; 
 				Hbmjk[n][m] = Hbmjk[m][n];
-				Hbmjk[m][p] = (R2[m][m][p][m]*kb[m][r] + R2[m][m][p][n]*kb[n][r] + R2[m][m][p][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hbmjk[m][p] = (R2[m][m][p][m]*kb[m][r] + R2[m][m][p][n]*kb[n][r] + R2[m][m][p][p]*kb[p][r])*elementSize2520; 
 				Hbmjk[p][m] = Hbmjk[m][p];
-				Hbmjk[n][p] = (R2[m][n][p][m]*kb[m][r] + R2[m][n][p][n]*kb[n][r] + R2[m][n][p][p]*kb[p][r])*elementSize1260;//elementSize2520; BUG?
+				Hbmjk[n][p] = (R2[m][n][p][m]*kb[m][r] + R2[m][n][p][n]*kb[n][r] + R2[m][n][p][p]*kb[p][r])*elementSize2520; 
 				Hbmjk[p][n] = Hbmjk[n][p];
 
 				for (unsigned j=0; j<nProducts; j++)
@@ -333,9 +340,12 @@ void HomReactionTerm_AX_Galerkin::calcJac(EmptyDoubleMatrix elementJac, DoubleVe
 					elementJac[eq(m,products[1])][var(m,products[j])] -= Hbmj[m];
 					elementJac[eq(m,products[1])][var(n,products[j])] -= Hbmj[n];
 					elementJac[eq(m,products[1])][var(p,products[j])] -= Hbmj[p];
-					elementJac[eq(m,reagents[0])][var(m,products[j])] += Hbmj[m];
-					elementJac[eq(m,reagents[0])][var(n,products[j])] += Hbmj[n];
-					elementJac[eq(m,reagents[0])][var(p,products[j])] += Hbmj[p];
+					for (unsigned h = 0; h < nReagents; h++)
+					{
+						elementJac[eq(m,reagents[h])][var(m,products[j])] += Hbmj[m];
+						elementJac[eq(m,reagents[h])][var(n,products[j])] += Hbmj[n];
+						elementJac[eq(m,reagents[h])][var(p,products[j])] += Hbmj[p];
+					}
 				}				
 			}
 		}

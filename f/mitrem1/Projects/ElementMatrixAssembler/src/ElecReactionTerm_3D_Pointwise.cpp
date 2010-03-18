@@ -127,24 +127,18 @@ void ElecReactionTerm_3D_Pointwise::calcJac(double** boundaryElementJac, DoubleV
 				for (unsigned l=0; l<nAgentsRed; l++) 
 				{
 					unsigned j = mitrem->getElecReactionAgentsRed(s,l);
-					boundaryElementJac[eqmi][var(m,j)] += /*2.*/DvDCRed[m][r][l]*elementSize3*stoichRed;
-//					boundaryElementJac[eqmi][var(p,j)] +=    DvDCRed[p][r][l]*elementSize12*stoichRed;
-//					boundaryElementJac[eqmi][var(q,j)] +=    DvDCRed[q][r][l]*elementSize12*stoichRed;
+					boundaryElementJac[eqmi][var(m,j)] += DvDCRed[m][r][l]*elementSize3*stoichRed;
 				}
 
 				// derivatives of v(s) by its agentsOxi
 				for (unsigned l=0; l<nAgentsOxi; l++) 
 				{
 					unsigned j = mitrem->getElecReactionAgentsOxi(s,l);
-					boundaryElementJac[eqmi][var(m,j)] += /*2.*/DvDCOxi[m][r][l]*elementSize3*stoichRed;
-//					boundaryElementJac[eqmi][var(p,j)] +=    DvDCOxi[p][r][l]*elementSize12*stoichRed;
-//					boundaryElementJac[eqmi][var(q,j)] +=    DvDCOxi[q][r][l]*elementSize12*stoichRed;
+					boundaryElementJac[eqmi][var(m,j)] += DvDCOxi[m][r][l]*elementSize3*stoichRed;
 				}
 
 				// derivative of v(s) by U
-				boundaryElementJac[eqmi][var(m,nIons)] += /*2.*/DvDU[m][r]*elementSize3*stoichRed;
-//				boundaryElementJac[eqmi][var(p,nIons)] +=    DvDU[p][r]*elementSize12*stoichRed;
-//				boundaryElementJac[eqmi][var(q,nIons)] +=    DvDU[q][r]*elementSize12*stoichRed;
+				boundaryElementJac[eqmi][var(m,nIons)] += DvDU[m][r]*elementSize3*stoichRed;
 			}
 
 			// v(s) gave a contribution to all its agentsOxi
@@ -158,24 +152,18 @@ void ElecReactionTerm_3D_Pointwise::calcJac(double** boundaryElementJac, DoubleV
 				for (unsigned l=0; l<nAgentsRed; l++) 
 				{
 					unsigned j = mitrem->getElecReactionAgentsRed(s,l);
-					boundaryElementJac[eqmi][var(m,j)] += /*2.*/DvDCRed[m][r][l]*elementSize3*stoichOxi;
-//					boundaryElementJac[eqmi][var(p,j)] +=    DvDCRed[p][r][l]*elementSize12*stoichOxi;
-//					boundaryElementJac[eqmi][var(q,j)] +=    DvDCRed[q][r][l]*elementSize12*stoichOxi;
+					boundaryElementJac[eqmi][var(m,j)] += DvDCRed[m][r][l]*elementSize3*stoichOxi;
 				}
 
 				// derivatives of v(s) by its agentsOxi
 				for (unsigned l=0; l<nAgentsOxi; l++) 
 				{
 					unsigned j = mitrem->getElecReactionAgentsOxi(s,l);
-					boundaryElementJac[eqmi][var(m,j)] += /*2.*/DvDCOxi[m][r][l]*elementSize3*stoichOxi;
-//					boundaryElementJac[eqmi][var(p,j)] +=    DvDCOxi[p][r][l]*elementSize12*stoichOxi;
-//					boundaryElementJac[eqmi][var(q,j)] +=    DvDCOxi[q][r][l]*elementSize12*stoichOxi;
+					boundaryElementJac[eqmi][var(m,j)] += DvDCOxi[m][r][l]*elementSize3*stoichOxi;
 				}
 
 				// derivative of v(s) by U
-				boundaryElementJac[eqmi][var(m,nIons)] += /*2.*/DvDU[m][r]*elementSize3*stoichOxi;
-//				boundaryElementJac[eqmi][var(p,nIons)] +=    DvDU[p][r]*elementSize12*stoichOxi;
-//				boundaryElementJac[eqmi][var(q,nIons)] +=    DvDU[q][r]*elementSize12*stoichOxi;
+				boundaryElementJac[eqmi][var(m,nIons)] += DvDU[m][r]*elementSize3*stoichOxi;
 			}
 		}
 	}

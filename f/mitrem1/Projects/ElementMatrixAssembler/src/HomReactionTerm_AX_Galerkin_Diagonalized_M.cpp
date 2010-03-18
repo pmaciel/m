@@ -1,30 +1,32 @@
 //---------------------------------------------------------------------------
 
-#include "HomReactionTerm_1D_Galerkin_Diagonalized.h"
+#include "HomReactionTerm_AX_Galerkin_Diagonalized.h"
 
 //---------------------------------------------------------------------------
 
 
 //---------------------------------------------------------------------------
-HomReactionTerm_1D_Galerkin_Diagonalized::HomReactionTerm_1D_Galerkin_Diagonalized(unsigned nDimensions_, unsigned nNodes_, unsigned nVariables_, MITReM* mitrem_, ElementProps* elementProps_) 
+HomReactionTerm_AX_Galerkin_Diagonalized::HomReactionTerm_AX_Galerkin_Diagonalized(unsigned nDimensions_, unsigned nNodes_, unsigned nVariables_, MITReM* mitrem_, ElementProps* elementProps_) 
 	: HomReactionTerm(nDimensions_, nNodes_,nVariables_, mitrem_, elementProps_)
 {
 }
 //---------------------------------------------------------------------------
-HomReactionTerm_1D_Galerkin_Diagonalized::~HomReactionTerm_1D_Galerkin_Diagonalized()
+HomReactionTerm_AX_Galerkin_Diagonalized::~HomReactionTerm_AX_Galerkin_Diagonalized()
 {
 }
 //---------------------------------------------------------------------------
-void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix elementMat, DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors)
+void HomReactionTerm_AX_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix elementMat, DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors, double factor)
 {
 	double volumeGasFraction = 0.;
 	for (unsigned m=0; m<nNodes; m++)
 	{
 		volumeGasFraction += volumeGasFractions[m];
 	}
-	volumeGasFraction *= 0.5;
+	volumeGasFraction /= 3.;
 	
 	// Calculate coefficients
+
+
 	for (unsigned m=0; m<nNodes; m++) 
 	{
 		mitrem->init(concentrations[m],potentials[m],temperatures[m],densities[m]);
@@ -33,9 +35,48 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix element
 			kf[m][r] = mitrem->calcHomReactionForwardRateConstant(r)*(1.-volumeGasFraction);
 			kb[m][r] = mitrem->calcHomReactionBackwardRateConstant(r)*(1.-volumeGasFraction);
 		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 	elementSize = elementProps->calcSize(coordinates);
-	double elementSize6 = elementSize/6.;
+	double elementSize12 = elementSize/12.;
+
 	
 	// Add to element matrix
 	for (unsigned r=0; r<nHomReactions; r++) 
@@ -55,63 +96,110 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix element
 
 		for (unsigned m=0; m<nNodes; m++) 
 		{
-			unsigned n = (m+1)%2;
+			unsigned n = (m+1)%3;
+			unsigned p = (m+2)%3;
 
 			// Forward reaction
 			if (nReagents == 1) 
 			{
-				Hfmj[m] = (2.*kf[m][r] + kf[n][r])*elementSize6;
+				Hfmj[m] = (2.*kf[m][r] +    kf[n][r] +    kf[p][r])*elementSize12*coordinates[m][0];
 
-				elementMat[eq(m,reagents[0])][var(m,reagents[0])] -= Hfmj[m];
+
+
+				elementMat[eq(m,reagents[0])][var(m,reagents[0])] -= factor*Hfmj[m];
+
+
 				for (unsigned j=0; j<nProducts; j++)
 				{
-					elementMat[eq(m,products[j])][var(m,reagents[0])] += Hfmj[m];
+					elementMat[eq(m,products[j])][var(m,reagents[0])] += factor*Hfmj[m];
+
+
 				}
 			}
 			else if (nReagents == 2) 
 			{
-				Hfmjk[m][m] = (2.*kf[m][r] +    kf[n][r])*elementSize6;
+				Hfmjk[m][m] = ( 2.*kf[m][r] +    kf[n][r] +    kf[p][r])*elementSize12*coordinates[m][0];
+
+
+
+
+
+
+
+
 
 				for (unsigned j=0; j<nReagents; j++)
 				{
 					unsigned k = (j+1)%2;
 					Hfmj[m] = 0.5*Hfmjk[m][m]*concentrations[m][reagents[k]];
 
-					elementMat[eq(m,reagents[0])][var(m,reagents[j])] -= Hfmj[m];
-					elementMat[eq(m,reagents[1])][var(m,reagents[j])] -= Hfmj[m];
+
+
+					elementMat[eq(m,reagents[0])][var(m,reagents[j])] -= factor*Hfmj[m];
+
+
+					elementMat[eq(m,reagents[1])][var(m,reagents[j])] -= factor*Hfmj[m];
+
+
 					for (unsigned h = 0; h < nProducts; h++)
 					{
-						elementMat[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
+						elementMat[eq(m,products[h])][var(m,reagents[j])] += factor*Hfmj[m];
+
+
 					}
+
 				}				
 			}
 
 			// Backward reaction
 			if (nProducts == 1) 
 			{
-				Hbmj[m] = (2.*kb[m][r] + kb[n][r])*elementSize6;
+				Hbmj[m] = (2.*kb[m][r] +    kb[n][r] +    kb[p][r])*elementSize12*coordinates[m][0];
 
-				elementMat[eq(m,products[0])][var(m,products[0])] -= Hbmj[m];
+
+
+				elementMat[eq(m,products[0])][var(m,products[0])] -= factor*Hbmj[m];
+
+
 				for (unsigned j=0; j<nReagents; j++)
 				{
-					elementMat[eq(m,reagents[j])][var(m,products[0])] += Hbmj[m];
+					elementMat[eq(m,reagents[j])][var(m,products[0])] += factor*Hbmj[m];
+
+
 				}
 			}
 			else if (nProducts == 2) 
 			{
-				Hbmjk[m][m] = (2.*kb[m][r] +   kb[n][r])*elementSize6;
+				Hbmjk[m][m] = ( 2.*kb[m][r] +    kb[n][r] +    kb[p][r])*elementSize12*coordinates[m][0];
+
+
+
+
+
+
+
+
 
 				for (unsigned j=0; j<nProducts; j++)
 				{
 					unsigned k = (j+1)%2;
 					Hbmj[m] = 0.5*Hbmjk[m][m]*concentrations[m][products[k]];
 
-					elementMat[eq(m,products[0])][var(m,products[j])] -= Hbmj[m];
-					elementMat[eq(m,products[1])][var(m,products[j])] -= Hbmj[m];
+
+
+					elementMat[eq(m,products[0])][var(m,products[j])] -= factor*Hbmj[m];
+
+
+					elementMat[eq(m,products[1])][var(m,products[j])] -= factor*Hbmj[m];
+
+
 					for (unsigned h = 0; h < nReagents; h++)
 					{
-						elementMat[eq(m,reagents[h])][var(m,products[j])] += Hbmj[m];
+						elementMat[eq(m,reagents[h])][var(m,products[j])] += factor*Hbmj[m];
+
+
 					}
+
 				}				
 			}
 		}
@@ -120,16 +208,17 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcMat(EmptyDoubleMatrix element
 	}
 }
 //---------------------------------------------------------------------------
-void HomReactionTerm_1D_Galerkin_Diagonalized::calcJac(EmptyDoubleMatrix elementJac, DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors)
+void HomReactionTerm_AX_Galerkin_Diagonalized::calcJac(EmptyDoubleMatrix elementJac, DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors, double factor)
 {
 	double volumeGasFraction = 0.;
 	for (unsigned m=0; m<nNodes; m++)
 	{
 		volumeGasFraction += volumeGasFractions[m];
 	}
-	volumeGasFraction *= 0.5;
+	volumeGasFraction /= 3.;
 	
 	// Calculate coefficients
+
 	for (unsigned m=0; m<nNodes; m++) 
 	{
 		mitrem->init(concentrations[m],potentials[m],temperatures[m],densities[m]);
@@ -138,9 +227,38 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcJac(EmptyDoubleMatrix element
 			kf[m][r] = mitrem->calcHomReactionForwardRateConstant(r)*(1.-volumeGasFraction);
 			kb[m][r] = mitrem->calcHomReactionBackwardRateConstant(r)*(1.-volumeGasFraction);
 		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 	elementSize = elementProps->calcSize(coordinates);
-	double elementSize6 = elementSize/6.;
+	double elementSize12 = elementSize/12.;
 	
 	// Add to element matrix
 	for (unsigned r=0; r<nHomReactions; r++) 
@@ -160,43 +278,78 @@ void HomReactionTerm_1D_Galerkin_Diagonalized::calcJac(EmptyDoubleMatrix element
 
 		for (unsigned m=0; m<nNodes; m++) 
 		{
-			unsigned n = (m+1)%2;
+			unsigned n = (m+1)%3;
+			unsigned p = (m+2)%3;
 
 			// Forward reaction
 			if (nReagents == 2) 
 			{
-				Hfmjk[m][m] = (2.*kf[m][r] +    kf[n][r])*elementSize6;
+				Hfmjk[m][m] = ( 2.*kf[m][r] +    kf[n][r] +    kf[p][r])*elementSize12*coordinates[m][0];
+
+
+
+
+
+
+
+
 
 				for (unsigned j=0; j<nReagents; j++)
 				{
 					unsigned k = (j+1)%2;
 					Hfmj[m] = 0.5*Hfmjk[m][m]*concentrations[m][reagents[k]];
 
-					elementJac[eq(m,reagents[0])][var(m,reagents[j])] -= Hfmj[m];
-					elementJac[eq(m,reagents[1])][var(m,reagents[j])] -= Hfmj[m];
+
+
+					elementJac[eq(m,reagents[0])][var(m,reagents[j])] -= factor*Hfmj[m];
+
+
+					elementJac[eq(m,reagents[1])][var(m,reagents[j])] -= factor*Hfmj[m];
+
+
 					for (unsigned h = 0; h < nProducts; h++)
 					{
-						elementJac[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
+						elementJac[eq(m,products[h])][var(m,reagents[j])] += factor*Hfmj[m];
+
+
 					}
+
 				}				
 			}
 
 			// Backward reaction
 			if (nProducts == 2) 
 			{
-				Hbmjk[m][m] = (2.*kb[m][r] +   kb[n][r])*elementSize6;
+				Hbmjk[m][m] = ( 2.*kb[m][r] +    kb[n][r] +    kb[p][r])*elementSize12*coordinates[m][0];
+
+
+
+
+
+
+
+
 
 				for (unsigned j=0; j<nProducts; j++)
 				{
 					unsigned k = (j+1)%2;
 					Hbmj[m] = 0.5*Hbmjk[m][m]*concentrations[m][products[k]];
 
-					elementJac[eq(m,products[0])][var(m,products[j])] -= Hbmj[m];
-					elementJac[eq(m,products[1])][var(m,products[j])] -= Hbmj[m];
+
+
+					elementJac[eq(m,products[0])][var(m,products[j])] -= factor*Hbmj[m];
+
+
+					elementJac[eq(m,products[1])][var(m,products[j])] -= factor*Hbmj[m];
+
+
 					for (unsigned h = 0; h < nReagents; h++)
 					{
-						elementJac[eq(m,reagents[h])][var(m,products[j])] += Hbmj[m];
+						elementJac[eq(m,reagents[h])][var(m,products[j])] += factor*Hbmj[m];
+
+
 					}
+
 				}				
 			}
 		}

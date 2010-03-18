@@ -35,8 +35,8 @@ void ElecReactionTerm_AX_MDC::calcVec(double* boundaryElementVec, DoubleVectorLi
 			v[m][s] = mitrem->calcElecReactionRate(s,electrodePotential)*(1.-surfaceGasFraction);
 		}
 		unsigned p = (m+1)%2;
-		R[m][m] = 7.*coordinates[m][1] + 2.*coordinates[p][1];
-		R[m][p] = 2.*coordinates[m][1] +    coordinates[p][1];
+		R[m][m] = 7.*coordinates[m][0] + 2.*coordinates[p][0];
+		R[m][p] = 2.*coordinates[m][0] +    coordinates[p][0];
 	}
 	elementSize = boundaryElementProps->calcSize(coordinates);
 	double elementSize24 = elementSize/24.;
@@ -105,8 +105,8 @@ void ElecReactionTerm_AX_MDC::calcJac(double** boundaryElementJac, DoubleVectorL
 			}
 		}
 		unsigned p = (m+1)%2;
-		R[m][m] = 7.*coordinates[m][1] + 2.*coordinates[p][1];
-		R[m][p] = 2.*coordinates[m][1] +    coordinates[p][1];
+		R[m][m] = 7.*coordinates[m][0] + 2.*coordinates[p][0];
+		R[m][p] = 2.*coordinates[m][0] +    coordinates[p][0];
 	}
 	elementSize = boundaryElementProps->calcSize(coordinates);
 	double elementSize24 = elementSize/24.;

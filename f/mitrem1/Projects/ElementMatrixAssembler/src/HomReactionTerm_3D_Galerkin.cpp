@@ -115,10 +115,13 @@ void HomReactionTerm_3D_Galerkin::calcMat(EmptyDoubleMatrix elementMat, DoubleVe
 					elementMat[eq(m,reagents[1])][var(n,reagents[j])] -= Hfmj[n];
 					elementMat[eq(m,reagents[1])][var(p,reagents[j])] -= Hfmj[p];
 					elementMat[eq(m,reagents[1])][var(q,reagents[j])] -= Hfmj[q];
-					elementMat[eq(m,products[0])][var(m,reagents[j])] += Hfmj[m];
-					elementMat[eq(m,products[0])][var(n,reagents[j])] += Hfmj[n];
-					elementMat[eq(m,products[0])][var(p,reagents[j])] += Hfmj[p];
-					elementMat[eq(m,products[0])][var(q,reagents[j])] += Hfmj[q];
+					for (unsigned h = 0; h < nProducts; h++)
+					{
+						elementMat[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
+						elementMat[eq(m,products[h])][var(n,reagents[j])] += Hfmj[n];
+						elementMat[eq(m,products[h])][var(p,reagents[j])] += Hfmj[p];
+						elementMat[eq(m,products[h])][var(q,reagents[j])] += Hfmj[q];
+					}
 				}				
 			}
 
@@ -177,10 +180,13 @@ void HomReactionTerm_3D_Galerkin::calcMat(EmptyDoubleMatrix elementMat, DoubleVe
 					elementMat[eq(m,products[1])][var(n,products[j])] -= Hbmj[n];
 					elementMat[eq(m,products[1])][var(p,products[j])] -= Hbmj[p];
 					elementMat[eq(m,products[1])][var(q,products[j])] -= Hbmj[q];
-					elementMat[eq(m,reagents[0])][var(m,products[j])] += Hbmj[m];
-					elementMat[eq(m,reagents[0])][var(n,products[j])] += Hbmj[n];
-					elementMat[eq(m,reagents[0])][var(p,products[j])] += Hbmj[p];
-					elementMat[eq(m,reagents[0])][var(q,products[j])] += Hbmj[q];
+					for (unsigned h = 0; h < nReagents; h++)
+					{
+						elementMat[eq(m,reagents[h])][var(m,products[j])] += Hbmj[m];
+						elementMat[eq(m,reagents[h])][var(n,products[j])] += Hbmj[n];
+						elementMat[eq(m,reagents[h])][var(p,products[j])] += Hbmj[p];
+						elementMat[eq(m,reagents[h])][var(q,products[j])] += Hbmj[q];
+					}
 				}				
 			}
 		}
@@ -269,10 +275,13 @@ void HomReactionTerm_3D_Galerkin::calcJac(EmptyDoubleMatrix elementJac, DoubleVe
 					elementJac[eq(m,reagents[1])][var(n,reagents[j])] -= Hfmj[n];
 					elementJac[eq(m,reagents[1])][var(p,reagents[j])] -= Hfmj[p];
 					elementJac[eq(m,reagents[1])][var(q,reagents[j])] -= Hfmj[q];
-					elementJac[eq(m,products[0])][var(m,reagents[j])] += Hfmj[m];
-					elementJac[eq(m,products[0])][var(n,reagents[j])] += Hfmj[n];
-					elementJac[eq(m,products[0])][var(p,reagents[j])] += Hfmj[p];
-					elementJac[eq(m,products[0])][var(q,reagents[j])] += Hfmj[q];
+					for (unsigned h = 0; h < nProducts; h++)
+					{
+						elementJac[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
+						elementJac[eq(m,products[h])][var(n,reagents[j])] += Hfmj[n];
+						elementJac[eq(m,products[h])][var(p,reagents[j])] += Hfmj[p];
+						elementJac[eq(m,products[h])][var(q,reagents[j])] += Hfmj[q];
+					}
 				}				
 			}
 
@@ -312,10 +321,13 @@ void HomReactionTerm_3D_Galerkin::calcJac(EmptyDoubleMatrix elementJac, DoubleVe
 					elementJac[eq(m,products[1])][var(n,products[j])] -= Hbmj[n];
 					elementJac[eq(m,products[1])][var(p,products[j])] -= Hbmj[p];
 					elementJac[eq(m,products[1])][var(q,products[j])] -= Hbmj[q];
-					elementJac[eq(m,reagents[0])][var(m,products[j])] += Hbmj[m];
-					elementJac[eq(m,reagents[0])][var(n,products[j])] += Hbmj[n];
-					elementJac[eq(m,reagents[0])][var(p,products[j])] += Hbmj[p];
-					elementJac[eq(m,reagents[0])][var(q,products[j])] += Hbmj[q];
+					for (unsigned h = 0; h < nReagents; h++)
+					{
+						elementJac[eq(m,reagents[h])][var(m,products[j])] += Hbmj[m];
+						elementJac[eq(m,reagents[h])][var(n,products[j])] += Hbmj[n];
+						elementJac[eq(m,reagents[h])][var(p,products[j])] += Hbmj[p];
+						elementJac[eq(m,reagents[h])][var(q,products[j])] += Hbmj[q];
+					}
 				}				
 			}
 		}

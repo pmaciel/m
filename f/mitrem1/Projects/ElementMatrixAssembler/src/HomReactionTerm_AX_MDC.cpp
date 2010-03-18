@@ -37,40 +37,40 @@ void HomReactionTerm_AX_MDC::calcMat(EmptyDoubleMatrix elementMat, DoubleVectorL
 		}
 		unsigned n = (m+1)%3;
 		unsigned p = (m+2)%3;
-		R1[m][m][m] = 1150.*coordinates[m][1] + 275.*coordinates[n][1] + 275.*coordinates[p][1];
-		R1[m][n][n] =  123.*coordinates[m][1] +  73.*coordinates[n][1] +  34.*coordinates[p][1];
-		R1[m][p][p] =  123.*coordinates[m][1] +  34.*coordinates[n][1] +  73.*coordinates[p][1];
-		R1[m][m][n] =  275.*coordinates[m][1] + 123.*coordinates[n][1] +  72.*coordinates[p][1];
+		R1[m][m][m] = 1150.*coordinates[m][0] + 275.*coordinates[n][0] + 275.*coordinates[p][0];
+		R1[m][n][n] =  123.*coordinates[m][0] +  73.*coordinates[n][0] +  34.*coordinates[p][0];
+		R1[m][p][p] =  123.*coordinates[m][0] +  34.*coordinates[n][0] +  73.*coordinates[p][0];
+		R1[m][m][n] =  275.*coordinates[m][0] + 123.*coordinates[n][0] +  72.*coordinates[p][0];
 		R1[m][n][m] = R1[m][m][n];
-		R1[m][m][p] =  275.*coordinates[m][1] +  72.*coordinates[n][1] + 123.*coordinates[p][1];
+		R1[m][m][p] =  275.*coordinates[m][0] +  72.*coordinates[n][0] + 123.*coordinates[p][0];
 		R1[m][p][m] = R1[m][m][p];
-		R1[m][n][p] =   72.*coordinates[m][1] +  34.*coordinates[n][1] +  34.*coordinates[p][1];
+		R1[m][n][p] =   72.*coordinates[m][0] +  34.*coordinates[n][0] +  34.*coordinates[p][0];
 		R1[m][p][n] = R1[m][n][p];
-		R2[m][m][m][m] = 16660.*coordinates[m][1] + 3748.*coordinates[n][1] + 3748.*coordinates[p][1];
-		R2[m][n][n][n] =   757.*coordinates[m][1] +  526.*coordinates[n][1] +  211.*coordinates[p][1];
-		R2[m][p][p][p] =   757.*coordinates[m][1] +  211.*coordinates[n][1] +  526.*coordinates[p][1];
-		R2[m][m][m][n] =  3748.*coordinates[m][1] + 1516.*coordinates[n][1] +  862.*coordinates[p][1];
+		R2[m][m][m][m] = 16660.*coordinates[m][0] + 3748.*coordinates[n][0] + 3748.*coordinates[p][0];
+		R2[m][n][n][n] =   757.*coordinates[m][0] +  526.*coordinates[n][0] +  211.*coordinates[p][0];
+		R2[m][p][p][p] =   757.*coordinates[m][0] +  211.*coordinates[n][0] +  526.*coordinates[p][0];
+		R2[m][m][m][n] =  3748.*coordinates[m][0] + 1516.*coordinates[n][0] +  862.*coordinates[p][0];
 		R2[m][m][n][m] = R2[m][m][m][n];
 		R2[m][n][m][m] = R2[m][m][m][n];
-		R2[m][m][m][p] =  3748.*coordinates[m][1] +  862.*coordinates[n][1] + 1516.*coordinates[p][1];
+		R2[m][m][m][p] =  3748.*coordinates[m][0] +  862.*coordinates[n][0] + 1516.*coordinates[p][0];
 		R2[m][m][p][m] = R2[m][m][m][p];
 		R2[m][p][m][m] = R2[m][m][m][p];
-		R2[m][m][n][n] =  1516.*coordinates[m][1] +  757.*coordinates[n][1] +  349.*coordinates[p][1];
+		R2[m][m][n][n] =  1516.*coordinates[m][0] +  757.*coordinates[n][0] +  349.*coordinates[p][0];
 		R2[m][n][m][n] = R2[m][m][n][n];
 		R2[m][n][n][m] = R2[m][m][n][n];
-		R2[m][m][p][p] =  1516.*coordinates[m][1] +  349.*coordinates[n][1] +  757.*coordinates[p][1];
+		R2[m][m][p][p] =  1516.*coordinates[m][0] +  349.*coordinates[n][0] +  757.*coordinates[p][0];
 		R2[m][p][m][p] = R2[m][m][p][p];
 		R2[m][p][p][m] = R2[m][m][p][p];
-		R2[m][m][n][p] =   862.*coordinates[m][1] +  349.*coordinates[n][1] +  349.*coordinates[p][1];
+		R2[m][m][n][p] =   862.*coordinates[m][0] +  349.*coordinates[n][0] +  349.*coordinates[p][0];
 		R2[m][m][p][n] = R2[m][m][n][p];
 		R2[m][n][m][p] = R2[m][m][n][p];
 		R2[m][p][m][n] = R2[m][m][n][p];
 		R2[m][n][p][m] = R2[m][m][n][p];
 		R2[m][p][n][m] = R2[m][m][n][p];
-		R2[m][n][n][p] =   349.*coordinates[m][1] +  211.*coordinates[n][1] +  160.*coordinates[p][1];
+		R2[m][n][n][p] =   349.*coordinates[m][0] +  211.*coordinates[n][0] +  160.*coordinates[p][0];
 		R2[m][n][p][n] = R2[m][n][n][p];
 		R2[m][p][n][n] = R2[m][n][n][p];
-		R2[m][p][p][n] =   349.*coordinates[m][1] +  160.*coordinates[n][1] +  211.*coordinates[p][1];
+		R2[m][p][p][n] =   349.*coordinates[m][0] +  160.*coordinates[n][0] +  211.*coordinates[p][0];
 		R2[m][p][n][p] = R2[m][p][p][n];
 		R2[m][n][p][p] = R2[m][p][p][n];
 	}
@@ -141,9 +141,12 @@ void HomReactionTerm_AX_MDC::calcMat(EmptyDoubleMatrix elementMat, DoubleVectorL
 					elementMat[eq(m,reagents[1])][var(m,reagents[j])] -= Hfmj[m];
 					elementMat[eq(m,reagents[1])][var(n,reagents[j])] -= Hfmj[n];
 					elementMat[eq(m,reagents[1])][var(p,reagents[j])] -= Hfmj[p];
-					elementMat[eq(m,products[0])][var(m,reagents[j])] += Hfmj[m];
-					elementMat[eq(m,products[0])][var(n,reagents[j])] += Hfmj[n];
-					elementMat[eq(m,products[0])][var(p,reagents[j])] += Hfmj[p];
+					for (unsigned h = 0; h < nProducts; h++)
+					{
+						elementMat[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
+						elementMat[eq(m,products[h])][var(n,reagents[j])] += Hfmj[n];
+						elementMat[eq(m,products[h])][var(p,reagents[j])] += Hfmj[p];
+					}
 				}				
 			}
 
@@ -189,9 +192,12 @@ void HomReactionTerm_AX_MDC::calcMat(EmptyDoubleMatrix elementMat, DoubleVectorL
 					elementMat[eq(m,products[1])][var(m,products[j])] -= Hbmj[m];
 					elementMat[eq(m,products[1])][var(n,products[j])] -= Hbmj[n];
 					elementMat[eq(m,products[1])][var(p,products[j])] -= Hbmj[p];
-					elementMat[eq(m,reagents[0])][var(m,products[j])] += Hbmj[m];
-					elementMat[eq(m,reagents[0])][var(n,products[j])] += Hbmj[n];
-					elementMat[eq(m,reagents[0])][var(p,products[j])] += Hbmj[p];
+					for (unsigned h = 0; h < nReagents; h++)
+					{
+						elementMat[eq(m,reagents[h])][var(m,products[j])] += Hbmj[m];
+						elementMat[eq(m,reagents[h])][var(n,products[j])] += Hbmj[n];
+						elementMat[eq(m,reagents[h])][var(p,products[j])] += Hbmj[p];
+					}
 				}				
 			}
 		}
@@ -221,31 +227,31 @@ void HomReactionTerm_AX_MDC::calcJac(EmptyDoubleMatrix elementJac, DoubleVectorL
 		}
 		unsigned n = (m+1)%3;
 		unsigned p = (m+2)%3;
-		R2[m][m][m][m] = 16660.*coordinates[m][1] + 3748.*coordinates[n][1] + 3748.*coordinates[p][1];
-		R2[m][n][n][n] =   757.*coordinates[m][1] +  526.*coordinates[n][1] +  211.*coordinates[p][1];
-		R2[m][p][p][p] =   757.*coordinates[m][1] +  211.*coordinates[n][1] +  526.*coordinates[p][1];
-		R2[m][m][m][n] =  3748.*coordinates[m][1] + 1516.*coordinates[n][1] +  862.*coordinates[p][1];
+		R2[m][m][m][m] = 16660.*coordinates[m][0] + 3748.*coordinates[n][0] + 3748.*coordinates[p][0];
+		R2[m][n][n][n] =   757.*coordinates[m][0] +  526.*coordinates[n][0] +  211.*coordinates[p][0];
+		R2[m][p][p][p] =   757.*coordinates[m][0] +  211.*coordinates[n][0] +  526.*coordinates[p][0];
+		R2[m][m][m][n] =  3748.*coordinates[m][0] + 1516.*coordinates[n][0] +  862.*coordinates[p][0];
 		R2[m][m][n][m] = R2[m][m][m][n];
 		R2[m][n][m][m] = R2[m][m][m][n];
-		R2[m][m][m][p] =  3748.*coordinates[m][1] +  862.*coordinates[n][1] + 1516.*coordinates[p][1];
+		R2[m][m][m][p] =  3748.*coordinates[m][0] +  862.*coordinates[n][0] + 1516.*coordinates[p][0];
 		R2[m][m][p][m] = R2[m][m][m][p];
 		R2[m][p][m][m] = R2[m][m][m][p];
-		R2[m][m][n][n] =  1516.*coordinates[m][1] +  757.*coordinates[n][1] +  349.*coordinates[p][1];
+		R2[m][m][n][n] =  1516.*coordinates[m][0] +  757.*coordinates[n][0] +  349.*coordinates[p][0];
 		R2[m][n][m][n] = R2[m][m][n][n];
 		R2[m][n][n][m] = R2[m][m][n][n];
-		R2[m][m][p][p] =  1516.*coordinates[m][1] +  349.*coordinates[n][1] +  757.*coordinates[p][1];
+		R2[m][m][p][p] =  1516.*coordinates[m][0] +  349.*coordinates[n][0] +  757.*coordinates[p][0];
 		R2[m][p][m][p] = R2[m][m][p][p];
 		R2[m][p][p][m] = R2[m][m][p][p];
-		R2[m][m][n][p] =   862.*coordinates[m][1] +  349.*coordinates[n][1] +  349.*coordinates[p][1];
+		R2[m][m][n][p] =   862.*coordinates[m][0] +  349.*coordinates[n][0] +  349.*coordinates[p][0];
 		R2[m][m][p][n] = R2[m][m][n][p];
 		R2[m][n][m][p] = R2[m][m][n][p];
 		R2[m][p][m][n] = R2[m][m][n][p];
 		R2[m][n][p][m] = R2[m][m][n][p];
 		R2[m][p][n][m] = R2[m][m][n][p];
-		R2[m][n][n][p] =   349.*coordinates[m][1] +  211.*coordinates[n][1] +  160.*coordinates[p][1];
+		R2[m][n][n][p] =   349.*coordinates[m][0] +  211.*coordinates[n][0] +  160.*coordinates[p][0];
 		R2[m][n][p][n] = R2[m][n][n][p];
 		R2[m][p][n][n] = R2[m][n][n][p];
-		R2[m][p][p][n] =   349.*coordinates[m][1] +  160.*coordinates[n][1] +  211.*coordinates[p][1];
+		R2[m][p][p][n] =   349.*coordinates[m][0] +  160.*coordinates[n][0] +  211.*coordinates[p][0];
 		R2[m][p][n][p] = R2[m][p][p][n];
 		R2[m][n][p][p] = R2[m][p][p][n];
 	}
@@ -299,9 +305,12 @@ void HomReactionTerm_AX_MDC::calcJac(EmptyDoubleMatrix elementJac, DoubleVectorL
 					elementJac[eq(m,reagents[1])][var(m,reagents[j])] -= Hfmj[m];
 					elementJac[eq(m,reagents[1])][var(n,reagents[j])] -= Hfmj[n];
 					elementJac[eq(m,reagents[1])][var(p,reagents[j])] -= Hfmj[p];
-					elementJac[eq(m,products[0])][var(m,reagents[j])] += Hfmj[m];
-					elementJac[eq(m,products[0])][var(n,reagents[j])] += Hfmj[n];
-					elementJac[eq(m,products[0])][var(p,reagents[j])] += Hfmj[p];
+					for (unsigned h = 0; h < nProducts; h++)
+					{
+						elementJac[eq(m,products[h])][var(m,reagents[j])] += Hfmj[m];
+						elementJac[eq(m,products[h])][var(n,reagents[j])] += Hfmj[n];
+						elementJac[eq(m,products[h])][var(p,reagents[j])] += Hfmj[p];
+					}
 				}				
 			}
 
@@ -331,9 +340,12 @@ void HomReactionTerm_AX_MDC::calcJac(EmptyDoubleMatrix elementJac, DoubleVectorL
 					elementJac[eq(m,products[1])][var(m,products[j])] -= Hbmj[m];
 					elementJac[eq(m,products[1])][var(n,products[j])] -= Hbmj[n];
 					elementJac[eq(m,products[1])][var(p,products[j])] -= Hbmj[p];
-					elementJac[eq(m,reagents[0])][var(m,products[j])] += Hbmj[m];
-					elementJac[eq(m,reagents[0])][var(n,products[j])] += Hbmj[n];
-					elementJac[eq(m,reagents[0])][var(p,products[j])] += Hbmj[p];
+					for (unsigned h = 0; h < nReagents; h++)
+					{
+						elementJac[eq(m,reagents[h])][var(m,products[j])] += Hbmj[m];
+						elementJac[eq(m,reagents[h])][var(n,products[j])] += Hbmj[n];
+						elementJac[eq(m,reagents[h])][var(p,products[j])] += Hbmj[p];
+					}
 				}				
 			}
 		}
