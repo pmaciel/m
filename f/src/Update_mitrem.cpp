@@ -7,7 +7,6 @@
 // forward declarations
 enum CALL { ASSEMBLY, CURRENT, GAS };
 void assembleMITReM(const std::vector< m::melem >& e2n);
-void assembleBulk(const std::vector< m::melem >& e2n);
 void assembleDirichlet(const std::vector< m::melem >& e2n,
   const std::vector< unsigned >& vlabels,
   const std::vector< double   >& vvalues);
@@ -43,6 +42,11 @@ void Update_mitrem()
   assembleMITReM(M.vz[0].e2n);
   cout << "Update_mitrem: assemble MITReM equations." << endl;
 
+  // create vector of indices for the bulk concentrations
+  vector< unsigned > ibulk(m.Nions,0);
+  for (int i=1; i<m.Nions; ++i)
+    ibulk[i] = ibulk[i-1]+1;
+
   for (int i=0; i<m.x.getChildNode("bcs").nChildNode("bc"); ++i) {
     const XMLNode b = m.x.getChildNode("bcs").getChildNode("bc",i);
     const string  t = b.getAttribute("type");
@@ -51,7 +55,7 @@ void Update_mitrem()
     for (vector< unsigned >::const_iterator j=z.begin(); j!=z.end(); ++j) {
       cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[*j].n << "\"..." << endl;
 
-      if      (t=="bulk")      assembleBulk(      M.vz[*j].e2n );
+      if      (t=="bulk")      assembleDirichlet( M.vz[*j].e2n,ibulk,m.bulk );
       else if (t=="dirichlet") assembleDirichlet( M.vz[*j].e2n,
         getVLabels(b.getAttribute< string >("vlabels")),
         getVValues(b.getAttribute< string >("vvalues")) );
@@ -228,19 +232,6 @@ void assembleMITReM(const vector< m::melem >& e2n)
   free_dmatrix(concentrations,0,Nenod-1,0,Nions-1);
   free_dmatrix(velocities    ,0,Nenod-1,0,Ndim-1);
   free_dmatrix(coordinates   ,0,Nenod-1,0,Ndim-1);
-}
-
-
-void assembleBulk(const vector< m::melem >& e2n)
-{
-  mitremassembler_struct& m = mitremassembler;
-  for (vector< m::melem >::const_iterator e=e2n.begin(); e!=e2n.end(); ++e)
-    for (vector< unsigned >::const_iterator n=e->n.begin(); n!=e->n.end(); ++n)
-      for (int i=0; i<m.Nions; ++i) {
-        (m.ls)->zerorow(*n,i);
-        (m.ls)->A(*n,*n,i,i) = 1.;
-        (m.ls)->B(*n,i)      = m.bulk[i] - No_W[m.iv+i][*n];
-      }
 }
 
 
