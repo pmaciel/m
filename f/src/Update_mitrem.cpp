@@ -31,21 +31,36 @@ using namespace std;
 
 void Update_mitrem()
 {
-  // zero jacobian matrix, solution and residual vectors
+  // - zero jacobian matrix, solution and residual vectors
+  // - set main connectivity in the right place...
+  // - create vector of indices for (all) bulk concentrations
+  // - create vector of indices for (all) electrode reactions
   mitremassembler_struct& m = mitremassembler;
   (m.ls)->reset();
-
-  // set main connectivity in the right place...
   e2n.swap(M.vz[0].e2n);
+  vector< unsigned > ibulk(m.Nions,0);
+  for (int i=1; i<m.Nions; ++i)
+    ibulk[i] = ibulk[i-1]+1;
+  vector< unsigned > ielecreactions((m.m_mitrem)->getNElecReactions(),0);
+  for (unsigned i=1; i<(m.m_mitrem)->getNElecReactions(); ++i)
+    ielecreactions[i] = ielecreactions[i-1]+1;
+
+
+  if (m.forcev) {
+    cout << "Update_mitrem: correct metal potentials..." << endl;
+    (m.m_mitrem)->correctVForPotentialDifference(
+      m.Vwelectrode, m.Vcelectrode,
+      m.Awelectrode, m.Acelectrode );
+    cout << "Update_mitrem: Vwe [V]: " << m.Vwelectrode << "Awe [m2]: " << m.Awelectrode << endl
+         << "Update_mitrem: Vce [V]: " << m.Vcelectrode << "Ace [m2]: " << m.Acelectrode << endl;
+    cout << "Update_mitrem: correct metal potentials." << endl;
+  }
+
 
   cout << "Update_mitrem: assemble MITReM equations..." << endl;
   assembleMITReM(M.vz[0].e2n);
   cout << "Update_mitrem: assemble MITReM equations." << endl;
 
-  // create vector of indices for the bulk concentrations
-  vector< unsigned > ibulk(m.Nions,0);
-  for (int i=1; i<m.Nions; ++i)
-    ibulk[i] = ibulk[i-1]+1;
 
   for (int i=0; i<m.x.getChildNode("bcs").nChildNode("bc"); ++i) {
     const XMLNode b = m.x.getChildNode("bcs").getChildNode("bc",i);
@@ -63,10 +78,15 @@ void Update_mitrem()
         getGReactions(b.getAttribute< string >("gasreaction")),
         getEReactions(b.getAttribute< string >("elecreaction")),
         b.getAttribute< double >("metalpotential") );
+      else if (t=="welectrode") assembleElectrode( M.vz[*j].e2n,
+        vector< unsigned >(), ielecreactions, m.Vwelectrode );
+      else if (t=="celectrode") assembleElectrode( M.vz[*j].e2n,
+        vector< unsigned >(), ielecreactions, m.Vcelectrode );
 
       cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[*j].n << "\"." << endl;
     }
   }
+
 
   // set back main connectivity
   e2n.swap(M.vz[0].e2n);

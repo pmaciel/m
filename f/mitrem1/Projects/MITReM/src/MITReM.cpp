@@ -1225,15 +1225,13 @@ void MITReM::correctVForPotentialDifference(
   init(&bulk[0], /*U*/ 0., getSolutionTemperature(),getSolutionDensity());
 
   // Newton's method
-  const double eps = 1e-12*(Vwe-Vce);
+  const double eps = 1e-12*std::max(1.,Vwe-Vce);
   double dV  = -(Vwe+Vce)/2.;  // shift initial guess (center around 0.)
   double ddV = 1.;             // shift update
   unsigned i = 0;
-  for (double I=1., dI=0.; std::abs(ddV)>1.e-12 && i<100; ++i) {
+  for (double I=1., dI=0.; std::abs(ddV)>1.e-12 && i<100; ++i, I=0., dI=0.) {
 
-    // calculate current balance and its derivative in respect to dV
-    I  = 0.;
-    dI = 0.;
+    // calculate current balance and derivative in respect to dV
     for (unsigned r=0; r<getNElecReactions(); ++r) {
       I  += Awe*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vwe+dV)
          +  Ace*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vce+dV);

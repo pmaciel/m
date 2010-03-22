@@ -131,6 +131,15 @@ void readstart(const std::string& ccase)
     mitremassembler.surfacegasfraction_min = std::max(0.,mitremassembler.surfacegasfraction_min);
     mitremassembler.surfacegasfraction_max = std::min(1.,mitremassembler.surfacegasfraction_max);
 
+    XMLNode forcev = mitremassembler.x.getChildNode("forcev");
+    mitremassembler.forcev = !forcev.isEmpty();
+    if (mitremassembler.forcev) {
+      mitremassembler.Vwelectrode = forcev.getAttribute< double >("Vwelectrode",0.);
+      mitremassembler.Vcelectrode = forcev.getAttribute< double >("Vcelectrode",0.);
+      mitremassembler.Awelectrode = forcev.getAttribute< double >("Awelectrode",1.);
+      mitremassembler.Acelectrode = forcev.getAttribute< double >("Acelectrode",1.);
+    }
+
     // set bulk concentrations
     mitremassembler.bulk.resize(mitremassembler.Nions);
     for (int i=0; i<mitremassembler.Nions; ++i)
