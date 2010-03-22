@@ -148,7 +148,7 @@ MITReM::MITReM(const std::string &name)
     {
       std::cout << "INPUT FILE ERROR:\nThe first ion can not be a neutral species, "\
       "because this gives rise to linearly dependent equations." << std::endl;
-      system("pause");
+      std::cin.get();
       exit(1);
     }
 
@@ -235,7 +235,7 @@ MITReM::MITReM(const std::string &name)
         if (stoich != -1)
         {
           std::cout << "For the moment, only -1 is allowed for the stoichiometric coefficient of a reagent in a homogeneous reaction..." << std::endl;
-          system("pause");
+          std::cin.get();
           exit(1);
         }
         homReactions[r]->setStoichReag(i,stoich);
@@ -259,7 +259,7 @@ MITReM::MITReM(const std::string &name)
         if (stoich != 1)
         {
           std::cout << "For the moment, only +1 is allowed for the stoichiometric coefficient of a product in a homogeneous reaction..." << std::endl;
-          system("pause");
+          std::cin.get();
           exit(1);
         }
         homReactions[r]->setStoichProd(i,stoich);
@@ -366,7 +366,7 @@ MITReM::MITReM(const std::string &name)
         if (intValue >= 0)
         {
           std::cout << "Stoichiometric coefficients of reducing agents must be negative!" << std::endl;
-          system("pause");
+          std::cin.get();
           exit(1);
         }
         elecReactions[r]->setStoichRed(i,intValue);
@@ -374,7 +374,7 @@ MITReM::MITReM(const std::string &name)
         if (doubleValue != 1)
         {
           std::cout << "Only first order electrode reactions are allowed for the moment." << std::endl;
-          system("pause");
+          std::cin.get();
           exit(1);
         }
         elecReactions[r]->setOrderRed(i,doubleValue);
@@ -401,7 +401,7 @@ MITReM::MITReM(const std::string &name)
         if (intValue <= 0)
         {
           std::cout << "Stoichiometric coefficients of oxidizing agents must be positive!" << std::endl;
-          system("pause");
+          std::cin.get();
           exit(1);
         }
         elecReactions[r]->setStoichOxi(i,intValue);
@@ -409,7 +409,7 @@ MITReM::MITReM(const std::string &name)
         if (doubleValue != 1)
         {
           std::cout << "Only first order electrode reactions are allowed for the moment." << std::endl;
-          system("pause");
+          std::cin.get();
           exit(1);
         }
         elecReactions[r]->setOrderOxi(i,doubleValue);
@@ -659,7 +659,7 @@ MITReM::MITReM(const std::string& s_database, const std::string& s_ec_label)
     if (electrolyteSolution->getIonChargeNumber(0)==0) {
       std::cout << "Warning: the first ion should not be a neutral species, because this can give rise to linearly dependent equations." << std::endl;
       if (false) {
-        system("pause");
+        std::cin.get();
         exit(1);
       }
     }
@@ -695,7 +695,7 @@ MITReM::MITReM(const std::string& s_database, const std::string& s_ec_label)
         if (xa.getAttribute< int >("stoich") != -1)
         {
           std::cout << "For the moment, only -1 is allowed for the stoichiometric coefficient of a reagent in a homogeneous reaction..." << std::endl;
-          system("pause");
+          std::cin.get();
           exit(1);
         }
         homReactions[r]->setStoichReag(a,xa.getAttribute< int >("stoich"));
@@ -715,7 +715,7 @@ MITReM::MITReM(const std::string& s_database, const std::string& s_ec_label)
         if (xa.getAttribute< int >("stoich") != 1)
         {
           std::cout << "For the moment, only +1 is allowed for the stoichiometric coefficient of a product in a homogeneous reaction..." << std::endl;
-          system("pause");
+          std::cin.get();
           exit(1);
         }
         homReactions[r]->setStoichProd(a,xa.getAttribute< int >("stoich"));
@@ -799,14 +799,14 @@ MITReM::MITReM(const std::string& s_database, const std::string& s_ec_label)
           if (xa.getAttribute< int >("stoich") >= 0)
           {
             std::cout << "Stoichiometric coefficients of reducing agents must be negative!" << std::endl;
-            system("pause");
+            std::cin.get();
             exit(1);
           }
           elecReactions[r]->setStoichRed(ired,xa.getAttribute< int >("stoich"));
           if (xa.getAttribute< double >("order") != 1)
           {
             std::cout << "Only first order electrode reactions are allowed for the moment." << std::endl;
-            system("pause");
+            std::cin.get();
             exit(1);
           }
           elecReactions[r]->setOrderRed(ired,xa.getAttribute< double >("order"));
@@ -817,14 +817,14 @@ MITReM::MITReM(const std::string& s_database, const std::string& s_ec_label)
           if (xa.getAttribute< int >("stoich") <= 0)
           {
             std::cout << "Stoichiometric coefficients of oxidizing agents must be positive!" << std::endl;
-            system("pause");
+            std::cin.get();
             exit(1);
           }
           elecReactions[r]->setStoichOxi(ioxi,xa.getAttribute< int >("stoich"));
           if (xa.getAttribute< double >("order") != 1)
           {
             std::cout << "Only first order electrode reactions are allowed for the moment." << std::endl;
-            system("pause");
+            std::cin.get();
             exit(1);
           }
           elecReactions[r]->setOrderOxi(ioxi,xa.getAttribute< double >("order"));
@@ -943,7 +943,7 @@ void MITReM::setConductivityCorrectionFactor()
       << "\nExperimental conductivity = " << conductivity << " S/m"
       << "\nAll diffusion coefficients will be multiplied with " << conductivityCorrectionFactor << std::endl;
   }
-  //system("pause");
+  //std::cin.get();
 }
 //---------------------------------------------------------------------------
 void MITReM::assembleSystem() const
@@ -1092,7 +1092,7 @@ void MITReM::calcEquilibrium(std::vector<double>& c)
         std::cout << "INPUT FILE ERROR:\nCould not achieve non-zero concentrations.\n"\
                      "Please change some zero concentrations in the input file "\
                      "so that equilibrium is attainable at the inlet." << std::endl;
-        system("pause");
+        std::cin.get();
         exit(1);
       }
       else if (nZeroConcentrationsTemp < nZeroConcentrations)
@@ -1103,7 +1103,7 @@ void MITReM::calcEquilibrium(std::vector<double>& c)
       {
         std::cout << "IMPOSSIBLE ERROR:\nAn impossible error occurred while "\
           "making non-zero concentrations. Please contact the programmer." << std::endl;
-        system("pause");
+        std::cin.get();
         exit(1);
       }
     }
@@ -1162,14 +1162,14 @@ void MITReM::calcEquilibrium(std::vector<double>& c)
     if (deviation > deviationMax)
     {
       std::cout << "\nERROR: Equilibrium at the inlet was not reached." << std::endl;
-      system("pause");
+      std::cin.get();
       exit(1);
     }
 
     checkElectroneutrality();
   }
   electrolyteModel->init(false);
-  //system("pause");
+  //std::cin.get();
 }
 //---------------------------------------------------------------------------
 void MITReM::checkElectroneutrality() const
@@ -1193,7 +1193,7 @@ void MITReM::checkElectroneutrality() const
   if (fabs(charge) > maxCharge)
   {
     std::cout << "\nINPUT FILE ERROR: Electroneutrality is violated.\nSum(z_i*c_i) = " << charge << std::endl;
-    system("pause");
+    std::cin.get();
     exit(1);
     //std::cout << "\nThe adjusted concentrations are\n";
     //for (unsigned i=0; i<nIons; i++)
@@ -1206,6 +1206,55 @@ void MITReM::checkElectroneutrality() const
     //}
     //std::cout << std::endl;
   }
+}
+//---------------------------------------------------------------------------
+void MITReM::correctVForPotentialDifference(
+  double      &Vwe, double      &Vce,
+  const double Awe, const double Ace )
+{
+  /*
+   * Assumes:
+   * - all electrode reactions are active in working/counter electrodes
+   * - zero Ohmic drop
+   */
+
+  // set bulk concentrations and initialize mitrem
+  std::vector< double > bulk(getNIons(),0.);
+  for (unsigned i=0; i<getNIons(); ++i)
+    bulk[i] = electrolyteSolution->getIonConcentration(i);
+  init(&bulk[0], /*U*/ 0., getSolutionTemperature(),getSolutionDensity());
+
+  // Newton's method
+  const double eps = 1e-12*(Vwe-Vce);
+  double dV  = -(Vwe+Vce)/2.;  // shift initial guess (center around 0.)
+  double ddV = 1.;             // shift update
+  unsigned i = 0;
+  for (double I=1., dI=0.; std::abs(ddV)>1.e-12 && i<100; ++i) {
+
+    // calculate current balance and its derivative in respect to dV
+    I  = 0.;
+    dI = 0.;
+    for (unsigned r=0; r<getNElecReactions(); ++r) {
+      I  += Awe*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vwe+dV)
+         +  Ace*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vce+dV);
+      dI += Awe*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vwe+dV+eps)
+         +  Ace*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vce+dV+eps);
+    }
+    dI = (dI-I)/eps;
+
+    // calculate new shift
+    ddV = -I/dI;
+    dV += ddV;
+  }
+
+  // correct metal potentials
+  Vwe += dV;
+  Vce += dV;
+  std::cout << "correctVForPotentialDifference:"
+            << "  i=" << i
+            << "  dV [V] = " << dV
+            << "  Vce-Vwe [V] = " << (Vce-Vwe)
+            << "  Vwe/Vce [V] = " << Vwe << " / " << Vce << std::endl;
 }
 //---------------------------------------------------------------------------
 void MITReM::setElectrolyteModel(std::string EM)
@@ -1223,7 +1272,7 @@ void MITReM::errorInvalidModel(const std::string &file, const std::string &model
 {
   std::cout << "ERROR IN " << file << ".\
       \nTHE MODEL " << model <<" IS NOT ALLOWED." << std::endl;
-  system("pause");
+  std::cin.get();
   exit(1);
 }
 //---------------------------------------------------------------------------
@@ -1231,14 +1280,14 @@ void MITReM::errorConflictingData(const std::string &file1, const std::string &f
 {
   std::cout << "CONFLICTING DATA IN " << file1 << " AND " << file2 << ".\
       \nTHE " << conflict <<" ARE INCOMPATIBLE." << std::endl;
-  system("pause");
+  std::cin.get();
   exit(1);
 }
 //---------------------------------------------------------------------------
 void MITReM::errorZero(const std::string &file, const std::string &parameter) const
 {
   std::cout << "ERROR IN " << file << ".\n" << parameter << " CANNOT BE <= 0." << std::endl;
-  system("pause");
+  std::cin.get();
   exit(1);
 }
 //---------------------------------------------------------------------------
