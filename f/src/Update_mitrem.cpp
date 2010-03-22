@@ -51,8 +51,8 @@ void Update_mitrem()
     (m.m_mitrem)->correctVForPotentialDifference(
       m.Vwelectrode, m.Vcelectrode,
       m.Awelectrode, m.Acelectrode );
-    cout << "Update_mitrem: Vwe [V]: " << m.Vwelectrode << "Awe [m2]: " << m.Awelectrode << endl
-         << "Update_mitrem: Vce [V]: " << m.Vcelectrode << "Ace [m2]: " << m.Acelectrode << endl;
+    cout << "Update_mitrem: Vwe [V]: " << m.Vwelectrode << "  Awe [m2]: " << m.Awelectrode << endl
+         << "Update_mitrem: Vce [V]: " << m.Vcelectrode << "  Ace [m2]: " << m.Acelectrode << endl;
     cout << "Update_mitrem: correct metal potentials." << endl;
   }
 
