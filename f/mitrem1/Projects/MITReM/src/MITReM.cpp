@@ -1210,7 +1210,8 @@ void MITReM::checkElectroneutrality() const
 //---------------------------------------------------------------------------
 void MITReM::correctVForPotentialDifference(
   double      &Vwe, double      &Vce,
-  const double Awe, const double Ace )
+  const double Awe, const double Ace,
+  const unsigned Niter )
 {
   /*
    * Assumes:
@@ -1224,14 +1225,16 @@ void MITReM::correctVForPotentialDifference(
     bulk[i] = electrolyteSolution->getIonConcentration(i);
   init(&bulk[0], /*U*/ 0., getSolutionTemperature(),getSolutionDensity());
 
-  // Newton's method
-  const double eps = 1e-12*std::max(1.,Vwe-Vce);
-  double dV  = -(Vwe+Vce)/2.;  // shift initial guess (center around 0.)
-  double ddV = 1.;             // shift update
-  unsigned i = 0;
-  for (double I=1., dI=0.; std::abs(ddV)>1.e-12 && i<100; ++i, I=0., dI=0.) {
+  std::cout << "correctVForPotentialDifference:  Vce-Vwe [V] = " << Vce-Vwe << std::endl;
 
-    // calculate current balance and derivative in respect to dV
+  // Newton's method
+  const double eps = 1e-16;  // numerical perturbation
+  double dV = 0.;            // shift initial guess
+  for (unsigned i=1; i<=Niter; ++i) {
+
+    // calculate current balance and d(current balance)/d(dV)
+    double I  = 0.,
+           dI = 0.;
     for (unsigned r=0; r<getNElecReactions(); ++r) {
       I  += Awe*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vwe+dV)
          +  Ace*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vce+dV);
@@ -1240,19 +1243,16 @@ void MITReM::correctVForPotentialDifference(
     }
     dI = (dI-I)/eps;
 
-    // calculate new shift
-    ddV = -I/dI;
-    dV += ddV;
+    // update shift
+    dV += -I/dI;
+    std::cout << "correctVForPotentialDifference:  i=" << i << "  dV/|ddV| [V] = " << dV << " / " << std::abs(-I/dI) << std::endl;
+
   }
 
-  // correct metal potentials
+  // update metal potentials
   Vwe += dV;
   Vce += dV;
-  std::cout << "correctVForPotentialDifference:"
-            << "  i=" << i
-            << "  dV [V] = " << dV
-            << "  Vce-Vwe [V] = " << (Vce-Vwe)
-            << "  Vwe/Vce [V] = " << Vwe << " / " << Vce << std::endl;
+  std::cout << "correctVForPotentialDifference:  Vwe/Vce [V] = " << Vwe << " / " << Vce << std::endl;
 }
 //---------------------------------------------------------------------------
 void MITReM::setElectrolyteModel(std::string EM)

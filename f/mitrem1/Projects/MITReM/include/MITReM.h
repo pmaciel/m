@@ -32,7 +32,7 @@ public :
   void			calcEquilibrium();
   void			checkElectroneutrality() const;
   //void		swapIons(unsigned i, unsigned j);
-  void			correctVForPotentialDifference(double &Vwe, double &Vce, const double Awe, const double Ace);
+  void			correctVForPotentialDifference(double &Vwe, double &Vce, const double Awe, const double Ace, const unsigned Niter=100);
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // ElectrolyteModel equations
   double		calcTransportDiffusionFactor(unsigned i, unsigned j) const;	// returns D(i,j)

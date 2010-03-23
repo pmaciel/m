@@ -196,3 +196,21 @@ def build(ctx):
       'src/writeres.cpp',
       'src/writesoltp.cpp' ] )
 
+  # a executable
+  ctx.new_task_gen(
+    features = 'cxx cprogram',
+    target   = 'a',
+    uselib_local = ctx.env.m_mlibraries + ['mitremassembler'],
+    includes = [
+      '../mkernel',
+      '../mkernel/ext',  # for xmlParser
+      'mitrem1/Projects/DatFileReader/include',
+      'mitrem1/Projects/DatFileReader/src',
+      'mitrem1/Projects/ElementMatrixAssembler/include',
+      'mitrem1/Projects/ElementMatrixAssembler/src',
+      'mitrem1/Projects/MITReM/include',
+      'mitrem1/Projects/MITReM/src',
+      'mitrem1/Projects/MathematicsPhysics/include',
+      'mitrem1/Projects/MathematicsPhysics/src' ],
+    source   = ['a.cpp'] )
+
