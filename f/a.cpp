@@ -15,9 +15,9 @@ int main(int argc, char **argv)
          << "  --help, -h: this help" << endl
          << "  --case, -c: testcase file:label (default: \"mutech.ec.xml\")"   << endl
          << "  -Vwe:       metal potential at the working electrode (default: 0.)" << endl
-         << "  -Vwe:       ... counter electrode (default: 1.)"                    << endl
+         << "  -Vce:       ... counter electrode (default: 1.)"                    << endl
          << "  -Awe:       area of the working electrode (default: 1.)"            << endl
-         << "  -Awe:       ... counter electrode (default: 1.)"                    << endl
+         << "  -Ace:       ... counter electrode (default: 1.)"                    << endl
          << "  -Niter:     maximum number of iterations to converge for (default: 100)" << endl
          << endl;
     return 0;

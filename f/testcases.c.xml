@@ -47,7 +47,7 @@
    couple_ke="false"
   />
   <system_coupled
-   type="ls_aztec"
+   type="ls_wsmp"
    mtype="vbr"
    output="none"
    kspace="25"
