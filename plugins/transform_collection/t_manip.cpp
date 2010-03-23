@@ -28,7 +28,7 @@ void t_manip::transform(GetPot& o, mmesh& m)
     else if (k=="-tvren") { vren(m,getvindex(m,i->first),i->second); }
     else if (k=="-tvadd") { vadd(m,i->first,i->second); }
     else if (k=="-tzrm")  { zrm(m,getzindex(m,i->first)); }
-    else if (k=="-tzmv")  { zmv(m,getzindex(m,i->first),getvindex(m,i->second)); }
+    else if (k=="-tzmv")  { zmv(m,getzindex(m,i->first),getzindex(m,i->second)); }
     else if (k=="-tzren") { zren(m,getzindex(m,i->first),i->second); }
   }
 }
