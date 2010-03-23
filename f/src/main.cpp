@@ -21,8 +21,9 @@ int main(int argc, char **argv)
   readstart(o.follow("testcases.c.xml",2,"--case","-c"));
 
   // - read grid/solution and set connectivity/grid-geometry data
-  // - write out read data
+  // - write residuals and (initial) solution
   readsoltp(file_input,restart);
+  writeres();
   writesoltp(file_output);
 
 

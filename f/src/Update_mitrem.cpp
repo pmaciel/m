@@ -46,7 +46,7 @@ void Update_mitrem()
     ielecreactions[i] = ielecreactions[i-1]+1;
 
 
-  if (m.forcev) {
+  if (m.forcev && (iter<=1 || m.forceinteractive)) {
     cout << "Update_mitrem: correct metal potentials..." << endl;
     (m.m_mitrem)->correctVForPotentialDifference(
       m.Vwelectrode, m.Vcelectrode,
@@ -124,24 +124,29 @@ void Update_mitrem()
     m.Mj.vv[Ndim+i].assign(Nnode,0.);
   for (int i=0; i<m.x.getChildNode("bcs").nChildNode("bc"); ++i) {
     const XMLNode b = m.x.getChildNode("bcs").getChildNode("bc",i);
+    const string  t = b.getAttribute("type");
     const vector< unsigned > z = getZones(b.getAttribute< string >("zone"));
-    for (unsigned j=0; b.getAttribute< string >("type")=="electrode" && j<(unsigned) z.size(); ++j) {
 
-      const vector< unsigned > gr = getGReactions(b.getAttribute< string >("gasreaction"));
-      const vector< unsigned > er = getEReactions(b.getAttribute< string >("elecreaction"));
-      const double v = b.getAttribute< double >("metalpotential");
-      if (er.size())
-        cout << "Update_mitrem:"
-             << " electrode:\""  << b.getAttribute("label") << '"'
-             << " zone:\""       << M.vz[z[j]].n            << '"'
-             << " current [A]: " << assembleElectrode(M.vz[z[j]].e2n,gr,er,v,CURRENT) << endl;
-      if (gr.size())
-        cout << "Update_mitrem:"
-             << " electrode:\""  << b.getAttribute("label") << '"'
-             << " zone:\""       << M.vz[z[j]].n            << '"'
-             << " gas production rate [m3.s-1]: " << assembleElectrode(M.vz[z[j]].e2n,gr,er,v,GAS) << endl;
+    if (t=="electrode" || t=="welectrode" || t=="celectrode")
+      for (vector< unsigned >::const_iterator j=z.begin(); j!=z.end(); ++j) {
 
-    }
+        const vector< unsigned > gr = t=="electrode"? getGReactions(b.getAttribute< string >("gasreaction"))  : vector< unsigned >();
+        const vector< unsigned > er = t=="electrode"? getEReactions(b.getAttribute< string >("elecreaction")) : ielecreactions;
+        const double v = (t=="electrode"?  b.getAttribute< double >("metalpotential") :
+                         (t=="welectrode"? m.Vwelectrode :
+                                           m.Vcelectrode ));
+        if (er.size())
+          cout << "Update_mitrem:"
+               << " " << t << ":\""  << b.getAttribute("label") << '"'
+               << " zone:\""       << M.vz[*j].n            << '"'
+               << " current [A]: " << assembleElectrode(M.vz[*j].e2n,gr,er,v,CURRENT) << endl;
+        if (gr.size())
+          cout << "Update_mitrem:"
+               << " electrode:\""  << b.getAttribute("label") << '"'
+               << " zone:\""       << M.vz[*j].n            << '"'
+               << " gas production rate [m3.s-1]: " << assembleElectrode(M.vz[*j].e2n,gr,er,v,GAS) << endl;
+
+      }
   }
 
 
