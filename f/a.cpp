@@ -37,10 +37,12 @@ int main(int argc, char **argv)
   cout << "a: setting MITReM." << endl;
 
 
+  cout.precision(12);
+  cout << "a: original Vwe/Vce [V]: " << Vwe << " / " << Vce << endl;
   cout << "a: solve..." << endl;
   m.correctVForPotentialDifference(Vwe,Vce,Awe,Ace,Niter);
   cout << "a: solve." << endl;
-
+  cout << "a: adjusted Vwe/Vce [V]: " << Vwe << " / " << Vce << endl;
 
   return 0;
 }
