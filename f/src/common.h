@@ -77,12 +77,6 @@ struct mitremassembler_struct
   std::vector< double > bulk;  // bulk concentrations
   LS *ls;          // linear system solver
   m::mmesh Mj;     // mmesh structure for electrode reactions current density
-  bool forceinteractive;            // if forcing potentials/currents is interactive
-  bool forcev;                      // if metal potentials are to be forced (and adjusted)
-  bool forcei;                      // if currents are to be forced
-  double Vwelectrode, Vcelectrode,  // working/counter electrodes metal potentials (adjusted)
-         Iwelectrode, Icelectrode,  // working/counter electrodes currents
-         Awelectrode, Acelectrode;  // working/counter electrodes areas
   MITReM* m_mitrem;                     // MITReM object
   ElementMatrixAssembler* m_assembler;  // ElementMatrixAssembler object
 };

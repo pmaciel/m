@@ -136,7 +136,7 @@ double AZ_calc_solve_flops(int options[], int total_its, double total_time,
 
   /* calculate the flops required by the preconditioner */
 
-  precond_flops = AZ_calc_precond_flops(solver_flag, options, 
+  precond_flops = AZ_calc_precond_flops(solver_flag, options,
                                         daxpy_flops, matvec_flops, total_its,
                                         gn, gnnz, data_org, proc_config);
   if (precond_flops < 0.0) return -1.0;
@@ -259,7 +259,7 @@ double AZ_calc_iter_flops(int solver_flag, double inner_flops,
 /******************************************************************************/
 /******************************************************************************/
 
-double AZ_calc_precond_flops(int solver_flag, int options[], 
+double AZ_calc_precond_flops(int solver_flag, int options[],
                              double daxpy_flops, double matvec_flops,
                              int total_its, int gn, double gnnz, int data_org[],
                              int proc_config[])

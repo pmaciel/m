@@ -13,13 +13,13 @@
 class ElementProps_1D : public ElementProps
 {
 public :
-	ElementProps_1D(unsigned nDimensions_);
-	virtual ~ElementProps_1D();
+  ElementProps_1D(unsigned nDimensions_);
+  virtual ~ElementProps_1D();
 
-	virtual double	calcSize(DoubleVectorList coordinates) const;
-	virtual DoubleVector	calcNormal(unsigned m, DoubleVectorList coordinates) const;
+  virtual double  calcSize(DoubleVectorList coordinates) const;
+  virtual DoubleVector  calcNormal(unsigned m, DoubleVectorList coordinates) const;
 
-	// ElementProps nodes are numbered such that x1 > x0!!!
+  // ElementProps nodes are numbered such that x1 > x0!!!
 };
 
 //---------------------------------------------------------------------------

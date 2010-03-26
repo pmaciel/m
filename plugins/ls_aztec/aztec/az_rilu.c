@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include "az_aztec.h"
 
-void AZ_fact_rilu(int N, int *nz_used, int *iu, int *iw, AZ_MATRIX *A_overlapped, double omega) 
+void AZ_fact_rilu(int N, int *nz_used, int *iu, int *iw, AZ_MATRIX *A_overlapped, double omega)
 {
    int i,j,k,ptr,start,end,kk,jw,M;
    int *msr_bindx;
    double s, *msr_val;
-   
+
 
    msr_val   = A_overlapped->val;
    msr_bindx = A_overlapped->bindx;
@@ -26,13 +26,13 @@ void AZ_fact_rilu(int N, int *nz_used, int *iu, int *iw, AZ_MATRIX *A_overlapped
       iu[0] = N;
 
 
-      /* 
-       Create the iu pointer to point on the last "l" element in msr_val 
-       and create a working array iw to store the " aij" values for each 
-       row i 
+      /*
+       Create the iu pointer to point on the last "l" element in msr_val
+       and create a working array iw to store the " aij" values for each
+       row i
       */
 
-      
+
       for (j = 0; j < N+1; j++) {
           iw[j] = 0;
       }
@@ -56,7 +56,7 @@ void AZ_fact_rilu(int N, int *nz_used, int *iu, int *iw, AZ_MATRIX *A_overlapped
 
              kk = msr_bindx[k];
              msr_val[k] = msr_val[k] / msr_val [kk];
-            
+
              for ( j = iu[kk]+1; j < msr_bindx[kk+1];j++ ) {
 
                 jw = iw[msr_bindx[j]];

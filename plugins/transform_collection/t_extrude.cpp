@@ -156,7 +156,7 @@ void t_extrude::transform(GetPot& o, mmesh& m2)
         melem  ef = ei;
         for (unsigned n=0; n<ei.n.size(); ++n)
           ei.n[n] += m2.n();
-        ef.n.insert(ef.n.end(),ei.n.begin(),ei.n.end()); 
+        ef.n.insert(ef.n.end(),ei.n.begin(),ei.n.end());
         switch (m2.vz[t].t) {
           case FEQUADRILATERAL: { swap(ef.n[6],ef.n[7]); }
           case FELINESEG:       { swap(ef.n[2],ef.n[3]); }

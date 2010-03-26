@@ -6,8 +6,8 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	Problem problem;
-	
-	return 0;
+  Problem problem;
+
+  return 0;
 }
 

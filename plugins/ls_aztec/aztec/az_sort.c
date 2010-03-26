@@ -36,10 +36,10 @@ int type_size;
 
 /* ----------------- External Definitions ---------------------------------*/
 
-extern void move_dble(double first[], double second[], unsigned int 
+extern void move_dble(double first[], double second[], unsigned int
 		      first_length, unsigned int second_length);
 
-extern void move_ints(int first[], int second[], unsigned int first_length, 
+extern void move_ints(int first[], int second[], unsigned int first_length,
                unsigned int second_length);
 
 /* ------------------------------------------------------------------------*/
@@ -645,7 +645,7 @@ void move_dble(double first[], double second[], unsigned int first_length,
 /******************************************************************************/
 /******************************************************************************/
 
-void move_ints(int first[], int second[], unsigned int first_length, 
+void move_ints(int first[], int second[], unsigned int first_length,
                unsigned int second_length)
 
 /*******************************************************************************

@@ -13,10 +13,10 @@
 class BoundaryElementProps_1D : public BoundaryElementProps
 {
 public :
-	BoundaryElementProps_1D(unsigned nDimensions_);
-	virtual ~BoundaryElementProps_1D();
+  BoundaryElementProps_1D(unsigned nDimensions_);
+  virtual ~BoundaryElementProps_1D();
 
-	virtual double	calcSize(DoubleVectorList coordinates) const;
+  virtual double  calcSize(DoubleVectorList coordinates) const;
 };
 
 //---------------------------------------------------------------------------

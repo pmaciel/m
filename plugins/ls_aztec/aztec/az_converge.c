@@ -36,12 +36,12 @@ static char rcsid[] = "$Id: az_converge.c,v 1.25 2001/06/01 19:56:40 tuminaro Ex
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_compute_global_scalars(AZ_MATRIX *Amat, 
+void AZ_compute_global_scalars(AZ_MATRIX *Amat,
                                double x[], double b[], double r[], double w[],
                                double *r_norm, double *scaled_r_norm,
                                int options[], int data_org[], int proc_config[],
                                int *r_avail, double v1[], double v2[],
-                               double *value, 
+                               double *value,
 			       struct AZ_CONVERGE_STRUCT *conv_info)
 
 /*******************************************************************************
@@ -156,7 +156,7 @@ void AZ_compute_global_scalars(AZ_MATRIX *Amat,
   tr = r;
 
   if (options[AZ_ignore_scaling]) {
-     if ( (conv_info->scaling->action == AZ_left_scaling) || 
+     if ( (conv_info->scaling->action == AZ_left_scaling) ||
           (conv_info->scaling->action == AZ_left_and_right_scaling) ) {
         if (!(*r_avail) && (conv_info->not_initialized==AZ_FALSE)) {
            printf("AZ_compute_global_scalars: Error residual is needed to \
@@ -166,7 +166,7 @@ void AZ_compute_global_scalars(AZ_MATRIX *Amat,
         *r_avail = AZ_TRUE;
         tr = AZ_manage_memory(N*sizeof(double),AZ_ALLOC,AZ_SYS, "trinconv",&j);
         for (i = 0; i < N; i++) tr[i] = r[i];
-        AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, tr, x, proc_config, 
+        AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, tr, x, proc_config,
                    conv_info->scaling);
      }
   }
@@ -215,7 +215,7 @@ void AZ_compute_global_scalars(AZ_MATRIX *Amat,
 
       if  ( (options[AZ_ignore_scaling]) && (tr != r) ) {
           for (i = 0; i < N; i++) tr[i] = b[i];
-          AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, tr, x, proc_config, 
+          AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, tr, x, proc_config,
                      conv_info->scaling);
       }
       else tr = b;
@@ -230,7 +230,7 @@ void AZ_compute_global_scalars(AZ_MATRIX *Amat,
          }
 	 conv_info->b_norm = 1.;
       }
-      *r_norm = sqrt(dots[count]); 
+      *r_norm = sqrt(dots[count]);
     }
 
     else if (*r_avail) {
@@ -293,8 +293,8 @@ void AZ_compute_global_scalars(AZ_MATRIX *Amat,
 
       if  ((options[AZ_ignore_scaling]) && (conv_info->scaling->A_norm != 0.0))
          conv_info->A_norm = conv_info->scaling->A_norm;
-      else conv_info->A_norm = AZ_gmax_matrix_norm(Amat->val, Amat->indx, 
-				   Amat->bindx, Amat->rpntr, Amat->cpntr, 
+      else conv_info->A_norm = AZ_gmax_matrix_norm(Amat->val, Amat->indx,
+				   Amat->bindx, Amat->rpntr, Amat->cpntr,
 				   Amat->bpntr, proc_config, Amat->data_org);
 
       if (fabs(conv_info->A_norm) < DBL_MIN) {
@@ -340,8 +340,8 @@ void AZ_compute_global_scalars(AZ_MATRIX *Amat,
        }
       if  ((options[AZ_ignore_scaling]) && (conv_info->scaling->A_norm != 0.0))
          conv_info->A_norm = conv_info->scaling->A_norm;
-      else conv_info->A_norm = AZ_gmax_matrix_norm(Amat->val, Amat->indx, 
-				   Amat->bindx, Amat->rpntr, Amat->cpntr, 
+      else conv_info->A_norm = AZ_gmax_matrix_norm(Amat->val, Amat->indx,
+				   Amat->bindx, Amat->rpntr, Amat->cpntr,
 				   Amat->bpntr, proc_config, Amat->data_org);
 
       if (fabs(conv_info->A_norm) < DBL_MIN) {
@@ -353,17 +353,17 @@ void AZ_compute_global_scalars(AZ_MATRIX *Amat,
 
       if  ( (options[AZ_ignore_scaling]) && (tr != r) ) {
           for (i = 0; i < N; i++) tr[i] = b[i];
-          AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, tr, x, proc_config, 
+          AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, tr, x, proc_config,
                      conv_info->scaling);
       }
       else tr = b;
       conv_info->b_norm = AZ_gvector_norm(N, -1, tr, proc_config);
     }
-    
-    if ((options[AZ_ignore_scaling]) && 
+
+    if ((options[AZ_ignore_scaling]) &&
         (conv_info->scaling->action == AZ_left_and_right_scaling)) {
           for (i = 0; i < N; i++) tr[i] = x[i];
-          AZ_scale_f(AZ_INVSCALE_SOL, Amat, options, b, tr, proc_config, 
+          AZ_scale_f(AZ_INVSCALE_SOL, Amat, options, b, tr, proc_config,
                      conv_info->scaling);
     }
     else tr =x;
@@ -374,7 +374,7 @@ void AZ_compute_global_scalars(AZ_MATRIX *Amat,
   case AZ_expected_values:
     *r_avail = AZ_TRUE;
 
-    dmax = 0.0; 
+    dmax = 0.0;
     for (i = 0; i < N; i++) {
        dtemp = fabs(tr[i]/w[i]);
        if (dtemp > dmax) dmax = dtemp;
@@ -430,7 +430,7 @@ void AZ_scale_true_residual( double x[], double b[],
                             double v[], double w[], double *actual_residual,
                             double *scaled_r_norm, int options[],
                             int data_org[], int proc_config[],
-                            AZ_MATRIX *Amat, 
+                            AZ_MATRIX *Amat,
 			    struct AZ_CONVERGE_STRUCT *conv_info)
 
 
@@ -506,7 +506,7 @@ struct AZ_CONVERGE_STRUCT *AZ_converge_create()
 {
    struct AZ_CONVERGE_STRUCT *temp;
 
-   temp = (struct AZ_CONVERGE_STRUCT *) AZ_allocate(sizeof(struct 
+   temp = (struct AZ_CONVERGE_STRUCT *) AZ_allocate(sizeof(struct
                                                     AZ_CONVERGE_STRUCT));
    if (temp == NULL) {
       printf("AZ_converge_create: Not enough space\n");

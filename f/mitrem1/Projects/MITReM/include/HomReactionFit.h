@@ -14,42 +14,42 @@
 class HomReactionFit
 {
 public :
-	HomReactionFit(const std::string &label_, Electrolyte** electrolytes, unsigned nElectrolytes);
-	~HomReactionFit();
+  HomReactionFit(const std::string &label_, Electrolyte** electrolytes, unsigned nElectrolytes);
+  ~HomReactionFit();
 
-	// Set methods
-	void		setEquilibriumConstant(double K);
-	void		setMinimumEquilibriumConstant(double KMin);
-	void		setMaximumEquilibriumConstant(double KMax);
+  // Set methods
+  void    setEquilibriumConstant(double K);
+  void    setMinimumEquilibriumConstant(double KMin);
+  void    setMaximumEquilibriumConstant(double KMax);
 
-	// Get methods
-	std::string	getLabel() const;
-	double		getEquilibriumConstant() const;
-	double		getMinimumEquilibriumConstant() const;
-	double		getMaximumEquilibriumConstant() const;
-	unsigned	getElectrolyte() const;
+  // Get methods
+  std::string  getLabel() const;
+  double    getEquilibriumConstant() const;
+  double    getMinimumEquilibriumConstant() const;
+  double    getMaximumEquilibriumConstant() const;
+  unsigned  getElectrolyte() const;
 
-	// Methods
-	double		calcOsmoticCoefficientDerivativeEquilibriumConstant(unsigned t);
-	double		calcActivityCoefficientDerivativeEquilibriumConstant(unsigned t);
-	double		calcConductivityDerivativeEquilibriumConstant(unsigned t);
-	double		calcTransportNumberDerivativeEquilibriumConstant(unsigned t);
-	double		calcDiffusionCoefficientDerivativeEquilibriumConstant(unsigned t);
+  // Methods
+  double    calcOsmoticCoefficientDerivativeEquilibriumConstant(unsigned t);
+  double    calcActivityCoefficientDerivativeEquilibriumConstant(unsigned t);
+  double    calcConductivityDerivativeEquilibriumConstant(unsigned t);
+  double    calcTransportNumberDerivativeEquilibriumConstant(unsigned t);
+  double    calcDiffusionCoefficientDerivativeEquilibriumConstant(unsigned t);
 
 private :
-	class HomReactionReference
-	{
-	public :
-		Electrolyte*	electrolyte;
-		unsigned		electrolyteIndex;
-		unsigned		reactionIndex;
-	};
-	
-	std::string	label;
-	double		K,KMin,KMax,epsilon;
-	HomReactionReference homReactionReference;
+  class HomReactionReference
+  {
+  public :
+    Electrolyte*  electrolyte;
+    unsigned    electrolyteIndex;
+    unsigned    reactionIndex;
+  };
 
-	void errorHomReactionNotFound(const std::string label);
+  std::string  label;
+  double    K,KMin,KMax,epsilon;
+  HomReactionReference homReactionReference;
+
+  void errorHomReactionNotFound(const std::string label);
 };
 
 //---------------------------------------------------------------------------
@@ -58,18 +58,18 @@ private :
 //--- SET METHODS -----------------------------------------------------------
 inline void HomReactionFit::setMinimumEquilibriumConstant(double KMin)
 {
-	this->KMin = KMin;
+  this->KMin = KMin;
 }
 //---------------------------------------------------------------------------
 inline void HomReactionFit::setMaximumEquilibriumConstant(double KMax)
 {
-	this->KMax = KMax;
+  this->KMax = KMax;
 }
 //---------------------------------------------------------------------------
 inline void HomReactionFit::setEquilibriumConstant(double K)
-{ 
-	this->K = K;
-	homReactionReference.electrolyte->setHomReactionEquilibriumConstant(homReactionReference.reactionIndex,K);
+{
+  this->K = K;
+  homReactionReference.electrolyte->setHomReactionEquilibriumConstant(homReactionReference.reactionIndex,K);
 }
 //---------------------------------------------------------------------------
 
@@ -77,27 +77,27 @@ inline void HomReactionFit::setEquilibriumConstant(double K)
 //--- GET METHODS -----------------------------------------------------------
 inline std::string HomReactionFit::getLabel() const
 {
-	return label;
+  return label;
 }
 //---------------------------------------------------------------------------
 inline double HomReactionFit::getEquilibriumConstant() const
 {
-	return K;
+  return K;
 }
 //---------------------------------------------------------------------------
 inline double HomReactionFit::getMinimumEquilibriumConstant() const
 {
-	return KMin;
+  return KMin;
 }
 //---------------------------------------------------------------------------
 inline double HomReactionFit::getMaximumEquilibriumConstant() const
 {
-	return KMax;
+  return KMax;
 }
 //---------------------------------------------------------------------------
 inline unsigned HomReactionFit::getElectrolyte() const
 {
-	return homReactionReference.electrolyteIndex;
+  return homReactionReference.electrolyteIndex;
 }
 //---------------------------------------------------------------------------
 

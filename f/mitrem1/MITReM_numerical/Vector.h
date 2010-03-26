@@ -12,39 +12,39 @@
 class Vector
 {
 public :
-	Vector(unsigned nComponents_);
-	~Vector();
+  Vector(unsigned nComponents_);
+  ~Vector();
 
-	void			setComponents(unsigned c, double value);
+  void      setComponents(unsigned c, double value);
 
-	unsigned		getNComponents() const;
-	DoubleVector	getComponents() const;
-	double			getComponents(unsigned c) const;
+  unsigned    getNComponents() const;
+  DoubleVector  getComponents() const;
+  double      getComponents(unsigned c) const;
 
 private :
-	unsigned			nComponents;
-	EmptyDoubleVector	components;				// array of components of the vector
+  unsigned      nComponents;
+  EmptyDoubleVector  components;        // array of components of the vector
 };
 
 //---------------------------------------------------------------------------
 
 inline unsigned Vector::getNComponents() const
 {
-	return nComponents;
+  return nComponents;
 }
 
 //---------------------------------------------------------------------------
 
 inline DoubleVector Vector::getComponents() const
 {
-	return components;
+  return components;
 }
 
 //---------------------------------------------------------------------------
 
 inline double Vector::getComponents(unsigned c) const
 {
-	return components[c];
+  return components[c];
 }
 
 //---------------------------------------------------------------------------

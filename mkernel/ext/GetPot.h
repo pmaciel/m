@@ -3,7 +3,7 @@
 //
 //  WEBSITE: http://getpot.sourceforge.net
 //
-//  NOTE: The LPGL License for this library is only valid in case that 
+//  NOTE: The LPGL License for this library is only valid in case that
 //        it is not used for the production or development of applications
 //        dedicated to military industry. This is what the author calls
 //        the 'unofficial peace version of the LPGL'.
@@ -53,7 +53,7 @@ extern "C" {
 #include <algorithm>
 
 #include <fstream>
-#include <iostream> // not every compiler distribution includes <iostream> 
+#include <iostream> // not every compiler distribution includes <iostream>
 //                  // with <fstream>
 
 typedef  std::vector<std::string>  STRING_VECTOR;
@@ -70,9 +70,9 @@ public:
     // (*) constructors, destructor, assignment operator -----------------------
     inline GetPot();
     inline GetPot(const GetPot&);
-    inline GetPot(const int argc_, char** argv_, 
+    inline GetPot(const int argc_, char** argv_,
                   const char* FieldSeparator=0x0);
-    inline GetPot(const char* FileName, 
+    inline GetPot(const char* FileName,
                   const char* CommentStart=0x0, const char* CommentEnd=0x0,
                   const char* FieldSeparator=0x0);
     inline ~GetPot();
@@ -113,11 +113,11 @@ public:
     inline void            set(const char* VarName, const char* Value, const bool Requested = true);
     inline void            set(const char* VarName, const double& Value, const bool Requested = true);
     inline void            set(const char* VarName, const int Value, const bool Requested = true);
-    
+
     inline unsigned        vector_variable_size(const char* VarName) const;
     inline STRING_VECTOR   get_variable_names() const;
     inline STRING_VECTOR   get_section_names() const;
-    
+
 
     // (*) cursor oriented functions -------------------------------------------
     inline void            set_prefix(const char* Prefix) { prefix = std::string(Prefix); }
@@ -239,7 +239,7 @@ private:
     //     -- variables
     //       (arguments of the form "variable=value")
     std::vector<variable> variables;
-    
+
     //     -- comment delimiters
     std::string           _comment_start;
     std::string           _comment_end;
@@ -259,7 +259,7 @@ private:
 
     bool            __request_recording_f;   // speed: request recording can be turned off
 
-    //     -- if an argument is requested record it and the 'tag' the section branch to which 
+    //     -- if an argument is requested record it and the 'tag' the section branch to which
     //        it belongs. Caution: both functions mark the sections as 'tagged'.
     void                      __record_argument_request(const std::string& Arg);
     void                      __record_variable_request(const std::string& Arg);
@@ -285,7 +285,7 @@ private:
     inline int                __convert_to_type(const std::string& String, int Default) const;
     inline double             __convert_to_type(const std::string& String, double Default) const;
     //        * prefix extraction
-    const std::string         __get_remaining_string(const std::string& String, 
+    const std::string         __get_remaining_string(const std::string& String,
                                                      const std::string& Start) const;
     //        * search for a specific string
     inline bool               __search_string_vector(const STRING_VECTOR& Vec,
@@ -348,7 +348,7 @@ private:
         const char* Start = FullPath.c_str();
 
         for(char *p = (char*)Start; *p ; p++) {
-            if( *p == '/' ) { 
+            if( *p == '/' ) {
                 *p = '\0';  // set terminating zero for convinience
                 const std::string Section = Start;
                 *p = '/';   // reset slash at place
@@ -371,7 +371,7 @@ GetPot::__basic_initialization()
     cursor = 0;              nominus_cursor = -1;
     search_failed_f = true;  search_loop_f = true;
     prefix = "";             section = "";
-    
+
     // automatic request recording for later ufo detection
     __request_recording_f = true;
 
@@ -384,9 +384,9 @@ GetPot::__basic_initialization()
 }
 
 inline
-GetPot::GetPot() 
-{ 
-    __basic_initialization(); 
+GetPot::GetPot()
+{
+    __basic_initialization();
 
     STRING_VECTOR _apriori_argv;
     _apriori_argv.push_back(std::string("Empty"));
@@ -394,9 +394,9 @@ GetPot::GetPot()
 }
 
 inline
-GetPot::GetPot(const int argc_, char ** argv_, 
-               const char* FieldSeparator /* =0x0 */)     
-    // leave 'char**' non-const to honor less capable compilers ... 
+GetPot::GetPot(const int argc_, char ** argv_,
+               const char* FieldSeparator /* =0x0 */)
+    // leave 'char**' non-const to honor less capable compilers ...
 {
     // TODO: Ponder over the problem when the argument list is of size = 0.
     //       This is 'sabotage', but it can still occur if the user specifies
@@ -426,7 +426,7 @@ GetPot::GetPot(const int argc_, char ** argv_,
 inline
 GetPot::GetPot(const char* FileName,
                const char* CommentStart  /* = 0x0 */, const char* CommentEnd /* = 0x0 */,
-               const char* FieldSeparator/* = 0x0 */)     
+               const char* FieldSeparator/* = 0x0 */)
 {
     __basic_initialization();
 
@@ -434,7 +434,7 @@ GetPot::GetPot(const char* FileName,
     if( CommentStart )   _comment_start = std::string(CommentStart);
     if( CommentEnd )     _comment_end   = std::string(CommentEnd);
     if( FieldSeparator ) _field_separator = FieldSeparator;
-    
+
     STRING_VECTOR _apriori_argv;
     // -- file name is element of argument vector, however, it is not parsed for
     //    variable assignments or nominuses.
@@ -451,10 +451,10 @@ GetPot::GetPot(const GetPot& That)
 
 inline
 GetPot::~GetPot()
-{ 
+{
     // may be some return strings had to be created, delete now !
     victorate(char*, __internal_string_container, it)
-        delete [] *it;  
+        delete [] *it;
 }
 
 inline GetPot&
@@ -491,7 +491,7 @@ GetPot::absorb(const GetPot& That)
     __parse_argument_vector(__tmp);
 }
 
-inline void    
+inline void
 GetPot::clear_requests()
 {
     _requested_arguments.erase(_requested_arguments.begin(), _requested_arguments.end());
@@ -530,7 +530,7 @@ GetPot::__parse_argument_vector(const STRING_VECTOR& ARGV)
 
             // (*) sections are considered 'requested arguments'
             if( __request_recording_f ) _requested_arguments.push_back(arg);
-            
+
             const std::string Name = __DBE_expand_string(arg.substr(1, arg.length()-2));
             section = __process_section_label(Name, section_stack);
             // new section --> append to list of sections
@@ -551,7 +551,7 @@ GetPot::__parse_argument_vector(const STRING_VECTOR& ARGV)
         for(; *p ; p++) {
             if( *p == '=' ) {
                 // (*) record for later ufo detection
-                //     arguments carriying variables are always treated as 'requested' arguments. 
+                //     arguments carriying variables are always treated as 'requested' arguments.
                 //     as a whole! That is 'x=4712' is  considered a requested argument.
                 //
                 //     unrequested variables have to be detected with the ufo-variable
@@ -563,7 +563,7 @@ GetPot::__parse_argument_vector(const STRING_VECTOR& ARGV)
                 //    p+1     (until terminating zero) = value of variable
                 char* o = (char*)p++;
                 *o = '\0';                       // set temporary terminating zero
-                // __set_variable(...) 
+                // __set_variable(...)
                 // calls __find_variable(...) which registers the search
                 // temporarily disable this
                 const bool tmp = __request_recording_f;
@@ -644,15 +644,15 @@ GetPot::__skip_whitespace(std::istream& istr)
         // -- look if characters match the comment starter string
         unsigned    i=0;
         for(; i<_comment_start.length() ; ++i) {
-            if( tmp != _comment_start[i] ) { 
+            if( tmp != _comment_start[i] ) {
                 // NOTE: Due to a 'strange behavior' in Microsoft's streaming lib we do
-                // a series of unget()s instead a quick seek. See 
+                // a series of unget()s instead a quick seek. See
                 // http://sourceforge.net/tracker/index.php?func=detail&aid=1545239&group_id=31994&atid=403915
                 // for a detailed discussion.
 
                 // -- one step more backwards, since 'tmp' already at non-whitespace
-                do istr.unget(); while( i-- != 0 ); 
-                return; 
+                do istr.unget(); while( i-- != 0 );
+                return;
             }
             tmp = istr.get();
             if( ! istr ) { istr.unget(); return; }
@@ -665,7 +665,7 @@ GetPot::__skip_whitespace(std::istream& istr)
             tmp = istr.get();
             if( ! istr ) { istr.unget(); return; }
 
-            if( tmp == _comment_end[match_no] ) { 
+            if( tmp == _comment_end[match_no] ) {
                 match_no++;
                 if( match_no == _comment_end.length() ) {
                     istr.unget();
@@ -785,7 +785,7 @@ GetPot::__process_section_label(const std::string& Section,
         while( i < sname.length() ) {
             if( sname[i] == '/' ) {
                 section_stack.push_back(sname.substr(0,i));
-                if( i+1 < sname.length() ) 
+                if( i+1 < sname.length() )
                     sname = sname.substr(i+1);
                 i = 0;
             }
@@ -840,12 +840,12 @@ GetPot::__get_remaining_string(const std::string& String, const std::string& Sta
 //     -- search for a certain argument and set cursor to position
 inline bool
 GetPot::search(const char* Option)
-{    
+{
     unsigned           OldCursor  = cursor;
     const std::string  SearchTerm = prefix + Option;
 
     // (*) record requested arguments for later ufo detection
-    __record_argument_request(SearchTerm);                             
+    __record_argument_request(SearchTerm);
 
     if( OldCursor >= argv.size() ) OldCursor = static_cast<unsigned int>(argv.size()) - 1;
     search_failed_f = true;
@@ -885,10 +885,10 @@ GetPot::search(unsigned No, const char* P, ...)
         char* Opt = va_arg(ap, char *);
         if( search(Opt) == true ) break;
     }
-    
+
     if( i < No ) {
         ++i;
-        // loop was left before end of array --> hit but 
+        // loop was left before end of array --> hit but
         // make sure that the rest of the search terms is marked
         // as requested.
         for(; i < No; ++i) {
@@ -952,7 +952,7 @@ GetPot::next(int Default)
 {
     if( search_failed_f ) return Default;
     cursor++;
-    if( cursor >= argv.size() )  
+    if( cursor >= argv.size() )
     { cursor = static_cast<unsigned int>(argv.size()); return Default; }
 
     // (*) record requested argument for later ufo detection
@@ -1107,14 +1107,14 @@ GetPot::follow(const char* Default, unsigned No, const char* P, ...)
 // (*) lists of nominus following an option
 //.............................................................................
 //
-inline std::vector<std::string> 
+inline std::vector<std::string>
 GetPot::nominus_followers(const char* Option)
 {
     std::vector<std::string>  result_list;
     if( search(Option) == false ) return result_list;
     while( 1 + 1 == 2 ) {
         ++cursor;
-        if( cursor >= argv.size() ) { 
+        if( cursor >= argv.size() ) {
             cursor = argv.size() - 1;
             return result_list;
         }
@@ -1130,16 +1130,16 @@ GetPot::nominus_followers(const char* Option)
     }
 }
 
-inline std::vector<std::string> 
+inline std::vector<std::string>
 GetPot::nominus_followers(unsigned No, ...)
 {
     std::vector<std::string>  result_list;
-    // (*) record requested of argument is entirely handled in 'search()' 
+    // (*) record requested of argument is entirely handled in 'search()'
     //     and 'nominus_followers()'
     if( No == 0 ) return result_list;
 
     va_list ap;
-    va_start(ap, No);   
+    va_start(ap, No);
     for(unsigned i=0; i<No; ++i) {
         char* Option = va_arg(ap, char *);
         std::vector<std::string> tmp = nominus_followers(Option);
@@ -1149,7 +1149,7 @@ GetPot::nominus_followers(unsigned No, ...)
         // std::cerr << "length = " << tmp.size() << std::endl;
         // std::cerr << "new result list = <";
         // for(std::vector<std::string>::const_iterator it = result_list.begin();
-        //    it != result_list.end(); ++it) 
+        //    it != result_list.end(); ++it)
         //    std::cerr << *it << ", ";
         // std::cerr << ">\n";
     }
@@ -1218,7 +1218,7 @@ GetPot::string_tails(const char* StartString)
 
         // append the found tail to the result vector
         result.push_back((*it).substr(N));
-                
+
         // adapt the nominus vector
         std::vector<unsigned>::iterator nit = idx_nominus.begin();
         for(; nit != idx_nominus.end(); ++nit) {
@@ -1228,7 +1228,7 @@ GetPot::string_tails(const char* StartString)
                 break;
             }
         }
-        
+
         // erase the found option
         argv.erase(it);
 
@@ -1257,7 +1257,7 @@ GetPot::int_tails(const char* StartString, const int Default /* = -1 */)
         // (*) does start string match the given option?
         //     NO -> goto next option
         if( strncmp(StartString, (*it).c_str(), N) != 0) { ++it; ++idx; continue; }
-            
+
         // append the found tail to the result vector
         result.push_back(__convert_to_type((*it).substr(N), Default));
 
@@ -1273,7 +1273,7 @@ GetPot::int_tails(const char* StartString, const int Default /* = -1 */)
 
         // erase the found option
         argv.erase(it);
-        
+
         // 100% safe solution: set iterator back to the beginning.
         // (normally, 'it--' would be enough, but who knows how the
         // iterator is implemented and .erase() definitely invalidates
@@ -1287,7 +1287,7 @@ GetPot::int_tails(const char* StartString, const int Default /* = -1 */)
 }
 
 inline std::vector<double>
-GetPot::double_tails(const char*  StartString, 
+GetPot::double_tails(const char*  StartString,
                      const double Default /* = -1.0 */)
 {
     std::vector<double>  result;
@@ -1299,7 +1299,7 @@ GetPot::double_tails(const char*  StartString,
         // (*) does start string match the given option?
         //     NO -> goto next option
         if( strncmp(StartString, (*it).c_str(), N) != 0) { ++it; ++idx; continue; }
-            
+
         // append the found tail to the result vector
         result.push_back(__convert_to_type((*it).substr(N), Default));
 
@@ -1315,7 +1315,7 @@ GetPot::double_tails(const char*  StartString,
 
         // erase the found option
         argv.erase(it);
-        
+
         // 100% safe solution: set iterator back to the beginning.
         // (normally, 'it--' would be enough, but who knows how the
         // iterator is implemented and .erase() definitely invalidates
@@ -1431,7 +1431,7 @@ GetPot::nominus_vector() const
         nv.push_back(argv[*it]);
 
         // (*) record for later ufo-detection
-        //     when a nominus vector is requested, the entire set of nominus arguments are 
+        //     when a nominus vector is requested, the entire set of nominus arguments are
         //     tagged as 'requested'
         ((GetPot*)this)->__record_argument_request(argv[*it]);
     }
@@ -1449,7 +1449,7 @@ GetPot::next_nominus()
 
         // -- cannot use the Tmp variable, since it is temporary and c_str() will return a pointer
         //    to something that does no longer exist.
-        return Tmp; 
+        return Tmp;
     }
     return std::string("");
 }
@@ -1520,10 +1520,10 @@ GetPot::operator()(const char* VarName, const char* Default, unsigned Idx) const
     return *element;
 }
 
-inline void 
+inline void
 GetPot::__record_argument_request(const std::string& Name)
 {
-    if( ! __request_recording_f ) return; 
+    if( ! __request_recording_f ) return;
 
     // (*) record requested variable for later ufo detection
     _requested_arguments.push_back(Name);
@@ -1535,10 +1535,10 @@ GetPot::__record_argument_request(const std::string& Name)
             if( section.length() != 0 ) _requested_sections.push_back(*it);
 }
 
-inline void 
+inline void
 GetPot::__record_variable_request(const std::string& Name)
 {
-    if( ! __request_recording_f ) return; 
+    if( ! __request_recording_f ) return;
 
     // (*) record requested variable for later ufo detection
     _requested_variables.push_back(Name);
@@ -1557,17 +1557,17 @@ GetPot::__set_variable(const char* VarName, const char* Value)
 {
     const GetPot::variable* Var = __find_variable(VarName);
     if( Var == 0 ) variables.push_back(variable(VarName, Value, _field_separator.c_str()));
-    else           ((GetPot::variable*)Var)->take(Value, _field_separator.c_str());    
+    else           ((GetPot::variable*)Var)->take(Value, _field_separator.c_str());
 }
 
 inline void
 GetPot::set(const char* VarName, const char* Value, const bool Requested /* = yes */)
-{     
+{
     const std::string Arg = prefix + std::string(VarName) + std::string("=") + std::string(Value);
     argv.push_back(Arg);
     __set_variable(VarName, Value);
 
-    // if user does not specify the variable as 'not being requested' it will be 
+    // if user does not specify the variable as 'not being requested' it will be
     // considered amongst the requested variables
     if( Requested ) __record_variable_request(Arg);
 }
@@ -1576,7 +1576,7 @@ inline void
 GetPot::set(const char* VarName, const double& Value, const bool Requested /* = yes */)
 { __set_variable(VarName, __double2string(Value).c_str()); }
 
-inline void 
+inline void
 GetPot::set(const char* VarName, const int Value, const bool Requested /* = yes */)
 { __set_variable(VarName, __int2string(Value).c_str()); }
 
@@ -1805,9 +1805,9 @@ GetPot::__DBE_get_variable(std::string VarName)
     // error occured => variable name == ""
     char* tmp = new char[VarName.length() + 25];
 #ifndef WIN32
-    snprintf(tmp, (int)sizeof(char)*(VarName.length() + 25), 
+    snprintf(tmp, (int)sizeof(char)*(VarName.length() + 25),
 #else
-    _snprintf(tmp, sizeof(char)*(VarName.length() + 25), 
+    _snprintf(tmp, sizeof(char)*(VarName.length() + 25),
 #endif
              "<<${ } variable '%s' undefined>>", VarName.c_str());
     ev.name = "";
@@ -2119,10 +2119,10 @@ GetPot::unidentified_options(unsigned Number,
 
 inline STRING_VECTOR
 GetPot::unidentified_options() const
-{ 
-    // -- every option is an argument. 
-    // -- the set of requested arguments contains the set of requested options. 
-    // -- IF the set of requested arguments contains unrequested options, 
+{
+    // -- every option is an argument.
+    // -- the set of requested arguments contains the set of requested options.
+    // -- IF the set of requested arguments contains unrequested options,
     //    THEN they were requested as 'follow' and 'next' arguments and not as real options.
     //
     // => it is not necessary to separate requested options from the list
@@ -2131,8 +2131,8 @@ GetPot::unidentified_options() const
         const std::string arg = *it;
         if( arg.length() == 0 ) continue;
         if( arg[0] == '-' )     option_list.push_back(arg);
-    }   
-    return unidentified_options(option_list); 
+    }
+    return unidentified_options(option_list);
 }
 
 inline STRING_VECTOR
@@ -2325,9 +2325,9 @@ GetPot::unidentified_nominuses(unsigned Number, const char* Known, ...) const
 
 inline STRING_VECTOR
 GetPot::unidentified_nominuses() const {
-    // -- every nominus is an argument. 
-    // -- the set of requested arguments contains the set of requested nominuss. 
-    // -- IF the set of requested arguments contains unrequested nominuss, 
+    // -- every nominus is an argument.
+    // -- the set of requested arguments contains the set of requested nominuss.
+    // -- IF the set of requested arguments contains unrequested nominuss,
     //    THEN they were requested as 'follow' and 'next' arguments and not as real nominuses.
     //
     // => it is not necessary to separate requested nominus from the list

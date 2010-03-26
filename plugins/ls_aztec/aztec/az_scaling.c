@@ -44,7 +44,7 @@ static void calc_blk_diag_Chol(double *val, int *indx, int *bindx, int *rpntr,
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_scale_f(int action, AZ_MATRIX *Amat, int options[], double b[], double x[], 
+void AZ_scale_f(int action, AZ_MATRIX *Amat, int options[], double b[], double x[],
 	        int proc_config[], struct AZ_SCALING *scaling)
 
 /*******************************************************************************
@@ -84,7 +84,7 @@ void AZ_scale_f(int action, AZ_MATRIX *Amat, int options[], double b[], double x
   proc_config:     Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
 
-  action:          Flag which determines whether to scale the matrix/rhs/sol or 
+  action:          Flag which determines whether to scale the matrix/rhs/sol or
                    just the rhs or just the solution or to inverse scale the
                    rhs or solution.
 
@@ -104,16 +104,16 @@ void AZ_scale_f(int action, AZ_MATRIX *Amat, int options[], double b[], double x
   /**************************** execution begins ******************************/
 
   temp = options[AZ_scaling];
-  if ( (options[AZ_scaling] != AZ_none) && 
+  if ( (options[AZ_scaling] != AZ_none) &&
        (Amat->data_org[AZ_matrix_type] != AZ_MSR_MATRIX) &&
        (Amat->data_org[AZ_matrix_type] != AZ_VBR_MATRIX)  ) {
     options[AZ_scaling] = AZ_none;
   }
 
-  if ( (options[AZ_ignore_scaling] == AZ_TRUE) && (options[AZ_pre_calc] <= AZ_recalc) 
-      && (action == AZ_SCALE_MAT_RHS_SOL)) 
-    scaling->A_norm = AZ_gmax_matrix_norm(Amat->val, Amat->indx, Amat->bindx, 
-                                          Amat->rpntr, Amat->cpntr, Amat->bpntr, 
+  if ( (options[AZ_ignore_scaling] == AZ_TRUE) && (options[AZ_pre_calc] <= AZ_recalc)
+      && (action == AZ_SCALE_MAT_RHS_SOL))
+    scaling->A_norm = AZ_gmax_matrix_norm(Amat->val, Amat->indx, Amat->bindx,
+                                          Amat->rpntr, Amat->cpntr, Amat->bpntr,
                                           proc_config, Amat->data_org);
 
   switch (options[AZ_scaling]) {
@@ -122,14 +122,14 @@ void AZ_scale_f(int action, AZ_MATRIX *Amat, int options[], double b[], double x
     break;
 
   case AZ_Jacobi:
-    AZ_block_diagonal_scaling(action, Amat, Amat->val, Amat->indx, Amat->bindx, 
-                              Amat->rpntr, Amat->cpntr, Amat->bpntr, Amat->data_org, 
+    AZ_block_diagonal_scaling(action, Amat, Amat->val, Amat->indx, Amat->bindx,
+                              Amat->rpntr, Amat->cpntr, Amat->bpntr, Amat->data_org,
 			      b, options, proc_config, scaling);
     break;
 
   case AZ_BJacobi:
-    AZ_block_diagonal_scaling(action, Amat, Amat->val, Amat->indx, Amat->bindx, 
-                              Amat->rpntr, Amat->cpntr, Amat->bpntr, Amat->data_org, 
+    AZ_block_diagonal_scaling(action, Amat, Amat->val, Amat->indx, Amat->bindx,
+                              Amat->rpntr, Amat->cpntr, Amat->bpntr, Amat->data_org,
 			      b, options, proc_config, scaling);
     break;
 
@@ -142,7 +142,7 @@ void AZ_scale_f(int action, AZ_MATRIX *Amat, int options[], double b[], double x
     break;
 
   case AZ_sym_row_sum:
-    AZ_sym_row_sum_scaling(action, Amat, 
+    AZ_sym_row_sum_scaling(action, Amat,
                               b, x, options, proc_config, scaling);
     break;
 
@@ -176,8 +176,8 @@ void AZ_scale_f(int action, AZ_MATRIX *Amat, int options[], double b[], double x
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_block_diagonal_scaling(int action, AZ_MATRIX *Amat, double val[], int indx[], 
-			       int bindx[], int rpntr[], int cpntr[], int bpntr[], 
+void AZ_block_diagonal_scaling(int action, AZ_MATRIX *Amat, double val[], int indx[],
+			       int bindx[], int rpntr[], int cpntr[], int bpntr[],
 			       int data_org[], double b[], int options[], int proc_config[],
 			       struct AZ_SCALING *scaling)
 
@@ -273,7 +273,7 @@ double one = 1.0;
                                          data_org[AZ_name], label,
                                          &itemp);
 
-    if (((action == AZ_SCALE_RHS) || (action == AZ_INVSCALE_RHS) || 
+    if (((action == AZ_SCALE_RHS) || (action == AZ_INVSCALE_RHS) ||
          (options[AZ_pre_calc] >= AZ_reuse)) && (itemp == AZ_NEW_ADDRESS)) {
       (void) fprintf(stderr, "%sERROR: Previous scaling not found for matrix "
                      "with\ndata_org[AZ_name] = %d. Check\n"
@@ -348,7 +348,7 @@ double one = 1.0;
     Amat_inv->matrix_type = Amat->matrix_type;
 
 
-    if (((action == AZ_SCALE_RHS) || (action == AZ_INVSCALE_RHS) || 
+    if (((action == AZ_SCALE_RHS) || (action == AZ_INVSCALE_RHS) ||
          (options[AZ_pre_calc] >= AZ_reuse)) && (itemp == AZ_NEW_ADDRESS)) {
       (void) fprintf(stderr, "%sERROR: Previous scaling not found for matrix "
                      "with\ndata_org[AZ_name] = %d. Check\n"
@@ -450,7 +450,7 @@ double one = 1.0;
 
             /* Matrix solve */
 
-            dgetrs_(None, &m1, &n1, &d3_inv[d_ival], &m1, 
+            dgetrs_(None, &m1, &n1, &d3_inv[d_ival], &m1,
                     &(ipiv[rpntr[iblk_row]]), &val[ival], &m1, &info,1);
           }
           ival += itemp;
@@ -496,7 +496,7 @@ double one = 1.0;
        for (iblk_row = 0; iblk_row < m; iblk_row++) {
           m1 = rpntr[iblk_row+1] - rpntr[iblk_row];
           d_ival  = d3_indx[d3_bpntr[iblk_row] - d_bpoff] - d_idoff;
-          dgetrs_(None, &m1, &ione, &d3_inv[d_ival], &m1, &(ipiv[rpntr[iblk_row]]), 
+          dgetrs_(None, &m1, &ione, &d3_inv[d_ival], &m1, &(ipiv[rpntr[iblk_row]]),
                   &(b[rpntr[iblk_row]]), &m1, &info,1);
        }
     }
@@ -512,7 +512,7 @@ double one = 1.0;
 
 void AZ_sym_block_diagonal_scaling(double val[], int indx[], int bindx[],
                                    int rpntr[], int cpntr[], int bpntr[],
-                                   double b[], int options[], 
+                                   double b[], int options[],
                                    int data_org[], int proc_config[]
                                    /* , struct AZ_SCALING *scaling*/)
 
@@ -846,7 +846,7 @@ void AZ_sym_block_diagonal_scaling(double val[], int indx[], int bindx[],
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_row_sum_scaling(int action, AZ_MATRIX *Amat, double b[], 
+void AZ_row_sum_scaling(int action, AZ_MATRIX *Amat, double b[],
                         int options[], struct AZ_SCALING *scaling)
 
 /*******************************************************************************
@@ -918,7 +918,7 @@ void AZ_row_sum_scaling(int action, AZ_MATRIX *Amat, double b[],
                                        data_org[AZ_name], label, &k);
   scaling->action = AZ_left_scaling;
 
-    if (((action == AZ_SCALE_RHS) || (action == AZ_INVSCALE_RHS) || 
+    if (((action == AZ_SCALE_RHS) || (action == AZ_INVSCALE_RHS) ||
          (options[AZ_pre_calc] >= AZ_reuse)) && (k == AZ_NEW_ADDRESS)) {
     (void) fprintf(stderr, "%sERROR: Previous scaling not found for matrix "
                    "with\ndata_org[AZ_name] = %d. Check\n"
@@ -1073,9 +1073,9 @@ void AZ_row_sum_scaling(int action, AZ_MATRIX *Amat, double b[],
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_sym_diagonal_scaling(int action, AZ_MATRIX *Amat, 
-		        double b[], double x[], 
-                        int options[], 
+void AZ_sym_diagonal_scaling(int action, AZ_MATRIX *Amat,
+		        double b[], double x[],
+                        int options[],
 			int proc_config[], struct AZ_SCALING *scaling)
 
 /*******************************************************************************
@@ -1085,7 +1085,7 @@ void AZ_sym_diagonal_scaling(int action, AZ_MATRIX *Amat,
   to transform solution back to recover solution to original problem.
 
   Author:          John N. Shadid, SNL, 1421 (MSR format)
-  =======          Lydie Prevost, SNL 1422 (VBR format) 
+  =======          Lydie Prevost, SNL 1422 (VBR format)
 
   Return code:     void
   ============
@@ -1156,7 +1156,7 @@ void AZ_sym_diagonal_scaling(int action, AZ_MATRIX *Amat,
                                        sizeof(double), AZ_ALLOC,
                                        data_org[AZ_name], label, &i);
   scaling->action = AZ_left_and_right_scaling;
-  if (((action == AZ_SCALE_RHS) || (action == AZ_INVSCALE_RHS) || 
+  if (((action == AZ_SCALE_RHS) || (action == AZ_INVSCALE_RHS) ||
        (options[AZ_pre_calc] >= AZ_reuse)) && (i == AZ_NEW_ADDRESS)) {
     (void) fprintf(stderr, "%sERROR: Previous scaling not found for matrix "
                    "with\ndata_org[AZ_name] = %d. Check\n"
@@ -1219,22 +1219,22 @@ void AZ_sym_diagonal_scaling(int action, AZ_MATRIX *Amat,
   else {
 
     /***** VBR Matrix *****/
-   
+
     /* find the diagonal terms */
 
     if ( (options[AZ_pre_calc] <= AZ_recalc) && (action == AZ_SCALE_MAT_RHS_SOL)) {
 
      /* index through block rows of matrix */
-   
+
          for (irow = 0; irow < m; irow++) {
-   
+
          /* for all the blocks in a row */
-   
+
          for (k = bpntr[irow]; k < bpntr[irow+1]; k++) {
             icol = bindx[k];
-   
+
             count = 0;
-   
+
             for (j = cpntr[icol]; j < cpntr[icol+1]; j++) {
                for (i = rpntr[irow]; i < rpntr[irow+1]; i++) {
                   if ( icol == irow && i ==j ){
@@ -1243,36 +1243,36 @@ void AZ_sym_diagonal_scaling(int action, AZ_MATRIX *Amat,
                   count++;
                }
             }
-   
+
          }
       }
 
 
      /* do left and right diagonal scaling */
-   
+
       AZ_exchange_bdry(sc_vec, data_org, proc_config);
-   
+
      /* index through rows of matrix */
-   
+
       for (irow = 0; irow < m; irow++) {
-   
+
          /* for all the blocks in a row */
-   
+
          for (k = bpntr[irow]; k < bpntr[irow+1]; k++) {
             icol = bindx[k];
-   
+
             count = 0;
-   
+
             for (j = cpntr[icol]; j < cpntr[icol+1]; j++) {
                for (i = rpntr[irow]; i < rpntr[irow+1]; i++) {
                   val[indx[k]+count] *=  sc_vec[i] * sc_vec[j] ;
                   count++;
                }
             }
-   
+
          }
       }
-   
+
     }
   }
 
@@ -1296,9 +1296,9 @@ void AZ_sym_diagonal_scaling(int action, AZ_MATRIX *Amat,
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_sym_row_sum_scaling(int action, AZ_MATRIX *Amat, 
+void AZ_sym_row_sum_scaling(int action, AZ_MATRIX *Amat,
                               double b[],
-                              double x[], int options[], 
+                              double x[], int options[],
 			      int proc_config[], struct AZ_SCALING *scaling)
 
 /*******************************************************************************
@@ -1434,7 +1434,7 @@ void AZ_sym_row_sum_scaling(int action, AZ_MATRIX *Amat,
       }
     }
   } else {
-      
+
       /***** VBR Matrix *****/
 
       m = data_org[AZ_N_int_blk] + data_org[AZ_N_bord_blk];
@@ -1470,7 +1470,7 @@ void AZ_sym_row_sum_scaling(int action, AZ_MATRIX *Amat,
         rblksz = rptr[blkrow+1] - rptr[blkrow];
         numblk = bptr[blkrow+1] - bptr[blkrow];
         for (row = 0; row < rblksz; row++) {
-          i = rptr[blkrow] + row;  
+          i = rptr[blkrow] + row;
           row_sum = sc_vec[i];     /* Single look up */
           for (blkcol = 0; blkcol < numblk; blkcol++) {
             locblk = bindx[iblk];
@@ -1721,8 +1721,8 @@ void AZ_equil_scaling(int action, AZ_MATRIX *Amat,
         AZ_sum_bdry(colsum, data_org, proc_config);
 
         /* Diagnostics */
-        maxcol = colsum[0]; 
-        mincol = colsum[0]; 
+        maxcol = colsum[0];
+        mincol = colsum[0];
         for (col = 1; col < N; col++) {
           if( colsum[col] < mincol ) mincol = colsum[col];
           if( colsum[col] > maxcol ) maxcol = colsum[col];
@@ -2174,7 +2174,7 @@ void AZ_sum_bdry(double x[], int data_org[], int proc_config[])
 
 /*******************************************************************************
 
-  Sum the external values to the corresponding border value. AZ_sum_bdry is 
+  Sum the external values to the corresponding border value. AZ_sum_bdry is
   derived from the Schwarz preconditioning functions developed by Ray Tuminaro.
 
   Author:          David Day, SNL
@@ -2234,7 +2234,7 @@ void AZ_sum_bdry(double x[], int data_org[], int proc_config[])
                      sizeof(double), data_org[AZ_neighbors+i], type, &st);
      count += data_org[AZ_rec_length+i];
   }
- 
+
   /* Receive messages and sum recvd values to the send list */
   count = 0;
   for ( i = 0 ; i < data_org[AZ_N_neigh] ; i++ ) {

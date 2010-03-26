@@ -13,13 +13,13 @@
 class ElementProps_3D : public ElementProps
 {
 public :
-	ElementProps_3D(unsigned nDimensions_);
-	virtual ~ElementProps_3D();
+  ElementProps_3D(unsigned nDimensions_);
+  virtual ~ElementProps_3D();
 
-	virtual double	calcSize(DoubleVectorList coordinates) const;
-	virtual DoubleVector	calcNormal(unsigned m, DoubleVectorList coordinates) const;
+  virtual double  calcSize(DoubleVectorList coordinates) const;
+  virtual DoubleVector  calcNormal(unsigned m, DoubleVectorList coordinates) const;
 
-	// ElementProps nodes are numbered (how?) !!!
+  // ElementProps nodes are numbered (how?) !!!
 };
 
 //---------------------------------------------------------------------------

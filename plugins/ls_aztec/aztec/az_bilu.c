@@ -18,9 +18,9 @@ void AZ_fact_bilu(int Nrows, AZ_MATRIX *matrix, int diag_block[],
  *
  * Paramaters
  * ==========
- * 
+ *
  * Nrows              On input, number of block rows in the system.
- * 
+ *
  * matrix             On input, VBR matrix to be factored.
  *                    On output, LU factors. Note: Instead of
  *                    storing U_ii, the LU factors of U_ii are
@@ -56,7 +56,7 @@ void AZ_fact_bilu(int Nrows, AZ_MATRIX *matrix, int diag_block[],
    T[0] = 'T'; T[1] = '\0';
 
    /* figure out the largest possible block */
- 
+
    largest = 0;
    for (i = 0 ; i < Nrows; i++) {
       si = cpntr[i+1] - cpntr[i];
@@ -83,7 +83,7 @@ void AZ_fact_bilu(int Nrows, AZ_MATRIX *matrix, int diag_block[],
 
       /* store the nonzero pattern for this row */
 
-      for (tj = bpntr[i]; tj < bpntr[i+1]; tj++ ) 
+      for (tj = bpntr[i]; tj < bpntr[i+1]; tj++ )
          ipattern[bindx[tj]] = indx[tj];
 
 
@@ -98,9 +98,9 @@ void AZ_fact_bilu(int Nrows, AZ_MATRIX *matrix, int diag_block[],
                k = bindx[tk];
                if ( (ipattern[k] != -1) && (k > j) ) {
                   sk = cpntr[k+1] - cpntr[k];
-                  dgemm_(N, N, &si, &sk, &sj, &alpha, 
-                         &(val[indx[tj]]), &si, &(val[indx[tk]]), &sj, &beta, 
-                         &(val[ipattern[k]]), &si, 
+                  dgemm_(N, N, &si, &sk, &sj, &alpha,
+                         &(val[indx[tj]]), &si, &(val[indx[tk]]), &sj, &beta,
+                         &(val[ipattern[k]]), &si,
 /* strlen(N), strlen(N) */        1, 1);
                }
             }
@@ -133,7 +133,7 @@ void AZ_fact_bilu(int Nrows, AZ_MATRIX *matrix, int diag_block[],
          }
       }
 
-      dgetrf_(&si, &si, &(val[indx[diag_block[i]]]), &si, &(pivot[cpntr[i]]), 
+      dgetrf_(&si, &si, &(val[indx[diag_block[i]]]), &si, &(pivot[cpntr[i]]),
               &info);
       if (info > 0) {
           printf("Incomplete factorization yields singular subblock\n");
@@ -154,7 +154,7 @@ void AZ_fact_bilu(int Nrows, AZ_MATRIX *matrix, int diag_block[],
 
       /* clear the nonzero pattern for this row */
 
-      for (tj =bpntr[i]; tj < bpntr[i+1]; tj++ ) 
+      for (tj =bpntr[i]; tj < bpntr[i+1]; tj++ )
          ipattern[bindx[tj]] = -1;
    }
    AZ_free(Sub_block);
@@ -165,7 +165,7 @@ void AZ_fact_bilu(int Nrows, AZ_MATRIX *matrix, int diag_block[],
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_lower_triang_vbr_solve(int Nrows, int cpntr[], int bpntr[], 
+void AZ_lower_triang_vbr_solve(int Nrows, int cpntr[], int bpntr[],
          int indx[], int bindx[], double val[], double b[]) {
 /*******************************************************************************
 
@@ -180,10 +180,10 @@ void AZ_lower_triang_vbr_solve(int Nrows, int cpntr[], int bpntr[],
 
   Nrows            Number of (block) rows in the matrix and L.
 
-  val, indx        VBR MATRIX representing L. 
+  val, indx        VBR MATRIX representing L.
   bindx, rpntr,
   cpntr, bpntr
-                  
+
   diag_block:      On input, array of size Nrows points on each diagonal block.
 
   b:               On input, right hand side.
@@ -196,7 +196,7 @@ void AZ_lower_triang_vbr_solve(int Nrows, int cpntr[], int bpntr[],
    int i, j, i1, si, sj, tj, ione = 1;
    double minus_one = -1., one = 1.;
    char N[2];
-           
+
    N[0] = 'N'; N[1] = '\0';
    for ( i = 0; i < Nrows ; i++ ) {
       si = cpntr[i+1] - cpntr[i];
@@ -206,8 +206,8 @@ void AZ_lower_triang_vbr_solve(int Nrows, int cpntr[], int bpntr[],
          j = bindx[tj];
          sj = cpntr[j+1] - cpntr[j];
          if (j < i) {
-            dgemv_(N, &si, &sj, &minus_one, &(val[indx[tj]]), &si, 
-                   &(b[cpntr[j]]), &ione, &one, &(b[i1]), &ione, 
+            dgemv_(N, &si, &sj, &minus_one, &(val[indx[tj]]), &si,
+                   &(b[cpntr[j]]), &ione, &one, &(b[i1]), &ione,
                    1 /* strlen(N) */);
          }
       }
@@ -219,12 +219,12 @@ void AZ_lower_triang_vbr_solve(int Nrows, int cpntr[], int bpntr[],
 /******************************************************************************/
 
 void AZ_upper_triang_vbr_solve(int Nrows, int cpntr[], int bpntr[], int indx[],
-        int bindx[], double val[], double b[], int pivot[], int diag_block[]) 
+        int bindx[], double val[], double b[], int pivot[], int diag_block[])
 {
 /*
   Upper triangular solver for Uy = b with U stored in VBR matrix format.
 
-  NOTE: Instead of storing U_ii, the LU factors of U_ii are stored. Instead 
+  NOTE: Instead of storing U_ii, the LU factors of U_ii are stored. Instead
         of storing U_ij (j>i), the matrix inv(U_ii) U_ij is stored.
 
   Return code:     void
@@ -236,7 +236,7 @@ void AZ_upper_triang_vbr_solve(int Nrows, int cpntr[], int bpntr[], int indx[],
   Nrows            On input, number of (block) rows in the matrix and L.
 
   val, indx        On input, VBR matrix representing U where the LU factors
-  bindx, rpntr,    of U_ii are stored instead of U_ii and the matrix 
+  bindx, rpntr,    of U_ii are stored instead of U_ii and the matrix
   cpntr, bpntr     inv(U_ii) U_ij is stored instead of U_ij (j>i).
 
   diag_block:      On input, array of size Nrows points on each diagonal block.
@@ -247,10 +247,10 @@ void AZ_upper_triang_vbr_solve(int Nrows, int cpntr[], int bpntr[], int indx[],
    int i, j, i1, si, sj, tj, ione = 1, info;
    double minus_one = -1., one = 1.;
    char N[2];
-           
+
    N[0] = 'N'; N[1] = '\0';
 
-   for (i = Nrows-1; i >= 0 ; i--) { 
+   for (i = Nrows-1; i >= 0 ; i--) {
       si = cpntr[i+1]  - cpntr[i];
       i1 = cpntr[i];
 
@@ -262,8 +262,8 @@ void AZ_upper_triang_vbr_solve(int Nrows, int cpntr[], int bpntr[], int indx[],
          j  = bindx[tj];
          sj = cpntr[j+1] - cpntr[j];
          if (j > i) {
-            dgemv_(N, &si, &sj, &minus_one, &(val[indx[tj]]), &si, 
-                   &(b[cpntr[j]]), &ione, &one, &(b[i1]), &ione, 
+            dgemv_(N, &si, &sj, &minus_one, &(val[indx[tj]]), &si,
+                   &(b[cpntr[j]]), &ione, &one, &(b[i1]), &ione,
                    1 /* strlen(N) */);
          }
       }

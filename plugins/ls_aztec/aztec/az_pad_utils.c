@@ -22,7 +22,7 @@ static char rcsid[] = "$Id: az_pad_utils.c,v 1.14 2000/06/02 16:48:31 tuminaro E
  * Export of this program may require a license from the United States         *
  * Government.                                                                 *
  ******************************************************************************/
- 
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -32,9 +32,9 @@ static char rcsid[] = "$Id: az_pad_utils.c,v 1.14 2000/06/02 16:48:31 tuminaro E
 /****************************************************************************/
 /****************************************************************************/
 /****************************************************************************/
-void AZ_space_for_padded_matrix(int overlap, int N_nonzeros, int N, 
+void AZ_space_for_padded_matrix(int overlap, int N_nonzeros, int N,
     int *extra_rows, int *extra_nonzeros, int N_external, int *largest)
- 
+
 {
 /****************************************************************************
   Estimate the number of additional rows and nonzeros due to overlapping.
@@ -42,31 +42,31 @@ void AZ_space_for_padded_matrix(int overlap, int N_nonzeros, int N,
   and the number of nonzeros per row.
 
   Author:          Ray Tuminaro, SNL, 9222
- 
+
   Return code:     void
   ============
- 
+
   Parameter list:
   ===============
- 
-  overlap:         On input, 
+
+  overlap:         On input,
 
                       == AZ_none: nonoverlapping domain decomposition
                       == AZ_diag: use rows corresponding to external variables
                                   but only keep the diagonal for these rows.
                       == k      : Obtain rows that are a distance k away from
                                   rows owned by this processor.
-  
+
   N_nonzeros:      On input, number of nonzeros in the unpadded matrix.
 
   N:               On input, number of rows in the unpadded matrix.
 
-  extra_rows:      On output, estimate of the number of additional rows 
+  extra_rows:      On output, estimate of the number of additional rows
                    needed for padding the matrix corresponding to 'overlap'.
 
   extra_nonzeros:  On output, estimate of the number of additional nonzeros
                    needed for padding the matrix corresponding to 'overlap'.
- 
+
   N_external:      On input, number of external variables corresponding to
                    the unpadded matrix.
 
@@ -127,18 +127,18 @@ for (i = 2; i <= overlap; i++ ) {
 int AZ_adjust_N_nz_to_fit_memory(int N,int N_int_arrays, int N_dbl_arrays)
 {
 /****************************************************************************
-  Find (and return) the largest value of k <= N such that we can 
-  successfully allocate  N_int_arrays integer arrays of size k and 
+  Find (and return) the largest value of k <= N such that we can
+  successfully allocate  N_int_arrays integer arrays of size k and
   N_dbl_arrays double arrays of size k.
 
   Author:          Ray Tuminaro, SNL, 9222
- 
+
   Return code:     int
   ============
- 
+
   Parameter list:
   ===============
- 
+
   N:               On input, the maximum number of integers and doubles
                    that we wish to try and allocate.
  */
@@ -150,32 +150,32 @@ int AZ_adjust_N_nz_to_fit_memory(int N,int N_int_arrays, int N_dbl_arrays)
    iptr = (int **) AZ_allocate(N_int_arrays*sizeof(int *));
    dptr = (double **) AZ_allocate(N_dbl_arrays*sizeof(double *));
 
-   if ( (dptr == 0) || (iptr == 0) ) 
+   if ( (dptr == 0) || (iptr == 0) )
       AZ_perror("ERROR: not enough memory for preconditioner.\n");
 
-   for (i = 0 ; i < N_int_arrays ; i++ ) 
+   for (i = 0 ; i < N_int_arrays ; i++ )
       iptr[i] = (int    *) AZ_allocate((N+20)*sizeof(int));
-   for (i = 0 ; i < N_dbl_arrays ; i++ ) 
+   for (i = 0 ; i < N_dbl_arrays ; i++ )
       dptr[i] = (double *) AZ_allocate((N+20)*sizeof(double));
                                    /* add a little extra */
                                    /* for manage memory  */
- 
+
    /* Decrease memory until the problem fits */
- 
-   while ( (dptr[N_dbl_arrays-1] == NULL) || 
+
+   while ( (dptr[N_dbl_arrays-1] == NULL) ||
            (iptr[N_int_arrays-1] == NULL) ) {
 
-      for (i = N_dbl_arrays-1 ; i >= 0; i-- ) 
+      for (i = N_dbl_arrays-1 ; i >= 0; i-- )
          if (dptr[i] != NULL) AZ_free(dptr[i]);
-      for (i = N_int_arrays-1 ; i >= 0; i-- ) 
+      for (i = N_int_arrays-1 ; i >= 0; i-- )
          if (iptr[i] != NULL) AZ_free(iptr[i]);
 
       N = (int) ( ((double) N)*.91);
       if (N == 0) AZ_perror("ERROR: not enough memory for preconditioner.\n");
- 
-      for (i = 0 ; i < N_int_arrays ; i++ ) 
+
+      for (i = 0 ; i < N_int_arrays ; i++ )
          iptr[i] = (int    *) AZ_allocate((N+20)*sizeof(int));
-      for (i = 0 ; i < N_dbl_arrays ; i++ ) 
+      for (i = 0 ; i < N_dbl_arrays ; i++ )
          dptr[i] = (double *) AZ_allocate((N+20)*sizeof(double));
    }
    for (i = N_dbl_arrays-1 ; i >= 0; i-- ) AZ_free(dptr[i]);
@@ -191,12 +191,12 @@ extern int AZ_sys_msg_type;
 /****************************************************************************/
 
 void AZ_combine_overlapped_values(int sym_flag,int data_org[],int options[],
-	double x[], int map[], double ext_vals[], int name, 
+	double x[], int map[], double ext_vals[], int name,
 	int proc_config[])
 {
-  /* Add the values that are redundant. That is, add the external values 
-   * to the border values that correspond to them. This will make the    
-   * operator symmetric if the incomplete factorization used above was   
+  /* Add the values that are redundant. That is, add the external values
+   * to the border values that correspond to them. This will make the
+   * operator symmetric if the incomplete factorization used above was
    * symmetric.                                                          */
 
   int type, total, i, j, count, st, from, N_unpadded, N;
@@ -216,15 +216,15 @@ void AZ_combine_overlapped_values(int sym_flag,int data_org[],int options[],
 
   if (options[AZ_overlap] >= 1) {
      for (i = 0 ; i < N-N_unpadded ; i++ ) ext_vals[i] = x[i + N_unpadded];
-     for (i = 0 ; i < N-N_unpadded ; i++ ) 
+     for (i = 0 ; i < N-N_unpadded ; i++ )
         x[i+N_unpadded] = ext_vals[map[i]-N_unpadded];
   }
 
 
   /* first send the external points to the neighbors */
- 
+
   type            = AZ_sys_msg_type;
-  AZ_sys_msg_type = (AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS + 
+  AZ_sys_msg_type = (AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS +
                      AZ_MSG_TYPE;
 
   /* figure out longest message to be received and allocate space for it. */
@@ -256,9 +256,9 @@ void AZ_combine_overlapped_values(int sym_flag,int data_org[],int options[],
                      sizeof(double), data_org[AZ_neighbors+i], type, &st);
      count += data_org[AZ_rec_length+i];
   }
- 
+
   /* receive messages and add recvd values to the send list */
- 
+
   count = 0;
   for ( i = 0 ; i < data_org[AZ_N_neigh] ; i++ ) {
      from = data_org[AZ_neighbors+i];

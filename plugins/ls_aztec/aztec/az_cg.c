@@ -32,9 +32,9 @@ static char rcsid[] = "$Id: az_cg.c,v 1.34 2001/06/01 18:35:16 tuminaro Exp $";
 #include <float.h>
 #include "az_aztec.h"
 
-void AZ_pcg_f(double b[], double x[], double weight[], int options[], 
-              double params[], int proc_config[],double status[], 
-              AZ_MATRIX *Amat, AZ_PRECOND *precond, 
+void AZ_pcg_f(double b[], double x[], double weight[], int options[],
+              double params[], int proc_config[],double status[],
+              AZ_MATRIX *Amat, AZ_PRECOND *precond,
               struct AZ_CONVERGE_STRUCT *convergence_info)
 
 /*******************************************************************************
@@ -76,7 +76,7 @@ void AZ_pcg_f(double b[], double x[], double weight[], int options[],
   Amat:            Structure used to represent the matrix (see file az_aztec.h
                    and Aztec User's Guide).
 
-  precond:         Structure used to represent the preconditionner  
+  precond:         Structure used to represent the preconditionner
                    (see file az_aztec.h and Aztec User's Guide).
 *******************************************************************************/
 
@@ -95,7 +95,7 @@ void AZ_pcg_f(double b[], double x[], double weight[], int options[],
   double       scaled_r_norm, epsilon, brkdown_tol = DBL_EPSILON;
   int          *data_org, str_leng, first_time = AZ_TRUE;
   char         label[64],suffix[32], prefix[64];
-  
+
 double **saveme, *ptap;
 int *kvec_sizes = NULL, current_kept = 0;
 double *dots;
@@ -118,13 +118,13 @@ double *block;
      prefix[str_leng++] = ' '; prefix[str_leng++] = ' '; prefix[str_leng++] = ' ';
      prefix[str_leng++] = ' '; prefix[str_leng++] = ' ';
   }
-  prefix[str_leng] = '\0';             
+  prefix[str_leng] = '\0';
 
 
   /* pull needed values out of parameter arrays */
 
   data_org = Amat->data_org;
-  
+
   N            = data_org[AZ_N_internal] + data_org[AZ_N_border];
 
 
@@ -141,9 +141,9 @@ double *block;
                       /* matvec on paragon. */
 
 
-  
+
   sprintf(label,"z%s",suffix);
-  p  = (double *) AZ_manage_memory(4*NN*sizeof(double),AZ_ALLOC, 
+  p  = (double *) AZ_manage_memory(4*NN*sizeof(double),AZ_ALLOC,
 			           AZ_SYS, label, &j);
   r  = &(p[1*NN]);
   z  = &(p[2*NN]);
@@ -151,7 +151,7 @@ double *block;
 
   AZ_compute_residual(b, x, r, proc_config, Amat);
 
-  if (options[AZ_apply_kvecs]) { 
+  if (options[AZ_apply_kvecs]) {
      AZ_compute_global_scalars(Amat, x, b, r,
                             weight, &rec_residual, &scaled_r_norm, options,
                             data_org, proc_config, &r_avail,NULL, NULL, &r_z_dot,
@@ -167,7 +167,7 @@ double *block;
      dgemv_(T,&N,&(kvec_sizes[AZ_Nkept]),&doubleone,block,&N, r, &one, &dzero, dots, &one, 1);
      AZ_gdot_vec(kvec_sizes[AZ_Nkept], dots, &(dots[kvec_sizes[AZ_Nkept]]), proc_config);
      for (i = 0; i < kvec_sizes[AZ_Nkept]; i++) dots[i] = dots[i]/ptap[i];
-     dgemv_(T2, &N, &(kvec_sizes[AZ_Nkept]), &doubleone, block, &N, dots, &one, &doubleone, 
+     dgemv_(T2, &N, &(kvec_sizes[AZ_Nkept]), &doubleone, block, &N, dots, &one, &doubleone,
             x,  &one, 1);
 
       AZ_free(dots);
@@ -175,7 +175,7 @@ double *block;
      if ((options[AZ_output] != AZ_none) && (proc == 0))
         printf("\t\tApplied Previous Krylov Vectors ... \n\n");
   }
-  if (options[AZ_keep_kvecs] > 0) 
+  if (options[AZ_keep_kvecs] > 0)
      AZ_space_for_kvecs(AZ_NEW_ADDRESS, &kvec_sizes, &saveme,
                      &ptap, options, data_org, suffix,
                      proc_config[AZ_node], &block);
@@ -224,7 +224,7 @@ double *block;
     for (i = 0; i < N; i++) p[i] = z[i] + beta * p[i];
     Amat->matvec(p, ap, Amat, proc_config);
 
-    if ((options[AZ_orth_kvecs]) && (kvec_sizes != NULL)) { 
+    if ((options[AZ_orth_kvecs]) && (kvec_sizes != NULL)) {
        for (i = 0; i < current_kept; i++) {
           alpha = -AZ_gdot(N, ap, saveme[i], proc_config)/ptap[i];
           daxpy_(&N, &alpha,  saveme[i],  &one, p, &one);
@@ -325,8 +325,8 @@ double *block;
 
     converged = scaled_r_norm < epsilon;
     if (options[AZ_check_update_size] & converged)
-      converged = AZ_compare_update_vs_soln(N, -1.,alpha, p, x, 
-                                           params[AZ_update_reduction], 
+      converged = AZ_compare_update_vs_soln(N, -1.,alpha, p, x,
+                                           params[AZ_update_reduction],
                                            options[AZ_output], proc_config, &first_time);
 
 

@@ -12,7 +12,7 @@ void AZ_lower_icc(int bindx[],double val[],int N, double rhs[])
  * and val.
  *
  */
- 
+
    int i,j,col;
 
    for (i = 0 ; i < N ; i++ ) {
@@ -81,7 +81,7 @@ void AZ_fact_chol(int bindx[], double val[], int N)
     first = bindx[0];
     for (i = 0 ; i < N ; i++) {
        last = bindx[i+1];
-       for (j = first; j < last ; j++) 
+       for (j = first; j < last ; j++)
           if (bindx[j] > i) break;
        diag[i] = j;
        first = last;
@@ -91,7 +91,7 @@ void AZ_fact_chol(int bindx[], double val[], int N)
 
     for (i = 0 ; i < N ; i++ ) {
        val[i] -= sum[i];
-       for (kk = diag[i]; kk < bindx[i+1]; kk++) 
+       for (kk = diag[i]; kk < bindx[i+1]; kk++)
           mark[bindx[kk]] = kk+1;
        for (kk = bindx[i]; kk < diag[i]; kk++) {
           row = bindx[kk];
@@ -124,9 +124,9 @@ void AZ_fact_chol(int bindx[], double val[], int N)
          val[next_nz++] = val[j];
       }
    }
-   for (i = 1; i <= N; i++) 
+   for (i = 1; i <= N; i++)
       bindx[i] = bindx[i-1] + bindx[i] - diag[i-1];
-   
+
 
    for (i = 0 ; i < N ; i++) val[i] = 1./val[i];
 

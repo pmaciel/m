@@ -32,8 +32,8 @@ static char rcsid[] = "$Id: az_cgs.c,v 1.28 2000/06/02 16:46:55 tuminaro Exp $";
 #include <float.h>
 #include "az_aztec.h"
 
-void AZ_pcgs(double b [], double x[], double weight[], int options[], 
-	double params[], int proc_config[], double status[], AZ_MATRIX *Amat, 
+void AZ_pcgs(double b [], double x[], double weight[], int options[],
+	double params[], int proc_config[], double status[], AZ_MATRIX *Amat,
         AZ_PRECOND *precond, struct AZ_CONVERGE_STRUCT *convergence_info)
 
 /*******************************************************************************
@@ -114,7 +114,7 @@ void AZ_pcgs(double b [], double x[], double weight[], int options[],
   prefix[str_leng] = '\0';
 
   data_org = Amat->data_org;
- 
+
 
   /* pull needed values out of parameter arrays */
 

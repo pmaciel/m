@@ -38,7 +38,7 @@ static char rcsid[] = "$Id: az_subdomain_solver.c,v 1.18 2000/06/02 16:48:32 tum
 /* End Aztec 2.1 mheroux mod */
 
 /*
- * 
+ *
  * These routines contain all the solver specific stuff for solving on subdomains.
  *
  * Note: See az_solve.c for an example of using these routines for an lu solver.
@@ -53,7 +53,7 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
 {
 /****************************************************************************
   Given an overlapped subdomain matrix, factor it according to the
-  chosen algorithm and store the result back in subdomain. Additionally, 
+  chosen algorithm and store the result back in subdomain. Additionally,
   store the number of nonzeros used in the factorization in nz_used.
 
   Notes:
@@ -71,10 +71,10 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
   Parameter list:
   ===============
 
-  context        On input, context contains the matrix to be 
-                   factored in context.A_overlapped (MSR format), 
+  context        On input, context contains the matrix to be
+                   factored in context.A_overlapped (MSR format),
                    On output, context contains the factored matrix
-                   which is stored in a format specific to the solver and 
+                   which is stored in a format specific to the solver and
                    any additional parameters required by the backsolver.
 
   N                On input, the size of the linear system to be solved.
@@ -92,7 +92,7 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
         double *cr, *unorm, *a, *val;
         int    *ind, *jnz, *ja, *rnr, ifill;
         double dtemp = (context->aztec_choices->params)[AZ_omega];
-        int    N_blk_rows, name = context->A_overlapped->data_org[AZ_name], 
+        int    N_blk_rows, name = context->A_overlapped->data_org[AZ_name],
                N_nz_matrix;
         char   str[80];
 
@@ -127,24 +127,24 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
            /* recover some space so that there will */
            /* be enough room to convert back to vbr */
 
-           i = AZ_compress_msr(&(context->A_overlapped->bindx), 
+           i = AZ_compress_msr(&(context->A_overlapped->bindx),
                          &(context->A_overlapped->val), context->N_nz_allocated,
                          *nz_used, name, context);
            context->N_nz = *nz_used;
            context->N_nz_allocated = *nz_used;
 
-           AZ_msr2vbr_mem_efficient(N, &(context->A_overlapped->bindx), 
-                                 &(context->A_overlapped->val), 
-                                 &(context->A_overlapped->cpntr), 
-                                 &(context->A_overlapped->bpntr), 
-                                 &(context->A_overlapped->indx), &N_blk_rows, 
+           AZ_msr2vbr_mem_efficient(N, &(context->A_overlapped->bindx),
+                                 &(context->A_overlapped->val),
+                                 &(context->A_overlapped->cpntr),
+                                 &(context->A_overlapped->bpntr),
+                                 &(context->A_overlapped->indx), &N_blk_rows,
                                  (context->A_overlapped->data_org)[AZ_name],
                                  context->tag,i);
 
 	   context->A_overlapped->matrix_type = AZ_VBR_MATRIX;
-   
+
 	   /*ifp_initialize();*/
-  
+
 	   /* Create IFPACK encapsulation of Amat */
 
 	   context->A_overlapped->rpntr = context->A_overlapped->cpntr;
@@ -154,7 +154,7 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
 	   context->A_overlapped->data_org[AZ_N_bord_blk] = 0;
 	   (context->aztec_choices->options)[AZ_graph_fill] = graph_fill;
 
-	   az2ifp_blockmatrix(&bmat, context->A_overlapped); 
+	   az2ifp_blockmatrix(&bmat, context->A_overlapped);
 
 	   context->A_overlapped->data_org[AZ_N_int_blk] = N_int_blk;
 	   context->A_overlapped->data_org[AZ_N_bord_blk] = N_bord_blk;
@@ -183,29 +183,29 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
            AZ_sort_msr(bindx, val, N);
            ifill = (context->aztec_choices->options)[AZ_graph_fill];
            if (ifill > 0) {
-              *nz_used = AZ_fill_sparsity_pattern(context, ifill, 
+              *nz_used = AZ_fill_sparsity_pattern(context, ifill,
                                                   bindx, val, N);
 
            }
            /* recover some space so that there will */
            /* be enough room to convert back to vbr */
 
-           i = AZ_compress_msr(&(context->A_overlapped->bindx), 
+           i = AZ_compress_msr(&(context->A_overlapped->bindx),
                          &(context->A_overlapped->val), context->N_nz_allocated,
                          *nz_used, name, context);
            context->N_nz = *nz_used;
            context->N_nz_allocated = *nz_used;
 
-           AZ_msr2vbr_mem_efficient(N, &(context->A_overlapped->bindx), 
-                                 &(context->A_overlapped->val), 
-                                 &(context->A_overlapped->cpntr), 
-                                 &(context->A_overlapped->bpntr), 
-                                 &(context->A_overlapped->indx), &N_blk_rows, 
+           AZ_msr2vbr_mem_efficient(N, &(context->A_overlapped->bindx),
+                                 &(context->A_overlapped->val),
+                                 &(context->A_overlapped->cpntr),
+                                 &(context->A_overlapped->bpntr),
+                                 &(context->A_overlapped->indx), &N_blk_rows,
                                  (context->A_overlapped->data_org)[AZ_name],
                                  context->tag,i);
 
 	   context->A_overlapped->matrix_type = AZ_VBR_MATRIX;
-   
+
            bindx = context->A_overlapped->bindx;
            bpntr = context->A_overlapped->bpntr;
            val   = context->A_overlapped->val;
@@ -245,7 +245,7 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
            context->iu    = (int *) AZ_manage_memory((N+1)*sizeof(int),
                                              AZ_ALLOC, name, str, &i);
            AZ_fact_ilut(&N, context->A_overlapped, a, ja,
-                        (context->aztec_choices->params)[AZ_drop], 
+                        (context->aztec_choices->params)[AZ_drop],
                         context->extra_fact_nz_per_row, N_nz - bindx[N],
                         context->iu,cr,unorm,ind, nz_used, jnz);
            AZ_free(cr);
@@ -263,14 +263,14 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
            AZ_sort_msr(bindx, val, N);
            ifill = (context->aztec_choices->options)[AZ_graph_fill];
            if (ifill > 0) {
-              *nz_used = AZ_fill_sparsity_pattern(context, ifill, 
+              *nz_used = AZ_fill_sparsity_pattern(context, ifill,
                                                   bindx, val, N);
            }
            context->iu= (int *) AZ_manage_memory((N+1)*sizeof(int),AZ_ALLOC,
                                                     name, str, &i);
            iw = (int *) AZ_allocate((N+1)*sizeof(int));
            if (iw == NULL) AZ_perror("Out of space in ilu.\n");
-           AZ_fact_rilu(N, nz_used, context->iu, iw, context->A_overlapped, 
+           AZ_fact_rilu(N, nz_used, context->iu, iw, context->A_overlapped,
                         dtemp);
            AZ_free(iw);
            break;
@@ -284,7 +284,7 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
            AZ_sort_msr(bindx, val, N);
            ifill = (context->aztec_choices->options)[AZ_graph_fill];
            if (ifill > 0)
-              *nz_used = AZ_fill_sparsity_pattern(context, ifill, 
+              *nz_used = AZ_fill_sparsity_pattern(context, ifill,
                                                   bindx, val, N);
 
            AZ_fact_chol(context->A_overlapped->bindx,
@@ -306,14 +306,14 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
            context->pivot = (double *) AZ_manage_memory((N+1)*sizeof(double),
                                              AZ_ALLOC, name, str,&i);
 
-           aflag[0] = 16.0;    aflag[2] = 1.0e8;   aflag[3] = 1.0e-12;   
+           aflag[0] = 16.0;    aflag[2] = 1.0e8;   aflag[3] = 1.0e-12;
            aflag[1] = (context->aztec_choices->params)[AZ_drop];
 
            /* set up flags for the sparse factorization solver */
 
            context->iflag[0] = 1;         context->iflag[1] = 2;
            context->iflag[2] = 1;         context->iflag[3] = 0;
-           context->iflag[4] = 2;    
+           context->iflag[4] = 2;
            /*    Note: if matrix is pos def, iflag[2] = 2 is cheaper */
 
            N_nz_matrix = bindx[N] - 1;
@@ -324,7 +324,7 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
 
            for (i =  N_nz_matrix ; i < N_nz ; i++) bindx[i] = -7;
 
-           /* factor the matrix */ 
+           /* factor the matrix */
 
            if (N == 1) {
              context->A_overlapped->val[0]=1./context->A_overlapped->val[0];
@@ -336,13 +336,13 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
                  printf("Not enough memory inside subdomain_solve\n");
               }
               for (i = 0 ; i < N ; i++ ) fake_rhs[i] = 0.0;
-              AZ_fact_lu(fake_rhs, context->A_overlapped,aflag, 
-                         context->pivot, rnr, context->ha, 
+              AZ_fact_lu(fake_rhs, context->A_overlapped,aflag,
+                         context->pivot, rnr, context->ha,
 			 context->iflag, &N_nz_matrix,
                          &ifail, &(context->N_nz_factors),
                          &N, &N);
 
-              (context->iflag)[4] = 3; 
+              (context->iflag)[4] = 3;
               AZ_free(fake_rhs);
 
               /* find out what was not used by checking what was not touched */
@@ -364,7 +364,7 @@ void AZ_factor_subdomain(struct context *context, int N, int N_nz,
                    context->aztec_choices->options[AZ_subdomain_solve]);
               exit(1);
            }
-        }      
+        }
 }
 
 /****************************************************************************/
@@ -378,15 +378,15 @@ void AZ_free_space_holder(struct context *context)
   Essentially, this routine deallocates memory allocated via
   AZ_hold_space(). The whole point of these two routines is to
   allocated all the space needed during the factorization process
-  EXCLUDING all arrays whose size is related to the number of 
-  nonzeros. Once this is done, we can determine how much space 
+  EXCLUDING all arrays whose size is related to the number of
+  nonzeros. Once this is done, we can determine how much space
   there is left for the large arrays required for the factorization
   and split the remaining space amoung these large arrays. In this
   way LU routines where it is difficult to know the space requirements
   ahead of time can try to use as large an array as possible.
 
   Note: after factorization 'realloc' is used to reduce the array sizes.
-  
+
 
   Author:          Ray Tuminaro, SNL, 9222 (3/98)
 
@@ -403,7 +403,7 @@ void AZ_free_space_holder(struct context *context)
                    allocated via AZ_hold_space().
                    On output, context->space_holder is deallocated.
 
-                 
+
 *******************************************************************************/
     int which = context->aztec_choices->options[AZ_subdomain_solve];
 
@@ -419,15 +419,15 @@ void AZ_free_space_holder(struct context *context)
 /****************************************************************************/
 /****************************************************************************/
 
-void AZ_hold_space(struct context *context, int N) 
+void AZ_hold_space(struct context *context, int N)
 {
 /****************************************************************************
   This routine is used in conjunction with AZ_free_space_holder().
   Essentially, this routine allocates memory while AZ_free_space_holder()
   deallocates.  The whole point of these two routines is to
   allocated all the space needed during the factorization process
-  EXCLUDING all arrays whose size is related to the number of 
-  nonzeros. Once this is done, we can determine how much space 
+  EXCLUDING all arrays whose size is related to the number of
+  nonzeros. Once this is done, we can determine how much space
   there is left for the large arrays required for the factorization
   and split the remaining space amoung these large arrays. In this
   way LU routines where it is difficult to know the space requirements
@@ -449,7 +449,7 @@ void AZ_hold_space(struct context *context, int N)
                    On output, context->space_holder points to a
                    block of memory which can hold all the 'nonlarge' arrays
                    required by this solver.
-     
+
   N                On input, the size of the matrix to be allocated.
 
 *******************************************************************************/
@@ -467,7 +467,7 @@ void AZ_hold_space(struct context *context, int N)
       /*   + 4 ints for manage memory header                                  */
       break;
    case AZ_lu:
-        context->space_holder = (int *) AZ_allocate((2*N+9)* sizeof(double) + 
+        context->space_holder = (int *) AZ_allocate((2*N+9)* sizeof(double) +
                                            (11*(N+1)+22)*sizeof(int) );
 
       /*   Space for aflag (8 doubles), ifail (10 ints), ha (11*(N+1) ints), */
@@ -513,13 +513,13 @@ void AZ_hold_space(struct context *context, int N)
 /****************************************************************************/
 /****************************************************************************/
 
-void AZ_init_subdomain_solver(struct context *context) 
+void AZ_init_subdomain_solver(struct context *context)
 {
 /****************************************************************************
   Initialize the data structure 'context' to whatever values will
   be need by the particular routine.
 
-  NOTE: The fields 'N_large_int_arrays' and 'N_large_dbl_arrays' must be 
+  NOTE: The fields 'N_large_int_arrays' and 'N_large_dbl_arrays' must be
   set to the number of arrays whose lengthes are equal to the number
   of nonzeros in the factorization. Most solvers will set these equal to
   one indicating that an msr bindx array is needed as well as an msr val
@@ -537,12 +537,12 @@ void AZ_init_subdomain_solver(struct context *context)
   ===============
 
   context          On output, the various fields are set to solver specific
-                   information that is needed in an initialization phase. 
+                   information that is needed in an initialization phase.
 
-  options          On input, is the user specified algorithm options given to 
+  options          On input, is the user specified algorithm options given to
                    AZ_solve() or AZ_iterate().
 
-  params           On input, is the user specified algorithm options given to 
+  params           On input, is the user specified algorithm options given to
                    AZ_solve() or AZ_iterate().
 
 *******************************************************************************/
@@ -575,12 +575,12 @@ void AZ_solve_subdomain(double x[],int N, struct context *context)
   ===============
 
   x                On input, the right hand side of the subdomain system that
-                   is to be solved. 
+                   is to be solved.
                    On output, the solution of the subdomain system.
 
   N                On input, the size of the linear system to be solved.
 
-  bindx2,val2      On input, matrix or factorization information to be used 
+  bindx2,val2      On input, matrix or factorization information to be used
                    by the solver. For most schemes, this information is in
                    MSR format. However, the lu and bilu scheme would have
                    this information in another format.
@@ -638,20 +638,20 @@ int  t1, t2, t3, i, t4, t5 = 0;
    case AZ_bilu:
       N_blk_rows = context->N_blk_rows;
 
-      AZ_lower_triang_vbr_solve(N_blk_rows, context->A_overlapped->cpntr, 
-                                context->A_overlapped->bpntr, 
+      AZ_lower_triang_vbr_solve(N_blk_rows, context->A_overlapped->cpntr,
+                                context->A_overlapped->bpntr,
 				context->A_overlapped->indx,
                                 bindx2, val2, x);
 
       AZ_upper_triang_vbr_solve(N_blk_rows, context->A_overlapped->cpntr,
-                                context->A_overlapped->bpntr, 
+                                context->A_overlapped->bpntr,
 				context->A_overlapped->indx, bindx2,
                                 val2, x, context->ipvt, context->dblock);
       break;
    case AZ_ilut:
    case AZ_rilu:
    case AZ_ilu:
-      AZ_lower_tsolve(x,N, val2, bindx2, context->iu, x ); 
+      AZ_lower_tsolve(x,N, val2, bindx2, context->iu, x );
       AZ_upper_tsolve( x, N, val2, bindx2, context->iu);
       break;
    case AZ_icc:
@@ -664,12 +664,12 @@ int  t1, t2, t3, i, t4, t5 = 0;
          x[0] *= val2[0];
          ifail = 0;
       }
-      else AZ_backsolve(val2, context->pivot,x, bindx2, 
-	              context->ha, context->iflag, 
+      else AZ_backsolve(val2, context->pivot,x, bindx2,
+	              context->ha, context->iflag,
                       &ifail, &(context->N_nz_factors),
 		      &N, &N);
       break;
-   default: 
+   default:
       if (context->aztec_choices->options[AZ_subdomain_solve]
                   >= AZ_SOLVER_PARAMS) {
          printf("ERROR: Unknown subdomain solver %d\n",
@@ -680,14 +680,14 @@ int  t1, t2, t3, i, t4, t5 = 0;
           /* better to put most of this in the factorization */
 
           AZ_recover_sol_params(context->aztec_choices->options[
-			        AZ_subdomain_solve], &sub_options, 
-				&sub_params, &sub_status, &sub_matrix, 
+			        AZ_subdomain_solve], &sub_options,
+				&sub_params, &sub_status, &sub_matrix,
 			        &sub_precond, &sub_scaling);
           t1 = sub_options[AZ_recursion_level];
           sub_options[AZ_recursion_level]++;
 
           t2 = sub_options[AZ_output];
-          if (context->proc_config[AZ_node] != 0 ) 
+          if (context->proc_config[AZ_node] != 0 )
              sub_options[AZ_output] = AZ_none;
 
           t3 = AZ_sys_msg_type;
@@ -716,7 +716,7 @@ int  t1, t2, t3, i, t4, t5 = 0;
           new_data_org[AZ_N_rows      ]= N;
           sub_precond->Pmat = context->A_overlapped;
           sub_precond->prec_function = AZ_precondition;
-       
+
           sub_proc_config[AZ_node] = 0;
           sub_proc_config[AZ_N_procs] = 1;
 #ifdef AZ_MPI
@@ -743,7 +743,7 @@ int  t1, t2, t3, i, t4, t5 = 0;
                        context->A_overlapped, sub_precond, sub_scaling);
 
           sub_options[AZ_keep_info] = t4;
-          if (context->aztec_choices->options[AZ_pre_calc] == AZ_sys_reuse) 
+          if (context->aztec_choices->options[AZ_pre_calc] == AZ_sys_reuse)
              sub_options[AZ_pre_calc]  = t5;
 
           sub_options[AZ_recursion_level] = t1;
@@ -753,7 +753,7 @@ int  t1, t2, t3, i, t4, t5 = 0;
           AZ_sys_msg_type = t3;
        }
    }
-      
+
 }
 
 
@@ -761,33 +761,33 @@ int  t1, t2, t3, i, t4, t5 = 0;
 /****************************************************************************/
 /****************************************************************************/
 
-void AZ_space_for_factors(double input_fill, int N_nz, int N, 
+void AZ_space_for_factors(double input_fill, int N_nz, int N,
 	int *extra_factor_nonzeros, int options[],int bandwidth,
         int  max_nz_per_row)
 {
 /****************************************************************************
 
   Compute the additional number of nonzeros required to do the factorization
-  specified by options[AZ_subdomain_solve]. 
- 
+  specified by options[AZ_subdomain_solve].
+
   Author:          Ray Tuminaro, SNL, 9222
- 
+
   Return code:     void
   ============
- 
+
   Parameter list:
   ===============
- 
+
   input_fill:      On input, input_fill*N_nz is roughly the number of
                    nonzeros that will be allowed in the matrix factors
                    for ilut.
 
   N_nz:            On input, number of nonzeros in the padded matrix
                    that will be factored.
-  
+
   N:               On input, the order of the padded matrix to be factored.
 
-  extra_factor_nonzeros: 
+  extra_factor_nonzeros:
                    On output, the additional space that will be added to
                    accommodate fill-in during the factorization.
 
@@ -798,8 +798,8 @@ void AZ_space_for_factors(double input_fill, int N_nz, int N,
   int fill, i;
   double new_nz, nz_per_row, t;
   int    max_per_row, temp;
-  
- 
+
+
   if (options[AZ_subdomain_solve] == AZ_ilut) {
      input_fill -= 1.0;
      if (N == 0) *extra_factor_nonzeros = 0;
@@ -837,7 +837,7 @@ void AZ_space_for_factors(double input_fill, int N_nz, int N,
      if (fill == 0) *extra_factor_nonzeros = 3;
      else {
         temp = max_nz_per_row;
-        for (i = 0 ; i < fill ; i++) { 
+        for (i = 0 ; i < fill ; i++) {
            temp *= max_nz_per_row;
            if (temp > bandwidth) break;
         }
@@ -869,16 +869,16 @@ void AZ_zero_out_context(struct context *context)
 {
 
    context->iu     = NULL;
-   context->iflag  = NULL;         
+   context->iflag  = NULL;
    context->ha     = NULL;
    context->ipvt   = NULL;
-   context->dblock = NULL; 
+   context->dblock = NULL;
    context->space_holder  = NULL;
    context->pivot  = NULL;
    context->A_overlapped  = NULL;
    context->aztec_choices = NULL;
-   context->x_pad         = NULL; 
-   context->ext_vals      = NULL; 
+   context->x_pad         = NULL;
+   context->ext_vals      = NULL;
    context->x_reord       = NULL;
    context->padded_data_org = NULL;
    context->map           = NULL;
@@ -890,12 +890,12 @@ void AZ_zero_out_context(struct context *context)
    context->N_large_int_arrays = 0;
    context->N_large_dbl_arrays = 0;
    context->N_nz_factors = 0;
-   context->N_nz_matrix = 0; 
+   context->N_nz_matrix = 0;
    context->N_blk_rows = 0;
    context->max_row = 0;
    context->N = 0;
    context->N_unpadded = 0;
-   context->N_nz = 0; 
+   context->N_nz = 0;
    context->Pmat_computed = 0;
 }
 

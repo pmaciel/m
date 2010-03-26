@@ -30,20 +30,20 @@ MITReM::MITReM(const std::string &name)
   .homreactions:
   Versie 1.0
   [nHomReactions] = ...
-    <label> = ...	<kf> = ...	<kb> = ...
+    <label> = ...  <kf> = ...  <kb> = ...
   [NReagents0] = ...
-    <label> = ...	<stoich> = ...
+    <label> = ...  <stoich> = ...
   [NProducts0] = ...
-    <label> = ...	<stoich> = ...
+    <label> = ...  <stoich> = ...
   *******************************
   .elecreactions:
   Versie 1.0
   [nElecReactions] = ...
-    <label> = ...	<Type> = ...	<nElectrons> = ...	<kOxi> = ...	<kRed> = ...	<aOxi> = ...	<aRed> = ...
+    <label> = ...  <Type> = ...  <nElectrons> = ...  <kOxi> = ...  <kRed> = ...  <aOxi> = ...  <aRed> = ...
   [NRedAgents0] = ...
-    <label> = ...	<stoich> = ...	<order> = ...
+    <label> = ...  <stoich> = ...  <order> = ...
   [NOxiAgents0] = ...
-    <label> = ...	<stoich> = ...	<order> = ...
+    <label> = ...  <stoich> = ...  <order> = ...
   *******************************
   .models:
   Versie 1.0
@@ -59,7 +59,7 @@ MITReM::MITReM(const std::string &name)
   [solutionKinematicViscosity] = ...
   [temperature] = ...
   [nIons] = ...
-    <label> = ...	<z> = ...	<D> = ...	<d> = ...	<M> = ...	<cInlet> = ...
+    <label> = ...  <z> = ...  <D> = ...  <d> = ...  <M> = ...  <cInlet> = ...
   *******************************
   */
 
@@ -1198,61 +1198,14 @@ void MITReM::checkElectroneutrality() const
     //std::cout << "\nThe adjusted concentrations are\n";
     //for (unsigned i=0; i<nIons; i++)
     //{
-    //	int zi = electrolyteSolution->getIonChargeNumber(i);
-    //	double ci = electrolyteSolution->getIonConcentration(i);
-    //	if (zi > 0.) electrolyteSolution->setIonConcentration(i,ci*f);
-    //	else if (zi < 0.) electrolyteSolution->setIonConcentration(i,ci/f);
-    //	std::cout << electrolyteSolution->getIonLabel(i) << '\t' << electrolyteSolution->getIonConcentration(i) << std::endl;
+    //  int zi = electrolyteSolution->getIonChargeNumber(i);
+    //  double ci = electrolyteSolution->getIonConcentration(i);
+    //  if (zi > 0.) electrolyteSolution->setIonConcentration(i,ci*f);
+    //  else if (zi < 0.) electrolyteSolution->setIonConcentration(i,ci/f);
+    //  std::cout << electrolyteSolution->getIonLabel(i) << '\t' << electrolyteSolution->getIonConcentration(i) << std::endl;
     //}
     //std::cout << std::endl;
   }
-}
-//---------------------------------------------------------------------------
-void MITReM::correctVForPotentialDifference(
-  double      &Vwe, double      &Vce,
-  const double Awe, const double Ace,
-  const unsigned Niter )
-{
-  /*
-   * Assumes:
-   * - all electrode reactions are active in working/counter electrodes
-   * - zero Ohmic drop
-   */
-
-  // set bulk concentrations and initialize mitrem
-  std::vector< double > bulk(getNIons(),0.);
-  for (unsigned i=0; i<getNIons(); ++i)
-    bulk[i] = electrolyteSolution->getIonConcentration(i);
-  init(&bulk[0], /*U*/ 0., getSolutionTemperature(),getSolutionDensity());
-
-  std::cout << "correctVForPotentialDifference:  Vce-Vwe [V] = " << Vce-Vwe << std::endl;
-
-  // Newton's method
-  const double eps = 1e-16;  // numerical perturbation
-  double dV = 0.;            // shift initial guess
-  for (unsigned i=1; i<=Niter; ++i) {
-
-    // calculate current balance and d(current balance)/d(dV)
-    double I  = 0.,
-           dI = 0.;
-    for (unsigned r=0; r<getNElecReactions(); ++r) {
-      I  += Awe*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vwe+dV)
-         +  Ace*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vce+dV);
-      dI += Awe*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vwe+dV+eps)
-         +  Ace*F_CONST*elecReactions[r]->getNElectrons()*calcElecReactionRate(r,Vce+dV+eps);
-    }
-    dI = (dI-I)/eps;
-
-    // update shift
-    dV += -I/dI;
-    std::cout << "correctVForPotentialDifference:  i=" << i << "  dV/|ddV| [V] = " << dV << " / " << std::abs(-I/dI) << std::endl;
-
-  }
-
-  // update metal potentials
-  Vwe += dV;
-  Vce += dV;
-  std::cout << "correctVForPotentialDifference:  Vwe/Vce [V] = " << Vwe << " / " << Vce << std::endl;
 }
 //---------------------------------------------------------------------------
 void MITReM::setElectrolyteModel(std::string EM)

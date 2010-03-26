@@ -457,6 +457,6 @@ void AZ_MSR_matvec_mult (double *b, double *c,AZ_MATRIX *Amat,int proc_config[])
     c++;
   }
 #endif
- 
+
 } /* AZ_MSR_matvec_mult */
 

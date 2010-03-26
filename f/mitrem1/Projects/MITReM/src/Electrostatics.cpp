@@ -13,12 +13,12 @@
 //--- METHODS ---------------------------------------------------------------
 double Electrostatics_Electroneutrality::calcConcentrationFactor(unsigned j) const
 {
-	return electrolyteSolution->getIonChargeNumber(j);
+  return electrolyteSolution->getIonChargeNumber(j);
 }
 //---------------------------------------------------------------------------
 double Electrostatics_Electroneutrality::calcPotentialFactor() const
 {
-	return 0.;
+  return 0.;
 }
 //---------------------------------------------------------------------------
 
@@ -30,14 +30,14 @@ double Electrostatics_Electroneutrality::calcPotentialFactor() const
 //--- METHODS ---------------------------------------------------------------
 double Electrostatics_Poisson::calcConcentrationFactor(unsigned j) const
 {
-//	return electrolyteSolution->getIonChargeNumber(j)*F_CONST;
-	return electrolyteSolution->getIonChargeNumber(j)*F_CONST/electrolyteSolution->getSolventDielectricConstant();
+//  return electrolyteSolution->getIonChargeNumber(j)*F_CONST;
+  return electrolyteSolution->getIonChargeNumber(j)*F_CONST/electrolyteSolution->getSolventDielectricConstant();
 }
 //---------------------------------------------------------------------------
 double Electrostatics_Poisson::calcPotentialFactor() const
 {
-//	return electrolyteSolution->getSolventDielectricConstant();
-	return 1.;
+//  return electrolyteSolution->getSolventDielectricConstant();
+  return 1.;
 }
 //---------------------------------------------------------------------------
 

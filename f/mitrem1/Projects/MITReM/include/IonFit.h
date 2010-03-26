@@ -14,56 +14,56 @@
 class IonFit
 {
 public :
-	IonFit(const std::string &label_, Electrolyte** electrolytes, unsigned nElectrolytes);
-	~IonFit();
+  IonFit(const std::string &label_, Electrolyte** electrolytes, unsigned nElectrolytes);
+  ~IonFit();
 
-	// Set methods
-	void		setDiameter(double d);
-	void		setMinimumDiameter(double dMin);
-	void		setMaximumDiameter(double dMax);
-	void		setDiffusionConstant(double D);
-	void		setMinimumDiffusionConstant(double DMin);
-	void		setMaximumDiffusionConstant(double DMax);
-	void		setMolarMass(double M);
+  // Set methods
+  void    setDiameter(double d);
+  void    setMinimumDiameter(double dMin);
+  void    setMaximumDiameter(double dMax);
+  void    setDiffusionConstant(double D);
+  void    setMinimumDiffusionConstant(double DMin);
+  void    setMaximumDiffusionConstant(double DMax);
+  void    setMolarMass(double M);
 
-	// Get methods
-	std::string	getLabel() const;
-	double		getDiameter() const;
-	double		getMinimumDiameter() const;
-	double		getMaximumDiameter() const;
-	double		getDiffusionConstant() const;
-	double		getMinimumDiffusionConstant() const;
-	double		getMaximumDiffusionConstant() const;
-	double		getMolarMass() const;
-	unsigned	getNElectrolytes() const;
-	unsigned	getElectrolytes(unsigned e) const;
+  // Get methods
+  std::string  getLabel() const;
+  double    getDiameter() const;
+  double    getMinimumDiameter() const;
+  double    getMaximumDiameter() const;
+  double    getDiffusionConstant() const;
+  double    getMinimumDiffusionConstant() const;
+  double    getMaximumDiffusionConstant() const;
+  double    getMolarMass() const;
+  unsigned  getNElectrolytes() const;
+  unsigned  getElectrolytes(unsigned e) const;
 
-	// Methods
-	double		calcOsmoticCoefficientDerivativeDiameter(unsigned e,unsigned t);
-	double		calcActivityCoefficientDerivativeDiameter(unsigned e,unsigned t);
-	double		calcConductivityDerivativeDiameter(unsigned e,unsigned t);
-	double		calcTransportNumberDerivativeDiameter(unsigned e,unsigned t);
-	double		calcDiffusionCoefficientDerivativeDiameter(unsigned e,unsigned t);
-	double		calcOsmoticCoefficientDerivativeDiffusionConstant(unsigned e,unsigned t);
-	double		calcActivityCoefficientDerivativeDiffusionConstant(unsigned e,unsigned t);
-	double		calcConductivityDerivativeDiffusionConstant(unsigned e,unsigned t);
-	double		calcTransportNumberDerivativeDiffusionConstant(unsigned e,unsigned t);
-	double		calcDiffusionCoefficientDerivativeDiffusionConstant(unsigned e,unsigned t);
+  // Methods
+  double    calcOsmoticCoefficientDerivativeDiameter(unsigned e,unsigned t);
+  double    calcActivityCoefficientDerivativeDiameter(unsigned e,unsigned t);
+  double    calcConductivityDerivativeDiameter(unsigned e,unsigned t);
+  double    calcTransportNumberDerivativeDiameter(unsigned e,unsigned t);
+  double    calcDiffusionCoefficientDerivativeDiameter(unsigned e,unsigned t);
+  double    calcOsmoticCoefficientDerivativeDiffusionConstant(unsigned e,unsigned t);
+  double    calcActivityCoefficientDerivativeDiffusionConstant(unsigned e,unsigned t);
+  double    calcConductivityDerivativeDiffusionConstant(unsigned e,unsigned t);
+  double    calcTransportNumberDerivativeDiffusionConstant(unsigned e,unsigned t);
+  double    calcDiffusionCoefficientDerivativeDiffusionConstant(unsigned e,unsigned t);
 
 private :
-	class IonReference
-	{
-	public :
-		Electrolyte*	electrolyte;
-		unsigned		electrolyteIndex;
-		unsigned		ionIndex;
-	};
-	
-	std::string	label;
-	double		d,dMin,dMax,D,DMin,DMax,M,epsilon;
-	std::vector<IonReference> ionReferences;
+  class IonReference
+  {
+  public :
+    Electrolyte*  electrolyte;
+    unsigned    electrolyteIndex;
+    unsigned    ionIndex;
+  };
 
-	void errorIonNotFound(const std::string label);
+  std::string  label;
+  double    d,dMin,dMax,D,DMin,DMax,M,epsilon;
+  std::vector<IonReference> ionReferences;
+
+  void errorIonNotFound(const std::string label);
 };
 
 //---------------------------------------------------------------------------
@@ -72,22 +72,22 @@ private :
 //--- SET METHODS -----------------------------------------------------------
 inline void IonFit::setMinimumDiameter(double dMin)
 {
-	this->dMin = dMin;
+  this->dMin = dMin;
 }
 //---------------------------------------------------------------------------
 inline void IonFit::setMaximumDiameter(double dMax)
 {
-	this->dMax = dMax;
+  this->dMax = dMax;
 }
 //---------------------------------------------------------------------------
 inline void IonFit::setMinimumDiffusionConstant(double DMin)
 {
-	this->DMin = DMin;
+  this->DMin = DMin;
 }
 //---------------------------------------------------------------------------
 inline void IonFit::setMaximumDiffusionConstant(double DMax)
 {
-	this->DMax = DMax;
+  this->DMax = DMax;
 }
 //---------------------------------------------------------------------------
 
@@ -95,52 +95,52 @@ inline void IonFit::setMaximumDiffusionConstant(double DMax)
 //--- GET METHODS -----------------------------------------------------------
 inline std::string IonFit::getLabel() const
 {
-	return label;
+  return label;
 }
 //---------------------------------------------------------------------------
 inline double IonFit::getDiameter() const
 {
-	return d;
+  return d;
 }
 //---------------------------------------------------------------------------
 inline double IonFit::getMinimumDiameter() const
 {
-	return dMin;
+  return dMin;
 }
 //---------------------------------------------------------------------------
 inline double IonFit::getMaximumDiameter() const
 {
-	return dMax;
+  return dMax;
 }
 //---------------------------------------------------------------------------
 inline double IonFit::getDiffusionConstant() const
 {
-	return D;
+  return D;
 }
 //---------------------------------------------------------------------------
 inline double IonFit::getMinimumDiffusionConstant() const
 {
-	return DMin;
+  return DMin;
 }
 //---------------------------------------------------------------------------
 inline double IonFit::getMaximumDiffusionConstant() const
 {
-	return DMax;
+  return DMax;
 }
 //---------------------------------------------------------------------------
 inline double IonFit::getMolarMass() const
 {
-	return M;
+  return M;
 }
 //---------------------------------------------------------------------------
 inline unsigned IonFit::getNElectrolytes() const
 {
-	return unsigned(ionReferences.size());
+  return unsigned(ionReferences.size());
 }
 //---------------------------------------------------------------------------
 inline unsigned IonFit::getElectrolytes(unsigned e) const
 {
-	return ionReferences[e].electrolyteIndex;
+  return ionReferences[e].electrolyteIndex;
 }
 //---------------------------------------------------------------------------
 

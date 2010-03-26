@@ -30,104 +30,119 @@
 class ElementMatrixAssembler
 {
 public :
-	ElementMatrixAssembler(
-		const std::string &dimensions,
-		MITReM* mitrem_,
-		const std::string &convectionScheme,
-		const std::string &diffusionScheme,
-		const std::string &migrationScheme,
-		const std::string &magneticScheme,
-		const std::string &homReactionScheme,
-		const std::string &electrostaticsScheme,
-		const std::string &timeScheme,
-		const std::string &elecReactionScheme,
-		const std::string &gasReactionScheme,
-		const bool _is_bubble=false,
-		const bool _charge_flux=true,
-		const bool _swap_first_and_last_equations=true);
-	~ElementMatrixAssembler();
+  ElementMatrixAssembler(
+    const std::string &dimensions,
+    MITReM* mitrem_,
+    const std::string &convectionScheme,
+    const std::string &diffusionScheme,
+    const std::string &migrationScheme,
+    const std::string &magneticScheme,
+    const std::string &homReactionScheme,
+    const std::string &electrostaticsScheme,
+    const std::string &timeScheme,
+    const std::string &elecReactionScheme,
+    const std::string &gasReactionScheme,
+    const bool _is_bubble=false,
+    const bool _charge_flux=true,
+    const bool _swap_first_and_last_equations=true);
+  ~ElementMatrixAssembler();
 
-	DoubleMatrix	calcElementMat(DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors);
-	DoubleMatrix	calcElementJac(DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors);
+  DoubleMatrix     calcElementMat(DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors);
+  DoubleMatrix     calcElementJac(DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors);
 
-	DoubleVector	calcBoundaryElementVec(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential, unsigned nGasReactions, IndexList gasReactions);
-	DoubleMatrix	calcBoundaryElementJac(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential, unsigned nGasReactions, IndexList gasReactions);
+  DoubleVector     calcBoundaryElementVec(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential, unsigned nGasReactions, IndexList gasReactions);
+  DoubleMatrix     calcBoundaryElementJac(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential, unsigned nGasReactions, IndexList gasReactions);
 
-	DoubleMatrix	calcElementTimeMat(DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors);
-	DoubleMatrix	calcElementTimeJac(DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors);
+  DoubleMatrix     calcElementTimeMat(DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors);
+  DoubleMatrix     calcElementTimeJac(DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors);
 
-	DoubleVectorList	calcIonCurrentDensities(DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors);
+  DoubleVectorList calcIonCurrentDensities(DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors);
 
-	DoubleListList	calcElecReactionCurrentDensities(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential);
-	DoubleListList	calcGasReactionRates(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nGasReactions, IndexList gasReactions);
+  DoubleListList   calcElecReactionCurrentDensities(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential);
+  DoubleListList   calcGasReactionRates(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nGasReactions, IndexList gasReactions);
 
-	double	calcCurrent(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential);
-	double	calcGasGeneration(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nGasReactions, IndexList gasReactions);
+  double           calcCurrent(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential);
+  double           calcGasGeneration(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nGasReactions, IndexList gasReactions);
+
+  double calcESize(DoubleVectorList coordinates) const;
+  double calcBESize(DoubleVectorList coordinates) const;
 
 private:
-	MITReM*					mitrem;
+  MITReM* mitrem;
 
-	ElementProps*			elementProps;
-	BoundaryElementProps*	boundaryElementProps;
+  ElementProps*                elementProps;
+  BoundaryElementProps*        boundaryElementProps;
+  ElementContribution*         elementContribution;
+  BoundaryElementContribution* boundaryElementContribution;
 
-	ConvectionTerm*			convectionTerm;
-	DiffusionTerm*			diffusionTerm;
-	MigrationTerm*			migrationTerm;
-	MagneticTerm*				magneticTerm;
-	HomReactionTerm*		homReactionTerm;
-	ElectrostaticsTerm*		electrostaticsTerm;
-	TimeTerm*				timeTerm;
+  ConvectionTerm*     convectionTerm;
+  DiffusionTerm*      diffusionTerm;
+  MigrationTerm*      migrationTerm;
+  MagneticTerm*       magneticTerm;
+  HomReactionTerm*    homReactionTerm;
+  ElectrostaticsTerm* electrostaticsTerm;
+  TimeTerm*           timeTerm;
+  ElecReactionTerm*   elecReactionTerm;
+  GasReactionTerm*    gasReactionTerm;
 
-	ElecReactionTerm*		elecReactionTerm;
-	GasReactionTerm*		gasReactionTerm;
+   unsigned nDimensions, nElementNodes, nBoundaryElementNodes, nVariables, nIons, nElecReactions, nGasReactions;
 
-	ElementContribution*			elementContribution;
-	BoundaryElementContribution*	boundaryElementContribution;
+  // if charge conservation is to be assembled in place of one mass balance
+  bool m_chargeconservation;
 
-	unsigned				nDimensions, nElementNodes, nBoundaryElementNodes, nVariables, nIons, nElecReactions, nGasReactions;
+  // if first and last equations are to be swapped
+  bool m_swap;
 
-	// if charge conservation is to be assembled in place of one mass balance
-	bool m_chargeconservation;
-
-	// if first and last equations are to be swapped
-	bool m_swap;
-
-	void	errorInvalidScheme(const std::string &scheme);
+  void errorInvalidScheme(const std::string &scheme);
 };
 
 //---------------------------------------------------------------------------
 
 inline DoubleVectorList ElementMatrixAssembler::calcIonCurrentDensities(DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList volumeGasFractions, DoubleVectorList magneticFieldVectors)
 {
-	return elementContribution->calcIonCurrentDensities(coordinates, velocities, concentrations, potentials, temperatures, densities, volumeGasFractions, magneticFieldVectors);
+  return elementContribution->calcIonCurrentDensities(coordinates, velocities, concentrations, potentials, temperatures, densities, volumeGasFractions, magneticFieldVectors);
 }
 
 //---------------------------------------------------------------------------
 
 inline DoubleListList ElementMatrixAssembler::calcElecReactionCurrentDensities(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential)
 {
-	return boundaryElementContribution->calcElecReactionCurrentDensities(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions, elecReactions, electrodePotential);
+  return boundaryElementContribution->calcElecReactionCurrentDensities(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions, elecReactions, electrodePotential);
 }
 
 //---------------------------------------------------------------------------
 
 inline DoubleListList ElementMatrixAssembler::calcGasReactionRates(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nGasReactions, IndexList gasReactions)
 {
-	return boundaryElementContribution->calcGasReactionRates(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nGasReactions, gasReactions);
+  return boundaryElementContribution->calcGasReactionRates(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nGasReactions, gasReactions);
 }
 
 //---------------------------------------------------------------------------
 
 inline double ElementMatrixAssembler::calcCurrent(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential)
 {
-	return boundaryElementContribution->calcCurrent(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions, elecReactions, electrodePotential);
+  return boundaryElementContribution->calcCurrent(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions, elecReactions, electrodePotential);
 }
 
 //---------------------------------------------------------------------------
 
 inline double ElementMatrixAssembler::calcGasGeneration(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nGasReactions, IndexList gasReactions)
 {
-	return boundaryElementContribution->calcGasGeneration(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nGasReactions, gasReactions);
+  return boundaryElementContribution->calcGasGeneration(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nGasReactions, gasReactions);
+}
+
+//---------------------------------------------------------------------------
+
+inline double ElementMatrixAssembler::calcESize(DoubleVectorList coordinates) const
+{
+  return elementProps->calcSize(coordinates);
+}
+
+//---------------------------------------------------------------------------
+
+inline double ElementMatrixAssembler::calcBESize(DoubleVectorList coordinates) const
+{
+  return boundaryElementProps->calcSize(coordinates);
 }
 
 //---------------------------------------------------------------------------

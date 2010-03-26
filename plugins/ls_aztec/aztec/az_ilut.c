@@ -6,9 +6,9 @@
 
 
 
-void AZ_fact_ilut(int *n, AZ_MATRIX *A_overlapped, double *a, 
-		  int *ja, double tol, int fill, int shift, 
-		  int *iu,double *nextrow, double *unorm, 
+void AZ_fact_ilut(int *n, AZ_MATRIX *A_overlapped, double *a,
+		  int *ja, double tol, int fill, int shift,
+		  int *iu,double *nextrow, double *unorm,
 		  int *L_lowest_cols, int *nz_used, int *pattern)
 {
 
@@ -28,48 +28,48 @@ void AZ_fact_ilut(int *n, AZ_MATRIX *A_overlapped, double *a,
     double *val;
 
 
-/*  Incomplete LU factorization of a sparse matrix A with fill and 
- *  drop tolerance.  This variant works on one row of A at a time. 
+/*  Incomplete LU factorization of a sparse matrix A with fill and
+ *  drop tolerance.  This variant works on one row of A at a time.
  *
  *  Parameters
     ==========
  *    Input:
  *       val, bindx - MSR matrix arrays of matrix to be factored.
- *                    On output, matrix factors are stored in these 
+ *                    On output, matrix factors are stored in these
  *                    arrays in MSR/Fortran format.
  *
- *             a    - double precision array of length nnzrow used to 
- *                    hold 'current' row during factorization. 
+ *             a    - double precision array of length nnzrow used to
+ *                    hold 'current' row during factorization.
  *             n    - Order of linear system.
  *             nnzrow - Maximum number of nonzero elements in each row of A.
  *             ja   - array of length nnzrow contain column indices
  *                    corresponding to elements of a.
  *             tol  - double precision
- *                    Drop tolerance.  Multipliers L_ik are dropped 
+ *                    Drop tolerance.  Multipliers L_ik are dropped
  *                    when | L_ik | < tol*|| A(i,:) ||.  Elements from the
  *                    reduced rows of A are dropped by the same criterion.
  *             fill - Fill level.  Each row of the triangular factor has
  *                    at most (fill + number of nonzeros in A(i,1:i))
- *                    nonzero elements.  (Similarly for the elements in 
+ *                    nonzero elements.  (Similarly for the elements in
  *                    the reduced rows of A.)
  *             shift- The off-diagonals of the input matrix will be shifted
  *                    to the right by 'shift' places to make room for
  *                    the fill-in. NOTE: if tol == 0, shift should be equal
  *                    to fill.
  *         next_row - double precision array of length n + 1.
- *                    Workspace for dense copies of sparse rows of A. 
- *           unorm  - Workspace array of length n. 
+ *                    Workspace for dense copies of sparse rows of A.
+ *           unorm  - Workspace array of length n.
  *          pattern - Workspace array of length n.
  *    L_lowest_cols - Workspace array of length n+2.
  *
  *    Output:
  *       val, bindx - matrix factors in MSR/fortran fromat.
- *             iu   - int array of length n+1 
+ *             iu   - int array of length n+1
  *                    Array of row pointers into u:  u(iu(i)) is the
  *                    first element of row i in u.
  *	 nz_used    - number of nonzeros required for matrix factorization.
- * 
- *     
+ *
+ *
  */
 
     val     = A_overlapped->val;
@@ -88,14 +88,14 @@ void AZ_fact_ilut(int *n, AZ_MATRIX *A_overlapped, double *a,
 
     L_largest_vals = (int *) AZ_allocate( (fill+1)*sizeof(int));
     U_largest_vals = (int *) AZ_allocate( (fill+1) * sizeof(int));
-    if (U_largest_vals == NULL) 
+    if (U_largest_vals == NULL)
        AZ_perror("Not enough space inside ilut\n");
 
     /* stick in some dummy values so that the case 'fill=0' works. */
     /* Specifically, this makes the following statement always     */
     /* false:                                                      */
     /*   if (fabs(multiplier) < fabs(nextrow[L_largest_vals[0]-1]))*/
-          
+
     L_largest_vals[0] = *n+1;
     U_largest_vals[0] = *n+1;
     nextrow[*n] = DBL_MAX;
@@ -258,7 +258,7 @@ L60:
 	    if (pattern[col] != 1) {
 		if (count < fill) {
 		    AZ_put_in_dbl_heap(&col, nextrow, U_largest_vals, &count);
-		} else if (fabs(nextrow[col-1]) > 
+		} else if (fabs(nextrow[col-1]) >
                            fabs(nextrow[U_largest_vals[0] - 1])) {
 		    AZ_rm_dbl_heap_root(U_largest_vals, nextrow, &count);
 		    AZ_put_in_dbl_heap(&col, nextrow, U_largest_vals, &count);
@@ -301,7 +301,7 @@ void AZ_rm_heap_root(int heap[], int *length)
 {
 /*
  * Remove the first element from the heap.
- * 
+ *
  * Parameters
  * ==========
  *
@@ -334,10 +334,10 @@ void AZ_rm_heap_root(int heap[], int *length)
     else if (left == *length) {
        parent = left;
        heap[prev] = heap[parent];
-    }  
+    }
     else flag = 0;
  }
-   
+
  child = parent;
  if (parent == 1) { (*length)--; return;}
  parent = child/2;
@@ -346,11 +346,11 @@ void AZ_rm_heap_root(int heap[], int *length)
       child = parent;
       parent = child/2;
  }
- heap[child] = heap[*length]; 
-   
+ heap[child] = heap[*length];
+
  (*length)--;
 }
-   
+
 /***********************************************************/
 /***********************************************************/
 /***********************************************************/
@@ -359,7 +359,7 @@ void AZ_put_in_heap(int heap[], int *val,int *length)
 {
 /*
  * Put 'val' into the heap.
- * 
+ *
  * Parameters
  * ==========
  *
@@ -368,7 +368,7 @@ void AZ_put_in_heap(int heap[], int *val,int *length)
  *          and the children of heap[k] are heap[2*k]
  *          and heap[2*k+1].
  *          On output, '*val' is placed in the heap.
- *          Note: the heap is reorganized so that it 
+ *          Note: the heap is reorganized so that it
  *          remains a heap
  *
  * val :    Element to be added to the heap
@@ -403,13 +403,13 @@ void AZ_rm_dbl_heap_root(int heap[], double vals[], int *length)
  * NOTE: this routine differs from AZ_rm_heap_root() in that
  * the data is actually contained in vals[]. heap[] is
  * an index into vals[] which contains the real data.
- * 
+ *
  * Parameters
  * ==========
  *
  * heap :   On input, a POINTER INTO VALS representing a
- *          heap (see Knuth Vol 2) where the root is 
- *          vals[heap[0]] and the children of vals[heap[k]] 
+ *          heap (see Knuth Vol 2) where the root is
+ *          vals[heap[0]] and the children of vals[heap[k]]
  *          are vals[heap[2*k]] and vals[heap[2*k+1]].
  *          On output, the root element is removed and the
  *          heap is reorganized so that it remains a heap
@@ -435,10 +435,10 @@ void AZ_rm_dbl_heap_root(int heap[], double vals[], int *length)
       else if (left == *length) {
          parent = left;
          heap[prev] = heap[parent];
-      }  
+      }
       else flag = 0;
    }
-   
+
    child = parent;
    if (parent == 1) { (*length)--;  return; }
    parent = child/2;
@@ -447,7 +447,7 @@ void AZ_rm_dbl_heap_root(int heap[], double vals[], int *length)
       child = parent;
       parent = child/2;
    }
-   heap[child] = heap[*length]; 
+   heap[child] = heap[*length];
    (*length)--;
 }
 
@@ -456,7 +456,7 @@ void AZ_rm_dbl_heap_root(int heap[], double vals[], int *length)
 /***********************************************************/
 
 
-void AZ_put_in_dbl_heap(int *row, double vals[], int heap[], 
+void AZ_put_in_dbl_heap(int *row, double vals[], int heap[],
 	int *length)
 {
 /*
@@ -464,13 +464,13 @@ void AZ_put_in_dbl_heap(int *row, double vals[], int heap[],
  * NOTE: this routine differs from AZ_put_in_heap() in that
  * the data is actually contained in vals[]. heap[] is
  * an index into vals[] which contains the real data.
- * 
+ *
  * Parameters
  * ==========
  *
  * heap :   On input, a POINTER INTO VALS representing a
- *          heap (see Knuth Vol 2) where the root is 
- *          vals[heap[0]] and the children of vals[heap[k]] 
+ *          heap (see Knuth Vol 2) where the root is
+ *          vals[heap[0]] and the children of vals[heap[k]]
  *          are vals[heap[2*k]] and vals[heap[2*k+1]].
  *          On output, vals[row] is incorporated into the
  *          heap.

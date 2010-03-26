@@ -282,11 +282,11 @@ void ElectrolyteModel_DH::calcEigenproblem()
         AlphaOld = Alphas[p];
         Alphas[p] = AlphaOld - calcAlphaFunction(AlphaOld)/calcAlphaFunctionDerivative(AlphaOld);
         iter++;
-        // ----------------------------------------------------------------------------------------	//
-        // Avoid leaving the interval [D(p-1)^2,D(p)^2] or you will not find the right solution!	//
-        // Also avoid getting too close to a boundary, or you risk division by zero (can happen if	//
-        // c(p) is low or if the interval is small)!												//
-        // ----------------------------------------------------------------------------------------	//
+        // ----------------------------------------------------------------------------------------  //
+        // Avoid leaving the interval [D(p-1)^2,D(p)^2] or you will not find the right solution!  //
+        // Also avoid getting too close to a boundary, or you risk division by zero (can happen if  //
+        // c(p) is low or if the interval is small)!                        //
+        // ----------------------------------------------------------------------------------------  //
         if (Alphas[p]/AlphaMin-1. < 1e-9) {
           TracerIon = true;
           TracerIndex = DList[m-1][0];
@@ -297,13 +297,13 @@ void ElectrolyteModel_DH::calcEigenproblem()
           TracerIndex = DList[m][0];
           Alphas[p] = (AlphaMax + AlphaOld)/2.;
         }
-        // ----------------------------------------------------------------------------------------	//
-        // The D are not known with more than 4 significant digits.									//
-        // The relative difference between two different D is therefore minimally 10^-3.			//
-        // The relative difference between two different D^2 is therefore minimally 10^-6.			//
-        // The criterion for "too close to a boundary" must be smaller than this (e.g. 10^-9),		//
-        // otherwise you can be too close to both boundaries at the same time!						//
-        // ----------------------------------------------------------------------------------------	//
+        // ----------------------------------------------------------------------------------------  //
+        // The D are not known with more than 4 significant digits.                  //
+        // The relative difference between two different D is therefore minimally 10^-3.      //
+        // The relative difference between two different D^2 is therefore minimally 10^-6.      //
+        // The criterion for "too close to a boundary" must be smaller than this (e.g. 10^-9),    //
+        // otherwise you can be too close to both boundaries at the same time!            //
+        // ----------------------------------------------------------------------------------------  //
       } while ((fabs(1.-Alphas[p]/AlphaOld) > 1e-9) && (iter < iterMax));
       // Stop when relative change is small enough.
 
@@ -391,16 +391,16 @@ void ElectrolyteModel_DH::calcEigenproblem()
   //double ti;
   //std::cout << "\t\t";
   //for (unsigned i=0; i<nIons; i++) {
-  //	ti = z[i]*z[i]*c[i]*D[i]/cond0;
-  //	std::cout << '\t' << ti;
+  //  ti = z[i]*z[i]*c[i]*D[i]/cond0;
+  //  std::cout << '\t' << ti;
   //}
   //std::cout << std::endl;
   //for (unsigned r=0; r<nIons; r++) {
-  //	std::cout << Alphas[r] << '\t' << Eigenvalues[r] << '\t' << NormFactors[r];
-  //	for (unsigned i=0; i<nIons; i++) {
-  //		std::cout << '\t' << Eigenvectors[r][i];
-  //	}
-  //	std::cout << std::endl;
+  //  std::cout << Alphas[r] << '\t' << Eigenvalues[r] << '\t' << NormFactors[r];
+  //  for (unsigned i=0; i<nIons; i++) {
+  //    std::cout << '\t' << Eigenvectors[r][i];
+  //  }
+  //  std::cout << std::endl;
   //}
 }
 //---------------------------------------------------------------------------

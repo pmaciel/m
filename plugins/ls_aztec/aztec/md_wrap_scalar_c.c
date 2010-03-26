@@ -205,8 +205,8 @@ int md_wrap_iwrite(void *buf, int bytes, int dest, int type, int *flag,
                   int *request)
 {
 int ret_info;
- 
+
 ret_info = md_wrap_write(buf, bytes, dest, type, flag);
-return(ret_info); 
+return(ret_info);
 }
 

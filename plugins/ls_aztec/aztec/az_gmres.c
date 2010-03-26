@@ -33,7 +33,7 @@ static char rcsid[] = "$Id: az_gmres.c,v 1.40 2000/06/02 16:46:55 tuminaro Exp $
 #include "az_aztec.h"
 
 void AZ_pgmres (double b[], double x[],double weight[], int options[],
-	double params[], int proc_config[], double status[], AZ_MATRIX *Amat, 
+	double params[], int proc_config[], double status[], AZ_MATRIX *Amat,
 	AZ_PRECOND *precond, struct AZ_CONVERGE_STRUCT *convergence_info)
 
 /*******************************************************************************
@@ -213,7 +213,7 @@ char *T2 = "N";
     res = AZ_manage_memory(N_total*sizeof(double),AZ_ALLOC,AZ_SYS,label,&i);
   }
   else res = (double *) NULL;
-  
+
 
   if ( (options[AZ_output] != AZ_none) && (options[AZ_output] != AZ_last) &&
        (options[AZ_output] != AZ_warnings) && (proc == 0) )
@@ -241,7 +241,7 @@ char *T2 = "N";
       dcopy_(&N, v[i], &one, temp, &one);
 
       if (iter == 1) init_time = AZ_second();
- 
+
     if (precond_flag) precond->prec_function(temp,options,proc_config,params,Amat,precond);
 
     if (iter == 1) status[AZ_first_precond] = AZ_second() - init_time;
@@ -260,11 +260,11 @@ char *T2 = "N";
          for (ii = 0 ; ii < 2; ii++ ) {
             if (N == 0) for (k = 0; k <= i; k++) dots[k] = 0.0;
             dble_tmp = 0.0; mm = i+1;
-            dgemv_(T, &N, &mm, &doubleone, vblock, &aligned_N_total, 
+            dgemv_(T, &N, &mm, &doubleone, vblock, &aligned_N_total,
                    v[i1], &one, &dble_tmp, dots, &one, 1 /* strlen(T) */);
             AZ_gdot_vec(i1, dots, tmp, proc_config);
             for (k = 0; k <= i; k++) hh[k][i] += dots[k];
-            dgemv_(T2, &N, &mm, &minusone, vblock, &aligned_N_total, 
+            dgemv_(T2, &N, &mm, &minusone, vblock, &aligned_N_total,
                    dots, &one, &doubleone, v[i1], &one, 1 /* strlen(T2) */);
          }
       }
@@ -330,12 +330,12 @@ char *T2 = "N";
         /* take most recent solution and get out */
 
         for (k = 0; k < i1; k++) tmp[k] = rs[k];
-        AZ_get_x_incr(options, data_org, proc_config, params, i, hh, tmp, 
+        AZ_get_x_incr(options, data_org, proc_config, params, i, hh, tmp,
                       temp, v, Amat, precond, x, &first_time, &converged, kspace);
 
         AZ_scale_true_residual(x, b,
                                v[kspace], weight, &actual_residual,
-                               &true_scaled_r, options, data_org, proc_config, 
+                               &true_scaled_r, options, data_org, proc_config,
                                Amat, convergence_info);
 
         if (dble_tmp  < DBL_EPSILON * r_2norm) i = AZ_breakdown;
@@ -394,7 +394,7 @@ char *T2 = "N";
 
         for (k = 0; k <= i1; k++) tmp[k] = rs[k];
 
-        AZ_get_x_incr(options, data_org, proc_config, params, i, hh, tmp, 
+        AZ_get_x_incr(options, data_org, proc_config, params, i, hh, tmp,
                 temp, v, Amat, precond,  x, &first_time, &converged, kspace);
 
       }
@@ -405,7 +405,7 @@ char *T2 = "N";
 
         AZ_scale_true_residual(x, b,
                                v[kspace], weight, &actual_residual,
-                               &true_scaled_r, options, data_org, proc_config, 
+                               &true_scaled_r, options, data_org, proc_config,
                                Amat, convergence_info);
 
         converged = true_scaled_r < params[AZ_tol];
@@ -471,14 +471,14 @@ char *T2 = "N";
 
 void AZ_get_x_incr(int options[], int data_org[], int
                    proc_config[], double params[], int i, double **hh, double
-                   *rs, double *temp, double **v, AZ_MATRIX *Amat, AZ_PRECOND 
+                   *rs, double *temp, double **v, AZ_MATRIX *Amat, AZ_PRECOND
                    *precond, double x[], int *first_time, int *converged,
 		   int kspace)
 
 /*******************************************************************************
 
   This routine is normally invoked from GMRES and is used to compute the
-  increment to the solution (as well as the new solution) that should be applied as a 
+  increment to the solution (as well as the new solution) that should be applied as a
   result of solving the upper hessenberg system produces by GMRES.
 
   Author:          Ray Tuminaro, SNL, 1422

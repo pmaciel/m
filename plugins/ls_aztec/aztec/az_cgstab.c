@@ -32,8 +32,8 @@ static char rcsid[] = "$Id: az_cgstab.c,v 1.28 2000/06/02 16:46:55 tuminaro Exp 
 #include <float.h>
 #include "az_aztec.h"
 
-void AZ_pbicgstab(double b[], double x[], double weight[], int options[], 
-	double params[],int proc_config[], double status[], AZ_MATRIX *Amat, 
+void AZ_pbicgstab(double b[], double x[], double weight[], int options[],
+	double params[],int proc_config[], double status[], AZ_MATRIX *Amat,
 	AZ_PRECOND *precond, struct AZ_CONVERGE_STRUCT *convergence_info)
 
 /*******************************************************************************
@@ -131,7 +131,7 @@ void AZ_pbicgstab(double b[], double x[], double weight[], int options[],
                        /* assembly coded matvec() on the Intel.  */
 
   sprintf(label,"phat%s",suffix);
-  phat   = (double *) AZ_manage_memory(7*NN*sizeof(double), AZ_ALLOC, 
+  phat   = (double *) AZ_manage_memory(7*NN*sizeof(double), AZ_ALLOC,
                                        AZ_SYS, label,&j);
   p      = &(phat[1*NN]);
   shat   = &(phat[2*NN]);   /* NOTE: phat and shat must be aligned */
@@ -242,7 +242,7 @@ void AZ_pbicgstab(double b[], double x[], double weight[], int options[],
     for (i = 0; i < N; i++) s[i] = r[i] - alpha * v[i];
     dcopy_(&N, s, &one, shat, &one);
 
-    if (precond_flag)    
+    if (precond_flag)
       precond->prec_function(shat,options,proc_config,params,Amat,precond);
 
     Amat->matvec(shat, r, Amat, proc_config);

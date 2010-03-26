@@ -7,25 +7,25 @@
 
 //---------------------------------------------------------------------------
 Element::Element (unsigned nNodes_)
-	: nNodes(nNodes_)
-{	
-	nodes = new unsigned[nNodes];
+  : nNodes(nNodes_)
+{
+  nodes = new unsigned[nNodes];
 }
 //---------------------------------------------------------------------------
 Element::~Element ()
 {
-	delete[] nodes;
+  delete[] nodes;
 }
 //---------------------------------------------------------------------------
 void Element::setNodes(unsigned m, unsigned value)
 {
-	if (m < nNodes)
-	{
-		nodes[m] = value;
-	}
-	else
-	{
-		// error message
-	}
+  if (m < nNodes)
+  {
+    nodes[m] = value;
+  }
+  else
+  {
+    // error message
+  }
 }
 //---------------------------------------------------------------------------

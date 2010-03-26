@@ -29,7 +29,7 @@ double second(void)
   *    Ansi C function. On some machines clock() returns type
   *    unsigned long (HP) and on others (SUN) it returns type long.
   *       An attempt to recover the actual time for clocks which have
-  *    rolled over is made also. However, it only works if this 
+  *    rolled over is made also. However, it only works if this
   *    function is called fairly regularily during
   *    the solution procedure.
   *

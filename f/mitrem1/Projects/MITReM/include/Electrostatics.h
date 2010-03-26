@@ -12,14 +12,14 @@
 class Electrostatics
 {
 public :
-	Electrostatics(ElectrolyteSolution* electrolyteSolution_) : electrolyteSolution(electrolyteSolution_) { };
-	virtual ~Electrostatics() { };
+  Electrostatics(ElectrolyteSolution* electrolyteSolution_) : electrolyteSolution(electrolyteSolution_) { };
+  virtual ~Electrostatics() { };
 
-	virtual double	calcConcentrationFactor(unsigned j) const = 0;
-	virtual double	calcPotentialFactor() const = 0;
+  virtual double  calcConcentrationFactor(unsigned j) const = 0;
+  virtual double  calcPotentialFactor() const = 0;
 
 protected :
-	ElectrolyteSolution*	electrolyteSolution;
+  ElectrolyteSolution*  electrolyteSolution;
 };
 
 //---------------------------------------------------------------------------
@@ -27,11 +27,11 @@ protected :
 class Electrostatics_Electroneutrality : public Electrostatics
 {
 public :
-	Electrostatics_Electroneutrality(ElectrolyteSolution* electrolyteSolution_) : Electrostatics(electrolyteSolution_) { };
-	virtual ~Electrostatics_Electroneutrality() { };
+  Electrostatics_Electroneutrality(ElectrolyteSolution* electrolyteSolution_) : Electrostatics(electrolyteSolution_) { };
+  virtual ~Electrostatics_Electroneutrality() { };
 
-	virtual double	calcConcentrationFactor(unsigned j) const;
-	virtual double	calcPotentialFactor() const;
+  virtual double  calcConcentrationFactor(unsigned j) const;
+  virtual double  calcPotentialFactor() const;
 };
 
 //---------------------------------------------------------------------------
@@ -39,11 +39,11 @@ public :
 class Electrostatics_Poisson : public Electrostatics
 {
 public :
-	Electrostatics_Poisson(ElectrolyteSolution* electrolyteSolution_) : Electrostatics(electrolyteSolution_) { };
-	virtual ~Electrostatics_Poisson() { };
+  Electrostatics_Poisson(ElectrolyteSolution* electrolyteSolution_) : Electrostatics(electrolyteSolution_) { };
+  virtual ~Electrostatics_Poisson() { };
 
-	virtual double	calcConcentrationFactor(unsigned j) const;
-	virtual double	calcPotentialFactor() const;
+  virtual double  calcConcentrationFactor(unsigned j) const;
+  virtual double  calcPotentialFactor() const;
 };
 
 //---------------------------------------------------------------------------

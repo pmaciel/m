@@ -32,8 +32,8 @@ static char rcsid[] = "$Id: az_qmrcgs.c,v 1.28 2000/06/02 16:48:31 tuminaro Exp 
 #include <float.h>
 #include "az_aztec.h"
 
-void AZ_pqmrs(double b[], double x[], double weight[], int options[], 
-	double params[], int proc_config[], double status[], AZ_MATRIX *Amat, 
+void AZ_pqmrs(double b[], double x[], double weight[], int options[],
+	double params[], int proc_config[], double status[], AZ_MATRIX *Amat,
 	AZ_PRECOND *precond, struct AZ_CONVERGE_STRUCT *convergence_info)
 
 /*******************************************************************************
@@ -391,7 +391,7 @@ void AZ_pqmrs(double b[], double x[], double weight[], int options[],
 
     converged = scaled_r_norm < epsilon;
     if (options[AZ_check_update_size] & converged) {
-      daxpy_(&N, &doubleone , d, &one, ubar, &one); 
+      daxpy_(&N, &doubleone , d, &one, ubar, &one);
       converged = AZ_compare_update_vs_soln(N, -1.,eta_m, ubar, x,
                                            params[AZ_update_reduction],
                                            options[AZ_output], proc_config, &first_time);

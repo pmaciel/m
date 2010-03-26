@@ -549,131 +549,131 @@ void Reactor::readReactor ()
 
   //else if (dimensions == "RDE_2Dbis")
   //{
-  //	dimensions = "2D";
-  //	nDimensions = 2;
+  //  dimensions = "2D";
+  //  nDimensions = 2;
   //
-  //	double length,refFac,vRot;
+  //  double length,refFac,vRot;
   //
-  //	datFile.readScalar("[nElements]",nElements);
-  //	datFile.readScalar("[length]",length);
-  //	datFile.readScalar("[refFac]",refFac);
-  //	datFile.readScalar("[vRot]",vRot);
+  //  datFile.readScalar("[nElements]",nElements);
+  //  datFile.readScalar("[length]",length);
+  //  datFile.readScalar("[refFac]",refFac);
+  //  datFile.readScalar("[vRot]",vRot);
 
-  //	// Write elements file
-  //	nElements *= 2;
-  //	std::ofstream elementsOutput(elementsFile.c_str());
-  //	elementsOutput << "Versie 1.0\n" << nElements << std::endl;
-  //	for (unsigned e=0; e<nElements; e+=4)
-  //	{
-  //		unsigned e_ = e*3/4;
-  //		elementsOutput << e_ << '\t' << e_+2 << '\t' << e_+1 << std::endl;
-  //		elementsOutput << e_ << '\t' << e_+3 << '\t' << e_+2 << std::endl;
-  //		elementsOutput << e_+1 << '\t' << e_+2 << '\t' << e_+4 << std::endl;
-  //		elementsOutput << e_+2 << '\t' << e_+3 << '\t' << e_+4 << std::endl;
-  //	}
-  //	elementsOutput.close();
+  //  // Write elements file
+  //  nElements *= 2;
+  //  std::ofstream elementsOutput(elementsFile.c_str());
+  //  elementsOutput << "Versie 1.0\n" << nElements << std::endl;
+  //  for (unsigned e=0; e<nElements; e+=4)
+  //  {
+  //    unsigned e_ = e*3/4;
+  //    elementsOutput << e_ << '\t' << e_+2 << '\t' << e_+1 << std::endl;
+  //    elementsOutput << e_ << '\t' << e_+3 << '\t' << e_+2 << std::endl;
+  //    elementsOutput << e_+1 << '\t' << e_+2 << '\t' << e_+4 << std::endl;
+  //    elementsOutput << e_+2 << '\t' << e_+3 << '\t' << e_+4 << std::endl;
+  //  }
+  //  elementsOutput.close();
 
-  //	// Write nodes and flow field file
-  //	std::ofstream nodesOutput(nodesFile.c_str());
-  //	std::ofstream flowFieldOutput(flowFieldFile.c_str());
-  //	nNodes = nElements*3/4+2;
-  //	nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	vRot *= M_PI/30.; // convert rpm to rad/s
-  //	double kinematicViscosity = mitrem->getSolutionKinematicViscosity();
-  //	double Quot = vRot/kinematicViscosity;
-  //	double sqrtQuot = sqrt(Quot);
-  //	double sqrtProd = sqrt(vRot*kinematicViscosity);
-  //	if (refFac > 1.)
-  //	{
-  //		double H = length*pow(refFac,-0.5+nElements/4.)*(1.-refFac)/(1.-pow(refFac,nElements/2.));
-  //		double refFacN = refFac;
-  //		double refFacm = 1.;
-  //		for (unsigned p=1; p<nElements/2; p++)
-  //		{
-  //			refFacN *= refFac;
-  //		}
-  //		for (unsigned m=0; m<nElements/2+1; m++)
-  //		{
-  //			double x = length*(1-refFacm)/(1-refFacN);
-  //			double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
-  //			if (m%2 == 0)
-  //			{
-  //				nodesOutput << x << '\t' << -H/2 << std::endl;
-  //				nodesOutput << x << '\t' << H/2 << std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
-  //			}
-  //			else
-  //			{
-  //				nodesOutput << x << '\t' << 0.0 << std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
-  //			}
-  //			refFacm *= refFac;
-  //		}
-  //	}
-  //	else if (refFac == 1.)
-  //	{
-  //		double H = 2.*length/nElements;
-  //		for (unsigned m=0; m<nElements/2+1; m++)
-  //		{
-  //			double x = 2.*length*m/nElements;
-  //			double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
-  //			if (m%2 == 0)
-  //			{
-  //				nodesOutput << x << '\t' << -H/2 << std::endl;
-  //				nodesOutput << x << '\t' << H/2 << std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
-  //			}
-  //			else
-  //			{
-  //				nodesOutput << x << '\t' << 0.0 << std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
-  //			}
-  //		}
-  //	}
-  //	else
-  //	{
-  //		// error message
-  //	}
-  //	nodesOutput.close();
-  //	flowFieldOutput.close();
+  //  // Write nodes and flow field file
+  //  std::ofstream nodesOutput(nodesFile.c_str());
+  //  std::ofstream flowFieldOutput(flowFieldFile.c_str());
+  //  nNodes = nElements*3/4+2;
+  //  nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  vRot *= M_PI/30.; // convert rpm to rad/s
+  //  double kinematicViscosity = mitrem->getSolutionKinematicViscosity();
+  //  double Quot = vRot/kinematicViscosity;
+  //  double sqrtQuot = sqrt(Quot);
+  //  double sqrtProd = sqrt(vRot*kinematicViscosity);
+  //  if (refFac > 1.)
+  //  {
+  //    double H = length*pow(refFac,-0.5+nElements/4.)*(1.-refFac)/(1.-pow(refFac,nElements/2.));
+  //    double refFacN = refFac;
+  //    double refFacm = 1.;
+  //    for (unsigned p=1; p<nElements/2; p++)
+  //    {
+  //      refFacN *= refFac;
+  //    }
+  //    for (unsigned m=0; m<nElements/2+1; m++)
+  //    {
+  //      double x = length*(1-refFacm)/(1-refFacN);
+  //      double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
+  //      if (m%2 == 0)
+  //      {
+  //        nodesOutput << x << '\t' << -H/2 << std::endl;
+  //        nodesOutput << x << '\t' << H/2 << std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
+  //      }
+  //      else
+  //      {
+  //        nodesOutput << x << '\t' << 0.0 << std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
+  //      }
+  //      refFacm *= refFac;
+  //    }
+  //  }
+  //  else if (refFac == 1.)
+  //  {
+  //    double H = 2.*length/nElements;
+  //    for (unsigned m=0; m<nElements/2+1; m++)
+  //    {
+  //      double x = 2.*length*m/nElements;
+  //      double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
+  //      if (m%2 == 0)
+  //      {
+  //        nodesOutput << x << '\t' << -H/2 << std::endl;
+  //        nodesOutput << x << '\t' << H/2 << std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
+  //      }
+  //      else
+  //      {
+  //        nodesOutput << x << '\t' << 0.0 << std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  std::endl;
+  //      }
+  //    }
+  //  }
+  //  else
+  //  {
+  //    // error message
+  //  }
+  //  nodesOutput.close();
+  //  flowFieldOutput.close();
 
-  //	// Write boundary elements file
-  //	std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
-  //	nBoundaryElements = 2;
-  //	boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
-  //	boundaryElementsOutput << 1 << '\t' << 0 << std::endl;
-  //	boundaryElementsOutput << nNodes-2 << '\t' << nNodes-1 << std::endl;
-  //	boundaryElementsOutput.close();
+  //  // Write boundary elements file
+  //  std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
+  //  nBoundaryElements = 2;
+  //  boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
+  //  boundaryElementsOutput << 1 << '\t' << 0 << std::endl;
+  //  boundaryElementsOutput << nNodes-2 << '\t' << nNodes-1 << std::endl;
+  //  boundaryElementsOutput.close();
 
-  //	// Write boundaries file
-  //	std::ofstream boundariesOutput(boundariesFile.c_str());
-  //	nBoundaries = 2;
-  //	boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
-  //	boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
-  //	boundariesOutput << "\t<dimensions> = VirtualElectrode\n" << std::endl;
-  //	boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
-  //	boundariesOutput << "[nBoundaryElements1] = 1" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 1\n" << std::endl;
-  //	boundariesOutput.close();
+  //  // Write boundaries file
+  //  std::ofstream boundariesOutput(boundariesFile.c_str());
+  //  nBoundaries = 2;
+  //  boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
+  //  boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
+  //  boundariesOutput << "\t<dimensions> = VirtualElectrode\n" << std::endl;
+  //  boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
+  //  boundariesOutput << "[nBoundaryElements1] = 1" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 1\n" << std::endl;
+  //  boundariesOutput.close();
 
-  //	// Write electrodes file
-  //	std::ofstream electrodesOutput(electrodesFile.c_str());
-  //	nElectrodes = 1;
-  //	electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
-  //	electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
-  //	electrodesOutput << "[nBoundaries0] = 1" << std::endl;
-  //	electrodesOutput << "\t<boundary> = 0\n" << std::endl;
-  //	unsigned nElecReactions = mitrem->getNElecReactions();
-  //	electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
-  //	for (unsigned r=0; r<nElecReactions; r++)
-  //	{
-  //		electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
-  //	}
-  //	electrodesOutput.close();
+  //  // Write electrodes file
+  //  std::ofstream electrodesOutput(electrodesFile.c_str());
+  //  nElectrodes = 1;
+  //  electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
+  //  electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
+  //  electrodesOutput << "[nBoundaries0] = 1" << std::endl;
+  //  electrodesOutput << "\t<boundary> = 0\n" << std::endl;
+  //  unsigned nElecReactions = mitrem->getNElecReactions();
+  //  electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
+  //  for (unsigned r=0; r<nElecReactions; r++)
+  //  {
+  //    electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
+  //  }
+  //  electrodesOutput.close();
   //}
 
   else if (dimensions == "RDE_AX")
@@ -1071,441 +1071,441 @@ void Reactor::readReactor ()
   }
   //else if (dimensions == "RDE_3Dbis")
   //{
-  //	dimensions = "3D";
-  //	nDimensions = 3;
+  //  dimensions = "3D";
+  //  nDimensions = 3;
   //
-  //	double length,refFac,vRot;
+  //  double length,refFac,vRot;
   //
-  //	datFile.readScalar("[nElements]",nElements);
-  //	datFile.readScalar("[length]",length);
-  //	datFile.readScalar("[refFac]",refFac);
-  //	datFile.readScalar("[vRot]",vRot);
+  //  datFile.readScalar("[nElements]",nElements);
+  //  datFile.readScalar("[length]",length);
+  //  datFile.readScalar("[refFac]",refFac);
+  //  datFile.readScalar("[vRot]",vRot);
 
-  //	// Write elements file
-  //	nElements *= 4;
-  //	std::ofstream elementsOutput(elementsFile.c_str());
-  //	elementsOutput << "Versie 1.0\n" << nElements << std::endl;
-  //	for (unsigned e=0; e<nElements; e+=8)
-  //	{
-  //		unsigned e_ = e/2;
-  //		elementsOutput << e_ << '\t' << e_+2 << '\t' << e_+1 << '\t' << e_+3 << std::endl;
-  //		elementsOutput << e_ << '\t' << e_+1 << '\t' << e_+6 << '\t' << e_+3 << std::endl;
-  //		elementsOutput << e_+1 << '\t' << e_+2 << '\t' << e_+4 << '\t' << e_+3 << std::endl;
-  //		elementsOutput << e_+2 << '\t' << e_ << '\t' << e_+5 << '\t' << e_+3 << std::endl;
-  //		elementsOutput << e_+5 << '\t' << e_+4 << '\t' << e_+2 << '\t' << e_+3 << std::endl;
-  //		elementsOutput << e_+4 << '\t' << e_+6 << '\t' << e_+1 << '\t' << e_+3 << std::endl;
-  //		elementsOutput << e_+6 << '\t' << e_+5 << '\t' << e_ << '\t' << e_+3 << std::endl;
-  //		elementsOutput << e_+4 << '\t' << e_+5 << '\t' << e_+6 << '\t' << e_+3 << std::endl;
-  //	}
-  //	elementsOutput.close();
+  //  // Write elements file
+  //  nElements *= 4;
+  //  std::ofstream elementsOutput(elementsFile.c_str());
+  //  elementsOutput << "Versie 1.0\n" << nElements << std::endl;
+  //  for (unsigned e=0; e<nElements; e+=8)
+  //  {
+  //    unsigned e_ = e/2;
+  //    elementsOutput << e_ << '\t' << e_+2 << '\t' << e_+1 << '\t' << e_+3 << std::endl;
+  //    elementsOutput << e_ << '\t' << e_+1 << '\t' << e_+6 << '\t' << e_+3 << std::endl;
+  //    elementsOutput << e_+1 << '\t' << e_+2 << '\t' << e_+4 << '\t' << e_+3 << std::endl;
+  //    elementsOutput << e_+2 << '\t' << e_ << '\t' << e_+5 << '\t' << e_+3 << std::endl;
+  //    elementsOutput << e_+5 << '\t' << e_+4 << '\t' << e_+2 << '\t' << e_+3 << std::endl;
+  //    elementsOutput << e_+4 << '\t' << e_+6 << '\t' << e_+1 << '\t' << e_+3 << std::endl;
+  //    elementsOutput << e_+6 << '\t' << e_+5 << '\t' << e_ << '\t' << e_+3 << std::endl;
+  //    elementsOutput << e_+4 << '\t' << e_+5 << '\t' << e_+6 << '\t' << e_+3 << std::endl;
+  //  }
+  //  elementsOutput.close();
 
-  //	// Write nodes and flow field file
-  //	std::ofstream nodesOutput(nodesFile.c_str());
-  //	std::ofstream flowFieldOutput(flowFieldFile.c_str());
-  //	nNodes = nElements/2+3;
-  //	nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	vRot *= M_PI/30.; // convert rpm to rad/s
-  //	double kinematicViscosity = mitrem->getSolutionKinematicViscosity();
-  //	double Quot = vRot/kinematicViscosity;
-  //	double sqrtQuot = sqrt(Quot);
-  //	double sqrtProd = sqrt(vRot*kinematicViscosity);
-  //	if (refFac > 1.)
-  //	{
-  //		double H = length*pow(refFac,-0.5+nElements/4.)*(1.-refFac)/(1.-pow(refFac,nElements/2.));
-  //		double refFacN = refFac;
-  //		double refFacm = 1.;
-  //		for (unsigned p=1; p<nElements/4; p++)
-  //		{
-  //			refFacN *= refFac;
-  //		}
-  //		for (unsigned m=0; m<nElements/4+1; m++)
-  //		{
-  //			double x = length*(1-refFacm)/(1-refFacN);
-  //			double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
-  //			if (m%4 == 0)
-  //			{
-  //				nodesOutput << x << '\t' << 0.0 << '\t' << -H/sqrt(3.) << std::endl;
-  //				nodesOutput << x << '\t' << H/2. << '\t' << 0.5*H/sqrt(3.) << std::endl;
-  //				nodesOutput << x << '\t' << -H/2. << '\t' << 0.5*H/sqrt(3.) << std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //			}
-  //			else if (m%4 == 2)
-  //			{
-  //				nodesOutput << x << '\t' << 0.0 << '\t' << H/sqrt(3.) << std::endl;
-  //				nodesOutput << x << '\t' << -H/2. << '\t' << -0.5*H/sqrt(3.) << std::endl;
-  //				nodesOutput << x << '\t' << H/2. << '\t' << -0.5*H/sqrt(3.) << std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //			}
-  //			else
-  //			{
-  //				nodesOutput << x << '\t' << 0.0 << '\t' << 0.0 << std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 << std::endl;
-  //			}
-  //			refFacm *= refFac;
-  //		}
-  //	}
-  //	else if (refFac == 1.)
-  //	{
-  //		double H = 4.*length/nElements;
-  //		for (unsigned m=0; m<nElements/4+1; m++)
-  //		{
-  //			double x = 4.*length*m/nElements;
-  //			double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
-  //			if (m%2 == 0)
-  //			{
-  //				nodesOutput << x << '\t' << 0.0 << '\t' << -H/sqrt(3.) << std::endl;
-  //				nodesOutput << x << '\t' << H/2. << '\t' << 0.5*H/sqrt(3.) << std::endl;
-  //				nodesOutput << x << '\t' << -H/2. << '\t' << 0.5*H/sqrt(3.) << std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //			}
-  //			else
-  //			{
-  //				nodesOutput << x << '\t' << 0.0 << '\t' << 0.0 << std::endl;
-  //				flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 << std::endl;
-  //			}
-  //		}
-  //	}
-  //	else
-  //	{
-  //		// error message
-  //	}
-  //	nodesOutput.close();
-  //	flowFieldOutput.close();
+  //  // Write nodes and flow field file
+  //  std::ofstream nodesOutput(nodesFile.c_str());
+  //  std::ofstream flowFieldOutput(flowFieldFile.c_str());
+  //  nNodes = nElements/2+3;
+  //  nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  vRot *= M_PI/30.; // convert rpm to rad/s
+  //  double kinematicViscosity = mitrem->getSolutionKinematicViscosity();
+  //  double Quot = vRot/kinematicViscosity;
+  //  double sqrtQuot = sqrt(Quot);
+  //  double sqrtProd = sqrt(vRot*kinematicViscosity);
+  //  if (refFac > 1.)
+  //  {
+  //    double H = length*pow(refFac,-0.5+nElements/4.)*(1.-refFac)/(1.-pow(refFac,nElements/2.));
+  //    double refFacN = refFac;
+  //    double refFacm = 1.;
+  //    for (unsigned p=1; p<nElements/4; p++)
+  //    {
+  //      refFacN *= refFac;
+  //    }
+  //    for (unsigned m=0; m<nElements/4+1; m++)
+  //    {
+  //      double x = length*(1-refFacm)/(1-refFacN);
+  //      double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
+  //      if (m%4 == 0)
+  //      {
+  //        nodesOutput << x << '\t' << 0.0 << '\t' << -H/sqrt(3.) << std::endl;
+  //        nodesOutput << x << '\t' << H/2. << '\t' << 0.5*H/sqrt(3.) << std::endl;
+  //        nodesOutput << x << '\t' << -H/2. << '\t' << 0.5*H/sqrt(3.) << std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //      }
+  //      else if (m%4 == 2)
+  //      {
+  //        nodesOutput << x << '\t' << 0.0 << '\t' << H/sqrt(3.) << std::endl;
+  //        nodesOutput << x << '\t' << -H/2. << '\t' << -0.5*H/sqrt(3.) << std::endl;
+  //        nodesOutput << x << '\t' << H/2. << '\t' << -0.5*H/sqrt(3.) << std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //      }
+  //      else
+  //      {
+  //        nodesOutput << x << '\t' << 0.0 << '\t' << 0.0 << std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 << std::endl;
+  //      }
+  //      refFacm *= refFac;
+  //    }
+  //  }
+  //  else if (refFac == 1.)
+  //  {
+  //    double H = 4.*length/nElements;
+  //    for (unsigned m=0; m<nElements/4+1; m++)
+  //    {
+  //      double x = 4.*length*m/nElements;
+  //      double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
+  //      if (m%2 == 0)
+  //      {
+  //        nodesOutput << x << '\t' << 0.0 << '\t' << -H/sqrt(3.) << std::endl;
+  //        nodesOutput << x << '\t' << H/2. << '\t' << 0.5*H/sqrt(3.) << std::endl;
+  //        nodesOutput << x << '\t' << -H/2. << '\t' << 0.5*H/sqrt(3.) << std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //      }
+  //      else
+  //      {
+  //        nodesOutput << x << '\t' << 0.0 << '\t' << 0.0 << std::endl;
+  //        flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 << std::endl;
+  //      }
+  //    }
+  //  }
+  //  else
+  //  {
+  //    // error message
+  //  }
+  //  nodesOutput.close();
+  //  flowFieldOutput.close();
 
-  //	// Write boundary elements file
-  //	std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
-  //	nBoundaryElements = 2;
-  //	boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
-  //	boundaryElementsOutput << 0 << '\t' << 2 << '\t' << 1 << std::endl;
-  //	boundaryElementsOutput << nNodes-3 << '\t' << nNodes-2 << '\t' << nNodes-1 << std::endl;
-  //	boundaryElementsOutput.close();
+  //  // Write boundary elements file
+  //  std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
+  //  nBoundaryElements = 2;
+  //  boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
+  //  boundaryElementsOutput << 0 << '\t' << 2 << '\t' << 1 << std::endl;
+  //  boundaryElementsOutput << nNodes-3 << '\t' << nNodes-2 << '\t' << nNodes-1 << std::endl;
+  //  boundaryElementsOutput.close();
 
-  //	// Write boundaries file
-  //	std::ofstream boundariesOutput(boundariesFile.c_str());
-  //	nBoundaries = 2;
-  //	boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
-  //	boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
-  //	boundariesOutput << "\t<dimensions> = VirtualElectrode\n" << std::endl;
-  //	boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
-  //	boundariesOutput << "[nBoundaryElements1] = 1" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 1\n" << std::endl;
-  //	boundariesOutput.close();
+  //  // Write boundaries file
+  //  std::ofstream boundariesOutput(boundariesFile.c_str());
+  //  nBoundaries = 2;
+  //  boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
+  //  boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
+  //  boundariesOutput << "\t<dimensions> = VirtualElectrode\n" << std::endl;
+  //  boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
+  //  boundariesOutput << "[nBoundaryElements1] = 1" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 1\n" << std::endl;
+  //  boundariesOutput.close();
 
-  //	// Write electrodes file
-  //	std::ofstream electrodesOutput(electrodesFile.c_str());
-  //	nElectrodes = 1;
-  //	electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
-  //	electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
-  //	electrodesOutput << "[nBoundaries0] = 1" << std::endl;
-  //	electrodesOutput << "\t<boundary> = 0\n" << std::endl;
-  //	unsigned nElecReactions = mitrem->getNElecReactions();
-  //	electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
-  //	for (unsigned r=0; r<nElecReactions; r++)
-  //	{
-  //		electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
-  //	}
-  //	electrodesOutput.close();
+  //  // Write electrodes file
+  //  std::ofstream electrodesOutput(electrodesFile.c_str());
+  //  nElectrodes = 1;
+  //  electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
+  //  electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
+  //  electrodesOutput << "[nBoundaries0] = 1" << std::endl;
+  //  electrodesOutput << "\t<boundary> = 0\n" << std::endl;
+  //  unsigned nElecReactions = mitrem->getNElecReactions();
+  //  electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
+  //  for (unsigned r=0; r<nElecReactions; r++)
+  //  {
+  //    electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
+  //  }
+  //  electrodesOutput.close();
   //}
   //else if (dimensions == "Debug_1D")
   //{
-  //	nDimensions = 1;
+  //  nDimensions = 1;
 
-  //	// Write elements file
-  //	std::ofstream elementsOutput(elementsFile.c_str());
-  //	nElements = 1;
-  //	elementsOutput << "Versie 1.0\n" << nElements << std::endl;
-  //	elementsOutput << 0 << '\t' << 1 << std::endl;
-  //	elementsOutput.close();
+  //  // Write elements file
+  //  std::ofstream elementsOutput(elementsFile.c_str());
+  //  nElements = 1;
+  //  elementsOutput << "Versie 1.0\n" << nElements << std::endl;
+  //  elementsOutput << 0 << '\t' << 1 << std::endl;
+  //  elementsOutput.close();
 
-  //	// Write nodes and flow field file
-  //	std::ofstream nodesOutput(nodesFile.c_str());
-  //	std::ofstream flowFieldOutput(flowFieldFile.c_str());
-  //	nNodes = 2;
-  //	nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	nodesOutput << 0.0 << std::endl;
-  //	nodesOutput << 1.0 << std::endl;
-  //	flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	flowFieldOutput << 1.0 << std::endl;
-  //	flowFieldOutput << 1.0 << std::endl;
-  //	nodesOutput.close();
-  //	flowFieldOutput.close();
+  //  // Write nodes and flow field file
+  //  std::ofstream nodesOutput(nodesFile.c_str());
+  //  std::ofstream flowFieldOutput(flowFieldFile.c_str());
+  //  nNodes = 2;
+  //  nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  nodesOutput << 0.0 << std::endl;
+  //  nodesOutput << 1.0 << std::endl;
+  //  flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  flowFieldOutput << 1.0 << std::endl;
+  //  flowFieldOutput << 1.0 << std::endl;
+  //  nodesOutput.close();
+  //  flowFieldOutput.close();
 
-  //	// Write boundary elements file
-  //	std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
-  //	nBoundaryElements = 1;
-  //	boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
-  //	boundaryElementsOutput << 0 << std::endl;
-  //	boundaryElementsOutput.close();
+  //  // Write boundary elements file
+  //  std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
+  //  nBoundaryElements = 1;
+  //  boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
+  //  boundaryElementsOutput << 0 << std::endl;
+  //  boundaryElementsOutput.close();
 
-  //	// Write boundaries file
-  //	std::ofstream boundariesOutput(boundariesFile.c_str());
-  //	nBoundaries = 1;
-  //	boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
-  //	boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
-  //	boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
-  //	boundariesOutput.close();
+  //  // Write boundaries file
+  //  std::ofstream boundariesOutput(boundariesFile.c_str());
+  //  nBoundaries = 1;
+  //  boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
+  //  boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
+  //  boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
+  //  boundariesOutput.close();
 
-  //	// Write electrodes file
-  //	std::ofstream electrodesOutput(electrodesFile.c_str());
-  //	nElectrodes = 1;
-  //	electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
-  //	electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
-  //	electrodesOutput << "[nBoundaries0] = 1" << std::endl;
-  //	electrodesOutput << "\t<boundary> = 0\n" << std::endl;
-  //	unsigned nElecReactions = mitrem->getNElecReactions();
-  //	electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
-  //	for (unsigned r=0; r<nElecReactions; r++)
-  //	{
-  //		electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
-  //	}
-  //	electrodesOutput.close();
+  //  // Write electrodes file
+  //  std::ofstream electrodesOutput(electrodesFile.c_str());
+  //  nElectrodes = 1;
+  //  electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
+  //  electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
+  //  electrodesOutput << "[nBoundaries0] = 1" << std::endl;
+  //  electrodesOutput << "\t<boundary> = 0\n" << std::endl;
+  //  unsigned nElecReactions = mitrem->getNElecReactions();
+  //  electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
+  //  for (unsigned r=0; r<nElecReactions; r++)
+  //  {
+  //    electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
+  //  }
+  //  electrodesOutput.close();
   //}
   //else if (dimensions == "Debug_2D")
   //{
-  //	nDimensions = 2;
+  //  nDimensions = 2;
   //
-  //	// Write elements file
-  //	std::ofstream elementsOutput(elementsFile.c_str());
-  //	nElements = 1;
-  //	elementsOutput << "Versie 1.0\n" << nElements << std::endl;
-  //	elementsOutput << 0 << '\t' << 1 << '\t' << 2 << std::endl;
-  //	elementsOutput.close();
+  //  // Write elements file
+  //  std::ofstream elementsOutput(elementsFile.c_str());
+  //  nElements = 1;
+  //  elementsOutput << "Versie 1.0\n" << nElements << std::endl;
+  //  elementsOutput << 0 << '\t' << 1 << '\t' << 2 << std::endl;
+  //  elementsOutput.close();
 
-  //	// Write nodes and flow field file
-  //	std::ofstream nodesOutput(nodesFile.c_str());
-  //	std::ofstream flowFieldOutput(flowFieldFile.c_str());
-  //	nNodes = 3;
-  //	nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	nodesOutput << 0.0 << '\t' << 0.0 << std::endl;
-  //	nodesOutput << 1.0 << '\t' << 0.0 << std::endl;
-  //	nodesOutput << 1./sqrt(3.) << '\t' << 1.0 << std::endl;
-  //	flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << std::endl;
-  //	flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << std::endl;
-  //	flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << std::endl;
-  //	nodesOutput.close();
-  //	flowFieldOutput.close();
+  //  // Write nodes and flow field file
+  //  std::ofstream nodesOutput(nodesFile.c_str());
+  //  std::ofstream flowFieldOutput(flowFieldFile.c_str());
+  //  nNodes = 3;
+  //  nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  nodesOutput << 0.0 << '\t' << 0.0 << std::endl;
+  //  nodesOutput << 1.0 << '\t' << 0.0 << std::endl;
+  //  nodesOutput << 1./sqrt(3.) << '\t' << 1.0 << std::endl;
+  //  flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << std::endl;
+  //  flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << std::endl;
+  //  flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << std::endl;
+  //  nodesOutput.close();
+  //  flowFieldOutput.close();
 
-  //	// Write boundary elements file
-  //	std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
-  //	nBoundaryElements = 1;
-  //	boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
-  //	boundaryElementsOutput << 0 << '\t' << 1 << std::endl;
-  //	boundaryElementsOutput.close();
+  //  // Write boundary elements file
+  //  std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
+  //  nBoundaryElements = 1;
+  //  boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
+  //  boundaryElementsOutput << 0 << '\t' << 1 << std::endl;
+  //  boundaryElementsOutput.close();
 
-  //	// Write boundaries file
-  //	std::ofstream boundariesOutput(boundariesFile.c_str());
-  //	nBoundaries = 1;
-  //	boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
-  //	boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
-  //	boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
-  //	boundariesOutput.close();
+  //  // Write boundaries file
+  //  std::ofstream boundariesOutput(boundariesFile.c_str());
+  //  nBoundaries = 1;
+  //  boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
+  //  boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
+  //  boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
+  //  boundariesOutput.close();
 
-  //	// Write electrodes file
-  //	std::ofstream electrodesOutput(electrodesFile.c_str());
-  //	nElectrodes = 1;
-  //	electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
-  //	electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
-  //	electrodesOutput << "[nBoundaries0] = 1" << std::endl;
-  //	electrodesOutput << "\t<boundary> = 0\n" << std::endl;
-  //	unsigned nElecReactions = mitrem->getNElecReactions();
-  //	electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
-  //	for (unsigned r=0; r<nElecReactions; r++)
-  //	{
-  //		electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
-  //	}
-  //	electrodesOutput.close();
+  //  // Write electrodes file
+  //  std::ofstream electrodesOutput(electrodesFile.c_str());
+  //  nElectrodes = 1;
+  //  electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
+  //  electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
+  //  electrodesOutput << "[nBoundaries0] = 1" << std::endl;
+  //  electrodesOutput << "\t<boundary> = 0\n" << std::endl;
+  //  unsigned nElecReactions = mitrem->getNElecReactions();
+  //  electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
+  //  for (unsigned r=0; r<nElecReactions; r++)
+  //  {
+  //    electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
+  //  }
+  //  electrodesOutput.close();
   //}
   //else if (dimensions == "Debug_3D")
   //{
-  //	nDimensions = 3;
+  //  nDimensions = 3;
   //
-  //	// Write elements file
-  //	std::ofstream elementsOutput(elementsFile.c_str());
-  //	nElements = 1;
-  //	elementsOutput << "Versie 1.0\n" << nElements << std::endl;
-  //	elementsOutput << 0 << '\t' << 1 << '\t' << 2 << '\t' << 3 << std::endl;
-  //	elementsOutput.close();
+  //  // Write elements file
+  //  std::ofstream elementsOutput(elementsFile.c_str());
+  //  nElements = 1;
+  //  elementsOutput << "Versie 1.0\n" << nElements << std::endl;
+  //  elementsOutput << 0 << '\t' << 1 << '\t' << 2 << '\t' << 3 << std::endl;
+  //  elementsOutput.close();
 
-  //	// Write nodes and flow field file
-  //	std::ofstream nodesOutput(nodesFile.c_str());
-  //	std::ofstream flowFieldOutput(flowFieldFile.c_str());
-  //	nNodes = 4;
-  //	nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	nodesOutput << 0.0 << '\t' << 0.0 << '\t' << 0.0 << std::endl;
-  //	nodesOutput << 1.0 << '\t' << 0.0 << '\t' << 0.0 << std::endl;
-  //	nodesOutput << 1./sqrt(3.) << '\t' << 1.0 << '\t' << 0.0 << std::endl;
-  //	nodesOutput << 0.5 << '\t' << 0.5 << '\t' << -1.0 << std::endl;
-  //	flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << '\t' << 0.0 << std::endl;
-  //	flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << '\t' << 0.0 << std::endl;
-  //	flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << '\t' << 0.0 << std::endl;
-  //	flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << '\t' << 0.0 << std::endl;
-  //	nodesOutput.close();
-  //	flowFieldOutput.close();
+  //  // Write nodes and flow field file
+  //  std::ofstream nodesOutput(nodesFile.c_str());
+  //  std::ofstream flowFieldOutput(flowFieldFile.c_str());
+  //  nNodes = 4;
+  //  nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  nodesOutput << 0.0 << '\t' << 0.0 << '\t' << 0.0 << std::endl;
+  //  nodesOutput << 1.0 << '\t' << 0.0 << '\t' << 0.0 << std::endl;
+  //  nodesOutput << 1./sqrt(3.) << '\t' << 1.0 << '\t' << 0.0 << std::endl;
+  //  nodesOutput << 0.5 << '\t' << 0.5 << '\t' << -1.0 << std::endl;
+  //  flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << '\t' << 0.0 << std::endl;
+  //  flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << '\t' << 0.0 << std::endl;
+  //  flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << '\t' << 0.0 << std::endl;
+  //  flowFieldOutput << cos(M_PI/6.) << '\t' << sin(M_PI/6.) << '\t' << 0.0 << std::endl;
+  //  nodesOutput.close();
+  //  flowFieldOutput.close();
 
-  //	// Write boundary elements file
-  //	std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
-  //	nBoundaryElements = 1;
-  //	boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
-  //	boundaryElementsOutput << 0 << '\t' << 1 << '\t' << 2 << std::endl;
-  //	boundaryElementsOutput.close();
+  //  // Write boundary elements file
+  //  std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
+  //  nBoundaryElements = 1;
+  //  boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
+  //  boundaryElementsOutput << 0 << '\t' << 1 << '\t' << 2 << std::endl;
+  //  boundaryElementsOutput.close();
 
-  //	// Write boundaries file
-  //	std::ofstream boundariesOutput(boundariesFile.c_str());
-  //	nBoundaries = 1;
-  //	boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
-  //	boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
-  //	boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
-  //	boundariesOutput.close();
+  //  // Write boundaries file
+  //  std::ofstream boundariesOutput(boundariesFile.c_str());
+  //  nBoundaries = 1;
+  //  boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
+  //  boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
+  //  boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
+  //  boundariesOutput.close();
 
-  //	// Write electrodes file
-  //	std::ofstream electrodesOutput(electrodesFile.c_str());
-  //	nElectrodes = 1;
-  //	electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
-  //	electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
-  //	electrodesOutput << "[nBoundaries0] = 1" << std::endl;
-  //	electrodesOutput << "\t<boundary> = 0\n" << std::endl;
-  //	unsigned nElecReactions = mitrem->getNElecReactions();
-  //	electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
-  //	for (unsigned r=0; r<nElecReactions; r++)
-  //	{
-  //		electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
-  //	}
-  //	electrodesOutput.close();
+  //  // Write electrodes file
+  //  std::ofstream electrodesOutput(electrodesFile.c_str());
+  //  nElectrodes = 1;
+  //  electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
+  //  electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
+  //  electrodesOutput << "[nBoundaries0] = 1" << std::endl;
+  //  electrodesOutput << "\t<boundary> = 0\n" << std::endl;
+  //  unsigned nElecReactions = mitrem->getNElecReactions();
+  //  electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
+  //  for (unsigned r=0; r<nElecReactions; r++)
+  //  {
+  //    electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
+  //  }
+  //  electrodesOutput.close();
   //}
   //else if (dimensions == "RDE_3Dbis")
   //{
-  //	nDimensions = 3;
+  //  nDimensions = 3;
   //
-  //	double length,refFac,vRot;
+  //  double length,refFac,vRot;
   //
-  //	datFile.readScalar("[nElements]",nElements);
-  //	datFile.readScalar("[length]",length);
-  //	datFile.readScalar("[refFac]",refFac);
-  //	datFile.readScalar("[vRot]",vRot);
+  //  datFile.readScalar("[nElements]",nElements);
+  //  datFile.readScalar("[length]",length);
+  //  datFile.readScalar("[refFac]",refFac);
+  //  datFile.readScalar("[vRot]",vRot);
 
-  //	// Write elements file
-  //	nElements *= 4;
-  //	std::ofstream elementsOutput(elementsFile.c_str());
-  //	elementsOutput << "Versie 1.0\n" << nElements << std::endl;
-  //	for (unsigned e=0; e<nElements; e+=4)
-  //	{
-  //		elementsOutput << e+1 << '\t' << e+2 << '\t' << e+3 << '\t' << e+7 << std::endl;
-  //		elementsOutput << e+2 << '\t' << e+4 << '\t' << e+6 << '\t' << e+7 << std::endl;
-  //		elementsOutput << e+1 << '\t' << e+5 << '\t' << e+4 << '\t' << e+7 << std::endl;
-  //		elementsOutput << e+1 << '\t' << e+4 << '\t' << e+2 << '\t' << e+7 << std::endl;
-  //	}
-  //	elementsOutput.close();
+  //  // Write elements file
+  //  nElements *= 4;
+  //  std::ofstream elementsOutput(elementsFile.c_str());
+  //  elementsOutput << "Versie 1.0\n" << nElements << std::endl;
+  //  for (unsigned e=0; e<nElements; e+=4)
+  //  {
+  //    elementsOutput << e+1 << '\t' << e+2 << '\t' << e+3 << '\t' << e+7 << std::endl;
+  //    elementsOutput << e+2 << '\t' << e+4 << '\t' << e+6 << '\t' << e+7 << std::endl;
+  //    elementsOutput << e+1 << '\t' << e+5 << '\t' << e+4 << '\t' << e+7 << std::endl;
+  //    elementsOutput << e+1 << '\t' << e+4 << '\t' << e+2 << '\t' << e+7 << std::endl;
+  //  }
+  //  elementsOutput.close();
 
-  //	// Write nodes and flow field file
-  //	std::ofstream nodesOutput(nodesFile.c_str());
-  //	std::ofstream flowFieldOutput(flowFieldFile.c_str());
-  //	nNodes = nElements+4;
-  //	nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	vRot *= M_PI/30.; // convert rpm to rad/s
-  //	double kinematicViscosity = mitrem->getSolutionKinematicViscosity();
-  //	double Quot = vRot/kinematicViscosity;
-  //	double sqrtQuot = sqrt(Quot);
-  //	double sqrtProd = sqrt(vRot*kinematicViscosity);
-  //	if (refFac > 1.)
-  //	{
-  //		double H = length*pow(refFac,-0.5+nElements/4.)*(1.-refFac)/(1.-pow(refFac,nElements/2.));
-  //		double refFacN = refFac;
-  //		double refFacm = 1.;
-  //		for (unsigned p=1; p<nElements/3; p++)
-  //		{
-  //			refFacN *= refFac;
-  //		}
-  //		for (unsigned m=0; m<nNodes/3; m++)
-  //		{
-  //			double x = length*(1-refFacm)/(1-refFacN);
-  //			double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
-  //			nodesOutput << x << '\t' << 0.0 << '\t' << 0.0 << std::endl;
-  //			nodesOutput << x << '\t' << H << '\t' << 0.0 << std::endl;
-  //			nodesOutput << x << '\t' << 0 << '\t' << H << std::endl;
-  //			nodesOutput << x << '\t' << H << '\t' << H << std::endl;
-  //			flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //			flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //			flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //			flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //			refFacm *= refFac;
-  //		}
-  //	}
-  //	else if (refFac == 1.)
-  //	{
-  //		double H = 3.*length/nElements;
-  //		for (unsigned m=0; m<nNodes/3; m++)
-  //		{
-  //			double x = 3.*length*m/nElements;
-  //			double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
-  //			nodesOutput << x << '\t' << 0.0 << '\t' << 0.0 << std::endl;
-  //			nodesOutput << x << '\t' << H << '\t' << 0.0 << std::endl;
-  //			nodesOutput << x << '\t' << 0 << '\t' << H << std::endl;
-  //			nodesOutput << x << '\t' << H << '\t' << H << std::endl;
-  //			flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //			flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //			flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //			flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
-  //		}
-  //	}
-  //	else
-  //	{
-  //		// error message
-  //	}
-  //	nodesOutput.close();
-  //	flowFieldOutput.close();
+  //  // Write nodes and flow field file
+  //  std::ofstream nodesOutput(nodesFile.c_str());
+  //  std::ofstream flowFieldOutput(flowFieldFile.c_str());
+  //  nNodes = nElements+4;
+  //  nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  vRot *= M_PI/30.; // convert rpm to rad/s
+  //  double kinematicViscosity = mitrem->getSolutionKinematicViscosity();
+  //  double Quot = vRot/kinematicViscosity;
+  //  double sqrtQuot = sqrt(Quot);
+  //  double sqrtProd = sqrt(vRot*kinematicViscosity);
+  //  if (refFac > 1.)
+  //  {
+  //    double H = length*pow(refFac,-0.5+nElements/4.)*(1.-refFac)/(1.-pow(refFac,nElements/2.));
+  //    double refFacN = refFac;
+  //    double refFacm = 1.;
+  //    for (unsigned p=1; p<nElements/3; p++)
+  //    {
+  //      refFacN *= refFac;
+  //    }
+  //    for (unsigned m=0; m<nNodes/3; m++)
+  //    {
+  //      double x = length*(1-refFacm)/(1-refFacN);
+  //      double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
+  //      nodesOutput << x << '\t' << 0.0 << '\t' << 0.0 << std::endl;
+  //      nodesOutput << x << '\t' << H << '\t' << 0.0 << std::endl;
+  //      nodesOutput << x << '\t' << 0 << '\t' << H << std::endl;
+  //      nodesOutput << x << '\t' << H << '\t' << H << std::endl;
+  //      flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //      flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //      flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //      flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //      refFacm *= refFac;
+  //    }
+  //  }
+  //  else if (refFac == 1.)
+  //  {
+  //    double H = 3.*length/nElements;
+  //    for (unsigned m=0; m<nNodes/3; m++)
+  //    {
+  //      double x = 3.*length*m/nElements;
+  //      double v = sqrtProd*Quot*x*x*(-0.51023 + 0.333*sqrtQuot*x - 0.103*Quot*x*x);
+  //      nodesOutput << x << '\t' << 0.0 << '\t' << 0.0 << std::endl;
+  //      nodesOutput << x << '\t' << H << '\t' << 0.0 << std::endl;
+  //      nodesOutput << x << '\t' << 0 << '\t' << H << std::endl;
+  //      nodesOutput << x << '\t' << H << '\t' << H << std::endl;
+  //      flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //      flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //      flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //      flowFieldOutput << v << '\t' << 0.0 <<  '\t' << 0.0 <<  std::endl;
+  //    }
+  //  }
+  //  else
+  //  {
+  //    // error message
+  //  }
+  //  nodesOutput.close();
+  //  flowFieldOutput.close();
 
-  //	// Write boundary elements file
-  //	std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
-  //	nBoundaryElements = 4;
-  //	boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
-  //	boundaryElementsOutput << 0 << '\t' << 2 << '\t' << 1 << std::endl;
-  //	boundaryElementsOutput << 1 << '\t' << 2 << '\t' << 3 << std::endl;
-  //	boundaryElementsOutput << nNodes-3 << '\t' << nNodes-2 << '\t' << nNodes-1 << std::endl;
-  //	boundaryElementsOutput << nNodes-3 << '\t' << nNodes-2 << '\t' << nNodes-1 << std::endl;
-  //	boundaryElementsOutput.close();
+  //  // Write boundary elements file
+  //  std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
+  //  nBoundaryElements = 4;
+  //  boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
+  //  boundaryElementsOutput << 0 << '\t' << 2 << '\t' << 1 << std::endl;
+  //  boundaryElementsOutput << 1 << '\t' << 2 << '\t' << 3 << std::endl;
+  //  boundaryElementsOutput << nNodes-3 << '\t' << nNodes-2 << '\t' << nNodes-1 << std::endl;
+  //  boundaryElementsOutput << nNodes-3 << '\t' << nNodes-2 << '\t' << nNodes-1 << std::endl;
+  //  boundaryElementsOutput.close();
 
-  //	// Write boundaries file
-  //	std::ofstream boundariesOutput(boundariesFile.c_str());
-  //	nBoundaries = 2;
-  //	boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
-  //	boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
-  //	boundariesOutput << "\t<dimensions> = VirtualElectrode\n" << std::endl;
-  //	boundariesOutput << "[nBoundaryElements0] = 2" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
-  //	boundariesOutput << "[nBoundaryElements1] = 2" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 1\n" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 1\n" << std::endl;
-  //	boundariesOutput.close();
+  //  // Write boundaries file
+  //  std::ofstream boundariesOutput(boundariesFile.c_str());
+  //  nBoundaries = 2;
+  //  boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
+  //  boundariesOutput << "\t<dimensions> = Electrode\n" << std::endl;
+  //  boundariesOutput << "\t<dimensions> = VirtualElectrode\n" << std::endl;
+  //  boundariesOutput << "[nBoundaryElements0] = 2" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
+  //  boundariesOutput << "[nBoundaryElements1] = 2" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 1\n" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 1\n" << std::endl;
+  //  boundariesOutput.close();
 
-  //	// Write electrodes file
-  //	std::ofstream electrodesOutput(electrodesFile.c_str());
-  //	nElectrodes = 1;
-  //	electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
-  //	electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
-  //	electrodesOutput << "[nBoundaries0] = 1" << std::endl;
-  //	electrodesOutput << "\t<boundary> = 0\n" << std::endl;
-  //	unsigned nElecReactions = mitrem->getNElecReactions();
-  //	electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
-  //	for (unsigned r=0; r<nElecReactions; r++)
-  //	{
-  //		electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
-  //	}
-  //	electrodesOutput.close();
+  //  // Write electrodes file
+  //  std::ofstream electrodesOutput(electrodesFile.c_str());
+  //  nElectrodes = 1;
+  //  electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
+  //  electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
+  //  electrodesOutput << "[nBoundaries0] = 1" << std::endl;
+  //  electrodesOutput << "\t<boundary> = 0\n" << std::endl;
+  //  unsigned nElecReactions = mitrem->getNElecReactions();
+  //  electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
+  //  for (unsigned r=0; r<nElecReactions; r++)
+  //  {
+  //    electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
+  //  }
+  //  electrodesOutput.close();
   //}
 
   else if (dimensions == "ConvectionDiffusion_1D")
@@ -1988,116 +1988,116 @@ void Reactor::readReactor ()
 
   //else if (dimensions == "ParallelPlate_1D")
   //{
-  //	dimensions = "1D";
-  //	nDimensions = 1;
+  //  dimensions = "1D";
+  //  nDimensions = 1;
   //
-  //	double length,refFac;
+  //  double length,refFac;
   //
-  //	datFile.readScalar("[nElements]",nElements);
-  //	datFile.readScalar("[length]",length);
-  //	datFile.readScalar("[refFac]",refFac);
+  //  datFile.readScalar("[nElements]",nElements);
+  //  datFile.readScalar("[length]",length);
+  //  datFile.readScalar("[refFac]",refFac);
 
-  //	// Write elements file
-  //	nElements *= 2;
-  //	std::ofstream elementsOutput(elementsFile.c_str());
-  //	elementsOutput << "Versie 1.0\n" << nElements << std::endl;
-  //	for (unsigned e=0; e<nElements; e++)
-  //	{
-  //		elementsOutput << e << '\t' << e+1 << std::endl;
-  //	}
-  //	elementsOutput.close();
+  //  // Write elements file
+  //  nElements *= 2;
+  //  std::ofstream elementsOutput(elementsFile.c_str());
+  //  elementsOutput << "Versie 1.0\n" << nElements << std::endl;
+  //  for (unsigned e=0; e<nElements; e++)
+  //  {
+  //    elementsOutput << e << '\t' << e+1 << std::endl;
+  //  }
+  //  elementsOutput.close();
 
-  //	// Write nodes and flow field file
-  //	std::ofstream nodesOutput(nodesFile.c_str());
-  //	std::ofstream flowFieldOutput(flowFieldFile.c_str());
-  //	nNodes = nElements+1;
-  //	nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
-  //	if (refFac > 1.)
-  //	{
-  //		// left side
-  //		double refFacN = refFac;
-  //		double refFacm = 1.;
-  //		for (unsigned p=1; p<nElements/2; p++)
-  //		{
-  //			refFacN *= refFac;
-  //		}
-  //		for (unsigned m=0; m<nElements/2+1; m++)
-  //		{
-  //			double x = 0.5*length*((1.-refFacm)/(1.-refFacN) - 1.);
-  //			nodesOutput << x << std::endl;
-  //			flowFieldOutput << 0 << std::endl;
-  //			refFacm *= refFac;
-  //		}
+  //  // Write nodes and flow field file
+  //  std::ofstream nodesOutput(nodesFile.c_str());
+  //  std::ofstream flowFieldOutput(flowFieldFile.c_str());
+  //  nNodes = nElements+1;
+  //  nodesOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  flowFieldOutput << "Versie 1.0\n" << nNodes << std::endl;
+  //  if (refFac > 1.)
+  //  {
+  //    // left side
+  //    double refFacN = refFac;
+  //    double refFacm = 1.;
+  //    for (unsigned p=1; p<nElements/2; p++)
+  //    {
+  //      refFacN *= refFac;
+  //    }
+  //    for (unsigned m=0; m<nElements/2+1; m++)
+  //    {
+  //      double x = 0.5*length*((1.-refFacm)/(1.-refFacN) - 1.);
+  //      nodesOutput << x << std::endl;
+  //      flowFieldOutput << 0 << std::endl;
+  //      refFacm *= refFac;
+  //    }
 
-  //		// right side
-  //		refFacm = refFacN/refFac;
-  //		for (unsigned m=0; m<nElements/2; m++)
-  //		{
-  //			double x = 0.5*length*(1. - (1.-refFacm)/(1.-refFacN));
-  //			nodesOutput << x << std::endl;
-  //			flowFieldOutput << 0 << std::endl;
-  //			refFacm /= refFac;
-  //		}
-  //	}
-  //	else if (refFac == 1.)
-  //	{
-  //		for (unsigned m=0; m<nNodes; m++)
-  //		{
-  //			double x = -length*(0.5 - m/nElements);
-  //			nodesOutput << x << std::endl;
-  //			flowFieldOutput << 0 << std::endl;
-  //		}
-  //	}
-  //	else
-  //	{
-  //		// error message
-  //	}
-  //	nodesOutput.close();
-  //	flowFieldOutput.close();
+  //    // right side
+  //    refFacm = refFacN/refFac;
+  //    for (unsigned m=0; m<nElements/2; m++)
+  //    {
+  //      double x = 0.5*length*(1. - (1.-refFacm)/(1.-refFacN));
+  //      nodesOutput << x << std::endl;
+  //      flowFieldOutput << 0 << std::endl;
+  //      refFacm /= refFac;
+  //    }
+  //  }
+  //  else if (refFac == 1.)
+  //  {
+  //    for (unsigned m=0; m<nNodes; m++)
+  //    {
+  //      double x = -length*(0.5 - m/nElements);
+  //      nodesOutput << x << std::endl;
+  //      flowFieldOutput << 0 << std::endl;
+  //    }
+  //  }
+  //  else
+  //  {
+  //    // error message
+  //  }
+  //  nodesOutput.close();
+  //  flowFieldOutput.close();
 
-  //	// Write boundary elements file
-  //	std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
-  //	nBoundaryElements = 2;
-  //	boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
-  //	boundaryElementsOutput << 0 << std::endl;
-  //	boundaryElementsOutput << nNodes-1 << std::endl;
-  //	boundaryElementsOutput.close();
+  //  // Write boundary elements file
+  //  std::ofstream boundaryElementsOutput(boundaryElementsFile.c_str());
+  //  nBoundaryElements = 2;
+  //  boundaryElementsOutput << "Versie 1.0\n" << nBoundaryElements << std::endl;
+  //  boundaryElementsOutput << 0 << std::endl;
+  //  boundaryElementsOutput << nNodes-1 << std::endl;
+  //  boundaryElementsOutput.close();
 
-  //	// Write boundaries file
-  //	std::ofstream boundariesOutput(boundariesFile.c_str());
-  //	nBoundaries = 2;
-  //	boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
-  //	boundariesOutput << "\t<type> = Electrode\n" << std::endl;
-  //	boundariesOutput << "\t<type> = Electrode\n" << std::endl;
-  //	boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
-  //	boundariesOutput << "[nBoundaryElements1] = 1" << std::endl;
-  //	boundariesOutput << "\t<boundaryElement> = 1\n" << std::endl;
-  //	boundariesOutput.close();
+  //  // Write boundaries file
+  //  std::ofstream boundariesOutput(boundariesFile.c_str());
+  //  nBoundaries = 2;
+  //  boundariesOutput << "Versie 1.0\n[nBoundaries] = " << nBoundaries << std::endl;
+  //  boundariesOutput << "\t<type> = Electrode\n" << std::endl;
+  //  boundariesOutput << "\t<type> = Electrode\n" << std::endl;
+  //  boundariesOutput << "[nBoundaryElements0] = 1" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 0\n" << std::endl;
+  //  boundariesOutput << "[nBoundaryElements1] = 1" << std::endl;
+  //  boundariesOutput << "\t<boundaryElement> = 1\n" << std::endl;
+  //  boundariesOutput.close();
 
-  //	// Write electrodes file
-  //	std::ofstream electrodesOutput(electrodesFile.c_str());
-  //	nElectrodes = 2;
-  //	electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
-  //	electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
-  //	electrodesOutput << "\t<label> = CounterElectrode\n" << std::endl;
-  //	electrodesOutput << "[nBoundaries0] = 1" << std::endl;
-  //	electrodesOutput << "\t<boundary> = 0\n" << std::endl;
-  //	unsigned nElecReactions = mitrem->getNElecReactions();
-  //	electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
-  //	for (unsigned r=0; r<nElecReactions; r++)
-  //	{
-  //		electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
-  //	}
-  //	electrodesOutput << "[nBoundaries1] = 1" << std::endl;
-  //	electrodesOutput << "\t<boundary> = 1\n" << std::endl;
-  //	electrodesOutput << "[nElecReactions1] = " << nElecReactions << std::endl;
-  //	for (unsigned r=0; r<nElecReactions; r++)
-  //	{
-  //		electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
-  //	}
-  //	electrodesOutput.close();
+  //  // Write electrodes file
+  //  std::ofstream electrodesOutput(electrodesFile.c_str());
+  //  nElectrodes = 2;
+  //  electrodesOutput << "Versie 1.0\n[nElectrodes] = " << nElectrodes << std::endl;
+  //  electrodesOutput << "\t<label> = WorkingElectrode\n" << std::endl;
+  //  electrodesOutput << "\t<label> = CounterElectrode\n" << std::endl;
+  //  electrodesOutput << "[nBoundaries0] = 1" << std::endl;
+  //  electrodesOutput << "\t<boundary> = 0\n" << std::endl;
+  //  unsigned nElecReactions = mitrem->getNElecReactions();
+  //  electrodesOutput << "[nElecReactions0] = " << nElecReactions << std::endl;
+  //  for (unsigned r=0; r<nElecReactions; r++)
+  //  {
+  //    electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
+  //  }
+  //  electrodesOutput << "[nBoundaries1] = 1" << std::endl;
+  //  electrodesOutput << "\t<boundary> = 1\n" << std::endl;
+  //  electrodesOutput << "[nElecReactions1] = " << nElecReactions << std::endl;
+  //  for (unsigned r=0; r<nElecReactions; r++)
+  //  {
+  //    electrodesOutput << "\t<label> = " << mitrem->getElecReactionLabel(r) << std::endl;
+  //  }
+  //  electrodesOutput.close();
   //}
 
   else
@@ -2283,7 +2283,7 @@ void Reactor::readBoundaries ()
       //std::cout << boundaries[b]->getBoundaryElements(e) << " : ";
       //for (unsigned m=0; m<nBoundaryElementNodes; m++)
       //{
-      //	std::cout << boundaryElements[boundaries[b]->getBoundaryElements(e)]->getNodes(m) << '\t';
+      //  std::cout << boundaryElements[boundaries[b]->getBoundaryElements(e)]->getNodes(m) << '\t';
       //}
       //std::cout << std::endl;
     }
@@ -3281,7 +3281,7 @@ void Reactor::initLinearSystem_Stationary ()
   istrm.close();
 
 
-/*	for (unsigned m=0; m<nNodes; m++) {
+/*  for (unsigned m=0; m<nNodes; m++) {
     for (unsigned i=0; i<nVariables; i++) {
       xVec[var(m,i)] = inletVec[i];
     }*/
@@ -3291,7 +3291,7 @@ void Reactor::initLinearSystem_Stationary ()
       xVec[var(m,i)] = inletVec[i];
     }
     xVec[var(m,nIons)] = nodes[m]->getComponents(0)*1.;*/
-//	}
+//  }
   //system("pause");
 }
 //---------------------------------------------------------------------------
@@ -3356,14 +3356,14 @@ void Reactor::solveLinearSystem_Stationary (unsigned iter)
   //CHECK << "\nX :\t\tB :" << std::endl;
   //for (unsigned row=0; row<size; row++)
   //{
-  //	CHECK << xVec[row] << "\t\t" << bVec[row] << std::endl;
+  //  CHECK << xVec[row] << "\t\t" << bVec[row] << std::endl;
   //}
   //CHECK << std::endl;
   //CHECK.close();
   //exit(1);
   std::cout << "Calc residu" << std::endl;
   AMat->residu(xVec,bVec);
-//	AMat->print("matrix2.txt");
+//  AMat->print("matrix2.txt");
 
   std::ifstream writeResidual("writeResidual.txt");
   if (writeResidual != NULL)
@@ -3372,7 +3372,7 @@ void Reactor::solveLinearSystem_Stationary (unsigned iter)
   }
   //CHECK.open(f.c_str(), std::ofstream::out | std::ofstream::app);
   //for (unsigned row=0; row<size; row++)
-  //	CHECK<< bVec[row] << std::endl;
+  //  CHECK<< bVec[row] << std::endl;
   //CHECK << std::endl;
   //CHECK.close();
   //~ BVec is now the residual vector R. ~//
@@ -3412,7 +3412,7 @@ void Reactor::solveLinearSystem_Stationary (unsigned iter)
   //CHECK << "\nR :" << std::endl;
   //for (unsigned row=0; row<size; row++)
   //{
-  //	CHECK << bVec[row] << std::endl;
+  //  CHECK << bVec[row] << std::endl;
   //}
   //CHECK << std::endl;
   //CHECK.close();
@@ -3425,7 +3425,7 @@ void Reactor::solveLinearSystem_Stationary (unsigned iter)
 
   //for (unsigned row=0; row<size; row++)
   //{
-  //	CHECK << bVec[row] << std::endl;
+  //  CHECK << bVec[row] << std::endl;
   //}
   //CHECK << std::endl;
   //CHECK.close();
@@ -3443,7 +3443,7 @@ void Reactor::solveLinearSystem_Stationary (unsigned iter)
     xVec[node*nVariables+nIons] += relaxFacPot*bVec[node*nVariables+nIons];
   }
 
-/*	for (unsigned row=0; row<size; row++)
+/*  for (unsigned row=0; row<size; row++)
   {
     xVec[row] += relaxFac*bVec[row];
   }*/
@@ -3470,13 +3470,13 @@ void Reactor::solveLinearSystem_TimeAccurate ()
   //CHECK << "\nX :\t\tB :" << std::endl;
   //for (unsigned row=0; row<size; row++)
   //{
-  //	CHECK << xVec[row] << "\t\t" << bVec[row] << std::endl;
+  //  CHECK << xVec[row] << "\t\t" << bVec[row] << std::endl;
   //}
   //CHECK << std::endl;
   //exit(1);
   AMat->residu(xVec,bVec);
   //for (unsigned row=0; row<size; row++)
-  //	CHECK<< bVec[row] << std::endl;
+  //  CHECK<< bVec[row] << std::endl;
   //CHECK << std::endl;
   //CHECK.close();
   //~ BVec is now the residual vector R. ~//
@@ -3511,7 +3511,7 @@ void Reactor::solveLinearSystem_TimeAccurate ()
   //CHECK.precision(12);
   //for (unsigned row=0; row<size; row++)
   //{
-  //	CHECK << bVec[row] << std::endl;
+  //  CHECK << bVec[row] << std::endl;
   //}
   //CHECK << std::endl;
 
@@ -3521,7 +3521,7 @@ void Reactor::solveLinearSystem_TimeAccurate ()
 
   //for (unsigned row=0; row<size; row++)
   //{
-  //	CHECK << bVec[row] << std::endl;
+  //  CHECK << bVec[row] << std::endl;
   //}
   //CHECK << std::endl;
   //CHECK.close();
@@ -3537,7 +3537,7 @@ void Reactor::solveLinearSystem_TimeAccurate ()
     xVec[node*nVariables+nIons] += relaxFacPot*bVec[node*nVariables+nIons];
   }
 
-/*	for (unsigned row=0; row<size; row++)
+/*  for (unsigned row=0; row<size; row++)
   {
     xVec[row] += relaxFac*bVec[row];
   }*/
@@ -3892,7 +3892,7 @@ void Reactor::imposeEssentialBoundaryConditions ()
             AMat->imposeVar(var(node,i));
           }
 
-/*					bVec[var(node,nIons)] = -0.0314583921944 - xVec[var(node,nIons)];
+/*          bVec[var(node,nIons)] = -0.0314583921944 - xVec[var(node,nIons)];
           for (unsigned i=0; i<nIons; i++)
           {
             bVec[var(node,i)] = inletVec[i] - xVec[var(node,i)];
@@ -3962,8 +3962,8 @@ void Reactor::imposeEssentialBoundaryConditions ()
           unsigned node = boundaryElementNodes[m];
           //for (unsigned i=0; i<nIons; i++)
           //{
-          //	bVec[var(node,i)] = inletVec[i] - xVec[var(node,i)];
-          //	AMat->imposeVar(var(node,i));
+          //  bVec[var(node,i)] = inletVec[i] - xVec[var(node,i)];
+          //  AMat->imposeVar(var(node,i));
           //}
           bVec[var(node,nIons)] = 0. - xVec[var(node,nIons)];
           AMat->imposeVar(var(node,nIons));
@@ -3984,8 +3984,8 @@ void Reactor::imposeEssentialBoundaryConditions ()
           unsigned node = boundaryElementNodes[m];
           //for (unsigned i=0; i<nIons; i++)
           //{
-          //	bVec[var(node,i)] = inletVec[i] - xVec[var(node,i)];
-          //	AMat->imposeVar(var(node,i));
+          //  bVec[var(node,i)] = inletVec[i] - xVec[var(node,i)];
+          //  AMat->imposeVar(var(node,i));
           //}
           bVec[var(node,nIons)] = 1. - xVec[var(node,nIons)];
           AMat->imposeVar(var(node,nIons));

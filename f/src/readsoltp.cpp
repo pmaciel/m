@@ -10,18 +10,23 @@
 /*
  * comparison of boundary element with "inner cells" connectivity, returning the
  * "inner cell" index and respective opposite node global/local indices.
+ * note: it only checks cells which touch a boundary
  * in: "inner" connectivity
+ * in: marker for cells sitting on the boundary
  * in: boundary element to compare
  * out: "inner" correponding cell (0-based)
  * out: ... cell opposite node, global index (0-based)
  * out: ... cell opposite node, local index (0-based)
  */
 void fab(
-  const std::vector< m::melem >& e2n, const std::vector< unsigned >& ben,
+  const std::vector< m::melem >& e2n, const std::vector< bool >& e2n_isbnd,
+  const std::vector< unsigned >& ben,
   int *bcell, int *bnode, int *binc )
 {
   bool match = false;
   for (unsigned c=0; c<e2n.size() && !match; ++c) {
+    if (!e2n_isbnd[c])
+      continue;
     const std::vector< unsigned >& cell = e2n[c].n;
 
     // check for "inner" element matching all nodes from the boundary element
@@ -152,51 +157,42 @@ void readsoltp(const std::string& infile, int read_soln)
 
 
   if (Nbface) {
+    cout << "readsoltp: generate boundary-node connectivity..." << endl;
+
     // allocate structures
     Fab_cell .resize(Nbface);
     Fab_node .resize(Nbface);
     Fab_inc  .resize(Nbface);
     Fab_group.resize(Nbface);
 
-    // check for the boundary-node connectivity file and generate or read it
-    const std::string infilefab = infile + ".fab";
-    std::fstream f(infilefab.c_str(),std::ios::in);
-    if (!f) {
-      cout << "readsoltp: generate boundary-node connectivity (\"" << infilefab << "\")..." << endl;
-      f.open(infilefab.c_str(),std::ios::out|std::ios_base::trunc);
+    // detect inner cells
+    vector< bool > e2n_isbnd,  // b. cells markers
+                   nod_isbnd;  // b. nodes markers
+    boost::progress_display pbar(Nbface);
+    int ifc = 0;
+    for (unsigned i=1; i<M.z(); ++i) {
 
-      boost::progress_display pbar(Nbface);
-      f << Nbface << endl;
-      int ifc = 0;
-      for (unsigned i=1; i<M.z(); ++i)
-        for (unsigned j=0; j<M.e(i); ++j, ++ifc, ++pbar) {
-          fab(
-            e2n, M.vz[i].e2n[j].n,
-            &Fab_cell[ifc], &Fab_node[ifc], &Fab_inc[ifc]);
-          Fab_group[ifc] = (int) i;
-          f << Fab_group[ifc] << ' '
-            << Fab_cell [ifc] << ' '
-            << Fab_node [ifc] << ' '
-            << Fab_inc  [ifc] << endl;
-        }
+      // mark (this) boundary nodes
+      nod_isbnd.assign(Nnode,false);
+      for (unsigned j=0; j<M.e(i); ++j)
+        for (vector< unsigned >::const_iterator n=M.vz[i].e2n[j].n.begin(); n!=M.vz[i].e2n[j].n.end(); ++n)
+          nod_isbnd[*n] = true;
 
-      f.close();
-      cout << "readsoltp: generate boundary-node connectivity." << endl;
-    }
-    else {
-      cout << "readsoltp: read boundary-node connectivity (\"" << infilefab << "\")..." << endl;
-      int ifc = 0;
-      f >> ifc;
-      if (ifc!=Nbface)
-        nrerror("The boundary-node file does not correspond to this mesh");
-      boost::progress_display pbar(Nbface);
-      for (ifc=0; ifc<Nbface && f; ++ifc, ++pbar)
-        f >> Fab_group[ifc] >> Fab_cell[ifc] >> Fab_node[ifc] >> Fab_inc[ifc];
-      if (!f)
-        nrerror("The boundary-node file is badly-formed");
-      cout << "readsoltp: read boundary-node connectivity." << endl;
+      // mark (this) boundary cells (with at least one node on this boundary)
+      e2n_isbnd.assign(Ncell,false);
+      for (int j=0; j<Ncell; ++j)
+        for (vector< unsigned >::const_iterator n=e2n[j].n.begin(); n!=e2n[j].n.end(); ++n)
+          e2n_isbnd[j] = e2n_isbnd[j] || nod_isbnd[*n];
+
+      // look up (this) boundary's faces inner cells
+      for (unsigned j=0; j<M.e(i); ++j, ++ifc, ++pbar) {
+        fab( e2n, e2n_isbnd, M.vz[i].e2n[j].n,
+             &Fab_cell[ifc], &Fab_node[ifc], &Fab_inc[ifc] );
+        Fab_group[ifc] = (int) i;
+      }
     }
 
+    cout << "readsoltp: generate boundary-node connectivity." << endl;
   }
 
 

@@ -131,25 +131,6 @@ void readstart(const std::string& ccase)
     mitremassembler.surfacegasfraction_min = std::max(0.,mitremassembler.surfacegasfraction_min);
     mitremassembler.surfacegasfraction_max = std::min(1.,mitremassembler.surfacegasfraction_max);
 
-    XMLNode forcev = mitremassembler.x.getChildNode("forcev");
-    XMLNode forcei = mitremassembler.x.getChildNode("forcei");
-    mitremassembler.forcev = !forcev.isEmpty();
-    mitremassembler.forcei = !forcei.isEmpty() && forcev.isEmpty();
-    if (mitremassembler.forcev) {
-      mitremassembler.forceinteractive = forcev.getAttribute< string >("interactive","false")=="true";
-      mitremassembler.Vwelectrode = forcev.getAttribute< double >("Vwelectrode",0.);
-      mitremassembler.Vcelectrode = forcev.getAttribute< double >("Vcelectrode",0.);
-      mitremassembler.Awelectrode = forcev.getAttribute< double >("Awelectrode",1.);
-      mitremassembler.Acelectrode = forcev.getAttribute< double >("Acelectrode",1.);
-    }
-    else if (mitremassembler.forcei) {
-      mitremassembler.forceinteractive = forcei.getAttribute< string >("interactive","false")=="true";
-      mitremassembler.Vwelectrode = forcei.getAttribute< double >("Iwelectrode",0.);
-      mitremassembler.Vcelectrode = forcei.getAttribute< double >("Icelectrode",0.);
-      mitremassembler.Awelectrode = forcei.getAttribute< double >("Awelectrode",1.);
-      mitremassembler.Acelectrode = forcei.getAttribute< double >("Acelectrode",1.);
-    }
-
     // set bulk concentrations
     mitremassembler.bulk.resize(mitremassembler.Nions);
     for (int i=0; i<mitremassembler.Nions; ++i)

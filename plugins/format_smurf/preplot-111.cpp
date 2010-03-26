@@ -6,7 +6,7 @@ USAGE:
 -----------------------------------------------------------------------
 This source code, in part or whole may be used without permission
 from Tecplot, Inc.  Modification is encouraged. However, we
-do ask that you report any changes to Tecplot Support (support@tecplot.com) 
+do ask that you report any changes to Tecplot Support (support@tecplot.com)
 so the master copy can be updated.  For information on compiling
 see below.
 -----------------------------------------------------------------------
@@ -95,7 +95,7 @@ I.  HEADER SECTION
                                          a child.
          +-----------+
          | INT32     |       StrandID: -2 = pending strand ID for assignment
-         +-----------+                      by Tecplot            
+         +-----------+                      by Tecplot
                                        -1 = static strand ID
                                         0 <= N < 32700 valid strand ID
          +-----------+
@@ -105,7 +105,7 @@ I.  HEADER SECTION
          | INT32     |       Zone Color (set to -1 if you want Tecplot to
          +-----------+       determine).
          +-----------+
-         | INT32     |       ZoneType 0=ORDERED,        1=FELINESEG, 
+         | INT32     |       ZoneType 0=ORDERED,        1=FELINESEG,
          +-----------+                2=FETRIANGLE,     3=FEQUADRILATERAL,
                                       4=FETETRAHEDRON,  5=FEBRICK,
                                       6=FEPOLYGON,      7=FEPOLYHEDRON
@@ -114,23 +114,23 @@ I.  HEADER SECTION
          +-----------+       FEPOLYGON and FEPOLYHEDRON zones require Block
                              formatting.
          +-----------+
-         | INT32     |       Specify Var Location.  
+         | INT32     |       Specify Var Location.
          +-----------+          0 = Don't specify, all data is located
                                     at the nodes.
                                 1 = Specify
          if "specify var location" == 1
            +-----------+
-           | INT32*NV  |     Variable Location (only specify if above is 1).  
+           | INT32*NV  |     Variable Location (only specify if above is 1).
            +-----------+     0 = Node, 1 = Cell Centered (See note 5.)
          +-----------+
-         | INT32     |       Are raw local 1-to-1 face neighbors supplied? 
-         +-----------+       (0=FALSE 1=TRUE).   These raw values are a 
+         | INT32     |       Are raw local 1-to-1 face neighbors supplied?
+         +-----------+       (0=FALSE 1=TRUE).   These raw values are a
                              compact form of the local 1-to-1 face neighbors.
-                             If supplied, Tecplot assumes that the face 
+                             If supplied, Tecplot assumes that the face
                              neighbors are fully specified.  As such, it
-                             will not perform auto face neighbor assignment.  
-                             This improves Tecplot's time to first plot.  
-                             See the data section below for format details. 
+                             will not perform auto face neighbor assignment.
+                             This improves Tecplot's time to first plot.
+                             See the data section below for format details.
                              ORDERED and FELINESEG zones must specify 0 for
                              this value because raw face neighbors are not
                              defined for these zone types.  FEPOLYGON and
@@ -145,11 +145,11 @@ I.  HEADER SECTION
                              in the raw section.  FEPOLYGON and FEPOLYHEDRON
                              zones must specify 0.
 
-         if "number of miscellaneous user-defined 
+         if "number of miscellaneous user-defined
              face neighbor connections" != 0
            +-----------+
            | INT32     |     User defined face neighbor mode
-           +-----------+     (0=Local 1-to-1, 1=Local 1-to-many, 
+           +-----------+     (0=Local 1-to-1, 1=Local 1-to-many,
                              2=Global 1-to-1, 3=Global 1-to-many)
            if FE Zone:
              +-----------+
@@ -157,7 +157,7 @@ I.  HEADER SECTION
              +-----------+   are completely specified by the miscellaneous
                              face neighbors given: (0=NO, 1=YES). If yes,
                              then Tecplot will not perform auto assignment
-                             of face neighbors otherwise all faces not 
+                             of face neighbors otherwise all faces not
                              specified are considered boundaries. If no,
                              then Tecplot will perform auto-assignment of
                              the face neighbors unless the raw face neighbor
@@ -175,24 +175,24 @@ I.  HEADER SECTION
            if ZoneType is FEPOLYGON or FEPOLYHEDRON:
              +-----------+
              | INT32     |   NumFaces
-             +-----------+ 
              +-----------+
-             | INT32     |   Total number of face nodes. For FEPOLYGON 
+             +-----------+
+             | INT32     |   Total number of face nodes. For FEPOLYGON
              +-----------+   zones, this is NumFaces*2.
              +-----------+
-             | INT32     |   Total number of boundary faces.  If any 
-             +-----------+   boundary faces exist, include one to represent 
+             | INT32     |   Total number of boundary faces.  If any
+             +-----------+   boundary faces exist, include one to represent
                              no neighboring element.
              +-----------+
-             | INT32     |   Total number of boundary connections. 
+             | INT32     |   Total number of boundary connections.
              +-----------+
-            
+
            +-----------+
            | INT32     |     NumElements
-           +-----------+       
+           +-----------+
            +-----------+
            | INT32*3   |     ICellDim,JCellDim,
-           +-----------+     KCellDim (for future use; set to zero)  
+           +-----------+     KCellDim (for future use; set to zero)
 
          For all zone types (repeat for each Auxiliary data name/value pair):
          +-----------+
@@ -202,14 +202,14 @@ I.  HEADER SECTION
          If the above is 1, then supply the following:
            +-----------+
            | INT32*N   |     name string (See note 1.)
-           +-----------+      
            +-----------+
-           | INT32     |     Auxiliary Value Format 
+           +-----------+
+           | INT32     |     Auxiliary Value Format
            +-----------+     (Currently only allow 0=AuxDataType_String)
-  
+
            +-----------+
            | INT32*N   |     Value string  (See note 1.)
-           +-----------+      
+           +-----------+
 
 
       v.  Geometries
@@ -228,7 +228,7 @@ I.  HEADER SECTION
          | INT32     |       DrawOrder 0=After, 1=Before
          +-----------+
          +-----------+
-         | FLOAT64*3 |       (X or Theta),(Y or R),(Z or dummy) 
+         | FLOAT64*3 |       (X or Theta),(Y or R),(Z or dummy)
          +-----------+            i.e. the starting location
          +-----------+
          | INT32     |       Zone (0=all)
@@ -246,7 +246,7 @@ I.  HEADER SECTION
          | INT32     |       GeomType  0=Line, 1=Rectangle 2=Square,
          +-----------+                 3=Circle, 4=ellipse
          +-----------+
-         | INT32     |       LinePattern  0=Solid 1=Dashed 2=DashDot 
+         | INT32     |       LinePattern  0=Solid 1=Dashed 2=DashDot
          +-----------+                    3=DashDotDot 4=Dotted
                                           5=LongDash
          +-----------+
@@ -274,7 +274,7 @@ I.  HEADER SECTION
          | IN32*N    |       Macro Function Command (string: N = Length+1)
          +-----------+
          +-----------+
-         | INT32     |       Polyline Field Data Type 
+         | INT32     |       Polyline Field Data Type
          +-----------+          1=Float, 2=Double  (GTYPE)
          +-----------+
          | INT32     |       Clipping (0=ClipToAxes, 1=ClipToViewport,
@@ -327,7 +327,7 @@ If the geometry type is Ellipse then
          | FLOAT32   |       Text marker.  Value=499.0
          +-----------+
          +-----------+
-         | INT32     |       Position CoordSys 0=Grid, 1=Frame, 
+         | INT32     |       Position CoordSys 0=Grid, 1=Frame,
          +-----------+                         2=FrameOffset(not used),
                                                3= OldWindow(not used),
                                                4=Grid3D(New to V10)
@@ -368,7 +368,7 @@ If the geometry type is Ellipse then
          | FLOAT64   |       Line Spacing
          +-----------+
          +-----------+
-         | INT32     |       Text Anchor. 0=left,      1=center,     
+         | INT32     |       Text Anchor. 0=left,      1=center,
          +-----------+                    2=right,     3=midleft
                                           4=midcenter  5=midright,
                                           6=headleft   7=headcenter
@@ -383,7 +383,7 @@ If the geometry type is Ellipse then
          | INT32*N   |       MacroFunctionCommand (string: N = Length + 1)
          +-----------+
          +-----------+
-         | INT32     |       Clipping (0=ClipToAxes, 
+         | INT32     |       Clipping (0=ClipToAxes,
          +-----------+                 1=ClipToViewport, 2=ClipToFrame)
          +-----------+
          | INT32*N   |       Text.  N=Text Length+1
@@ -448,7 +448,7 @@ If the geometry type is Ellipse then
          +-----------+
 
 II.  DATA SECTION (don't forget to separate the header from the data
-     with an EOHMARKER).  The data section contains all of the data 
+     with an EOHMARKER).  The data section contains all of the data
      associated with the zone definitions in the header.
 
      i. For both ordered and fe zones:
@@ -467,11 +467,11 @@ II.  DATA SECTION (don't forget to separate the header from the data
            | INT32*NV  |     Is variable passive: 0 = no, 1 = yes
            +-----------+     (Omit entirely if "Has passive variables" is 0).
          +-----------+
-         | INT32     |       Has variable sharing 0 = no, 1 = yes.       
-         +-----------+                                       
+         | INT32     |       Has variable sharing 0 = no, 1 = yes.
+         +-----------+
          if "has variable sharing" != 0
            +-----------+
-           | INT32*NV  |     Zero based zone number to share variable with 
+           | INT32*NV  |     Zero based zone number to share variable with
            +-----------+     (relative to this datafile). (-1 = no sharing).
                              (Omit entirely if "Has variable sharing" is 0).
          +-----------+
@@ -500,7 +500,7 @@ II.  DATA SECTION (don't forget to separate the header from the data
            +-----------+
            | INT32*N   |     Face neighbor connections.
            +-----------+     N = (number of miscellaneous user defined
-                                  face neighbor connections) * P 
+                                  face neighbor connections) * P
                              (See note 5 below).
 
 
@@ -508,22 +508,22 @@ II.  DATA SECTION (don't forget to separate the header from the data
          if ZoneType is NOT FEPOLYGON or FEPOLYHEDRON:
            if "zone number to share connectivity lists with" == -1
              +-----------+
-             | INT32*N   |     Zone Connectivity Data N=L*JMax 
+             | INT32*N   |     Zone Connectivity Data N=L*JMax
              +-----------+     (see note 2 below ).
-          
+
            if "zone number to share connectivity lists with" == -1 &&
               "raw local 1-to-1 face neighbors are supplied"
              +-----------+
              | INT32*N   |     Raw local 1-to-1 face neighbor array.
              +-----------+     N = (NumElements * NumFacesPerElement)
                                (See note 3 below).
-           
+
            if "zone number to share connectivity lists with" == -1 &&
               "num of misc. user defined face neighbor connections" != 0
              +-----------+
              | INT32*N   |     Face neighbor connections.
              +-----------+     N = (number of miscellaneous user defined
-                                    face neighbor connections) * P 
+                                    face neighbor connections) * P
                                (See note 4 below).
 
          if ZoneType is FEPOLYGON or FEPOLYHEDRON:
@@ -532,17 +532,17 @@ II.  DATA SECTION (don't forget to separate the header from the data
              | INT32*F   |     Face node offsets into the face nodes array
              +-----------+     below. Does not exist for FEPOLYGON zones.
                                F = NumFaces+1.
-            
+
              +-----------+
              | INT32*FN  |     Face nodes array containing the node numbers
              +-----------+     for all nodes in all faces.
                                FN = total number of face nodes.
-            
+
              +-----------+
-             | INT32*F   |     Elements on the left side of all faces. 
+             | INT32*F   |     Elements on the left side of all faces.
              +-----------+     Boundary faces use a negative value which is
-                               the negated offset into the face boundary 
-                               connection offsets array.  A value of "-1" 
+                               the negated offset into the face boundary
+                               connection offsets array.  A value of "-1"
                                indicates there is no left element.
                                F = NumFaces.
 
@@ -553,29 +553,29 @@ II.  DATA SECTION (don't forget to separate the header from the data
 
              if "total number of boundary faces" != 0
                +-----------+
-               | INT32*NBF |    Boundary face connection offsets into the 
+               | INT32*NBF |    Boundary face connection offsets into the
                +-----------+    boundary face connecion elements array and
                                 the boundary face connection zones array.
-                                The number of elements for a face (F) is   
+                                The number of elements for a face (F) is
                                 determined by offset[-o] - offset[-o-1]
                                 where 'o' is the negative value from either
-                                the left or right elements arrays above.  
+                                the left or right elements arrays above.
                                 Offset[0] = 0. Offset[1] = 0 so that -1 as
                                 the left or right element always indicates
-                                no neighboring element.  If the number of 
+                                no neighboring element.  If the number of
                                 elements is 0, then there is no neighboring
-                                element. 
-                                NBF = total number of boundary faces + 1. 
+                                element.
+                                NBF = total number of boundary faces + 1.
 
                +-----------+
-               | INT32*NBI |    Boundary face connection elements.  A value of 
-               +-----------+    "-1" indicates there is no element on part of 
+               | INT32*NBI |    Boundary face connection elements.  A value of
+               +-----------+    "-1" indicates there is no element on part of
                                 the face.
                                 NBI = total number of boundary connections.
 
                +-----------+
-               | INT16*NBI |    Boundary face connection zones.  A value of 
-               +-----------+    "-1" indicates the current zone. 
+               | INT16*NBI |    Boundary face connection zones.  A value of
+               +-----------+    "-1" indicates the current zone.
                                 NBI = total number of boundary connections.
 
 
@@ -595,7 +595,7 @@ NOTES:
                WRITE(10) I
 
 
-    All character strings are null terminated 
+    All character strings are null terminated
        (i.e. terminated by a zero value)
 
 
@@ -611,7 +611,7 @@ NOTES:
 3.  The raw face neighbor array is dimensioned by (number of elements for
     the zone) times (the number of faces per element), where each member
     of the array holds the zero-based element neighbor of that face. A
-    boundary face is one that has no neighboring element and is 
+    boundary face is one that has no neighboring element and is
     represented by a -1. Faces should only be neighbors if they logically
     share nodes and they should be reciprocal.
 
@@ -622,7 +622,7 @@ NOTES:
     LocalOneToMany      nz+4      cz,fz,oz,nz,cz1,cz2,...,czn
     GlobalOneToOne      4         cz,fz,ZZ,CZ
     GlobalOneToMany     2*nz+4    cz,fz,oz,nz,ZZ1,CZ1,ZZ2,CZ2,...,ZZn,CZn
-    
+
     Where:
         cz = cell in current zone (zero based)
         fz = face of cell in current zone (zero based)
@@ -633,13 +633,13 @@ NOTES:
              (only applies to one-to-many)
         ZZ = remote Zone (zero based)
         CZ = cell in remote zone (zero based)
-    
+
     cz,fz combinations must be unique and multiple entries are
     not allowed. Additionally, Tecplot assumes that with the
     one-to-one face neighbor modes, a supplied cell face is
     entirely obscured by its neighbor.  With one-to-many, the
     obscuration flag must be supplied.
-    
+
     Face neighbors that are not supplied are run through
     Tecplot's auto face neighbor generator (FE only).
 
@@ -648,8 +648,8 @@ NOTES:
     IMax*JMax*KMax numbers of cell centered values, where IMax, JMax,
     and KMax represent the number of points in the I, J, and K directions.
     Therefore extra zero values (ghost values) are written to the data file
-    for the slowest moving indices. For example, if your data's IJK 
-    dimensions are 2x3x2, a cell-centered variable will have 1x2x1 
+    for the slowest moving indices. For example, if your data's IJK
+    dimensions are 2x3x2, a cell-centered variable will have 1x2x1
     (i.e. (I-1)x(J-1)x(K-1)) significant values. However, 2x3x2 values must
     be written out because it must include the ghost values. Assume that the
     two significant cell-centered values are 1.5 and 12.5. The ghost values
@@ -711,8 +711,8 @@ Including the -DPLOT3D flag adds the capability to read
 plot3d files.
 
 If you have some other "generic" unix system then most likely
-the IRIS version of the compile command should work.  If you still 
-have problems then you may have to do some customizing yourself (In 
+the IRIS version of the compile command should work.  If you still
+have problems then you may have to do some customizing yourself (In
 which case please let us know what you came up with).
 
 MACHINE SPECIFIC NOTES:
@@ -1377,7 +1377,7 @@ static char OemSaveAscii[100];
 /* Note: if DEFAULT_MAXNUMZONESORVARS, then
    MAXZONEMAP must also change in Tecplot to match! */
 
-LgIndex PreplotChecksum[DEFAULT_MAXNUMZONESORVARS]; 
+LgIndex PreplotChecksum[DEFAULT_MAXNUMZONESORVARS];
 
 #endif
 
@@ -1751,8 +1751,8 @@ static Boolean_t AllocatePreplotStuff(void)
   VarMin                = ALLOC_ARRAY(MaxNumVars,double,"VarMin");
   VarMax                = ALLOC_ARRAY(MaxNumVars,double,"VarMax");
   ZoneSet               = ALLOC_ARRAY(SetSize+1,uint32,"ZoneSet");
-  
-  
+
+
 #if defined PLOT3D
   Plot3DISet              = ALLOC_ARRAY(SetSize+1,uint32,"Plot3DISet");
   Plot3DJSet              = ALLOC_ARRAY(SetSize+1,uint32,"Plot3DJSet");
@@ -1998,7 +1998,7 @@ static void ErrorMessageZone(const char *S,
   /*
    * IsOk may already have be set to FALSE.  Force it to be FALSE.
    */
-  
+
   sprintf(ErrString,"Err: %s \n\nError occurred in definition for zone %d.",S, (int)ZoneNum);
 #if !defined TECPLOTKERNEL
   printf("%s\n\n",ErrString);
@@ -2248,7 +2248,7 @@ static Boolean_t WriteBinaryInt(FILE    *File,
     {
       int    TempI  = IntValue;
       int    i      = 1;
-      int    type   = 1; 
+      int    type   = 1;
       int    bitoff = 0;
       char   Int4Buffer[4];
 
@@ -2285,7 +2285,7 @@ static Boolean_t WriteBinaryFloat(FILE  *File,
     {
       double TempD  = (double)FloatValue;
       int    i      = 1;
-      int    type   = 2; 
+      int    type   = 2;
       int    bitoff = 0;
       char   Real4Buffer[4];
 
@@ -2321,7 +2321,7 @@ static Boolean_t WriteBinaryDouble(FILE   *File,
     {
       double TempD  = DoubleValue;
       int    i      = 1;
-      int    type   = 8; 
+      int    type   = 8;
       int    bitoff = 0;
       char   Real8Buffer[8];
 
@@ -2559,7 +2559,7 @@ static char *StringFlushRight(char *String)
 {
   char *Result = String;
   char *End = NULL;
-  
+
   REQUIRE(VALID_REF(String));
 
   for (End = &(String[strlen(String)]); End != String && isspace(End[-1]); End--)
@@ -2571,7 +2571,7 @@ static char *StringFlushRight(char *String)
 
 
 /**
- * Remove any leading and trailing white space from the string 
+ * Remove any leading and trailing white space from the string
  * and return a reference to it.  The return value is not
  * absolutely necessary since the input string is modified
  * but it is convenient sometimes.
@@ -2608,7 +2608,7 @@ static Boolean_t CompareIdent(const char *S,
  * NOTE: Unix files contain \n at the end.
  *       DOS files contain \r \n at the end (and sometimes extra \r's)
  *       Package files will contain a \0 at the end of the layout file.
- *  
+ *
  *       This should work regardless of whether the file is opened as
  *       ASCII or binary.
  *
@@ -2766,7 +2766,7 @@ static LgIndex AssignLgIndex(double D)
 
 
 #define InvalidASCIIChar(c) ( ((c) < 32)  || (((c) > 127) && ((c) < 160)) )
-  
+
 
 static void GetToken(Boolean_t  TreatParenAsAlpha,
                      Boolean_t  OkToGetNextLine,
@@ -3272,11 +3272,11 @@ static DOUBLE Plot3D_GetBinaryReal(FILE *F)
 #endif /* OLDCRAY */
 
 
-#if !defined OLDCRAY 
+#if !defined OLDCRAY
 static DOUBLE Plot3D_GetBinaryReal(FILE *F)
 {
   float R = 0.0;
-  
+
   FREAD(&R,4,1,F);
   if (Plot3DIsForeign)
     ReverseBytes(&R,4);
@@ -3341,7 +3341,7 @@ static void  Plot3D_GetToken(FILE       *F,
               return;
             }
         }
-    
+
       CurToken = NullToken;
 
       C = fgetc(F);
@@ -3419,7 +3419,7 @@ static void  Plot3D_GetToken(FILE       *F,
                       RepeatValue_g  = CurTValue;
                       RepeatLength_g = TempR;
                     }
-                  else 
+                  else
                     {
                       RepeatValue_q  = CurTValue;
                       RepeatLength_q = TempR;
@@ -3633,7 +3633,7 @@ static void GetBlock(FILE            *F,
           *VarMinValue =  LARGEDOUBLE;
           *VarMaxValue = -LARGEDOUBLE;
         }
-      
+
       if (ZoneType[CurZone] == ORDERED)
         {
           LgIndex I,J,K;
@@ -4258,7 +4258,7 @@ static void GetColor(LgIndex   *C)
         *C = 6;
       else if (CheckTokenStr("WHITE"))
         *C = 7;
-      else 
+      else
         {
           char *NPtr = NULL;
           if (CheckPartialTokenStr("CUSTOM"))
@@ -4424,7 +4424,7 @@ static void RecogZoneHeader(void)
   IMax[CurZone]        = 1;
   JMax[CurZone]        = 1;
   KMax[CurZone]        = 1;
-  
+
   TotalNumFaceNodes[CurZone]  = -1; /* ...initially not defined */
   TotalNumBndryFaces[CurZone] = -1; /* ...initially not defined */
   TotalNumBndryConns[CurZone] = -1; /* ...initially not defined */
@@ -4637,7 +4637,7 @@ static void RecogZoneHeader(void)
       else if (CompareIdent(CurData, "TotalNumFaceNodes"))
         {
           GetAnInteger(&TotalNumFaceNodes[CurZone]);
-          if (TotalNumFaceNodes[CurZone] < 0) 
+          if (TotalNumFaceNodes[CurZone] < 0)
             {
               PreplotIsOk = FALSE;
               ErrorMessageZone("TotalNumFaceNodes must be >= 0.",CurZone+1);
@@ -4648,7 +4648,7 @@ static void RecogZoneHeader(void)
       else if (CompareIdent(CurData, "NumConnectedBoundaryFaces"))
         {
           GetAnInteger(&TotalNumBndryFaces[CurZone]);
-          if (TotalNumBndryFaces[CurZone] < 0) 
+          if (TotalNumBndryFaces[CurZone] < 0)
             {
               PreplotIsOk = FALSE;
               ErrorMessageZone("TotalNumBndryFaces must be >= 0.",CurZone+1);
@@ -4659,7 +4659,7 @@ static void RecogZoneHeader(void)
       else if (CompareIdent(CurData, "TotalNumBoundaryConnections"))
         {
           GetAnInteger(&TotalNumBndryConns[CurZone]);
-          if (TotalNumBndryConns[CurZone] < 0) 
+          if (TotalNumBndryConns[CurZone] < 0)
             {
               PreplotIsOk = FALSE;
               ErrorMessageZone("TotalNumBndryConns must be >= 0.",CurZone+1);
@@ -4833,7 +4833,7 @@ static void RecogZoneHeader(void)
     ErrorMessage("Connectivity list can only share from "
            "a zone of the same type.", TRUE);
 
-  
+
 
   if (PreplotIsOk && Echo)
     {
@@ -5294,8 +5294,8 @@ static void RecogGeometryHeader(void)
       switch (CoordSys)
         {
           case GRID       : printf("GRID\n");    break;
-          case UNDEF      : 
-          case OLDWINDOW  : 
+          case UNDEF      :
+          case OLDWINDOW  :
           case FRAME      : printf("FRAME\n");   break;
           case GRID3D     : printf("GRID3D\n"); break;
           default         : CHECK(FALSE);        break;
@@ -5629,8 +5629,8 @@ static void RecogTextHeader(void)
       switch (CoordSys)
         {
           case GRID   : printf("GRID\n");    break;
-          case UNDEF  : 
-          case OLDWINDOW  : 
+          case UNDEF  :
+          case OLDWINDOW  :
           case FRAME  : printf("FRAME\n");   break;
           case GRID3D : printf("GRID3D\n"); break;
           default     : CHECK(FALSE);      break;
@@ -5809,7 +5809,7 @@ static FILE *OpenPlot3DFile(char  *BaseName,
             FALSE,  /* ForceOpen */
             FALSE,  /* ShowErr */
             strcmp(mode,"r") == 0); /* IsAscii */
-#else 
+#else
   TFile = FOPEN(FinalInFileName, mode);
 #endif /* TECPLOTKERNEL */
 
@@ -6082,7 +6082,7 @@ static void GetVarLocation(void)
 
                 /*
                  * Verify that the variable has not already received an variable
-                 * location value with a previous directive. 
+                 * location value with a previous directive.
                  */
                 if (VarIsCellCentered[Variable] == UNSET_BOOLEAN) /* ...not yet assigned? */
                   VarIsCellCentered[Variable] = IsCellCentered;
@@ -6232,7 +6232,7 @@ static void GetFEFaceNeighborsComplete(void)
  *              ^
  *     current scan location
  *
- *   Where 
+ *   Where
  *      set-of-vars .... a set of variable numbers.
  *      =zzz ........... zone to share with.  If omitted assumes
  *                       the previous zone.
@@ -6408,8 +6408,8 @@ Boolean_t ReadWritePolyIntBlock(LgIndex   NumValues,
             {
               char ErrMsg[256];
 
-              sprintf(ErrMsg, 
-                      "Invalid value: %d.  The values for this section must be between %d and %d.", 
+              sprintf(ErrMsg,
+                      "Invalid value: %d.  The values for this section must be between %d and %d.",
                       (LgIndex)CurTValue,
                       MinAllowed,
                       MaxAllowed);
@@ -6419,7 +6419,7 @@ Boolean_t ReadWritePolyIntBlock(LgIndex   NumValues,
         }
 
       Result = Result && WriteBinaryInt(OutFile, (LgIndex)CurTValue-1); /* ...zero based */
-      
+
       GetToken(FALSE,TRUE,InFile);
     }
 
@@ -6472,7 +6472,7 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
               if (ZoneType[CurZone] == FEPOLYGON &&
                   *TotalNumFaceNodes != 2 * NumFaces)
                 ErrorMessage("TotalNumFaceNodes for Polygonal zones must be equal to 2 * the number of faces in the zone.", TRUE);
-              if (*TotalNumFaceNodes < 0) 
+              if (*TotalNumFaceNodes < 0)
                 {
                   PreplotIsOk = FALSE;
                   ErrorMessageZone("TotalNumFaceNodes must be >= 0.",CurZone+1);
@@ -6481,7 +6481,7 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
           else if (CompareIdent(CurData, "NumConnectedBoundaryFaces"))
             {
               GetAnInteger(TotalNumBndryFaces);
-              if (*TotalNumBndryFaces < 0) 
+              if (*TotalNumBndryFaces < 0)
                 {
                   PreplotIsOk = FALSE;
                   ErrorMessageZone("TotalNumBndryFaces must be >= 0.",CurZone+1);
@@ -6492,7 +6492,7 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
           else if (CompareIdent(CurData, "TotalNumBoundaryConnections"))
             {
               GetAnInteger(TotalNumBndryConns);
-              if (*TotalNumBndryConns < 0) 
+              if (*TotalNumBndryConns < 0)
                 {
                   PreplotIsOk = FALSE;
                   ErrorMessageZone("TotalNumBndryConns must be >= 0.",CurZone+1);
@@ -6533,7 +6533,7 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
           (*TotalNumBndryFaces < 0 ||
            *TotalNumBndryConns < 0))
         ErrorMessageZone("NumConnectedBoundaryFaces and TotalNumBoundaryConnections must both be non-negative.", CurZone+1);
-    
+
     }
 
   if (PreplotIsOk && (ZoneType[CurZone] == FEPOLYHEDRON))
@@ -6560,7 +6560,7 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
       LgIndex MinAllowed = -(*TotalNumBndryFaces);
       LgIndex MaxAllowed = NumElems;
       LgIndex *LeftElems = ALLOC_ARRAY(NumFaces,LgIndex,"LeftElems");
-      PreplotIsOk = (LeftElems != NULL); 
+      PreplotIsOk = (LeftElems != NULL);
       for (int ValueIndex = 0; PreplotIsOk && ValueIndex < NumFaces; ValueIndex++)
         {
           if (CurToken != ValueToken)
@@ -6575,8 +6575,8 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
                 {
                   char ErrMsg[256];
 
-                  sprintf(ErrMsg, 
-                          "Invalid value: %d.  The values for this section must be between %d and %d.", 
+                  sprintf(ErrMsg,
+                          "Invalid value: %d.  The values for this section must be between %d and %d.",
                           (LgIndex)CurTValue,
                           MinAllowed,
                           MaxAllowed);
@@ -6606,9 +6606,9 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
                 {
                   char ErrMsg[256];
 
-                  sprintf(ErrMsg, 
+                  sprintf(ErrMsg,
                           "Invalid value: %d.  The values for this section must be between %d and %d.",
-                          
+
                           (LgIndex)CurTValue,
                           MinAllowed,
                           MaxAllowed);
@@ -6618,13 +6618,13 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
             }
           if (PreplotIsOk)
             {
-              if (CurTValue == LeftElems[ValueIndex])  
+              if (CurTValue == LeftElems[ValueIndex])
                 {
                   char ErrMsg[256];
                   PreplotIsOk = FALSE;
-                  sprintf(ErrMsg, 
+                  sprintf(ErrMsg,
                           "In the definiton of zone %d, the right element for face %d is \n"
-                          "the same as the left element.", 
+                          "the same as the left element.",
                           CurZone+1, ValueIndex+1);
                   ErrorMessage(ErrMsg, TRUE);
                 }
@@ -6641,7 +6641,7 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
       /* Read the number of neighboring cells for each boundary face and write the offset array */
       LgIndex FNOffset = 0;
       LgIndex *PolyBndryConnElems = ALLOC_ARRAY(*TotalNumBndryConns,LgIndex,"PolyBndryConnElem");
-      PreplotIsOk = (PolyBndryConnElems != NULL);    
+      PreplotIsOk = (PolyBndryConnElems != NULL);
       /* The first 2 offsets are always 0 so that -1 in the left/right element arrays always indicates "no neighboring element". */
       PreplotIsOk = PreplotIsOk &&
                     (WriteBinaryInt(BlckFile, 0) &&
@@ -6667,8 +6667,8 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
         }
       if (PreplotIsOk)
         {
-          /* Read and write connected boundary elements, while storing in a local array. */ 
-             
+          /* Read and write connected boundary elements, while storing in a local array. */
+
           for (DataIndex = 0; PreplotIsOk && DataIndex < *TotalNumBndryConns; DataIndex++)
             {
               if (CurToken != ValueToken)
@@ -6683,12 +6683,12 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
                 }
               PolyBndryConnElems[DataIndex] = (LgIndex)CurTValue; /* Store all elem bndry conns. */
               PreplotIsOk = PreplotIsOk && WriteBinaryInt(BlckFile, (LgIndex)CurTValue-1); /* ...zero based output */
-             
+
               GetToken(FALSE,TRUE,InFile);
-              
+
             }
         }
-      
+
       if (PreplotIsOk)
         {
           /* Read and write the boundary zones as 16-bit values */
@@ -6706,7 +6706,7 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
                 }
               PreplotIsOk = PreplotIsOk && WriteBinaryShort(BlckFile, (SmInteger)CurTValue-1); /* ...zero based output */
               LgIndex ZoneBndry = (LgIndex)CurTValue;
-              /* Store the max zone number entered for connections as global var.  This is compared to 
+              /* Store the max zone number entered for connections as global var.  This is compared to
                * the number of zones read by CheckPolyBndryConnections() when all data is read.
                */
               if (MaxPolyBndryConnZone < ZoneBndry)
@@ -6714,13 +6714,13 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
                   MaxPolyBndryConnZone = ZoneBndry;
                   ZoneWithMaxBndryConnZone = CurZone + 1; /* Make 1-based for error message. */
                 }
-              /* Globally, two arrays are stored for connection elements, with NumZones entries. 
+              /* Globally, two arrays are stored for connection elements, with NumZones entries.
                * With each zone read, element connections are read first and stored in local array.
-               * As each zone connection is read, the corresponding element value in the local array 
+               * As each zone connection is read, the corresponding element value in the local array
                * is compared to the element value for that zone in the global array MaxPolyBndryConnElem[].
                * Global array value is changed if newly read value is larger.  ZoneWithMaxConnElem[]
                * tracks the zone with the max connection element, for a helpful error message.
-               */ 
+               */
               if (ZoneBndry > 0)
                 {
                   if (MaxPolyBndryConnElem[ZoneBndry-1] < PolyBndryConnElems[DataIndex])
@@ -6737,14 +6737,14 @@ Boolean_t ReadWritePolyMaps(LgIndex  NumElems,
                       ZoneWithMaxConnElem[CurZone] = CurZone + 1; /* Make 1-based for error message. */
                     }
                 }
-             
+
               GetToken(FALSE,TRUE,InFile);
             }
         }
       if (PolyBndryConnElems)
         FREE_ARRAY(PolyBndryConnElems,"PolyBndryConnElem");
     }
- 
+
   ENSURE(VALID_BOOLEAN(PreplotIsOk));
   return PreplotIsOk;
 }
@@ -6764,20 +6764,20 @@ static Boolean_t CheckPolyBndryConnections(int NumZones)
   /* Only show one error for elements. */
   for (int ii = 0; IsValidElem && (ii < NumZones); ii++)
     {
-      if (MaxPolyBndryConnElem[ii] > JMax[ii]) 
+      if (MaxPolyBndryConnElem[ii] > JMax[ii])
         {
           char ErrMsg[256];
           if (JMax[ii] == 1)
             sprintf(ErrMsg, "Invalid number \"%d\" for boundary connection element in zone %d definition. "
-                            "\nElement number must be 1 for zone %d.", 
+                            "\nElement number must be 1 for zone %d.",
                             MaxPolyBndryConnElem[ii], ZoneWithMaxConnElem[ii], ii + 1);
           else
             sprintf(ErrMsg, "Invalid number \"%d\" for boundary connection element in zone %d definition. "
-                            "\nElement number must be from 1 to %d for zone %d.", 
+                            "\nElement number must be from 1 to %d for zone %d.",
                             MaxPolyBndryConnElem[ii], ZoneWithMaxConnElem[ii], JMax[ii], ii + 1);
           ErrorMessage(ErrMsg, FALSE);
           IsOk = FALSE;
-          IsValidElem = FALSE; 
+          IsValidElem = FALSE;
         }
     }
 
@@ -6796,7 +6796,7 @@ Boolean_t Preplot(int    argc,
   Boolean_t  Fetch;
   Boolean_t  IndexIsGood;
   Boolean_t  VariablesIdentified = FALSE;
-  Boolean_t  ZoneHeaderParsed    = FALSE; 
+  Boolean_t  ZoneHeaderParsed    = FALSE;
 
   Boolean_t  NoGridFileVars      = FALSE;
 
@@ -6818,7 +6818,7 @@ Boolean_t Preplot(int    argc,
   ReverseOutputBytes         = FALSE;
   LastZone                   = -1;
   CurZone                    = 0;
-  
+
 #if !defined TECPLOTKERNEL
   NumWarns                   = 0;
 #endif
@@ -6874,7 +6874,7 @@ Boolean_t Preplot(int    argc,
                    TRUE,        /* ForceOpen */
                    FALSE,       /* ShowErr */
                    FALSE);      /* IsAscii */
-#else        
+#else
         BlckFile = FOPEN(BlckFName,"wb");
 #endif /* TECPLOTKERNEL */
 
@@ -8182,7 +8182,7 @@ printf("PLOT3D input ONLY:\n"
                     {
                       Boolean_t ZoneIsEnabled;
                       ZoneIsEnabled = ZoneIsOk(CurZone);
-#ifdef TECPLOTKERNEL                      
+#ifdef TECPLOTKERNEL
                       PreplotChecksum[CurZone] = 0;
 #endif
 
@@ -8195,9 +8195,9 @@ printf("PLOT3D input ONLY:\n"
                             }
                           if (!ZoneHeaderParsed)
                             RecogZoneHeader();
-                          
+
                           ZoneHeaderParsed = FALSE;
-                          Boolean_t ZoneIsFEPoly = PreplotIsOk && 
+                          Boolean_t ZoneIsFEPoly = PreplotIsOk &&
                                                    (ZoneType[CurZone] == FEPOLYGON ||
                                                     ZoneType[CurZone] == FEPOLYHEDRON);
                           if (ZoneIsFEPoly)
@@ -8206,7 +8206,7 @@ printf("PLOT3D input ONLY:\n"
                               if (DataPacking[CurZone] == POINTPACKING)
                                 ErrorMessage("Polyhedral and polygonal zones must use BLOCK data packing for data.",TRUE);
                             }
-                           
+
 
                           if (PreplotIsOk && NoGridFileVars)
                             {
@@ -8284,7 +8284,7 @@ printf("PLOT3D input ONLY:\n"
                                KMax[CurZone] != 0))
                             {
                               long VarMinMaxOffset = -1;
-                              
+
                               if (ZoneIsEnabled)
                                 {
                                   /*
@@ -8619,9 +8619,9 @@ printf("PLOT3D input ONLY:\n"
                                 }
 
                               /* write FE raw face neighbor array */
-                              if (WriteRawFaceNeighborArray      && 
+                              if (WriteRawFaceNeighborArray      &&
                                   ZoneType[CurZone] != ORDERED   &&
-                                  ZoneType[CurZone] != FELINESEG && 
+                                  ZoneType[CurZone] != FELINESEG &&
                                   FType != SOLUTIONFILE          &&
                                   !ZoneIsFEPoly                  &&
                                   PreplotIsOk)
@@ -8645,7 +8645,7 @@ printf("PLOT3D input ONLY:\n"
                                *   LOCALONETOMANY    nz+4      cz,fz,oz,nz,cz1,cz2,...,czn
                                *   GLOBALONETOONE    4         cz,fz,ZZ,CZ
                                *   GLOBALONETOMANY   2*nz+4    cz,fz,oz,nz,ZZ1,CZ1,ZZ2,CZ2,...,ZZn,CZn
-                               *  
+                               *
                                *   Where:
                                *       cz = cell in current zone
                                *       fz = face of cell in current zone
@@ -8839,11 +8839,11 @@ printf("PLOT3D input ONLY:\n"
                                   FType != SOLUTIONFILE                &&
                                   ZoneIsFEPoly                         &&
                                   PreplotIsOk)
-                                {       
-                                
-                                  
+                                {
 
-                                  
+
+
+
                                   if ((TotalNumBndryConns[CurZone] < 0) && (TotalNumBndryConns[CurZone] != -1))
                                     {
                                       PreplotIsOk = FALSE;

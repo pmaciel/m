@@ -6,15 +6,15 @@
 
 
 //---------------------------------------------------------------------------
-ElementProps::ElementProps(unsigned nDimensions_) 
-	 : nDimensions(nDimensions_)
+ElementProps::ElementProps(unsigned nDimensions_)
+   : nDimensions(nDimensions_)
 {
-	normal = new double[nDimensions];
+  normal = new double[nDimensions];
 }
 //---------------------------------------------------------------------------
 ElementProps::~ElementProps()
 {
-	delete[] normal;
+  delete[] normal;
 }
 //---------------------------------------------------------------------------
 

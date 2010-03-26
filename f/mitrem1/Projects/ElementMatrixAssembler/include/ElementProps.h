@@ -12,15 +12,15 @@
 class ElementProps
 {
 public :
-	ElementProps(unsigned nDimensions_);
-	virtual ~ElementProps();
+  ElementProps(unsigned nDimensions_);
+  virtual ~ElementProps();
 
-	virtual double	calcSize(DoubleVectorList coordinates) const = 0;
-	virtual DoubleVector	calcNormal(unsigned m, DoubleVectorList coordinates) const = 0; // internal normal
+  virtual double       calcSize(DoubleVectorList coordinates) const = 0;
+  virtual DoubleVector calcNormal(unsigned m, DoubleVectorList coordinates) const = 0; // internal normal
 
 protected :
-	unsigned		nDimensions;
-	EmptyDoubleVector			normal;
+  unsigned          nDimensions;
+  EmptyDoubleVector normal;
 };
 
 //---------------------------------------------------------------------------

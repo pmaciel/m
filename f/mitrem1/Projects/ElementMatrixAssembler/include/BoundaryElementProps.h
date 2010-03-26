@@ -12,13 +12,13 @@
 class BoundaryElementProps
 {
 public :
-	BoundaryElementProps(unsigned nDimensions_);
-	virtual ~BoundaryElementProps();
+  BoundaryElementProps(unsigned nDimensions_);
+  virtual ~BoundaryElementProps();
 
-	virtual double	calcSize(DoubleVectorList coordinates) const = 0;
+  virtual double  calcSize(DoubleVectorList coordinates) const = 0;
 
 protected :
-	unsigned		nDimensions;
+  unsigned    nDimensions;
 };
 
 //---------------------------------------------------------------------------

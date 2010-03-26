@@ -7,25 +7,25 @@
 
 //---------------------------------------------------------------------------
 Vector::Vector (unsigned nComponents_)
-	: nComponents(nComponents_)
-{	
-	components = new double[nComponents];
+  : nComponents(nComponents_)
+{
+  components = new double[nComponents];
 }
 //---------------------------------------------------------------------------
 Vector::~Vector ()
 {
-	delete[] components;
+  delete[] components;
 }
 //---------------------------------------------------------------------------
 void Vector::setComponents(unsigned c, double value)
 {
-	if (c < nComponents)
-	{
-		components[c] = value;
-	}
-	else
-	{
-		// error message
-	}
+  if (c < nComponents)
+  {
+    components[c] = value;
+  }
+  else
+  {
+    // error message
+  }
 }
 //---------------------------------------------------------------------------

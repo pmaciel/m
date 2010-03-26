@@ -79,7 +79,7 @@ int AZ_check_input(int data_org[], int options[], double params[],
 
   if (params[AZ_tol]            < 0.0       ) params[AZ_tol]          = 1.e-06;
   if (params[AZ_drop]           < 0.0       ) params[AZ_drop]         = 0.;
-  if (params[AZ_omega]< 0.0 || params[AZ_omega]>1.) 
+  if (params[AZ_omega]< 0.0 || params[AZ_omega]>1.)
                                               params[AZ_omega]        = 1.;
   if (data_org[AZ_N_border]    == AZ_default) data_org[AZ_N_border]   = 0;
   if (data_org[AZ_N_external]  == AZ_default) data_org[AZ_N_external] = 0;
@@ -191,7 +191,7 @@ int AZ_check_input(int data_org[], int options[], double params[],
       if (data_org[AZ_send_length + i] > data_org[AZ_N_border]) {
         (void) fprintf(stderr, "WARNING: Processor %d sends more than just its \
 border points implying that the\n         matrix sparsity pattern is not \
-symmetric.\n", 
+symmetric.\n",
                        proc_config[AZ_node]);
 /*
         (void) fprintf(stderr, "WARNING: Processor %d sends more than just ",
@@ -572,7 +572,7 @@ int AZ_check_options(int options[], int az_proc, int data_org[], int az_nprocs,
     }
     break;
   case AZ_multilevel:
-    if (az_proc == 0) 
+    if (az_proc == 0)
       printf("Are you sure you want the multilevel preconditioner\n");
     break;
   case AZ_dom_decomp:
@@ -586,7 +586,7 @@ int AZ_check_options(int options[], int az_proc, int data_org[], int az_nprocs,
            printf("\t\t***** Continuing without reordering\n");
         }
     }
-   if ( (options[AZ_solver] == AZ_cg) && 
+   if ( (options[AZ_solver] == AZ_cg) &&
           ((options[AZ_subdomain_solve] == AZ_ilu) ||
            (options[AZ_subdomain_solve] == AZ_rilu) ||
            (options[AZ_subdomain_solve] == AZ_bilu_ifp) ||
@@ -609,17 +609,17 @@ int AZ_check_options(int options[], int az_proc, int data_org[], int az_nprocs,
        if (options[AZ_subdomain_solve] >= AZ_SOLVER_PARAMS) {
           if (az_proc == 0) {
              (void) fprintf(stderr, "%sERROR: options[AZ_subdomain_solve]"
-                    " has improper value = %d\n\n", yo, 
+                    " has improper value = %d\n\n", yo,
                     options[AZ_subdomain_solve]);
            }
-           return 0; 
+           return 0;
         }
         else {
-           AZ_recover_sol_params(options[AZ_subdomain_solve], 
+           AZ_recover_sol_params(options[AZ_subdomain_solve],
 			         &sub_options,&sub_params,&sub_status,
                                  &sub_matrix,&sub_precond,&sub_scaling);
            if (!AZ_check_options(sub_options, az_proc, data_org, az_nprocs,
-				    sub_params, sub_matrix, sub_precond)) 
+				    sub_params, sub_matrix, sub_precond))
 	      return 0;
         }
     }

@@ -6,8 +6,8 @@
 
 
 //---------------------------------------------------------------------------
-BoundaryElementProps::BoundaryElementProps(unsigned nDimensions_) 
-	 : nDimensions(nDimensions_)
+BoundaryElementProps::BoundaryElementProps(unsigned nDimensions_)
+   : nDimensions(nDimensions_)
 {
 }
 //---------------------------------------------------------------------------

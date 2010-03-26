@@ -35,7 +35,7 @@ static char rcsid[] = "$Id: az_poly.c,v 1.16 1999/05/05 17:07:26 tuminaro Exp $"
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_polynomial_expansion( double z[], int options[], int proc_config[], 
+void AZ_polynomial_expansion( double z[], int options[], int proc_config[],
                               AZ_PRECOND *precond )
 /*******************************************************************************
 
@@ -128,15 +128,15 @@ void AZ_polynomial_expansion( double z[], int options[], int proc_config[],
 
        lambda_max = AZ_gmax_matrix_norm(val, indx, bindx, rpntr, cpntr, bpntr,
                                         proc_config, data_org);
-   
+
        /* change sign of lambda_max if diagonal contains only negative values */
-   
+
        AZ_change_sign(&lambda_max, val, indx, bindx, rpntr, cpntr, bpntr,
                       data_org);
-   
+
     }
     inv_omega  = 1.0 / (0.55 * lambda_max);     /* 1.1*lambda_max/2 */
-   
+
     if (param_flag)
       AZ_get_poly_coefficients(power, lambda_max, c, param_flag);
   }
@@ -373,8 +373,8 @@ void AZ_change_sign(double *lambda_max, double val[], int indx[], int bindx[],
   if ((data_org[AZ_matrix_type] == AZ_MSR_MATRIX) ||
       (data_org[AZ_matrix_type] == AZ_VBR_MATRIX)) {
 
-    if ((pos == 0) && (neg == 0) && 
-        (data_org[AZ_N_internal] + data_org[AZ_N_border] != 0) ) 
+    if ((pos == 0) && (neg == 0) &&
+        (data_org[AZ_N_internal] + data_org[AZ_N_border] != 0) )
       (void) fprintf(stderr, "Warning: No nonzero matrix diagonal elements\n");
 
     if (pos + neg == 2) {

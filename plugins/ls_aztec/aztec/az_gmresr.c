@@ -33,7 +33,7 @@ static char rcsid[] = "$Id: az_gmresr.c,v 1.19 2000/12/12 23:32:13 tuminaro Exp 
 #include "az_aztec.h"
 
 void AZ_pgmresr(double b[], double x[],double weight[], int options[],
-	double params[], int proc_config[], double status[], AZ_MATRIX *Amat, 
+	double params[], int proc_config[], double status[], AZ_MATRIX *Amat,
 	AZ_PRECOND *precond, struct AZ_CONVERGE_STRUCT *convergence_info)
 
 /*******************************************************************************
@@ -211,12 +211,12 @@ char *T2 = "N";
          for (ii = 0 ; ii < 2 ; ii++ ) {
             dble_tmp = 0.0; mm = i;
             if (N == 0) for (k = 0 ; k < i ; k++) dots[k] = 0.0;
-            dgemv_(T, &N, &mm, &doubleone, CCblock, &NN, CC[i], 
+            dgemv_(T, &N, &mm, &doubleone, CCblock, &NN, CC[i],
                    &one, &dble_tmp, dots, &one, 1 /* strlen(T) */);
 
             AZ_gdot_vec(i, dots, tmp, proc_config);
 
-            dgemv_(T2, &N, &mm, &minusone, CCblock, &NN, dots, 
+            dgemv_(T2, &N, &mm, &minusone, CCblock, &NN, dots,
                    &one, &doubleone, CC[i], &one, 1 /* strlen(T2) */);
             dgemv_(T2, &N, &mm, &minusone, UUblock, &NN, dots,
                    &one, &doubleone, UU[i], &one, 1 /* strlen(T2) */);

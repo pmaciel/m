@@ -9,7 +9,7 @@ def build(ctx):
 
   # mitremassembler (from mitrem1) static library
   ctx.new_task_gen(
-    features = 'cxx cstaticlib',
+    features = 'cxx cshlib',
     target   = 'mitremassembler',
     includes = [
       '../mkernel/ext',  # for xmlParser

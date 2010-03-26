@@ -38,8 +38,8 @@ static char rcsid[] = "$Id: az_lu_y12.c,v 1.16 1998/05/12 19:47:31 tuminaro Exp 
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_fact_lu(double b[], AZ_MATRIX *A_overlapped, double *aflag, 
-                double *pivot, int *rnr, int *ha, int *iflag, int *z, 
+void AZ_fact_lu(double b[], AZ_MATRIX *A_overlapped, double *aflag,
+                double *pivot, int *rnr, int *ha, int *iflag, int *z,
                 int *ifail, int *nn, int *iha, int *n)
 
 /*******************************************************************************
@@ -100,8 +100,8 @@ void AZ_fact_lu(double b[], AZ_MATRIX *A_overlapped, double *aflag,
 
   y12mbf_(n, z, val, snr, nn, rnr, nn1, ha, iha, aflag, iflag, ifail);
 
-  if (*ifail == 0) 
-     y12mcf_(n, z, val, snr, nn, rnr, nn1, pivot, b, ha, iha, aflag, iflag, 
+  if (*ifail == 0)
+     y12mcf_(n, z, val, snr, nn, rnr, nn1, pivot, b, ha, iha, aflag, iflag,
              ifail);
 
 

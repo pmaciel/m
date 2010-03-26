@@ -32,8 +32,8 @@ static char rcsid[] = "$Id: az_fix_pt.c,v 1.7 2000/06/02 16:46:55 tuminaro Exp $
 #include <float.h>
 #include "az_aztec.h"
 
-void AZ_fix_pt(double b[], double x[], double weight[], int options[], 
-	double params[], int proc_config[],double status[], AZ_MATRIX *Amat, 
+void AZ_fix_pt(double b[], double x[], double weight[], int options[],
+	double params[], int proc_config[],double status[], AZ_MATRIX *Amat,
 	AZ_PRECOND *precond, struct AZ_CONVERGE_STRUCT *convergence_info)
 
 /*******************************************************************************
@@ -75,7 +75,7 @@ void AZ_fix_pt(double b[], double x[], double weight[], int options[],
   Amat:            Structure used to represent the matrix (see file az_aztec.h
                    and Aztec User's Guide).
 
-  precond:         Structure used to represent the preconditionner  
+  precond:         Structure used to represent the preconditionner
                    (see file az_aztec.h and Aztec User's Guide).
 *******************************************************************************/
 
@@ -114,7 +114,7 @@ void AZ_fix_pt(double b[], double x[], double weight[], int options[],
   /* pull needed values out of parameter arrays */
 
   data_org = Amat->data_org;
-  
+
   N            = data_org[AZ_N_internal] + data_org[AZ_N_border];
   precond_flag = options[AZ_precond];
   epsilon      = params[AZ_tol];
@@ -129,7 +129,7 @@ void AZ_fix_pt(double b[], double x[], double weight[], int options[],
                       /* matvec on paragon. */
 
   sprintf(label,"z%s",suffix);
-  res  = (double *) AZ_manage_memory(NN*sizeof(double),AZ_ALLOC, 
+  res  = (double *) AZ_manage_memory(NN*sizeof(double),AZ_ALLOC,
 			           AZ_SYS, label, &j);
   if (options[AZ_init_guess] != AZ_ZERO)
      AZ_compute_residual(b, x, res, proc_config, Amat);
@@ -157,7 +157,7 @@ void AZ_fix_pt(double b[], double x[], double weight[], int options[],
 
     if (precond_flag)
       precond->prec_function(res,options,proc_config,params,Amat,precond);
-    if (iter == 1) 
+    if (iter == 1)
        status[AZ_first_precond] = AZ_second() - status[AZ_first_precond];
 
     if (options[AZ_solver] == AZ_analyze)
@@ -173,15 +173,15 @@ void AZ_fix_pt(double b[], double x[], double weight[], int options[],
        /*     1) ||r||                corresponding to options[AZ_conv] */
        /*     2) scaled ||r||         corresponding to options[AZ_conv] */
 
-       if ( (iter%print_freq == 0) || (options[AZ_max_iter] > 10)) 
+       if ( (iter%print_freq == 0) || (options[AZ_max_iter] > 10))
 
           AZ_compute_global_scalars(Amat, x, b,
 			 res, weight, &rec_residual, &scaled_r_norm, options,
-                         data_org, proc_config, &r_avail, dummy, dummy, 
+                         data_org, proc_config, &r_avail, dummy, dummy,
 			 dummy, convergence_info);
 
        if ( (iter%print_freq == 0) && proc == 0 )
-          (void) fprintf(stdout, "%siter: %4d           residual = %e\n", 
+          (void) fprintf(stdout, "%siter: %4d           residual = %e\n",
 		     prefix, iter, scaled_r_norm);
 
        converged = scaled_r_norm < epsilon;
@@ -199,7 +199,7 @@ void AZ_fix_pt(double b[], double x[], double weight[], int options[],
   iter--;
   if ( (iter%print_freq != 0) && (proc == 0) && (options[AZ_output] != AZ_none)
        && (options[AZ_output] != AZ_warnings) )
-    (void) fprintf(stdout, "%siter: %4d           residual = %e\n", 
+    (void) fprintf(stdout, "%siter: %4d           residual = %e\n",
 		   prefix, iter, scaled_r_norm);
 
   /* check if we exceeded maximum number of iterations */

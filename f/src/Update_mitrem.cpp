@@ -5,7 +5,7 @@
 
 
 // forward declarations
-enum CALL { ASSEMBLY, CURRENT, GAS };
+enum CALL { ASSEMBLY, CURRENT, GAS, SIZE, BSIZE };
 void assembleMITReM(const std::vector< m::melem >& e2n);
 void assembleDirichlet(const std::vector< m::melem >& e2n,
   const std::vector< unsigned >& vlabels,
@@ -41,20 +41,6 @@ void Update_mitrem()
   vector< unsigned > ibulk(m.Nions,0);
   for (int i=1; i<m.Nions; ++i)
     ibulk[i] = ibulk[i-1]+1;
-  vector< unsigned > ielecreactions((m.m_mitrem)->getNElecReactions(),0);
-  for (unsigned i=1; i<(m.m_mitrem)->getNElecReactions(); ++i)
-    ielecreactions[i] = ielecreactions[i-1]+1;
-
-
-  if (m.forcev && (iter<=1 || m.forceinteractive)) {
-    cout << "Update_mitrem: correct metal potentials..." << endl;
-    (m.m_mitrem)->correctVForPotentialDifference(
-      m.Vwelectrode, m.Vcelectrode,
-      m.Awelectrode, m.Acelectrode );
-    cout << "Update_mitrem: Vwe [V]: " << m.Vwelectrode << "  Awe [m2]: " << m.Awelectrode << endl
-         << "Update_mitrem: Vce [V]: " << m.Vcelectrode << "  Ace [m2]: " << m.Acelectrode << endl;
-    cout << "Update_mitrem: correct metal potentials." << endl;
-  }
 
 
   cout << "Update_mitrem: assemble MITReM equations..." << endl;
@@ -78,10 +64,6 @@ void Update_mitrem()
         getGReactions(b.getAttribute< string >("gasreaction")),
         getEReactions(b.getAttribute< string >("elecreaction")),
         b.getAttribute< double >("metalpotential") );
-      else if (t=="welectrode") assembleElectrode( M.vz[*j].e2n,
-        vector< unsigned >(), ielecreactions, m.Vwelectrode );
-      else if (t=="celectrode") assembleElectrode( M.vz[*j].e2n,
-        vector< unsigned >(), ielecreactions, m.Vcelectrode );
 
       cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[*j].n << "\"." << endl;
     }
@@ -127,24 +109,27 @@ void Update_mitrem()
     const string  t = b.getAttribute("type");
     const vector< unsigned > z = getZones(b.getAttribute< string >("zone"));
 
-    if (t=="electrode" || t=="welectrode" || t=="celectrode")
+    if (t=="electrode")
       for (vector< unsigned >::const_iterator j=z.begin(); j!=z.end(); ++j) {
 
-        const vector< unsigned > gr = t=="electrode"? getGReactions(b.getAttribute< string >("gasreaction"))  : vector< unsigned >();
-        const vector< unsigned > er = t=="electrode"? getEReactions(b.getAttribute< string >("elecreaction")) : ielecreactions;
-        const double v = (t=="electrode"?  b.getAttribute< double >("metalpotential") :
-                         (t=="welectrode"? m.Vwelectrode :
-                                           m.Vcelectrode ));
-        if (er.size())
+        const vector< unsigned > gr = getGReactions(b.getAttribute< string >("gasreaction"));
+        const vector< unsigned > er = getEReactions(b.getAttribute< string >("elecreaction"));
+        const double V = b.getAttribute< double >("metalpotential");
+        if (er.size()) {
+          const double I = assembleElectrode(M.vz[*j].e2n,gr,er,V,CURRENT),
+                       A = assembleElectrode(M.vz[*j].e2n,gr,er,V,BSIZE),
+                       J = I/max(A,1.e-20);
           cout << "Update_mitrem:"
-               << " " << t << ":\""  << b.getAttribute("label") << '"'
-               << " zone:\""       << M.vz[*j].n            << '"'
-               << " current [A]: " << assembleElectrode(M.vz[*j].e2n,gr,er,v,CURRENT) << endl;
-        if (gr.size())
+               << " electrode:\"" << b.getAttribute("label") << '"'
+               << " zone:\""      << M.vz[*j].n              << '"'
+               << " current/c.density [A/A.m-2]: " << I << " / " << J << endl;
+        }
+        if (gr.size()) {
           cout << "Update_mitrem:"
                << " electrode:\""  << b.getAttribute("label") << '"'
-               << " zone:\""       << M.vz[*j].n            << '"'
-               << " gas production rate [m3.s-1]: " << assembleElectrode(M.vz[*j].e2n,gr,er,v,GAS) << endl;
+               << " zone:\""       << M.vz[*j].n              << '"'
+               << " gas production rate [m3.s-1]: " << assembleElectrode(M.vz[*j].e2n,gr,er,V,GAS) << endl;
+        }
 
       }
   }
@@ -362,6 +347,14 @@ double assembleElectrode(
         coordinates, concentrations, &potentials[0],
         &temperatures[0], &densities[0], &sgasfractions[0],
         greactions.size(), p_greactions);
+    }
+    else if (action==SIZE) {
+      // calculate total volume/area (thus size) by accumulation
+      r += (m.m_assembler)->calcESize(coordinates);
+    }
+    else if (action==BSIZE) {
+      // calculate total area/length (thus size) by accumulation
+      r += (m.m_assembler)->calcBESize(coordinates);
     }
   }
 

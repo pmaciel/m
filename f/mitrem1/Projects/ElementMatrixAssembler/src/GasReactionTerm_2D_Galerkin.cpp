@@ -7,7 +7,7 @@
 
 //---------------------------------------------------------------------------
 GasReactionTerm_2D_Galerkin::GasReactionTerm_2D_Galerkin(unsigned nDimensions_, unsigned nNodes_, unsigned nVariables_, MITReM* mitrem_, BoundaryElementProps* boundaryElementProps_, const bool isBubble_)
-	: GasReactionTerm(nDimensions_, nNodes_,nVariables_, mitrem_, boundaryElementProps_, isBubble_)
+  : GasReactionTerm(nDimensions_, nNodes_,nVariables_, mitrem_, boundaryElementProps_, isBubble_)
 {
 }
 //---------------------------------------------------------------------------
@@ -17,80 +17,80 @@ GasReactionTerm_2D_Galerkin::~GasReactionTerm_2D_Galerkin()
 //---------------------------------------------------------------------------
 void GasReactionTerm_2D_Galerkin::calcVec(double* boundaryElementVec, DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential, unsigned nGasReactions, IndexList gasReactions)
 {
-	// Calculate coefficients
-	for (unsigned m=0; m<nNodes; m++)
-	{
-		mitrem->init(concentrations[m],potentials[m],temperatures[m],densities[m]);
-		for (unsigned r=0; r<nGasReactions; r++)
-		{
-			unsigned s = gasReactions[r];
-			v[m][s] = mitrem->calcGasReactionRate(s) * calcBubbleReactionRateCorrection(surfaceGasFractions);
-		}
-	}
-	elementSize = boundaryElementProps->calcSize(coordinates);
-	double elementSize6 = elementSize/6.;
+  // Calculate coefficients
+  for (unsigned m=0; m<nNodes; m++)
+  {
+    mitrem->init(concentrations[m],potentials[m],temperatures[m],densities[m]);
+    for (unsigned r=0; r<nGasReactions; r++)
+    {
+      unsigned s = gasReactions[r];
+      v[m][s] = mitrem->calcGasReactionRate(s) * calcBubbleReactionRateCorrection(surfaceGasFractions);
+    }
+  }
+  elementSize = boundaryElementProps->calcSize(coordinates);
+  double elementSize6 = elementSize/6.;
 
-	// Add to boundary element vector
-	for (unsigned r=0; r<nGasReactions; r++)
-	{
-		unsigned s = gasReactions[r];
-		for (unsigned m=0; m<nNodes; m++)
-		{
-			unsigned p = (m+1)%2;
-			double integral = (2.*v[m][s] + v[p][s])*elementSize6;
+  // Add to boundary element vector
+  for (unsigned r=0; r<nGasReactions; r++)
+  {
+    unsigned s = gasReactions[r];
+    for (unsigned m=0; m<nNodes; m++)
+    {
+      unsigned p = (m+1)%2;
+      double integral = (2.*v[m][s] + v[p][s])*elementSize6;
 
-			// v(r) gives a contribution its dissolved gas
-			unsigned i = mitrem->getGasReactionDissolvedGas(s);
-			boundaryElementVec[eq(m,i)] += integral;
-		}
-	}
+      // v(r) gives a contribution its dissolved gas
+      unsigned i = mitrem->getGasReactionDissolvedGas(s);
+      boundaryElementVec[eq(m,i)] += integral;
+    }
+  }
 }
 //---------------------------------------------------------------------------
 void GasReactionTerm_2D_Galerkin::calcJac(double** boundaryElementJac, DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential, unsigned nGasReactions, IndexList gasReactions)
 {
-	// Calculate coefficients
-	for (unsigned m=0; m<nNodes; m++)
-	{
-		mitrem->init(concentrations[m],potentials[m],temperatures[m],densities[m]);
-		for (unsigned r=0; r<nGasReactions; r++)
-		{
-			unsigned s = gasReactions[r];
-			DvDCDissGas[m][r] = mitrem->calcGasReactionRateDerivativeCDissGas(s) * calcBubbleReactionRateCorrection(surfaceGasFractions);
-		}
-	}
-	elementSize = boundaryElementProps->calcSize(coordinates);
-	double elementSize6 = elementSize/6.;
+  // Calculate coefficients
+  for (unsigned m=0; m<nNodes; m++)
+  {
+    mitrem->init(concentrations[m],potentials[m],temperatures[m],densities[m]);
+    for (unsigned r=0; r<nGasReactions; r++)
+    {
+      unsigned s = gasReactions[r];
+      DvDCDissGas[m][r] = mitrem->calcGasReactionRateDerivativeCDissGas(s) * calcBubbleReactionRateCorrection(surfaceGasFractions);
+    }
+  }
+  elementSize = boundaryElementProps->calcSize(coordinates);
+  double elementSize6 = elementSize/6.;
 
-	// Add to boundary element jacobian
-	for (unsigned r=0; r<nGasReactions; r++)
-	{
-		unsigned s = gasReactions[r];
+  // Add to boundary element jacobian
+  for (unsigned r=0; r<nGasReactions; r++)
+  {
+    unsigned s = gasReactions[r];
 
-		for (unsigned m=0; m<nNodes; m++)
-		{
-			unsigned p = (m+1)%2;
+    for (unsigned m=0; m<nNodes; m++)
+    {
+      unsigned p = (m+1)%2;
 
-			// v(s) gave a contribution to its dissolved gas
-			unsigned i = mitrem->getGasReactionDissolvedGas(s);
-			unsigned eqmi = eq(m,i);
+      // v(s) gave a contribution to its dissolved gas
+      unsigned i = mitrem->getGasReactionDissolvedGas(s);
+      unsigned eqmi = eq(m,i);
 
-			boundaryElementJac[eqmi][var(m,i)] -= 2.*DvDCDissGas[m][r]*elementSize6;
-			boundaryElementJac[eqmi][var(p,i)] -=    DvDCDissGas[p][r]*elementSize6;
-		}
-	}
+      boundaryElementJac[eqmi][var(m,i)] -= 2.*DvDCDissGas[m][r]*elementSize6;
+      boundaryElementJac[eqmi][var(p,i)] -=    DvDCDissGas[p][r]*elementSize6;
+    }
+  }
 }
 //---------------------------------------------------------------------------
 double GasReactionTerm_2D_Galerkin::calcBubbleReactionRateCorrection(DoubleList surfaceGasFractions)
 {
-	if (!isBubble)
-		return GasReactionTerm::calcBubbleReactionRateCorrection(surfaceGasFractions);
+  if (!isBubble)
+    return GasReactionTerm::calcBubbleReactionRateCorrection(surfaceGasFractions);
 
-	double surfaceGasFraction = 0.;
-	for (unsigned m=0; m<nNodes; ++m)
-		surfaceGasFraction += surfaceGasFractions[m];
-	surfaceGasFraction /= (double) nNodes;
+  double surfaceGasFraction = 0.;
+  for (unsigned m=0; m<nNodes; ++m)
+    surfaceGasFraction += surfaceGasFractions[m];
+  surfaceGasFraction /= (double) nNodes;
 
-	return M_PI * surfaceGasFraction;
+  return M_PI * surfaceGasFraction;
 }
 //---------------------------------------------------------------------------
 

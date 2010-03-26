@@ -10,7 +10,7 @@
 #include <math.h>
 #include "az_aztec.h"
 
-extern int AZ_sys_msg_type;             
+extern int AZ_sys_msg_type;
 
 #define ALLOCATE      1
 #define FREE_IT       2
@@ -19,12 +19,12 @@ extern int AZ_sys_msg_type;
 #define B_SET         5
 #define LASTUSED_SET  6
 #define ESTIMATED_SET 7
- 
- 
+
+
 #define OUT_OF_BOUNDS 0
 #define IN_V          1
 #define IN_B          2
- 
+
 #define SET_VAL(a,b)   AZ_allocate_or_free((void *) (a),(unsigned int)(b),V_SET)
 #define SET_BINDX(a,b) AZ_allocate_or_free((void *)(a),(unsigned int)(b),B_SET)
 #define SET_USAGE(a,b) AZ_allocate_or_free(NULL,(unsigned int)(a),LASTUSED_SET); \
@@ -55,8 +55,8 @@ extern void AZ_setup_sendlist(int , int *, int *, int *, int **,
 
     N_rows:        number of matrix rows residing locally
     Rownum:        an array containing the row numbers of the local rows
-    bindx :        an index array for the DMSR sparse matrix storage 
-    val:           an array containing the nonzero entries of the matrix 
+    bindx :        an index array for the DMSR sparse matrix storage
+    val:           an array containing the nonzero entries of the matrix
     olap_size:     the degree of overlap requested
     proc_config:   Machine configuration.  proc_config[AZ_node] is the node
                    number.  proc_config[AZ_N_procs] is the number of processors.
@@ -124,15 +124,15 @@ char str[80];
   max_per_proc = AZ_gmax_int(N_rows,proc_config);
   max_per_proc++;
   offset       = max_per_proc*proc_config[AZ_node];
-  
-  /* determine the global row number corresponding to */ 
+
+  /* determine the global row number corresponding to */
   /* external variables using AZ_exchange_bdry().     */
 
   Rownum    = (int *)    BV_ALLOC((N_rows+1) * sizeof(int));
   externals = (int *)    BV_ALLOC((prev_data_org[AZ_N_external]+1)*sizeof(int));
-  dbl_grows = (double *) BV_ALLOC((N_rows + prev_data_org[AZ_N_external] + 1)* 
+  dbl_grows = (double *) BV_ALLOC((N_rows + prev_data_org[AZ_N_external] + 1)*
                                    sizeof(double) );
-     
+
   for (i = 0 ; i < N_rows; i++ ) {
      Rownum[i]    = offset + i;
      dbl_grows[i] = (double) Rownum[i];
@@ -171,7 +171,7 @@ char str[80];
     return;
   }
 
-  /* Allocate temporary storage space for further processing 
+  /* Allocate temporary storage space for further processing
    *   - send_proc : a processor flag array to indicate send processors
    *   - send_leng : data length (in doubles) for each send-to processor
    *   - send_rownum : row numbers of matrix to the send-to processors
@@ -196,7 +196,7 @@ char str[80];
   actual_recv_leng = &(actual_send_leng[nprocs]);
   start_send       = &(actual_recv_leng[nprocs]);
 
-  for (i=0; i<nprocs; i++) send_rownum[i] = NULL; 
+  for (i=0; i<nprocs; i++) send_rownum[i] = NULL;
 
 
   /* duplicate the sorted Rownum list for use later in the loop */
@@ -213,17 +213,17 @@ char str[80];
 
   for (ndist=0; ndist<olap_size; ndist++) {
 
-    /* Starting with the enlarged system, compose the external node list. 
-     *  Input  : enlarged_N,sorted_New_Rownum,bindx 
+    /* Starting with the enlarged system, compose the external node list.
+     *  Input  : enlarged_N,sorted_New_Rownum,bindx
      *  Output : N_ext_node, ext_nodelist
      */
 
-    PAZ_compose_external(enlarged_N,sorted_New_Rownum, bindx, 
+    PAZ_compose_external(enlarged_N,sorted_New_Rownum, bindx,
                          &N_ext_node, &ext_nodelist);
 
     BV_FREE(sorted_New_Rownum);
 
-    /* use the external node list to construct the send information 
+    /* use the external node list to construct the send information
      *  Input  : N_ext_node, ext_nodelist, Rownum (must be sorted)
      *  Output : send_proc, send_rowcnt, send_rownum
      */
@@ -279,7 +279,7 @@ char str[80];
     for (i = 0 ; i < num_neigh; i++) {
        jj = proc_neigh[i];
        for (j = 0 ; j < send_rowcnt[jj] ; j++ ) {
-          k += (bindx[send_rownum[jj][j]+1] - 
+          k += (bindx[send_rownum[jj][j]+1] -
                 bindx[send_rownum[jj][j]]);
        }
     }
@@ -313,12 +313,12 @@ char str[80];
       exit(-1);
     }
     for (i=0; i<enlarged_N; i++) tRownum[i] = enlarged_Rownum[i];
-    BV_FREE(enlarged_Rownum); 
+    BV_FREE(enlarged_Rownum);
     enlarged_Rownum = tRownum;
 
 
     type    =AZ_sys_msg_type;
-    AZ_sys_msg_type =(AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS + 
+    AZ_sys_msg_type =(AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS +
                                       AZ_MSG_TYPE;
     off_set = enlarged_N;
     for (i = 0 ; i < num_neigh; i++ ) {
@@ -346,7 +346,7 @@ char str[80];
     /* Obtain the number of columns in each new row */
 
     type            =AZ_sys_msg_type;
-    AZ_sys_msg_type =(AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS + 
+    AZ_sys_msg_type =(AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS +
                                     AZ_MSG_TYPE;
     off_set = enlarged_N+1;
     for (i = 0 ; i < num_neigh; i++ ) {
@@ -366,7 +366,7 @@ char str[80];
     off_set = enlarged_N + 1;
     for (i = 0 ; i < num_neigh; i++ ) {
        jj = proc_neigh[i];
-       mdwrap_wait((char*) &(bindx[off_set]), recv_proc[jj]*sizeof(int),&jj, 
+       mdwrap_wait((char*) &(bindx[off_set]), recv_proc[jj]*sizeof(int),&jj,
                     &type, &status, request+i);
        off_set += recv_proc[jj];
     }
@@ -390,7 +390,7 @@ char str[80];
     /* Obtain the diagonal entry of the new rows    */
 
     type =AZ_sys_msg_type;
-    AZ_sys_msg_type =(AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS + 
+    AZ_sys_msg_type =(AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS +
                               AZ_MSG_TYPE;
 
     off_set = enlarged_N;
@@ -400,7 +400,7 @@ char str[80];
                             &jj, &type, &(request[i]));
        off_set += recv_proc[jj];
     }
-   
+
     for (i = 0 ; i < num_neigh; i++) {
        jj = proc_neigh[i];
        for (k = 0 ; k < send_rowcnt[jj] ; k++ )
@@ -428,28 +428,28 @@ char str[80];
        actual_recv_leng[i] = bindx[off_set + recv_proc[jj]] - bindx[off_set];
        off_set += recv_proc[jj];
     }
-   
+
     off_set = 0;
     for (i = 0 ; i < num_neigh; i++) {
        jj = proc_neigh[i];
        actual_send_leng[i] = 0;
        start_send[i]       = off_set;
        for (k = 0 ; k < send_rowcnt[jj] ; k++ ) {
-          actual_send_leng[i] += (bindx[send_rownum[jj][k]+1] - 
+          actual_send_leng[i] += (bindx[send_rownum[jj][k]+1] -
                                      bindx[send_rownum[jj][k]]);
           for (j= bindx[send_rownum[jj][k]];j < bindx[send_rownum[jj][k]+1];j++)
              iptr[off_set++] = bindx[j];
        }
     }
     AZ_splitup_big_msg(num_neigh,(char *)iptr,(char *)&bindx[bindx[enlarged_N]],
-		       sizeof(int), start_send, actual_send_leng, 
+		       sizeof(int), start_send, actual_send_leng,
 		       actual_recv_leng, proc_neigh,type,&ncnt, proc_config);
 
     /* Obtain the off-diagonal values */
 
     type            =AZ_sys_msg_type;
     AZ_sys_msg_type =(AZ_sys_msg_type+1-AZ_MSG_TYPE) % AZ_NUM_MSGS +AZ_MSG_TYPE;
-   
+
     off_set = 0;
     for (i = 0 ; i < num_neigh; i++) {
        jj = proc_neigh[i];
@@ -459,7 +459,7 @@ char str[80];
        }
     }
     AZ_splitup_big_msg(num_neigh,(char *) dptr,(char *) &val[bindx[enlarged_N]],
-		       sizeof(double), start_send, actual_send_leng, 
+		       sizeof(double), start_send, actual_send_leng,
 		       actual_recv_leng, proc_neigh,type,&ncnt, proc_config);
 
 
@@ -468,9 +468,9 @@ char str[80];
 
     /* Sort the new row number index array for further processing
      *   - allocate index array for new sorted row indices (enlarged matrix)
-     *   - call AZ_sort to order the update index array 
+     *   - call AZ_sort to order the update index array
      *   (enlarged_Rownum) ==> sorted_New_Rownum
-     */ 
+     */
 
     sorted_New_Rownum = (int*) BV_ALLOC((enlarged_N+1) * sizeof(int));
     if (sorted_New_Rownum == NULL) {
@@ -496,7 +496,7 @@ char str[80];
           if (ret_index >= 0) {
             bindx[ind] = bindx[j];
             val[ind++] = val[j];
-          }   
+          }
         }
         k = m;
         bindx[i+1] = ind;
@@ -505,7 +505,7 @@ char str[80];
 
     /* clean up */
 
-    for (i=0; i<nprocs; i++) { 
+    for (i=0; i<nprocs; i++) {
       if (send_rownum[i] != NULL) {
          BV_FREE(send_rownum[i]);  send_rownum[i] = NULL;
       }
@@ -518,19 +518,19 @@ char str[80];
   nzeros = bindx[enlarged_N];
 
   /* extract a list of external nodes -> ext_nodelist, and
-   * re-order the input matrix according to the local ordering 
+   * re-order the input matrix according to the local ordering
    *  - at exit, bindx has been reordered with the local
-   *    indices 0->N_rows-1 and the external indices 
+   *    indices 0->N_rows-1 and the external indices
    *    N_rows->N_ext_node+N_rows-1.  The global indices for the
-   *    external list are recorded in ext_nodelist  
+   *    external list are recorded in ext_nodelist
    */
 
   N_ext_node = enlarged_N - N_rows;
   sorted_exts = (int *) BV_ALLOC((N_ext_node+1)*sizeof(int));
-  for (i = 0 ; i < N_ext_node ; i++ ) 
+  for (i = 0 ; i < N_ext_node ; i++ )
      sorted_exts[i] = enlarged_Rownum[i + N_rows];
 
-  sprintf(str,"over_map %s",context->tag); 
+  sprintf(str,"over_map %s",context->tag);
   *map3 = (int *) AZ_manage_memory((N_ext_node+1)*sizeof(int),AZ_ALLOC,name,
 				   str,&i);
 
@@ -562,14 +562,14 @@ char str[80];
   (*data_org)[AZ_N_int_blk]   = N_rows;
   (*data_org)[AZ_N_bord_blk]  = 0;
   (*data_org)[AZ_N_ext_blk]   = N_ext_node;
-  
+
 } /* AZ_dd_overlap */
- 
+
 /* *********************************************************************** */
 /* *********************************************************************** */
 /* *********************************************************************** */
 /* Given a local matrix with N_local number of rows (N_local, bindx) and
- * a list of the local nodes, construct the external node list 
+ * a list of the local nodes, construct the external node list
  *
  * Input :
  *
@@ -584,9 +584,9 @@ char str[80];
  * ----------------------------------------------------------------------
  */
 
-void PAZ_compose_external(int N_local, int *sorted_Rownum, int *bindx, 
+void PAZ_compose_external(int N_local, int *sorted_Rownum, int *bindx,
                           int *N_ext_node, int **ext_nodelist)
-{  
+{
   int  i, ret_index, enode_leng, *enode_list;
   int k,kk;
 
@@ -599,7 +599,7 @@ void PAZ_compose_external(int N_local, int *sorted_Rownum, int *bindx,
   /* allocate initially certain amount of memory for holding the list */
 
   enode_list = (int*) BV_ALLOC((1+enode_leng) * sizeof(int));
-  if (enode_list == NULL) 
+  if (enode_list == NULL)
     AZ_perror("Error in allocating memory for enode_list.\n");
 
   /* fetch the column indices in bindx to find out if they are in the
@@ -608,18 +608,18 @@ void PAZ_compose_external(int N_local, int *sorted_Rownum, int *bindx,
    * list, we call PAZ_insert_list to do the job.  We also keep track
    * that the list does not overflow, and if an overflow is detected,
    * re-allocate more memory to hold the additional nodes.
-   */    
+   */
 
   enode_leng = 0;
   for (i=N_local+1; i<bindx[N_local]; i++) {
     ret_index = PAZ_sorted_search(bindx[i],N_local,sorted_Rownum);
-    if (ret_index < 0) 
+    if (ret_index < 0)
        enode_list[enode_leng++] = bindx[i];
   }
   AZ_sort(enode_list, enode_leng, NULL, NULL);
 
   /* remove duplicates */
- 
+
   kk = 0;
   for (k = 1; k < enode_leng ; k++) {
     if (enode_list[kk] != enode_list[k]) {
@@ -627,16 +627,16 @@ void PAZ_compose_external(int N_local, int *sorted_Rownum, int *bindx,
       enode_list[kk] = enode_list[k];
     }
   }
- 
+
   if (enode_leng != 0) kk++;
   enode_leng = kk;
 
-  
+
 
   /* clean up */
 
   (*N_ext_node)   = enode_leng;
-  (*ext_nodelist) = enode_list; 
+  (*ext_nodelist) = enode_list;
 }
 /* *********************************************************************** */
 /* *********************************************************************** */
@@ -653,13 +653,13 @@ int PAZ_sorted_search(int key, int nlist, int *list)
   int  nfirst, nlast, nmid, found, index = 0;
 
   if (nlist <= 0) return -1;
-  nfirst = 0;  
-  nlast  = nlist-1; 
+  nfirst = 0;
+  nlast  = nlist-1;
   if (key > list[nlast])  return -(nlast+1);
   if (key < list[nfirst]) return -(nfirst+1);
   found = 0;
   while ((found == 0) && ((nlast-nfirst)>1)) {
-    nmid = (nfirst + nlast) / 2; 
+    nmid = (nfirst + nlast) / 2;
     if (key == list[nmid])     {index  = nmid; found = 1;}
     else if (key > list[nmid])  nfirst = nmid;
     else                        nlast  = nmid;
@@ -673,7 +673,7 @@ int PAZ_sorted_search(int key, int nlist, int *list)
 /******************************************************************************/
 /******************************************************************************/
 
-void PAZ_order_ele(int extern_index[], int N_update, int externs[], 
+void PAZ_order_ele(int extern_index[], int N_update, int externs[],
                    int N_external, int *m1, int *m3, int max_per_proc)
 
 /*******************************************************************************
@@ -714,7 +714,7 @@ void PAZ_order_ele(int extern_index[], int N_update, int externs[],
                    AZ_order_ele(...,bindx,bindx, ....). That is both 'bpntr' and
                    'bindx' point to 'bindx'.
 
-  externs:     
+  externs:
 
   N_external:      Number of external elements on this processor.
 
@@ -834,8 +834,8 @@ void PAZ_find_local_indices(int N_update, int bindx[], int update[],
    * the bindx[].
    */
 
-  start = bindx[0]; end = bindx[bindx[0]-1]; 
-  
+  start = bindx[0]; end = bindx[bindx[0]-1];
+
 
   /*
    * Estimate the amount of space we will need by counting the number of
@@ -872,7 +872,7 @@ void PAZ_find_local_indices(int N_update, int bindx[], int update[],
 /* *********************************************************************** */
 /* *********************************************************************** */
 /* Given a local matrix with N_local number of rows (N_local, bindx) and
- * a list of the local nodes, construct the external node list 
+ * a list of the local nodes, construct the external node list
  *
  * Input :
  *
@@ -892,7 +892,7 @@ void PAZ_find_local_indices(int N_update, int bindx[], int update[],
 /******************************************************************************/
 
 void PAZ_set_message_info(int N_external, int N_update,
-                         int external[], int update[], int proc_config[], 
+                         int external[], int update[], int proc_config[],
 			 int cnptr[], int *data_org[], int mat_type, int name,
                          int max_per_proc, struct context *context)
 
@@ -1149,7 +1149,7 @@ void PAZ_set_message_info(int N_external, int N_update,
 
   /* create data_org array */
 
-  sprintf(str,"padded d_org %s",context->tag); 
+  sprintf(str,"padded d_org %s",context->tag);
   *data_org = (int *) AZ_manage_memory((total_to_be_sent + AZ_send_list)*
                                    sizeof(int), AZ_ALLOC,name,str, &i);
 
@@ -1364,7 +1364,7 @@ char *AZ_allocate_or_free(void *ptr, unsigned int input_size, int action)
 
     double *dptr;
     char *t_ptr;
-    long int msize, where; 
+    long int msize, where;
     long int current, prev;
 
     size = (long int) input_size;
@@ -1407,7 +1407,7 @@ char *AZ_allocate_or_free(void *ptr, unsigned int input_size, int action)
 
        /* check (conservative) if there is  */
        /* additional space in either v or b */
-     
+
        if (v_smallest_free - v_estimated_need >= b_smallest_free -
                                                    b_estimated_need) {
           if (v_smallest_free - size > v_estimated_need) {
@@ -1425,14 +1425,14 @@ char *AZ_allocate_or_free(void *ptr, unsigned int input_size, int action)
        }
 
        /* check if there is malloc space */
-    
+
        t_ptr = (char *) AZ_allocate((unsigned int) msize);
        if (t_ptr != NULL) return(t_ptr);
 
 
        /* check if there is any space  */
        /* in either v or b             */
-     
+
        if (v_smallest_free - v_lastused >= b_smallest_free - b_lastused){
           if (v_smallest_free - size > v_lastused ) {
              v_smallest_free -= size;
@@ -1495,12 +1495,12 @@ char *AZ_allocate_or_free(void *ptr, unsigned int input_size, int action)
     }
     else if (action == LASTUSED_SET) {
         size *= sizeof(int);
-        if (size%sizeof(double) != 0) 
+        if (size%sizeof(double) != 0)
            size += (sizeof(double) - size%sizeof(double));
-        
+
         b_lastused = size/sizeof(double);
         v_lastused = size/sizeof(int);
-     
+
         if (b_lastused > b_smallest_free) {
           printf("Error: Out of space due to poor estimate of memory needed\n");
           printf("       for overlapping.\n");
@@ -1514,7 +1514,7 @@ char *AZ_allocate_or_free(void *ptr, unsigned int input_size, int action)
     }
     else if (action == ESTIMATED_SET) {
         size *= sizeof(int);
-        if (size%sizeof(double) != 0) 
+        if (size%sizeof(double) != 0)
            size += (sizeof(double) - size%sizeof(double));
 
         b_estimated_need = size/sizeof(double);
@@ -1585,7 +1585,7 @@ char *AZ_allocate_or_free(void *ptr, unsigned int input_size, int action)
 
 #define proc(i)  (externs[i]/max_per_proc)
 void AZ_setup_sendlist(int N_ext, int externs[], int send_proc[],
-		       int send_rowcnt[], int *send_rownum[], 
+		       int send_rowcnt[], int *send_rownum[],
                        int proc_config[], int max_per_proc, int N_rows,
                        int Rownum[])
 {
@@ -1611,7 +1611,7 @@ void AZ_setup_sendlist(int N_ext, int externs[], int send_proc[],
    for (i = 0 ; i < N_ext ; i++) temp1[proc(i)] = 1;
    AZ_gsum_vec_int(temp1,temp2, nprocs,proc_config);
    N_send = temp1[node];
-   
+
    /* exchange information so that each processor knows: */
    /*    1) processor to which it must send rows         */
    /*    2) number of rows to be sent to each processor  */
@@ -1621,7 +1621,7 @@ void AZ_setup_sendlist(int N_ext, int externs[], int send_proc[],
 
    for (i = 0 ; i < N_send; i++ ) {
       send_proc[i] = -1;
-      (void) mdwrap_iread((void *) &(send_rowcnt[i]), sizeof(int), 
+      (void) mdwrap_iread((void *) &(send_rowcnt[i]), sizeof(int),
                            &(send_proc[i]), &type, &(request[i]));
    }
 
@@ -1641,7 +1641,7 @@ void AZ_setup_sendlist(int N_ext, int externs[], int send_proc[],
    }
 
    for (i = 0 ; i < N_send; i++ ) {
-       (void) mdwrap_wait((void *) &(send_rowcnt[i]), sizeof(int), 
+       (void) mdwrap_wait((void *) &(send_rowcnt[i]), sizeof(int),
                            &(send_proc[i]), &type, &st, &(request[i]));
    }
 
@@ -1655,14 +1655,14 @@ void AZ_setup_sendlist(int N_ext, int externs[], int send_proc[],
 
    for (i = 0 ; i < N_send; i++ ) {
       send_rownum[i] = (int *) BV_ALLOC((send_rowcnt[i]+1) * sizeof(int));
-      (void) mdwrap_iread((void *) send_rownum[i], send_rowcnt[i]*sizeof(int), 
+      (void) mdwrap_iread((void *) send_rownum[i], send_rowcnt[i]*sizeof(int),
                            &(send_proc[i]), &type, &(request[i]));
    }
    start = 0;
    length = 1;
    for (i = 1 ; i < N_ext ; i++ ) {
       if (proc(i) != proc(i-1)) {
-         (void) mdwrap_write((void *) &(externs[start]), 
+         (void) mdwrap_write((void *) &(externs[start]),
                                length*sizeof(int),proc(i-1),type,&st);
          start += length;
          length = 0;
@@ -1675,7 +1675,7 @@ void AZ_setup_sendlist(int N_ext, int externs[], int send_proc[],
    }
 
    for (i = 0 ; i < N_send; i++ ) {
-       (void) mdwrap_wait((void *) send_rownum[i], send_rowcnt[i]*sizeof(int), 
+       (void) mdwrap_wait((void *) send_rownum[i], send_rowcnt[i]*sizeof(int),
                            &(send_proc[i]), &type, &st, &(request[i]));
    }
 
@@ -1696,7 +1696,7 @@ void AZ_setup_sendlist(int N_ext, int externs[], int send_proc[],
       send_rowcnt[processor]  = j;
       send_rownum[processor]  = ttt;
 
-      for (j = 0 ; j < send_rowcnt[processor] ; j++ ) 
+      for (j = 0 ; j < send_rowcnt[processor] ; j++ )
          send_rownum[processor][j] =PAZ_sorted_search(send_rownum[processor][j],
                                                       N_rows,Rownum);
 

@@ -105,7 +105,7 @@ NOTE: User's can still invoke AZ_solve() in the old Aztec way. AZ_solve
   int     prec_allocated = 0;
   struct AZ_SCALING *scale2;
 
-  if (scaling == NULL) 
+  if (scaling == NULL)
      scale2 = AZ_scaling_create();
   else scale2 = scaling;
 
@@ -114,7 +114,7 @@ NOTE: User's can still invoke AZ_solve() in the old Aztec way. AZ_solve
     if (proc_config[AZ_node] == 0) {
        printf("AZ_iterate: AZ_matrix_create(int) should be called to\n");
        printf("            create matrix object (Amat) to be solved!\n");
-    } 
+    }
     exit(1);
   }
   if (precond == NULL) {
@@ -132,14 +132,14 @@ NOTE: User's can still invoke AZ_solve() in the old Aztec way. AZ_solve
     if (proc_config[AZ_node] == 0) {
        printf("AZ_iterate: AZ_precond_create should be called to\n   ");
        printf("       create preconditioning object!\n");
-    } 
+    }
     exit(1);
   }
   if (precond->Pmat->mat_create_called != 1) {
     if (proc_config[AZ_node] == 0) {
        printf("AZ_iterate: AZ_matrix_create(int) should be called to\n   ");
        printf("       create preconditioning matrix object (precond->Pmat)!\n");
-    } 
+    }
     exit(1);
   }
   if (Amat->matvec == NULL) {
@@ -147,7 +147,7 @@ NOTE: User's can still invoke AZ_solve() in the old Aztec way. AZ_solve
        printf("AZ_iterate: Matrix vector product needs to be set via ");
        printf("AZ_set_MSR(...),\n             AZ_set_VBR(...), or ");
        printf("AZ_set_MATFREE(...).\n");
-    } 
+    }
     exit(1);
   }
   AZ_iterate_setup(options, params, proc_config, Amat, precond);
@@ -240,7 +240,7 @@ void AZ_solve(double x[], double b[], int options[], double params[],
    Amat    = AZ_matrix_create(data_org[AZ_N_internal]+data_org[AZ_N_border]);
    precond = AZ_precond_create(Amat, AZ_precondition, NULL);
 
-   if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX) 
+   if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX)
       AZ_set_MSR(Amat, bindx, val, data_org, 0, NULL, AZ_LOCAL);
    else if (data_org[AZ_matrix_type] == AZ_VBR_MATRIX)
       AZ_set_VBR(Amat, rpntr, cpntr, bpntr, indx, bindx, val,
@@ -284,7 +284,7 @@ void AZ_solve(double x[], double b[], int options[], double params[],
     }
   }
 
-  AZ_flop_rates(data_org,indx,bpntr, bindx, options, status, total_time, 
+  AZ_flop_rates(data_org,indx,bpntr, bindx, options, status, total_time,
                 proc_config);
 
   if (options[AZ_keep_info] == 0)
@@ -305,8 +305,8 @@ void AZ_solve(double x[], double b[], int options[], double params[],
 #include "ml_include.h"
 #endif
 
-void AZ_oldsolve(double x[], double b[], int options[], double params[], 
-	double status[], int proc_config[], AZ_MATRIX *Amat, 
+void AZ_oldsolve(double x[], double b[], int options[], double params[],
+	double status[], int proc_config[], AZ_MATRIX *Amat,
 	AZ_PRECOND *precond, struct AZ_SCALING *scaling)
 
 
@@ -417,7 +417,7 @@ void AZ_oldsolve(double x[], double b[], int options[], double params[],
   if ( options[AZ_conv] == AZ_expected_values) {
       options[AZ_ignore_scaling] = AZ_TRUE;
       NNN = data_org[AZ_N_internal] + data_org[AZ_N_border];
-      sprintf(tag, "some weights %d %d %d", data_org[AZ_name], 
+      sprintf(tag, "some weights %d %d %d", data_org[AZ_name],
               options[AZ_recursion_level],NNN);
       newparams = (double *) AZ_manage_memory((AZ_PARAMS_SIZE+NNN)*
 					      sizeof(double), AZ_ALLOC,
@@ -428,15 +428,15 @@ void AZ_oldsolve(double x[], double b[], int options[], double params[],
       AZ_abs_matvec_mult(x,&(newparams[AZ_weights]), Amat, proc_config);
       if ((options[AZ_pre_calc] == AZ_reuse)& (options[AZ_scaling] != AZ_none)){
          AZ_scale_f(AZ_INVSCALE_SOL, Amat, options, b, x, proc_config, scaling);
-         AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, &(newparams[AZ_weights]), 
+         AZ_scale_f(AZ_INVSCALE_RHS, Amat, options, &(newparams[AZ_weights]),
                     x, proc_config, scaling);
       }
       largest = 0.;
-      for (i = 0; i < NNN; i++) 
-         if (newparams[i+AZ_weights] > largest) 
+      for (i = 0; i < NNN; i++)
+         if (newparams[i+AZ_weights] > largest)
             largest = newparams[AZ_weights+i];
       largest *= 100.;
-      for (i = 0; i < NNN; i++) 
+      for (i = 0; i < NNN; i++)
          if (newparams[i+AZ_weights] == 0.) newparams[AZ_weights+i]=largest;
       for (i = 0; i < AZ_weights; i++) newparams[i] = params[i];
    }
@@ -451,7 +451,7 @@ void AZ_oldsolve(double x[], double b[], int options[], double params[],
   }
   tstr[j] = '\0';
   sscanf(&(tstr[6]),"%lf", &(status[AZ_Aztec_version]));
-  if (!AZ_oldsolve_setup(x, b, options, newparams, status, proc_config, 
+  if (!AZ_oldsolve_setup(x, b, options, newparams, status, proc_config,
 		    Amat, precond, save_old_values,scaling)) return;
 
   /* solve the system */
@@ -473,13 +473,13 @@ void AZ_oldsolve(double x[], double b[], int options[], double params[],
 
     AZ_pgmres(b, x, &(newparams[AZ_weights]), options, params, proc_config,
               status, Amat, precond, conv_info);
- 
+
     break;
 
   case AZ_fixed_pt:
     AZ_fix_pt(b, x, &(newparams[AZ_weights]), options, params, proc_config,
               status, Amat, precond, conv_info);
- 
+
     break;
 
   case AZ_analyze:
@@ -502,7 +502,7 @@ void AZ_oldsolve(double x[], double b[], int options[], double params[],
        if (options[AZ_max_iter] > 10) options[AZ_max_iter] = 10;
        AZ_fix_pt(b, x, &(newparams[AZ_weights]), options, params, proc_config,
               status, Amat, precond, conv_info);
-       
+
        dtemp=AZ_gdot(Amat->data_org[AZ_N_internal]+Amat->data_org[AZ_N_border],
                      x, x, proc_config);
        dtemp = sqrt(dtemp);
@@ -520,15 +520,15 @@ void AZ_oldsolve(double x[], double b[], int options[], double params[],
        options[AZ_max_iter] = i;
     }
 
-       /*  find the largest point */ 
+       /*  find the largest point */
        size1 = Amat->data_org[AZ_N_internal]+Amat->data_org[AZ_N_border];
-       largest = -1.; 
+       largest = -1.;
 #ifdef ML
        largest_index = -1;
 #endif
        for (i=0;i < size1; i++) {
-          if ( fabs(x[i]) > largest ) { 
-            largest = fabs(x[i]); 
+          if ( fabs(x[i]) > largest ) {
+            largest = fabs(x[i]);
 #ifdef ML
             largest_index = i;
 #endif
@@ -563,7 +563,7 @@ void AZ_oldsolve(double x[], double b[], int options[], double params[],
        fflush(stdout);
 
        /* Print out interpolation column for each coarse grid    */
-       /* point that appears in the above interpolation stencil. */                 
+       /* point that appears in the above interpolation stencil. */
 
        row_length = AZ_gsum_int(row_length, proc_config);
        for (i = 0; i < row_length; i++) {
@@ -619,7 +619,7 @@ void AZ_oldsolve(double x[], double b[], int options[], double params[],
 #endif
 
 
-              
+
     break;
 
   case AZ_GMRESR:
@@ -628,7 +628,7 @@ void AZ_oldsolve(double x[], double b[], int options[], double params[],
 
     AZ_pgmresr(b, x, &(newparams[AZ_weights]), options, params, proc_config,
               status, Amat, precond, conv_info);
- 
+
     break;
 
   case AZ_cgs:
@@ -637,7 +637,7 @@ void AZ_oldsolve(double x[], double b[], int options[], double params[],
 
     AZ_pcgs(b, x, &(newparams[AZ_weights]), options, params, proc_config, status,
             Amat, precond, conv_info);
- 
+
     break;
 
   case AZ_tfqmr:
@@ -678,13 +678,13 @@ void AZ_oldsolve(double x[], double b[], int options[], double params[],
     for (i = 0; i < N ; i++) x[i] = b[i];
 
     if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX) nonzeros = (Amat->bindx)[N];
-    else if (data_org[AZ_matrix_type] == AZ_VBR_MATRIX) 
+    else if (data_org[AZ_matrix_type] == AZ_VBR_MATRIX)
           nonzeros = (Amat->indx)[(Amat->bpntr)[N_Blk]];
     else {
        AZ_matfree_Nnzs(Amat);
        nonzeros = Amat->N_nz;
     }
-    
+
 
     /* save certain options so that we can restore the user's data */
 
@@ -809,14 +809,14 @@ void AZ_print_call_iter_solve(int options[], double params[], int az_proc,
 
   prefix[str_leng++] = '\t'; prefix[str_leng++] = '\t'; prefix[str_leng++] = '*';
   prefix[str_leng++] = '*'; prefix[str_leng++] = '*'; prefix[str_leng++] = '*';
-  prefix[str_leng++] = '*'; prefix[str_leng++] = ' '; 
+  prefix[str_leng++] = '*'; prefix[str_leng++] = ' ';
   for (i = 0 ; i < recur ; i++ ) {
-     prefix[str_leng++] = ' '; 
-     prefix[str_leng++] = ' '; 
+     prefix[str_leng++] = ' ';
+     prefix[str_leng++] = ' ';
   }
   prefix[str_leng++] = '\0';
 
-  if ( recur == 0 ) 
+  if ( recur == 0 )
      (void) printf("\n\t\t****************************************"
                    "***************\n");
 
@@ -958,7 +958,7 @@ void AZ_print_call_iter_solve(int options[], double params[], int az_proc,
     (void) printf("%s      processors is changed.\n",prefix);
   }
 
-  if ( recur == 0 ) 
+  if ( recur == 0 )
      (void) printf("\t\t****************************************"
                    "***************\n");
 
@@ -1232,24 +1232,24 @@ void AZ_mk_identifier(double *params, int *options,
   dtemp = (params[AZ_ilut_fill] + 3.1415)*(params[AZ_drop] + 2.712)*
 	  (1.1 + ((double) options[AZ_graph_fill]));
   if (dtemp > 0) dtemp = pow(dtemp,.01);
-  
+
 
   itemp = 4*(options[AZ_overlap] + 1) + 2*options[AZ_reorder] +
           options[AZ_type_overlap];
 
-  if (itemp < 94) code1 = '!' + itemp; 
+  if (itemp < 94) code1 = '!' + itemp;
   else code1 = itemp%255;
 
   if ( options[AZ_precond] == AZ_dom_decomp )
      itemp = options[AZ_subdomain_solve];
   else itemp = options[AZ_precond];
 
-  if (itemp < 94) code2 = '!' + itemp; 
+  if (itemp < 94) code2 = '!' + itemp;
   else code2 = itemp%255;
 
 
   itemp = options[AZ_scaling];
-  if (itemp < 94) code3 = '!' + itemp; 
+  if (itemp < 94) code3 = '!' + itemp;
   else code3 = itemp%255;
 
   sprintf(tag,"P%d %c%c%c %.4f", data_org[AZ_N_internal]+data_org[AZ_N_border],
@@ -1260,13 +1260,13 @@ void AZ_mk_identifier(double *params, int *options,
 /************************************************************************/
 /************************************************************************/
 
-void AZ_mk_context(int options[], double params[], int data_org[], 
+void AZ_mk_context(int options[], double params[], int data_org[],
                    AZ_PRECOND *precond, int proc_config[])
 {
 /* Make a context to be associated with the preconditioning data structure
- * and stick it in the field: precond->context. This context should be 
- * uniquely based on the name of the matrix which the preconditioner operates 
- * on as well as the type of preconditioning options that have been chosen. 
+ * and stick it in the field: precond->context. This context should be
+ * uniquely based on the name of the matrix which the preconditioner operates
+ * on as well as the type of preconditioning options that have been chosen.
  *
  * Note: if this context already exists, this routine will simply set
  * precond->context to point to it.
@@ -1279,7 +1279,7 @@ void AZ_mk_context(int options[], double params[], int data_org[],
 
   AZ_mk_identifier(params,options,data_org, tag);
 
-  precond->context = (struct context *) AZ_manage_memory(sizeof(struct 
+  precond->context = (struct context *) AZ_manage_memory(sizeof(struct
 					       context), AZ_ALLOC,
                                                data_org[AZ_name],tag,&istatus);
   if (istatus == AZ_NEW_ADDRESS) {
@@ -1338,9 +1338,9 @@ void AZ_rm_context(int options[], double params[], int data_org[])
   AZ_manage_memory(sizeof(struct context), AZ_SELECTIVE_CLEAR,
                             data_org[AZ_name],tag,&istatus);
 }
-     
-int AZ_oldsolve_setup(double x[], double b[], int options[], double params[], 
-	double status[], int proc_config[], AZ_MATRIX *Amat, 
+
+int AZ_oldsolve_setup(double x[], double b[], int options[], double params[],
+	double status[], int proc_config[], AZ_MATRIX *Amat,
 	AZ_PRECOND *precond, int save_old_values[],
 	struct AZ_SCALING *scaling)
 
@@ -1422,7 +1422,7 @@ int AZ_oldsolve_setup(double x[], double b[], int options[], double params[],
   AZ_PRECOND *tprecond;
   double *tparams;
   char tag[80];
-  
+
 
   /**************************** execution begins ******************************/
 
@@ -1459,7 +1459,7 @@ int AZ_oldsolve_setup(double x[], double b[], int options[], double params[],
      printf("      options[AZ_subdomain_solve] = %s;\n",tag);
      exit(1);
   }
-     
+
 
   data_org = Amat->data_org;
 
@@ -1472,7 +1472,7 @@ int AZ_oldsolve_setup(double x[], double b[], int options[], double params[],
 
   if (!AZ_check_options(options, Proc, data_org, Num_Proc, params,
       Amat, precond)) {
- 
+
     status[AZ_its]      = (double )  0.0;
     status[AZ_why]      = (double )  AZ_param;
     status[AZ_r]        = (double ) -1.0;
@@ -1483,7 +1483,7 @@ int AZ_oldsolve_setup(double x[], double b[], int options[], double params[],
 
   /* Test to see if we should capture matrix, rhs and partitioning info
      in an ASCII data file.  If the file "AZ_write_matrix_now" exists in
-     the current working directory, then the files 
+     the current working directory, then the files
      - AZ_capture_matrix.dat
      - AZ_capture_rhs.dat
      - AZ_capture_partition.dat (VBR only)
@@ -1494,7 +1494,7 @@ int AZ_oldsolve_setup(double x[], double b[], int options[], double params[],
      be turned on and off at will during the run of a simulation.
   */
 
-  AZ_capture_matrix(Amat->val, Amat->indx, Amat->bindx, Amat->rpntr, 
+  AZ_capture_matrix(Amat->val, Amat->indx, Amat->bindx, Amat->rpntr,
 		    Amat->cpntr, Amat->bpntr, proc_config,
 		    data_org, b);
 
@@ -1505,9 +1505,9 @@ int AZ_oldsolve_setup(double x[], double b[], int options[], double params[],
       (data_org[AZ_matrix_type] == AZ_VBR_MATRIX)){
      if (options[AZ_output] == AZ_all)
         AZ_print_out((int *) NULL, (int *) NULL, (int *) NULL, (int *) NULL,
-                     Amat->val, Amat->indx, Amat->bindx, Amat->rpntr, 
-                     Amat->cpntr, Amat->bpntr, proc_config, AZ_input_form, 
-                     data_org[AZ_matrix_type], data_org[AZ_N_int_blk] + 
+                     Amat->val, Amat->indx, Amat->bindx, Amat->rpntr,
+                     Amat->cpntr, Amat->bpntr, proc_config, AZ_input_form,
+                     data_org[AZ_matrix_type], data_org[AZ_N_int_blk] +
                      data_org[AZ_N_bord_blk],data_org[AZ_N_ext_blk],0);
   }
 
@@ -1517,7 +1517,7 @@ int AZ_oldsolve_setup(double x[], double b[], int options[], double params[],
   tdata_org = precond->Pmat->data_org;
 
   prec_context = 1;
-  if (options[AZ_precond] == AZ_multilevel) 
+  if (options[AZ_precond] == AZ_multilevel)
      prec_context = AZ_multilevel;
 
   while ( prec_context ) {
@@ -1540,7 +1540,7 @@ int AZ_oldsolve_setup(double x[], double b[], int options[], double params[],
      /*        information.                                               */
 
      AZ_mk_context(toptions, tparams, tdata_org, tprecond, proc_config);
-     
+
      /* check if multiple preconditioners are being passed in */
      /* if this is the case we must afix a subdomain context  */
      /* to each one.                                          */
@@ -1548,12 +1548,12 @@ int AZ_oldsolve_setup(double x[], double b[], int options[], double params[],
      if ( prec_context == AZ_multilevel) {
        if (tprecond->next_prec == NULL) prec_context = 0;
        else {
-          tprecond = tprecond->next_prec; 
+          tprecond = tprecond->next_prec;
           toptions = tprecond->options;
           tparams  = tprecond->params;
           tdata_org= tprecond->Pmat->data_org;
        }
-     } 
+     }
      else prec_context = 0;
   }
 
@@ -1565,7 +1565,7 @@ int AZ_oldsolve_setup(double x[], double b[], int options[], double params[],
 
 
 
-void AZ_oldsolve_finish(double x[], double b[], int options[], 
+void AZ_oldsolve_finish(double x[], double b[], int options[],
 	int proc_config[], AZ_MATRIX *Amat, int save_old_values[],
 	struct AZ_SCALING *scaling)
 {
@@ -1583,7 +1583,7 @@ void AZ_oldsolve_finish(double x[], double b[], int options[],
 
 } /* AZ_oldsolve_finish  */
 
-void AZ_iterate_setup(int options[], double params[], int proc_config[], 
+void AZ_iterate_setup(int options[], double params[], int proc_config[],
 	AZ_MATRIX *Amat, AZ_PRECOND *precond)
 
 /*******************************************************************************
@@ -1647,7 +1647,7 @@ NOTE: User's can still invoke AZ_solve() in the old Aztec way. AZ_solve
       Amat->data_org[AZ_N_bord_blk] = Amat->data_org[AZ_N_border];
   }
 
-  else if (Amat->matrix_type == AZ_VBR_MATRIX) 
+  else if (Amat->matrix_type == AZ_VBR_MATRIX)
       Amat->matvec = AZ_VBR_matvec_mult;
 
   else if (Amat->matrix_type == AZ_USER_MATRIX){
@@ -1692,17 +1692,17 @@ void AZ_iterate_finish(int options[], AZ_MATRIX *Amat, AZ_PRECOND *precond)
   (void) AZ_manage_memory(0, AZ_CLEAR, AZ_SYS, (char *) 0, (int *) 0);
 }
 
-int AZ_initialize(double x[], double b[], int options[], 
-	double params[], double status[], int proc_config[], AZ_MATRIX *Amat, 
+int AZ_initialize(double x[], double b[], int options[],
+	double params[], double status[], int proc_config[], AZ_MATRIX *Amat,
 	AZ_PRECOND *precond, int save_old_values[], struct AZ_SCALING *scaling)
 {
    AZ_iterate_setup(options, params, proc_config, Amat, precond);
-   return(AZ_oldsolve_setup(x, b, options, params, status, proc_config, Amat, 
+   return(AZ_oldsolve_setup(x, b, options, params, status, proc_config, Amat,
 	             precond, save_old_values, scaling));
-   
+
 }
 
-void AZ_finalize(double x[], double b[], int options[], int 
+void AZ_finalize(double x[], double b[], int options[], int
    proc_config[], AZ_MATRIX *Amat, AZ_PRECOND *precond, int save_old_values[],
    struct AZ_SCALING *scaling)
 {

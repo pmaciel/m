@@ -38,7 +38,7 @@ extern void sort_blk_col_indx(int num_blks_row, int *bindx_start_row,
 
 extern void sort2(int, int *, int*);
 
-extern void order_parallel(int M, double *val_old, double *val_new, 
+extern void order_parallel(int M, double *val_old, double *val_new,
                    int *bindx_old, int *bindx_new, int *indx_old, int *indx_new,
                    int *bpntr_old, int *bpntr_new, int *diag_block);
 extern void get_diag(int M, int *bindx, int *bpntr, int *diag_block);
@@ -257,7 +257,7 @@ void AZ_order(int M, double *val_old, double *val_new, int *bindx,
   temp_val = (double *) AZ_allocate(size_temp_val*sizeof(double));
   sort     = (int    *) AZ_allocate(sizeof(int) * (M));
 
-  if ( (temp_val == NULL) || (sort == NULL)) 
+  if ( (temp_val == NULL) || (sort == NULL))
      AZ_perror("Out of space inside AZ_sort()\n");
 
   for (i = 0; i < M; i++) diag_block[i] = -1;
@@ -556,7 +556,7 @@ void AZ_MSR_mult_patterns(int bindx[], int N, int last[], int bindx_length,
  *
  * Parameters
  * ======
- *    bindx[]       On input, bindx[] holds the two input matrices as 
+ *    bindx[]       On input, bindx[] holds the two input matrices as
  *                  described above. On output, bindx[] holds the matrix
  *                  corresponding to the product of the two input matrices.
  *                  However, any matrix entry which was not in the matrix B
@@ -583,12 +583,12 @@ void AZ_MSR_mult_patterns(int bindx[], int N, int last[], int bindx_length,
    /* and  initialize start/end ptrs              */
 
    kk = bindx_length-1;
-   end_row   = bindx[N]-1; 
+   end_row   = bindx[N]-1;
    for (i = N-1 ; i >= 0 ; i--) {
       start_row = bindx[i];
       last[i] = kk;
       for (k = end_row; k >= start_row; k-- ) bindx[kk--] = bindx[k];
-      end_row   = start_row - 1; 
+      end_row   = start_row - 1;
       bindx[i] = kk+1;
    }
 
@@ -626,11 +626,11 @@ void AZ_MSR_mult_patterns(int bindx[], int N, int last[], int bindx_length,
       first_one    = next_nz;
       if (bindx[i] <= last[i]) {
          orig_col = bindx[bindx[i]];
-         if (orig_col < 0)  orig_col = -2 - orig_col; 
+         if (orig_col < 0)  orig_col = -2 - orig_col;
          if (smallest_col > orig_col) smallest_col = orig_col;
 
          orig_col = bindx[last[i]];
-         if (orig_col < 0)  orig_col = -2 - orig_col; 
+         if (orig_col < 0)  orig_col = -2 - orig_col;
          if (largest_col < orig_col) largest_col = orig_col;
       }
 
@@ -638,7 +638,7 @@ void AZ_MSR_mult_patterns(int bindx[], int N, int last[], int bindx_length,
 
       for (k = bindx[i]; k <= last[i]; k++) {
          orig_col = bindx[k];
-         if (orig_col >= 0)  signs[orig_col] = 1;    
+         if (orig_col >= 0)  signs[orig_col] = 1;
       }
 
       if (next_nz+Ncols-2 > last[i]) {
@@ -650,8 +650,8 @@ void AZ_MSR_mult_patterns(int bindx[], int N, int last[], int bindx_length,
          if (col != i) {
             if (signs[col] == -1) col = -2 - col;
 
-            if ((accum_col[k] <= largest_col) && 
-                (accum_col[k] >= smallest_col ) ) 
+            if ((accum_col[k] <= largest_col) &&
+                (accum_col[k] >= smallest_col ) )
                    bindx[next_nz++] = col;
          }
       }
@@ -661,7 +661,7 @@ void AZ_MSR_mult_patterns(int bindx[], int N, int last[], int bindx_length,
    bindx[N] = last[N-1]+1;
 
 }
-       
+
 /***************************************************************************/
 /***************************************************************************/
 /***************************************************************************/
@@ -690,7 +690,7 @@ void AZ_rm_duplicates(int array[], int *N)
 /***************************************************************************/
 /***************************************************************************/
 
-int AZ_fill_sparsity_pattern(struct context *context, int ifill, int bindx[], 
+int AZ_fill_sparsity_pattern(struct context *context, int ifill, int bindx[],
 			     double val[], int N)
 {
 /*

@@ -81,13 +81,13 @@ I.  HEADER SECTION
          +-----------+                3=FEQUADRILATERAL,4=FETETRAHEDRON,5=FEBRICK
          +-----------+
          | INT32     |       DataPacking 0=Block, 1=Point
-         +-----------+               
          +-----------+
-         | INT32     |       Specify Var Location.  0 = Don't specify, all data is 
+         +-----------+
+         | INT32     |       Specify Var Location.  0 = Don't specify, all data is
          +-----------+       located at the nodes.  1 = Specify
          if "specify var location" == 1
            +-----------+
-           | INT32*NV  |     Variable Location (only specify if above is 1).  
+           | INT32*NV  |     Variable Location (only specify if above is 1).
            +-----------+     0 = Node, 1 = Cell Centered (See note 5.)
          +-----------+
          | INT32     |       Number of user defined face neighbor connections (value >= 0)
@@ -108,10 +108,10 @@ I.  HEADER SECTION
            +-----------+
            +-----------+
            | INT32     |     NumElements.
-           +-----------+       
+           +-----------+
            +-----------+
            | INT32*3   |     ICellDim,JCellDim,KCellDim (for future use; set to zero)
-           +-----------+       
+           +-----------+
 
          For all zone types (repeat for each Auxiliary data name/value pair):
          +-----------+
@@ -121,13 +121,13 @@ I.  HEADER SECTION
          If the above is 1, then supply the following:
            +-----------+
            | INT32*N   |     name string (See note 1.)
-           +-----------+      
+           +-----------+
            +-----------+
            | INT32     |     Auxiliary Value Format (Currently only allow 0=AuxDataType_String)
            +-----------+
            +-----------+
            | INT32*N   |     value string  (See note 1.)
-           +-----------+      
+           +-----------+
 
 
       v.  Geometries
@@ -377,8 +377,8 @@ II.  DATA SECTION (don't forget to separate the header from the data with an EOH
            | INT32*NV  |     Is variable passive: 0 = no, 1 = yes
            +-----------+     (Omit entirely if "Has passive variables" is 0).
          +-----------+
-         | INT32     |       Has variable sharing 0 = no, 1 = yes.       
-         +-----------+                                       
+         | INT32     |       Has variable sharing 0 = no, 1 = yes.
+         +-----------+
          if "has variable sharing" != 0
            +-----------+
            | INT32*NV  |     Zero based zone number to share variable with (relative to this datafile).
@@ -403,7 +403,7 @@ II.  DATA SECTION (don't forget to separate the header from the data with an EOH
             "number of user defined face neighbor connections" != 0
            +-----------+
            | INT32*N   |     Face neighbor connections.
-           +-----------+     N = (number of user defined face neighbor connections) * P 
+           +-----------+     N = (number of user defined face neighbor connections) * P
                              (See note 4 below).
 
 
@@ -416,7 +416,7 @@ II.  DATA SECTION (don't forget to separate the header from the data with an EOH
             "number of user defined face neighbor connections" != 0
            +-----------+
            | INT32*N   |     Face neighbor connections.
-           +-----------+     N = (number of user defined face neighbor connections) * P 
+           +-----------+     N = (number of user defined face neighbor connections) * P
                              (See note 4 below).
 
 
@@ -459,14 +459,14 @@ NOTES:
     4 for TETRAHEDRONS
     8 for BRICKS
 
-    
+
 4.  FaceNeighbor Mode   # values  Data
     ---------------------------------------------------------------------
     LocalOneToOne       3         cz,fz,cz
     LocalOneToMany      nz+4      cz,fz,oz,nz,cz1,cz2,...,czn
     GlobalOneToOne      4         cz,fz,ZZ,CZ
     GlobalOneToMany     2*nz+4    cz,fz,oz,nz,ZZ1,CZ1,ZZ2,CZ2,...,ZZn,CZn
-    
+
     Where:
         cz = cell in current zone (zero based)
         fz = face of cell in current zone (zero based)
@@ -476,13 +476,13 @@ NOTES:
         nz = number of cell or zone/cell associations (only applies to one-to-many)
         ZZ = remote Zone (zero based)
         CZ = cell in remote zone (zero based)
-    
+
     cz,fz combinations must be unique and multiple entries are
     not allowed. Additionally, Tecplot assumes that with the
     one-to-one face neighbor modes a supplied cell face is
     entirely obscured by it's neighbor.  With one-to-many, the
     obscuration flag must be supplied.
-    
+
     Face neighbors that are not supplied are run through
     Tecplot's auto face neighbor generator (FE only).
 

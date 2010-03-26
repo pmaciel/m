@@ -4,7 +4,7 @@ USAGE:
 -----------------------------------------------------------------------
 This source code, in part or whole may be used without permission
 from Tecplot, Inc.  Modification is encouraged however we
-do ask that you report any changes to Tecplot Support (support@tecplot.com) 
+do ask that you report any changes to Tecplot Support (support@tecplot.com)
 so that the master copy can be updated.  For information on compiling
 see below.
 -----------------------------------------------------------------------
@@ -98,13 +98,13 @@ I.  HEADER SECTION
          +-----------+                3=FEQUADRILATERAL,4=FETETRAHEDRON,5=FEBRICK
          +-----------+
          | INT32     |       DataPacking 0=Block, 1=Point
-         +-----------+               
          +-----------+
-         | INT32     |       Specify Var Location.  0 = Don't specify, all data is 
+         +-----------+
+         | INT32     |       Specify Var Location.  0 = Don't specify, all data is
          +-----------+       located at the nodes.  1 = Specify
          if "specify var location" == 1
            +-----------+
-           | INT32*NV  |     Variable Location (only specify if above is 1).  
+           | INT32*NV  |     Variable Location (only specify if above is 1).
            +-----------+     0 = Node, 1 = Cell Centered (See note 5.)
          +-----------+
          | INT32     |       Number of user defined face neighbor connections (value >= 0)
@@ -125,10 +125,10 @@ I.  HEADER SECTION
            +-----------+
            +-----------+
            | INT32     |     NumElements.
-           +-----------+       
+           +-----------+
            +-----------+
            | INT32*3   |     ICellDim,JCellDim,KCellDim (for future use; set to zero)
-           +-----------+       
+           +-----------+
 
          For all zone types (repeat for each Auxiliary data name/value pair):
          +-----------+
@@ -138,13 +138,13 @@ I.  HEADER SECTION
          If the above is 1, then supply the following:
            +-----------+
            | INT32*N   |     name string (See note 1.)
-           +-----------+      
+           +-----------+
            +-----------+
            | INT32     |     Auxiliary Value Format (Currently only allow 0=AuxDataType_String)
            +-----------+
            +-----------+
            | INT32*N   |     value string  (See note 1.)
-           +-----------+      
+           +-----------+
 
 
       v.  Geometries
@@ -394,8 +394,8 @@ II.  DATA SECTION (don't forget to separate the header from the data with an EOH
            | INT32*NV  |     Is variable passive: 0 = no, 1 = yes
            +-----------+     (Omit entirely if "Has passive variables" is 0).
          +-----------+
-         | INT32     |       Has variable sharing 0 = no, 1 = yes.       
-         +-----------+                                       
+         | INT32     |       Has variable sharing 0 = no, 1 = yes.
+         +-----------+
          if "has variable sharing" != 0
            +-----------+
            | INT32*NV  |     Zero based zone number to share variable with (relative to this datafile).
@@ -420,7 +420,7 @@ II.  DATA SECTION (don't forget to separate the header from the data with an EOH
             "number of user defined face neighbor connections" != 0
            +-----------+
            | INT32*N   |     Face neighbor connections.
-           +-----------+     N = (number of user defined face neighbor connections) * P 
+           +-----------+     N = (number of user defined face neighbor connections) * P
                              (See note 4 below).
 
 
@@ -433,7 +433,7 @@ II.  DATA SECTION (don't forget to separate the header from the data with an EOH
             "number of user defined face neighbor connections" != 0
            +-----------+
            | INT32*N   |     Face neighbor connections.
-           +-----------+     N = (number of user defined face neighbor connections) * P 
+           +-----------+     N = (number of user defined face neighbor connections) * P
                              (See note 4 below).
 
 
@@ -476,14 +476,14 @@ NOTES:
     4 for TETRAHEDRONS
     8 for BRICKS
 
-    
+
 4.  FaceNeighbor Mode   # values  Data
     ---------------------------------------------------------------------
     LocalOneToOne       3         cz,fz,cz
     LocalOneToMany      nz+4      cz,fz,oz,nz,cz1,cz2,...,czn
     GlobalOneToOne      4         cz,fz,ZZ,CZ
     GlobalOneToMany     2*nz+4    cz,fz,oz,nz,ZZ1,CZ1,ZZ2,CZ2,...,ZZn,CZn
-    
+
     Where:
         cz = cell in current zone (zero based)
         fz = face of cell in current zone (zero based)
@@ -493,13 +493,13 @@ NOTES:
         nz = number of cell or zone/cell associations (only applies to one-to-many)
         ZZ = remote Zone (zero based)
         CZ = cell in remote zone (zero based)
-    
+
     cz,fz combinations must be unique and multiple entries are
     not allowed. Additionally, Tecplot assumes that with the
     one-to-one face neighbor modes a supplied cell face is
     entirely obscured by it's neighbor.  With one-to-many, the
     obscuration flag must be supplied.
-    
+
     Face neighbors that are not supplied are run through
     Tecplot's auto face neighbor generator (FE only).
 
@@ -568,8 +568,8 @@ Including the -DPLOT3D flag adds the capability to read
 plot3d files.
 
 If you have some other "generic" unix system then most likely
-the IRIS version of the compile command should work.  If you still 
-have problems then you may have to do some customizing yourself (In 
+the IRIS version of the compile command should work.  If you still
+have problems then you may have to do some customizing yourself (In
 which case please let us know what you came up with).
 
 MACHINE SPECIFIC NOTES:
@@ -1194,7 +1194,7 @@ static char OemSaveAscii[100];
 /* Note: if DEFAULT_MAXNUMZONESORVARS, then
    MAXZONEMAP must also change in Tecplot to match! */
 
-LgIndex PreplotChecksum[DEFAULT_MAXNUMZONESORVARS]; 
+LgIndex PreplotChecksum[DEFAULT_MAXNUMZONESORVARS];
 
 #endif
 
@@ -2022,7 +2022,7 @@ static Boolean_t WriteBinaryInt(FILE    *File,
     {
       int    TempI  = IntValue;
       int    i      = 1;
-      int    type   = 1; 
+      int    type   = 1;
       int    bitoff = 0;
       char   Int4Buffer[4];
 
@@ -2058,7 +2058,7 @@ static Boolean_t WriteBinaryFloat(FILE  *File,
     {
       double TempD  = (double)FloatValue;
       int    i      = 1;
-      int    type   = 2; 
+      int    type   = 2;
       int    bitoff = 0;
       char   Real4Buffer[4];
 
@@ -2094,7 +2094,7 @@ static Boolean_t WriteBinaryDouble(FILE   *File,
     {
       double TempD  = DoubleValue;
       int    i      = 1;
-      int    type   = 8; 
+      int    type   = 8;
       int    bitoff = 0;
       char   Real8Buffer[8];
 
@@ -2332,7 +2332,7 @@ static char *StringFlushRight(char *String)
 {
   char *Result = String;
   char *End = NULL;
-  
+
   REQUIRE(VALID_REF(String));
 
   for (End = &(String[strlen(String)]); End != String && isspace(End[-1]); End--)
@@ -2344,7 +2344,7 @@ static char *StringFlushRight(char *String)
 
 
 /**
- * Remove any leading and trailing white space from the string 
+ * Remove any leading and trailing white space from the string
  * and return a reference to it.  The return value is not
  * absolutely necessary since the input string is modified
  * but it is convenient sometimes.
@@ -2381,7 +2381,7 @@ static Boolean_t CompareIdent(const char *S,
  * NOTE: Unix files contain \n at the end.
  *       DOS files contain \r \n at the end (and sometimes extra \r's)
  *       Package files will contain a \0 at the end of the layout file.
- *  
+ *
  *       This should work regardless of whether the file is opened as
  *       ASCII or binary.
  *
@@ -3041,11 +3041,11 @@ static DOUBLE Plot3D_GetBinaryReal(FILE *F)
 #endif /* OLDCRAY */
 
 
-#if !defined OLDCRAY 
+#if !defined OLDCRAY
 static DOUBLE Plot3D_GetBinaryReal(FILE *F)
 {
   float R = 0.0;
-  
+
   FREAD(&R,4,1,F);
   if (Plot3DIsForeign)
     ReverseBytes(&R,4);
@@ -3110,7 +3110,7 @@ static void  Plot3D_GetToken(FILE       *F,
               return;
             }
         }
-    
+
       CurToken = NullToken;
 
       C = fgetc(F);
@@ -3188,7 +3188,7 @@ static void  Plot3D_GetToken(FILE       *F,
                       RepeatValue_g  = CurTValue;
                       RepeatLength_g = TempR;
                     }
-                  else 
+                  else
                     {
                       RepeatValue_q  = CurTValue;
                       RepeatLength_q = TempR;
@@ -3958,7 +3958,7 @@ static void GetColor(LgIndex   *C)
         *C = 6;
       else if (CheckTokenStr("WHITE"))
         *C = 7;
-      else 
+      else
         {
           char *NPtr = NULL;
           if (CheckPartialTokenStr("CUSTOM"))
@@ -4856,8 +4856,8 @@ static void RecogGeometryHeader(void)
       switch (CoordSys)
         {
           case GRID       : printf("GRID\n");    break;
-          case UNDEF      : 
-          case OLDWINDOW  : 
+          case UNDEF      :
+          case OLDWINDOW  :
           case FRAME      : printf("FRAME\n");   break;
           case GRID3D     : printf("GRID3D\n"); break;
           default         : CHECK(FALSE);        break;
@@ -5191,8 +5191,8 @@ static void RecogTextHeader(void)
       switch (CoordSys)
         {
           case GRID   : printf("GRID\n");    break;
-          case UNDEF  : 
-          case OLDWINDOW  : 
+          case UNDEF  :
+          case OLDWINDOW  :
           case FRAME  : printf("FRAME\n");   break;
           case GRID3D : printf("GRID3D\n"); break;
           default     : CHECK(FALSE);      break;
@@ -5358,7 +5358,7 @@ static FILE *OpenPlot3DFile(char  *BaseName,
             FALSE,  /* ForceOpen */
             FALSE,  /* ShowErr */
             strcmp(mode,"r") == 0); /* IsAscii */
-#else 
+#else
   TFile = FOPEN(FinalInFileName, mode);
 #endif /* TECPLOTKERNEL */
 
@@ -5631,7 +5631,7 @@ static void GetVarLocation(void)
 
                 /*
                  * Verify that the variable has not already received an variable
-                 * location value with a previous directive. 
+                 * location value with a previous directive.
                  */
                 if (VarIsCellCentered[Variable] == UNSET_BOOLEAN) /* ...not yet assigned? */
                   VarIsCellCentered[Variable] = IsCellCentered;
@@ -5742,7 +5742,7 @@ static void GetFaceNeighborMode(void)
  *              ^
  *     current scan location
  *
- *   Where 
+ *   Where
  *      set-of-vars .... a set of variable numbers.
  *      =zzz ........... zone to share with.  If omitted assumes
  *                       the previous zone.
@@ -5900,7 +5900,7 @@ Boolean_t Preplot (int   argc,
   Boolean_t  Fetch;
   Boolean_t  IndexIsGood;
   Boolean_t  VariablesIdentified = FALSE;
-  Boolean_t  ZoneHeaderParsed    = FALSE; 
+  Boolean_t  ZoneHeaderParsed    = FALSE;
 
   UserRecString              = NULL;
   NodeVar                    = -1;
@@ -5973,7 +5973,7 @@ Boolean_t Preplot (int   argc,
                    TRUE,        /* ForceOpen */
                    FALSE,       /* ShowErr */
                    FALSE);      /* IsAscii */
-#else        
+#else
         BlckFile = FOPEN(BlckFName,"wb");
 #endif /* TECPLOTKERNEL */
 
@@ -7210,7 +7210,7 @@ printf("PLOT3D input ONLY:\n"
                     {
                       Boolean_t ZoneIsEnabled;
                       ZoneIsEnabled = ZoneIsOk(CurZone);
-#ifdef TECPLOTKERNEL                      
+#ifdef TECPLOTKERNEL
                       PreplotChecksum[CurZone] = 0;
 #endif
 
@@ -7607,7 +7607,7 @@ printf("PLOT3D input ONLY:\n"
                                *   LOCALONETOMANY    nz+4      cz,fz,oz,nz,cz1,cz2,...,czn
                                *   GLOBALONETOONE    4         cz,fz,ZZ,CZ
                                *   GLOBALONETOMANY   2*nz+4    cz,fz,oz,nz,ZZ1,CZ1,ZZ2,CZ2,...,ZZn,CZn
-                               *  
+                               *
                                *   Where:
                                *       cz = cell in current zone
                                *       fz = face of cell in current zone

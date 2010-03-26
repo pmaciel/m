@@ -27,143 +27,142 @@ public :
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Methods
-  void			init(const double* c, double U, double T, double density);
-  void			calcEquilibrium(std::vector<double>& c);
-  void			calcEquilibrium();
-  void			checkElectroneutrality() const;
-  //void		swapIons(unsigned i, unsigned j);
-  void			correctVForPotentialDifference(double &Vwe, double &Vce, const double Awe, const double Ace, const unsigned Niter=100);
+  void      init(const double* c, double U, double T, double density);
+  void      calcEquilibrium(std::vector<double>& c);
+  void      calcEquilibrium();
+  void      checkElectroneutrality() const;
+  //void    swapIons(unsigned i, unsigned j);
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // ElectrolyteModel equations
-  double		calcTransportDiffusionFactor(unsigned i, unsigned j) const;	// returns D(i,j)
-  double		calcTransportMigrationFactor(unsigned i) const;				// returns z(i)*F*u(i)
-  double		calcTransportConductivity() const;
+  double    calcTransportDiffusionFactor(unsigned i, unsigned j) const;  // returns D(i,j)
+  double    calcTransportMigrationFactor(unsigned i) const;        // returns z(i)*F*u(i)
+  double    calcTransportConductivity() const;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Electrostatics equation
-  double		calcElectrostaticsConcentrationFactor(unsigned j) const;
-  double		calcElectrostaticsPotentialFactor() const;
+  double    calcElectrostaticsConcentrationFactor(unsigned j) const;
+  double    calcElectrostaticsPotentialFactor() const;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Solution
-  void			setSolutionDensity(double solutionDensity);
-  void			setSolutionKinematicViscosity(double solutionKinematicViscosity);
-  void			setSolutionTemperature(double solutionTemperature);
-  void			setSolutionPotential(double solutionPotential);
-  double		getSolutionDensity() const;
-  double		getSolutionKinematicViscosity() const;
-  double		getSolutionTemperature() const;
-  double		getSolutionPotential() const;
+  void      setSolutionDensity(double solutionDensity);
+  void      setSolutionKinematicViscosity(double solutionKinematicViscosity);
+  void      setSolutionTemperature(double solutionTemperature);
+  void      setSolutionPotential(double solutionPotential);
+  double    getSolutionDensity() const;
+  double    getSolutionKinematicViscosity() const;
+  double    getSolutionTemperature() const;
+  double    getSolutionPotential() const;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Solvent
-  void			setSolventDielectricConstant(double solventDielectricConst);
-  void			setSolventDynamicViscosity(double solventDynamicViscosity);
-  double		getSolventDielectricConstant() const;
-  double		getSolventDynamicViscosity() const;
+  void      setSolventDielectricConstant(double solventDielectricConst);
+  void      setSolventDynamicViscosity(double solventDynamicViscosity);
+  double    getSolventDielectricConstant() const;
+  double    getSolventDynamicViscosity() const;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Ions
-  void			setIonLabel(unsigned i, const std::string &label);
-  void			setIonChargeNumber(unsigned i, int chargeNumber);
-  void			setIonDiffusionConstant(unsigned i, double diffusionConstant);
-  void			setIonDiameter(unsigned i, double diameter);
-  void			setIonMolarMass(unsigned i, double molarMass);
-  void			setIonConcentration(unsigned i, double concentration);
-  void			setIonInletConcentration(unsigned i, double inletConcentration);
-  unsigned	getNIons() const;
-  std::string	getIonLabel(unsigned i) const;
-  int				getIonChargeNumber(unsigned i) const;
-  double		getIonDiffusionConstant(unsigned i) const;
-  double		getIonDiameter(unsigned i) const;
-  double		getIonMolarMass(unsigned i) const;
-  double		getIonConcentration(unsigned i) const;
-  double		getIonInletConcentration(unsigned i) const;
+  void      setIonLabel(unsigned i, const std::string &label);
+  void      setIonChargeNumber(unsigned i, int chargeNumber);
+  void      setIonDiffusionConstant(unsigned i, double diffusionConstant);
+  void      setIonDiameter(unsigned i, double diameter);
+  void      setIonMolarMass(unsigned i, double molarMass);
+  void      setIonConcentration(unsigned i, double concentration);
+  void      setIonInletConcentration(unsigned i, double inletConcentration);
+  unsigned  getNIons() const;
+  std::string  getIonLabel(unsigned i) const;
+  int        getIonChargeNumber(unsigned i) const;
+  double    getIonDiffusionConstant(unsigned i) const;
+  double    getIonDiameter(unsigned i) const;
+  double    getIonMolarMass(unsigned i) const;
+  double    getIonConcentration(unsigned i) const;
+  double    getIonInletConcentration(unsigned i) const;
   inline double getIonTVExpansionCoefficient(unsigned i) const     {  return electrolyteSolution->getIonTVExpansionCoefficient(i);      }
   inline double getIonCDensificationCoefficient(unsigned i) const  {  return electrolyteSolution->getIonCDensificationCoefficient(i);   }
   inline double getIonMMagneticSusceptibility(unsigned i) const    {  return electrolyteSolution->getIonMMagneticSusceptibility(i);     }
-  double		calcIonActivity_MM(unsigned i) const;
+  double    calcIonActivity_MM(unsigned i) const;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Homogeneous reactions
-  unsigned		getNHomReactions() const;
-  std::string	getHomReactionLabel(unsigned r) const;
-  unsigned		getHomReactionNReagents(unsigned r) const;
-  unsigned		getHomReactionNProducts(unsigned r) const;
-  unsigned		getHomReactionReagents(unsigned r, unsigned i) const;
-  unsigned		getHomReactionProducts(unsigned r, unsigned i) const;
-  int					getHomReactionStoichReag(unsigned r, unsigned i) const;
-  int					getHomReactionStoichProd(unsigned r, unsigned i) const;
-  double			getHomReactionForwardRateConstant(unsigned r) const;
-  double			getHomReactionBackwardRateConstant(unsigned r) const;
-  double			calcHomReactionRate(unsigned r) const;
-  //double			calcHomReactionForwardRateDividedByCReag(unsigned r, unsigned divideCReag) const;
-  //double			calcHomReactionBackwardRateDividedByCProd(unsigned r, unsigned divideCProd) const;
-  double			calcHomReactionForwardRateConstant(unsigned r) const;
-  double			calcHomReactionBackwardRateConstant(unsigned r) const;
-  double			calcHomReactionRelativeDeviationFromEquilibrium(unsigned r) const;
+  unsigned    getNHomReactions() const;
+  std::string  getHomReactionLabel(unsigned r) const;
+  unsigned    getHomReactionNReagents(unsigned r) const;
+  unsigned    getHomReactionNProducts(unsigned r) const;
+  unsigned    getHomReactionReagents(unsigned r, unsigned i) const;
+  unsigned    getHomReactionProducts(unsigned r, unsigned i) const;
+  int          getHomReactionStoichReag(unsigned r, unsigned i) const;
+  int          getHomReactionStoichProd(unsigned r, unsigned i) const;
+  double      getHomReactionForwardRateConstant(unsigned r) const;
+  double      getHomReactionBackwardRateConstant(unsigned r) const;
+  double      calcHomReactionRate(unsigned r) const;
+  //double      calcHomReactionForwardRateDividedByCReag(unsigned r, unsigned divideCReag) const;
+  //double      calcHomReactionBackwardRateDividedByCProd(unsigned r, unsigned divideCProd) const;
+  double      calcHomReactionForwardRateConstant(unsigned r) const;
+  double      calcHomReactionBackwardRateConstant(unsigned r) const;
+  double      calcHomReactionRelativeDeviationFromEquilibrium(unsigned r) const;
   //double calcHomReactionForwardRateDividedByCReagDerivativeCReag(unsigned r, unsigned divideCReag, unsigned derivativeCReag) const;
   //double calcHomReactionBackwardRateDividedByCProdDerivativeCProd(unsigned r, unsigned divideCProd, unsigned derivativeCProd) const;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Electrode reactions
-  unsigned		getNElecReactions() const;
-  std::string	getElecReactionLabel(unsigned r) const;
-  unsigned		getElecReactionNElectrons(unsigned r) const;
-  unsigned		getElecReactionNAgentsRed(unsigned r) const;
-  unsigned		getElecReactionNAgentsOxi(unsigned r) const;
-  unsigned		getElecReactionAgentsRed(unsigned r, unsigned i) const;
-  unsigned		getElecReactionAgentsOxi(unsigned r, unsigned i) const;
-  int					getElecReactionStoichRed(unsigned r, unsigned i) const;
-  int					getElecReactionStoichOxi(unsigned r, unsigned i) const;
-  double			calcElecReactionRate(unsigned r, double V) const;
-  double			calcElecReactionCurrentDensity(unsigned r, double V) const;
-  double			calcElecReactionRateDerivativeV(unsigned r, double V) const;
-  double			calcElecReactionRateDerivativeU(unsigned r, double V) const;
-  double			calcElecReactionRateDerivativeCRed(unsigned r, double V, unsigned i) const;
-  double			calcElecReactionRateDerivativeCOxi(unsigned r, double V, unsigned i) const;
-  double			calcElecReactionEquilibriumPotential(unsigned r) const;
+  unsigned    getNElecReactions() const;
+  std::string  getElecReactionLabel(unsigned r) const;
+  unsigned    getElecReactionNElectrons(unsigned r) const;
+  unsigned    getElecReactionNAgentsRed(unsigned r) const;
+  unsigned    getElecReactionNAgentsOxi(unsigned r) const;
+  unsigned    getElecReactionAgentsRed(unsigned r, unsigned i) const;
+  unsigned    getElecReactionAgentsOxi(unsigned r, unsigned i) const;
+  int          getElecReactionStoichRed(unsigned r, unsigned i) const;
+  int          getElecReactionStoichOxi(unsigned r, unsigned i) const;
+  double      calcElecReactionRate(unsigned r, double V) const;
+  double      calcElecReactionCurrentDensity(unsigned r, double V) const;
+  double      calcElecReactionRateDerivativeV(unsigned r, double V) const;
+  double      calcElecReactionRateDerivativeU(unsigned r, double V) const;
+  double      calcElecReactionRateDerivativeCRed(unsigned r, double V, unsigned i) const;
+  double      calcElecReactionRateDerivativeCOxi(unsigned r, double V, unsigned i) const;
+  double      calcElecReactionEquilibriumPotential(unsigned r) const;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Gas reactions
-  unsigned		getNGasReactions() const;
-  std::string	getGasReactionLabel(unsigned r) const;
-  unsigned		getGasReactionDissolvedGas(unsigned r) const;
-  double			calcGasReactionRate(unsigned r) const;
-  double			calcGasReactionRateDerivativeCDissGas(unsigned r) const;
+  unsigned    getNGasReactions() const;
+  std::string  getGasReactionLabel(unsigned r) const;
+  unsigned    getGasReactionDissolvedGas(unsigned r) const;
+  double      calcGasReactionRate(unsigned r) const;
+  double      calcGasReactionRateDerivativeCDissGas(unsigned r) const;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  void		setConductivity(double conductivity);
-  //double		getConductivity() const;
-  void		setElectrolyteModel(std::string EM);
+  void    setConductivity(double conductivity);
+  //double    getConductivity() const;
+  void    setElectrolyteModel(std::string EM);
 
 protected :
   // Input filenames
-  std::string		electrolyteSolutionFile;
-  std::string		modelsFile;
-  std::string		homReactionsFile;
-  std::string		elecReactionsFile;
+  std::string    electrolyteSolutionFile;
+  std::string    modelsFile;
+  std::string    homReactionsFile;
+  std::string    elecReactionsFile;
 
-  ElectrolyteSolution*	electrolyteSolution;
-  ElectrolyteModel*			electrolyteModel;
-  Electrostatics*				electrostatics;
-  unsigned				nHomReactions;
-  HomReaction**		homReactions;				// array of homogenous reactions
-  unsigned				nElecReactions;
-  ElecReaction**	elecReactions;			// array of electrode reactions
-  unsigned				nGasReactions;
-  GasReaction**		gasReactions;				// array of electrode reactions
+  ElectrolyteSolution*  electrolyteSolution;
+  ElectrolyteModel*      electrolyteModel;
+  Electrostatics*        electrostatics;
+  unsigned        nHomReactions;
+  HomReaction**    homReactions;        // array of homogenous reactions
+  unsigned        nElecReactions;
+  ElecReaction**  elecReactions;      // array of electrode reactions
+  unsigned        nGasReactions;
+  GasReaction**    gasReactions;        // array of electrode reactions
 
-  double*			f;
-  double*			x;
-  double**		dfdx;
-  int**				homReactionStoichMat;
-  double*			cSave;
-  double			conductivity;
+  double*      f;
+  double*      x;
+  double**    dfdx;
+  int**        homReactionStoichMat;
+  double*      cSave;
+  double      conductivity;
 
   // Read methods
-  void		setConductivityCorrectionFactor();
+  void    setConductivityCorrectionFactor();
 
   // Methods
-  void		assembleSystem() const;
-  double	calcStepLength() const;
+  void    assembleSystem() const;
+  double  calcStepLength() const;
 
   // Error methods
-  void		errorInvalidModel(const std::string &file, const std::string &model) const;
-  void		errorConflictingData(const std::string &file1, const std::string &file2, const std::string &conflict) const;
-  void		errorZero(const std::string &cppfile, const std::string &parameter) const;
+  void    errorInvalidModel(const std::string &file, const std::string &model) const;
+  void    errorConflictingData(const std::string &file1, const std::string &file2, const std::string &conflict) const;
+  void    errorZero(const std::string &cppfile, const std::string &parameter) const;
 };
 
 //---------------------------------------------------------------------------

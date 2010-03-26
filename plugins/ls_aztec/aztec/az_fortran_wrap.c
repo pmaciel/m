@@ -437,7 +437,7 @@ void az_solve_(double x[], double b[], int options[], double params[],
 
 void   az_sort_(int list[], int *N, int list2[], double list3[])
 {
-  AZ_sort(list, *N, list2, list3); 
+  AZ_sort(list, *N, list2, list3);
 }
 
 void   az_transform_(int proc_config[],int external[],int bindx[], double val[],
@@ -702,7 +702,7 @@ void az_solve__(double x[], double b[], int options[], double params[],
 
 void   az_sort__(int list[], int *N, int list2[], double list3[])
 {
-  AZ_sort(list, *N, list2, list3); 
+  AZ_sort(list, *N, list2, list3);
 }
 
 void   az_transform__(int proc_config[],int external[],int bindx[], double val[],

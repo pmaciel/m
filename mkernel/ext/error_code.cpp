@@ -13,7 +13,7 @@
 
 // define BOOST_SYSTEM_SOURCE so that <boost/system/config.hpp> knows
 // the library is being built (possibly exporting rather than importing code)
-#define BOOST_SYSTEM_SOURCE 
+#define BOOST_SYSTEM_SOURCE
 
 #include <boost/system/config.hpp>
 #include <boost/system/error_code.hpp>
@@ -147,7 +147,7 @@ namespace
   #  endif   // else POSIX version of strerror_r
   # endif  // else use strerror_r
   }
-  //  system_error_category implementation  --------------------------------// 
+  //  system_error_category implementation  --------------------------------//
 
   const char * system_error_category::name() const
   {
@@ -337,7 +337,7 @@ namespace
   }
 # else
 // TODO:
-  
+
 //Some quick notes on the implementation (sorry for the noise if
 //someone has already mentioned them):
 //
@@ -353,40 +353,40 @@ namespace
 //Chris
   std::string system_error_category::message( int ev ) const
   {
-# ifndef BOOST_NO_ANSI_APIS  
+# ifndef BOOST_NO_ANSI_APIS
     LPVOID lpMsgBuf;
-    DWORD retval = ::FormatMessageA( 
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-        FORMAT_MESSAGE_FROM_SYSTEM | 
+    DWORD retval = ::FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
         FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
         ev,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
         (LPSTR) &lpMsgBuf,
         0,
-        NULL 
+        NULL
     );
     if (retval == 0)
         return std::string("Unknown error");
-        
+
     std::string str( static_cast<LPCSTR>(lpMsgBuf) );
     ::LocalFree( lpMsgBuf ); // free the buffer
 # else  // WinCE workaround
     LPVOID lpMsgBuf;
-    DWORD retval = ::FormatMessageW( 
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-        FORMAT_MESSAGE_FROM_SYSTEM | 
+    DWORD retval = ::FormatMessageW(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
         FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
         ev,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
         (LPWSTR) &lpMsgBuf,
         0,
-        NULL 
+        NULL
     );
     if (retval == 0)
         return std::string("Unknown error");
-    
+
     int num_chars = (wcslen( static_cast<LPCWSTR>(lpMsgBuf) ) + 1) * 2;
     LPSTR narrow_buffer = (LPSTR)_alloca( num_chars );
     if (::WideCharToMultiByte(CP_ACP, 0, static_cast<LPCWSTR>(lpMsgBuf), -1, narrow_buffer, num_chars, NULL, NULL) == 0)
@@ -398,7 +398,7 @@ namespace
     while ( str.size()
       && (str[str.size()-1] == '\n' || str[str.size()-1] == '\r') )
         str.erase( str.size()-1 );
-    if ( str.size() && str[str.size()-1] == '.' ) 
+    if ( str.size() && str[str.size()-1] == '.' )
       { str.erase( str.size()-1 ); }
     return str;
   }

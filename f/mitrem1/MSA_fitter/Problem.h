@@ -11,14 +11,14 @@
 //---------------------------------------------------------------------------
 class Problem {
 public :
-	Problem ();
-	~Problem ();
+  Problem ();
+  ~Problem ();
 
 private :
 
-	std::string			fitterName;
+  std::string      fitterName;
 
-	Fitter*				fitter;
+  Fitter*        fitter;
 };
 
 //---------------------------------------------------------------------------

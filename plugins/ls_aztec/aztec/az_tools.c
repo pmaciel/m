@@ -184,13 +184,13 @@ void AZ_order_ele(int update_index[], int extern_index[], int *internal,
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_invorder_vec(double vector[], int data_org[], int update_index[], 
+void AZ_invorder_vec(double vector[], int data_org[], int update_index[],
 	int rpntr[], double new[])
 {
 
 /*******************************************************************************
 
-  Reorder a vector (could be right hand side or solution vector) which 
+  Reorder a vector (could be right hand side or solution vector) which
   conforms to a matrix reordered via AZ_transform or AZ_reorder_matrix
   so that it conforms to the unAZ_transformed matrix.
 
@@ -204,8 +204,8 @@ void AZ_invorder_vec(double vector[], int data_org[], int update_index[],
   ===============
 
   vector:          On input, a vector of length 'length'. On output,
-                   'vector' is reordered to be consistant with 
-                   update_index[]. 
+                   'vector' is reordered to be consistant with
+                   update_index[].
 
   data_org:        Array use to specifiy communication information. See User's
                    Guide.
@@ -226,7 +226,7 @@ void AZ_invorder_vec(double vector[], int data_org[], int update_index[],
       current = 0;
       for (i = 0 ; i < length ; i++ ) {
         ii = update_index[i];
-        for (j = rpntr[ii] ; j < rpntr[ii+1] ; j++ ) { 
+        for (j = rpntr[ii] ; j < rpntr[ii+1] ; j++ ) {
           new[current++] = vector[j] ;
         }
       }
@@ -242,7 +242,7 @@ void AZ_invorder_vec(double vector[], int data_org[], int update_index[],
 /******************************************************************************/
 /******************************************************************************/
 
-void AZ_reorder_vec(double vector[], int data_org[], int update_index[], 
+void AZ_reorder_vec(double vector[], int data_org[], int update_index[],
 	int rpntr[])
 {
 
@@ -270,8 +270,8 @@ void AZ_reorder_vec(double vector[], int data_org[], int update_index[],
   ===============
 
   vector:          On input, a vector of length 'length'. On output,
-                   'vector' is reordered to be consistant with 
-                   update_index[]. 
+                   'vector' is reordered to be consistant with
+                   update_index[].
 
   data_org:        Array use to specifiy communication information. See User's
                    Guide.
@@ -284,7 +284,7 @@ void AZ_reorder_vec(double vector[], int data_org[], int update_index[],
     int i,ii,length, *temp;
 
     length = data_org[AZ_N_int_blk] + data_org[AZ_N_bord_blk];
-    if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX) 
+    if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX)
       AZ_sortqlists((char *) vector, 0, update_index, length, sizeof(double), length);
     else if (data_org[AZ_matrix_type] == AZ_VBR_MATRIX) {
        temp = (int *) AZ_allocate( (length+1)*sizeof(int));
@@ -794,7 +794,7 @@ void AZ_set_message_info(int N_external, int extern_index[], int N_update,
     exit(-1);
   }
   if (!AZ_using_fortran) {
-     for (i = 0 ; i < total_to_be_sent + AZ_send_list; i++ ) 
+     for (i = 0 ; i < total_to_be_sent + AZ_send_list; i++ )
         (*data_org)[i] = 0;
   }
 
@@ -1840,7 +1840,7 @@ void AZ_find_procs_for_externs(int N_update, int update[],
   int num_sent, exch_neighbor;
   unsigned int exch_length = 0;
   int to_recv;
-int oldk, iii, *ext_copy, **exch_buffers, exch_count, 
+int oldk, iii, *ext_copy, **exch_buffers, exch_count,
     *newbuffer, send_counter;
 
 
@@ -2016,7 +2016,7 @@ int oldk, iii, *ext_copy, **exch_buffers, exch_count,
 
     /* set variables to do a nonblocking sends */
 
-    send_counter = 0; 
+    send_counter = 0;
     exch_count   = 0;
     oldk         = k;
     ext_copy = (int *) AZ_allocate((k+1)*sizeof(int));
@@ -2031,12 +2031,12 @@ int oldk, iii, *ext_copy, **exch_buffers, exch_count,
     while ( to_recv || (exch_neighbor != -1) ) {
       partner = -1;
 
-      if (to_recv) mdwrap_iread((void *) extern_mess, buf_size*sizeof(int), 
+      if (to_recv) mdwrap_iread((void *) extern_mess, buf_size*sizeof(int),
                                  &partner, &type, request);
- 
+
       if (exch_neighbor != -1) {
-        mdwrap_iwrite((void *) exch_buffers[exch_count], exch_length, 
-                       exch_neighbor, type, &cflag, 
+        mdwrap_iwrite((void *) exch_buffers[exch_count], exch_length,
+                       exch_neighbor, type, &cflag,
                        &(send_request[send_counter]));
         send_counter++;
         exch_neighbor = -1;
@@ -2044,22 +2044,22 @@ int oldk, iii, *ext_copy, **exch_buffers, exch_count,
       }
       else if (num_sent < num_recv_neighbors) {
         mdwrap_iwrite((void *) ext_copy, oldk * sizeof(int),
-                      neigh_list[num_sent], type, &cflag, 
+                      neigh_list[num_sent], type, &cflag,
                       &(send_request[send_counter]));
         send_counter++;
         num_sent++;
       }
- 
+
       if (to_recv) {
-         length  = mdwrap_wait((void *) extern_mess, buf_size*sizeof(int), 
+         length  = mdwrap_wait((void *) extern_mess, buf_size*sizeof(int),
                                 &partner, &type, &cflag, request);
          length = length/sizeof(int);
          to_recv--;
- 
+
          if (extern_mess[0] >= 0 ) {
- 
+
             /* sift through neighbors and reduce */
- 
+
             kk = 0;
             for (j = 0 ; j < length ; j++ ) {
               if (AZ_find_index(extern_mess[j],update,N_update) != -1)
@@ -2081,9 +2081,9 @@ int oldk, iii, *ext_copy, **exch_buffers, exch_count,
  					        /* message type */
          }
          else {
- 
+
             /* mark found external points */
- 
+
             jj = 1;
             j  = first_extern;
             while( (j < N_external) && (jj < length) ) {
@@ -2093,9 +2093,9 @@ int oldk, iii, *ext_copy, **exch_buffers, exch_count,
               }
               j++;
             }
- 
+
             /* Move things we did not find to the back of the list */
- 
+
             ii = N_external - 1;
             for (j = N_external - 1; j >= first_extern ; j--) {
               if ((*extern_proc)[j] == -1) { /* swap */
@@ -2111,7 +2111,7 @@ int oldk, iii, *ext_copy, **exch_buffers, exch_count,
             first_extern += (jj-1);
             k   = N_external - first_extern;
             if (k > AZ_MAX_MESSAGE_SIZE) k = AZ_MAX_MESSAGE_SIZE;
- 
+
 
          }
       }
@@ -2131,7 +2131,7 @@ int oldk, iii, *ext_copy, **exch_buffers, exch_count,
     AZ_free(exch_buffers);
     AZ_free(ext_copy);
 #ifdef AZ_MPI
-   for (i = 0; i < send_counter; i++) 
+   for (i = 0; i < send_counter; i++)
       MPI_Request_free( &(send_request[i]) );
 #endif
   }
@@ -2446,7 +2446,7 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
     AZ_broadcast((char *) &pts_y , sizeof(int), proc_config, AZ_PACK);
     AZ_broadcast((char *) &pts_z , sizeof(int), proc_config, AZ_PACK);
     AZ_broadcast((char *) NULL   , 0          , proc_config, AZ_SEND);
- 
+
     total_pts_x = pts_x;
     total_pts_y = pts_y;
 
@@ -2499,7 +2499,7 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
     /* compute the number of elements per processor in each direction */
 
     *N_update = pts_x * pts_y * pts_z * chunk;
-    if (!AZ_using_fortran) 
+    if (!AZ_using_fortran)
        *update     = (int *) AZ_allocate((*N_update)*sizeof(int));
 
     /* compute the lower left corner and the upper right corner */
@@ -2523,7 +2523,7 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
       for (j = start_y; j < end_y; j++ ) {
         for (i = start_x; i < end_x; i++ ) {
           for (ii = 0; ii < chunk; ii++ ) {
-            pt_number = (i + j * total_pts_x + k * total_pts_x * total_pts_y) * 
+            pt_number = (i + j * total_pts_x + k * total_pts_x * total_pts_y) *
                             chunk + ii;
             (*update)[count++] = pt_number;
           }
@@ -2552,7 +2552,7 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
     *N_update = t1*chunk;
     t2   *= chunk;
 
-    if (!AZ_using_fortran) 
+    if (!AZ_using_fortran)
        *update = (int *) AZ_allocate((*N_update+1)*sizeof(int));
 
     if (*update == NULL) {
@@ -2775,7 +2775,7 @@ a file speficied by the input argument datafile instead of .update
     AZ_broadcast((char *) &pts_y , sizeof(int), proc_config, AZ_PACK);
     AZ_broadcast((char *) &pts_z , sizeof(int), proc_config, AZ_PACK);
     AZ_broadcast((char *) NULL   , 0          , proc_config, AZ_SEND);
- 
+
     total_pts_x = pts_x;
     total_pts_y = pts_y;
 
@@ -2828,7 +2828,7 @@ a file speficied by the input argument datafile instead of .update
     /* compute the number of elements per processor in each direction */
 
     *N_update = pts_x * pts_y * pts_z * chunk;
-    if (!AZ_using_fortran) 
+    if (!AZ_using_fortran)
        *update     = (int *) AZ_allocate((*N_update)*sizeof(int));
 
     /* compute the lower left corner and the upper right corner */
@@ -2852,7 +2852,7 @@ a file speficied by the input argument datafile instead of .update
       for (j = start_y; j < end_y; j++ ) {
         for (i = start_x; i < end_x; i++ ) {
           for (ii = 0; ii < chunk; ii++ ) {
-            pt_number = (i + j * total_pts_x + k * total_pts_x * total_pts_y) * 
+            pt_number = (i + j * total_pts_x + k * total_pts_x * total_pts_y) *
                             chunk + ii;
             (*update)[count++] = pt_number;
           }
@@ -2881,7 +2881,7 @@ a file speficied by the input argument datafile instead of .update
     *N_update = t1*chunk;
     t2   *= chunk;
 
-    if (!AZ_using_fortran) 
+    if (!AZ_using_fortran)
        *update = (int *) AZ_allocate((*N_update+1)*sizeof(int));
 
     if (*update == NULL) {
@@ -3163,9 +3163,9 @@ int AZ_read_external(int N_external, int external[],
     }
 
     partner = 0;
-    mdwrap_iread((void *) temp_buffer, length*sizeof(int), &partner, &type2, 
+    mdwrap_iread((void *) temp_buffer, length*sizeof(int), &partner, &type2,
                   &request);
-    mdwrap_wait((void *) temp_buffer, length*sizeof(int), &partner, &type2, 
+    mdwrap_wait((void *) temp_buffer, length*sizeof(int), &partner, &type2,
                   &cflag, &request);
   }
 
@@ -3463,14 +3463,14 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
               exit(-1);
             }
             if (need_request != 0)  {
-               mdwrap_iread((void *) &(requests[need_request]), 
+               mdwrap_iread((void *) &(requests[need_request]),
 		        sizeof(int), &need_request,&type,&request);
-               mdwrap_wait((void *) &(requests[need_request]), 
+               mdwrap_wait((void *) &(requests[need_request]),
 		        sizeof(int), &need_request,&type,&st,&request);
                need_request = 0;
             }
             for (jjj = 1; jjj < nprocs; jjj++) {
-              if (requests[jjj] != -1) 
+              if (requests[jjj] != -1)
                  mdwrap_write((void *) &buf_len, sizeof(int), jjj, type2, &st);
 	    }
           }
@@ -3482,7 +3482,7 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
           for (kkk = 0 ; kkk < (int)sizeof(int); kkk++) str[j+kkk] = tchar[kkk];
           j += sizeof(int);
           tchar = (char *) &dtemp;
-          for (kkk = 0 ; kkk < (int) sizeof(double); kkk++ ) 
+          for (kkk = 0 ; kkk < (int) sizeof(double); kkk++ )
              str[j+kkk] = tchar[kkk];
           j += sizeof(double);
 #ifdef binary
@@ -3503,9 +3503,9 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
 
         k = 0;
         if (need_request != 0)  {
-           mdwrap_iread((void *) &(requests[need_request]), sizeof(int), 
+           mdwrap_iread((void *) &(requests[need_request]), sizeof(int),
 		    &need_request,&type,&request);
-           mdwrap_wait((void *) &(requests[need_request]), sizeof(int), 
+           mdwrap_wait((void *) &(requests[need_request]), sizeof(int),
 		    &need_request,&type,&st, &request);
            need_request = 0;
         }
@@ -3522,9 +3522,9 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
       }
     }
     if (need_request != 0)  {
-       mdwrap_iread((void *) &(requests[need_request]), sizeof(int), 
+       mdwrap_iread((void *) &(requests[need_request]), sizeof(int),
 		&need_request,&type,&request);
-       mdwrap_wait((void *) &(requests[need_request]), sizeof(int), 
+       mdwrap_wait((void *) &(requests[need_request]), sizeof(int),
 		&need_request,&type,&st,&request);
        need_request = 0;
     }
@@ -3562,12 +3562,12 @@ void AZ_read_msr_matrix(int update[], double **val, int **bindx, int N_update,
 /******************************************************************************/
 /******************************************************************************/
 /******************************************************************************/
-void AZ_input_msr_matrix(char datafile[], int update[], double **val, int **bindx, 
+void AZ_input_msr_matrix(char datafile[], int update[], double **val, int **bindx,
 												 int N_update, int proc_config[])
 
 /*******************************************************************************
 
-Exactly the same as AZ_read_msr_matrix except it reads that data in from a 
+Exactly the same as AZ_read_msr_matrix except it reads that data in from a
 file specified by the input argument datafile instead from a file called
 .data
 
@@ -3776,14 +3776,14 @@ file specified by the input argument datafile instead from a file called
               exit(-1);
             }
             if (need_request != 0)  {
-               mdwrap_iread((void *) &(requests[need_request]), 
+               mdwrap_iread((void *) &(requests[need_request]),
 		        sizeof(int), &need_request,&type,&request);
-               mdwrap_wait((void *) &(requests[need_request]), 
+               mdwrap_wait((void *) &(requests[need_request]),
 		        sizeof(int), &need_request,&type,&st,&request);
                need_request = 0;
             }
             for (jjj = 1; jjj < nprocs; jjj++) {
-              if (requests[jjj] != -1) 
+              if (requests[jjj] != -1)
                  mdwrap_write((void *) &buf_len, sizeof(int), jjj, type2, &st);
 	    }
           }
@@ -3795,7 +3795,7 @@ file specified by the input argument datafile instead from a file called
           for (kkk = 0 ; kkk < (int)sizeof(int); kkk++) str[j+kkk] = tchar[kkk];
           j += sizeof(int);
           tchar = (char *) &dtemp;
-          for (kkk = 0 ; kkk < (int) sizeof(double); kkk++ ) 
+          for (kkk = 0 ; kkk < (int) sizeof(double); kkk++ )
              str[j+kkk] = tchar[kkk];
           j += sizeof(double);
 #ifdef binary
@@ -3816,9 +3816,9 @@ file specified by the input argument datafile instead from a file called
 
         k = 0;
         if (need_request != 0)  {
-           mdwrap_iread((void *) &(requests[need_request]), sizeof(int), 
+           mdwrap_iread((void *) &(requests[need_request]), sizeof(int),
 		    &need_request,&type,&request);
-           mdwrap_wait((void *) &(requests[need_request]), sizeof(int), 
+           mdwrap_wait((void *) &(requests[need_request]), sizeof(int),
 		    &need_request,&type,&st, &request);
            need_request = 0;
         }
@@ -3835,9 +3835,9 @@ file specified by the input argument datafile instead from a file called
       }
     }
     if (need_request != 0)  {
-       mdwrap_iread((void *) &(requests[need_request]), sizeof(int), 
+       mdwrap_iread((void *) &(requests[need_request]), sizeof(int),
 		&need_request,&type,&request);
-       mdwrap_wait((void *) &(requests[need_request]), sizeof(int), 
+       mdwrap_wait((void *) &(requests[need_request]), sizeof(int),
 		&need_request,&type,&st,&request);
        need_request = 0;
     }
@@ -3930,7 +3930,7 @@ void AZ_add_new_row(int therow, int *nz_ptr, int *current, double **val,
 
   old_nz = *nz_ptr;
 
-  if (input == 0) { 
+  if (input == 0) {
 #ifdef binary
     kk  = fread(&temp,sizeof(int),1,dfp);
 #else
@@ -4290,7 +4290,7 @@ void AZ_vb2msr(int m, double val[], int indx[], int bindx[], int rpntr[],
             msr_val[realrow] = val[indx_ptr + jcol*num_blk_rows + irow];
           }
           else {
-            /* We need to stick in the zeros so that bilu */ 
+            /* We need to stick in the zeros so that bilu */
             /* works from within 'az_subdomain_driver.c'. */
             /* if (val[indx_ptr + jcol*num_blk_rows + irow] != 0.0) { */
 
@@ -4521,7 +4521,7 @@ void AZ_transform(int proc_config[], int *external[], int bindx[], double val[],
 /**************************************************************/
 /**************************************************************/
 
-void AZ_msr2vbr_mem_efficient(int N, int **ibindx,double **ival, 
+void AZ_msr2vbr_mem_efficient(int N, int **ibindx,double **ival,
 	int **icpntr, int **ibpntr, int **iindx, int *N_blk_rows,
 	int name, char *label, int special) {
 /*
@@ -4542,18 +4542,18 @@ void AZ_msr2vbr_mem_efficient(int N, int **ibindx,double **ival,
   N:              On input, the number of rows in the msr matrix.
 
   ibindx, ival    On input, the arrays contain the MSR matrix that will
-                  be convert to vbr format. 
+                  be convert to vbr format.
                   On output, ibindx and ival correspond to the VBR matrix.
                   Note: ibindx is reallocated (i.e. shortened) in this
                   routine.
 
-  icpntr, ibpntr  On output, these correspond to the resulting VBR matrix 
+  icpntr, ibpntr  On output, these correspond to the resulting VBR matrix
   iindx           after conversion from MSR.
                   Note: These arrays are allocated inside this routine.
 
   N_blk_rows      On output, the number of block rows in the vbr matrix.
 
-  name            On input, indicates the name of the matrix to be used with 
+  name            On input, indicates the name of the matrix to be used with
                   manage_memory calls associated with VBR matrix.
 
   label           On input, indicates tail of string to be used for manage_memory
@@ -4601,7 +4601,7 @@ unsigned long int diff;
 
    for (i = 0 ; i <= N ; i++ ) itemp[i] = bindx[i];
 
-   next = 0; 
+   next = 0;
    for (i = 0 ; i < N ; i++ ) {
       bindx[next++] = i;
       for (j = itemp[i] ; j < itemp[i+1] ; j++ ) bindx[next++] = bindx[j];
@@ -4679,7 +4679,7 @@ unsigned long int diff;
 
    *N_blk_rows = 0;
    next = 0;
-   i = 0 ; 
+   i = 0 ;
    bpntr[(*N_blk_rows)++] = 0;
    row_i = 0;
    while ( i < N ) {
@@ -4709,8 +4709,8 @@ unsigned long int diff;
    else {
       sprintf(string,"val %s",label);
       diff = (unsigned long int) bindx - (unsigned long int) val;
-      val = (double *) AZ_manage_memory((unsigned int) (diff + 
-                                        (unsigned long int) next*sizeof(int)), 
+      val = (double *) AZ_manage_memory((unsigned int) (diff +
+                                        (unsigned long int) next*sizeof(int)),
                                         AZ_SPEC_REALLOC,name,string,&i);
       bindx = (int *) ( (unsigned long int) val + diff);
    }
@@ -4727,7 +4727,7 @@ unsigned long int diff;
       if ( cpntr[i-1] != cpntr[i] ) { cpntr[next++] = j; j = 0; }
    }
    cpntr[next] = j+1;
- 
+
    sprintf(string,"cpntr %s",label);
    cpntr = (int *) AZ_manage_memory(((unsigned int) (next+2))*sizeof(int),
                                 AZ_REALLOC, name,string,&i);
@@ -4739,7 +4739,7 @@ unsigned long int diff;
    for (i = 0 ; i < *N_blk_rows; i++ ) {
       row_size = cpntr[i];
       nz_per_row = 0;
-      for (j = bpntr[i]; j < bpntr[i+1] ; j++ ) nz_per_row += cpntr[bindx[j]]; 
+      for (j = bpntr[i]; j < bpntr[i+1] ; j++ ) nz_per_row += cpntr[bindx[j]];
       ii = row_size*nz_per_row;
       if (ii > jj) jj = ii;
    }
@@ -4757,8 +4757,8 @@ unsigned long int diff;
    for (i = 0 ; i < *N_blk_rows; i++ ) {
       offset = indx[bpntr[i]];
       nz_per_row = 0;
-      for (j = bpntr[i]; j < bpntr[i+1] ; j++ ) 
-         nz_per_row += cpntr[bindx[j]]; 
+      for (j = bpntr[i]; j < bpntr[i+1] ; j++ )
+         nz_per_row += cpntr[bindx[j]];
       row_size = cpntr[i];
       next = 0;
       for (j = bpntr[i]; j < bpntr[i+1] ; j++ ) {
@@ -4803,7 +4803,7 @@ unsigned long int diff;
    *iindx  = indx;
 
 }
-void AZ_find_global_ordering(int proc_config[], AZ_MATRIX *Amat, 
+void AZ_find_global_ordering(int proc_config[], AZ_MATRIX *Amat,
                              int **global_bindx, int **update)
 
 {
@@ -4844,18 +4844,18 @@ void AZ_find_global_ordering(int proc_config[], AZ_MATRIX *Amat,
       AZ_perror("Unsupported matrix type in AZ_find_global_ordering.");
     }
 
-  
+
   *global_bindx = (int *) AZ_allocate((n_blk_nonzeros+1)*sizeof(int));
-  if ((*global_bindx) == NULL) 
+  if ((*global_bindx) == NULL)
     AZ_perror("Error: Not enough space in AZ_find_global_ordering");
-  
+
   if (N_ext_blks>0)
   externals      = (int    *) AZ_allocate(N_ext_blks*sizeof(int));
   rownums        = (double *) AZ_allocate(N_cols    *sizeof(double));
-  if (rownums == NULL) 
+  if (rownums == NULL)
     AZ_perror("Error: Not enough space in AZ_find_global_ordering");
 
-  /* 
+  /*
      Tranform the local matrices to a global matrix
      by using the exchange boundary routine to pass indices around.
    */
@@ -4863,11 +4863,11 @@ void AZ_find_global_ordering(int proc_config[], AZ_MATRIX *Amat,
   max_per_proc = AZ_gmax_int(N_blk_rows,proc_config);
   max_per_proc++;
   offset       = max_per_proc*proc_config[AZ_node];
-  
+
   if (is_VBR)
     {
       for (i = 0 ; i < N_cols; i++) rownums[i] = -1.0;
-      for (i = 0 ; i < N_blk_rows; i++ ) 
+      for (i = 0 ; i < N_blk_rows; i++ )
 	rownums[rpntr[i]] = (double) (offset + i);
     }
   else
@@ -4890,7 +4890,7 @@ void AZ_find_global_ordering(int proc_config[], AZ_MATRIX *Amat,
 
   if (is_VBR)
     {
-      for ( i = 0; i < n_blk_nonzeros; i++ ) 
+      for ( i = 0; i < n_blk_nonzeros; i++ )
 	{
 	  if ( bindx[i] < N_blk_rows) (*global_bindx)[i] = bindx[i] + offset;
 	  else (*global_bindx)[i] = externals[bindx[i] - N_blk_rows];
@@ -4899,7 +4899,7 @@ void AZ_find_global_ordering(int proc_config[], AZ_MATRIX *Amat,
   else
     {
       for ( i = 0; i < N_rows+1; i++ ) (*global_bindx)[i] = bindx[i];
-      for ( i = N_rows+1; i < n_nonzeros+1; i++ ) 
+      for ( i = N_rows+1; i < n_nonzeros+1; i++ )
 	{
 	  if ( bindx[i] < N_rows) (*global_bindx)[i] = bindx[i] + offset;
 	  else (*global_bindx)[i] = externals[bindx[i] - N_rows];

@@ -139,11 +139,11 @@ ElementMatrixAssembler::ElementMatrixAssembler(
     }
     //else if (convectionScheme == "Galerkin")
     //{
-    //	convectionTerm = new ConvectionTerm_1D_Galerkin(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
+    // convectionTerm = new ConvectionTerm_1D_Galerkin(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
     //}
     //else if (convectionScheme == "MDC")
     //{
-    //	convectionTerm = new ConvectionTerm_1D_MDC(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
+    // convectionTerm = new ConvectionTerm_1D_MDC(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
     //}
     else if (convectionScheme == "N")
     {
@@ -305,8 +305,8 @@ ElementMatrixAssembler::ElementMatrixAssembler(
     }
     else if (convectionScheme == "Galerkin")
     {
-    //	convectionTerm = new ConvectionTerm_2D_Galerkin(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
       convectionTerm = new ConvectionTerm_Template<2,Scheme_Galerkin>(nVariables,mitrem,elementProps);
+      // convectionTerm = new ConvectionTerm_2D_Galerkin(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
     }
     else if (convectionScheme == "LDA")
     {
@@ -314,7 +314,7 @@ ElementMatrixAssembler::ElementMatrixAssembler(
     }
     //else if (convectionScheme == "MDC")
     //{
-    //	convectionTerm = new ConvectionTerm_2D_MDC(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
+    // convectionTerm = new ConvectionTerm_2D_MDC(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
     //}
     else if (convectionScheme == "N" && migrationScheme == "N")
     {
@@ -323,7 +323,7 @@ ElementMatrixAssembler::ElementMatrixAssembler(
     else if (convectionScheme == "N")
     {
       convectionTerm = new ConvectionTerm_2D_N(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
-//			convectionTerm = new ConvectionTerm_Template<2,Scheme_N>(nVariables,mitrem,elementProps);
+      // convectionTerm = new ConvectionTerm_Template<2,Scheme_N>(nVariables,mitrem,elementProps);
     }
     else
     {
@@ -490,11 +490,11 @@ ElementMatrixAssembler::ElementMatrixAssembler(
     }
     //else if (convectionScheme == "Galerkin")
     //{
-    //	convectionTerm = new ConvectionTerm_AX_Galerkin(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
+    //  convectionTerm = new ConvectionTerm_AX_Galerkin(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
     //}
     //else if (convectionScheme == "MDC")
     //{
-    //	convectionTerm = new ConvectionTerm_AX_MDC(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
+    //  convectionTerm = new ConvectionTerm_AX_MDC(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
     //}
     else if (convectionScheme == "N")
     {
@@ -654,7 +654,7 @@ ElementMatrixAssembler::ElementMatrixAssembler(
     if (convectionScheme == "Empty")
     {
       convectionTerm = new ConvectionTerm(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
-//			convectionTerm = new ConvectionTerm_Template<3,Scheme_Null>(nVariables,mitrem,elementProps);
+      // convectionTerm = new ConvectionTerm_Template<3,Scheme_Null>(nVariables,mitrem,elementProps);
     }
     else if (convectionScheme == "Galerkin")
     {
@@ -662,12 +662,12 @@ ElementMatrixAssembler::ElementMatrixAssembler(
     }
     //else if (convectionScheme == "MDC")
     //{
-    //	convectionTerm = new ConvectionTerm_3D_MDC(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
+    //  convectionTerm = new ConvectionTerm_3D_MDC(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
     //}
     else if (convectionScheme == "N")
     {
       convectionTerm = new ConvectionTerm_3D_N(nDimensions, nElementNodes, nVariables, mitrem, elementProps);
-//			convectionTerm = new ConvectionTerm_Template<3,Scheme_N>(nVariables,mitrem,elementProps);
+      // convectionTerm = new ConvectionTerm_Template<3,Scheme_N>(nVariables,mitrem,elementProps);
     }
     else if (convectionScheme == "LDA")
     {

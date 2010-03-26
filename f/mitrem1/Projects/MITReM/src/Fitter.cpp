@@ -255,8 +255,8 @@ void Fitter::solve ()
 
     //CHECK << "R :\n";
     //for (unsigned m=0; m<nExperimentalValues; m++) {
-    //	CHECK << R[m] << std::endl;
-    //	std::cout << R[m] << std::endl;
+    //  CHECK << R[m] << std::endl;
+    //  std::cout << R[m] << std::endl;
     //}
     //CHECK << std::endl;
     //std::cout << std::endl;
@@ -309,10 +309,10 @@ void Fitter::solve ()
       }
     }
     //for (unsigned m=0; m<nExperimentalValues; m++) {
-    //	for (unsigned n=0; n<nParametersToFit; n++) {
-    //		std::cout << J[m][n] << '\t';
-    //	}
-    //	std::cout << std::endl;
+    //  for (unsigned n=0; n<nParametersToFit; n++) {
+    //    std::cout << J[m][n] << '\t';
+    //  }
+    //  std::cout << std::endl;
     //}
     //std::cout << std::endl;
     //std::cin.get();
@@ -362,10 +362,10 @@ void Fitter::solve ()
       }
     }
     //for (unsigned m=0; m<nExperimentalValues; m++) {
-    //	for (unsigned n=0; n<nParametersToFit; n++) {
-    //		std::cout << J[m][n] << '\t';
-    //	}
-    //	std::cout << std::endl;
+    //  for (unsigned n=0; n<nParametersToFit; n++) {
+    //    std::cout << J[m][n] << '\t';
+    //  }
+    //  std::cout << std::endl;
     //}
     //std::cout << std::endl;
     //std::cin.get();
@@ -413,12 +413,12 @@ void Fitter::solve ()
     }
     //CHECK << "J :\n";
     //for (unsigned m=0; m<nExperimentalValues; m++) {
-    //	for (unsigned n=0; n<nParametersToFit; n++) {
-    //		CHECK << J[m][n] << '\t';
-    //		std::cout << J[m][n] << '\t';
-    //	}
-    //	CHECK << std::endl;
-    //	std::cout << std::endl;
+    //  for (unsigned n=0; n<nParametersToFit; n++) {
+    //    CHECK << J[m][n] << '\t';
+    //    std::cout << J[m][n] << '\t';
+    //  }
+    //  CHECK << std::endl;
+    //  std::cout << std::endl;
     //}
     //CHECK << std::endl;
     //std::cout << std::endl;

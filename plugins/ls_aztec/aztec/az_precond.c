@@ -56,7 +56,7 @@ extern int AZ_sys_msg_type;
 /******************************************************************************/
 
 void AZ_precondition(double x[], int input_options[], int proc_config[],
-                     double input_params[], AZ_MATRIX *Amat, 
+                     double input_params[], AZ_MATRIX *Amat,
 		     AZ_PRECOND *input_precond)
 
 
@@ -105,7 +105,7 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
         jacobi                 -- point Jacobi method.
         AZ_polynomial_expansion-- Polynomial expansion; Neumann series and
                                   least squares.
-        domain decomposition   -- Block solvers (LU , ILU or ILUT) used on 
+        domain decomposition   -- Block solvers (LU , ILU or ILUT) used on
                                   each processor. The blocks are either
                                   non-overlapping or overlapping.
         icc                    -- incomplete sparse Choleski (symmetric
@@ -156,7 +156,7 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
 
   precond = input_precond;
 
-  sprintf(suffix," in precond%d",input_options[AZ_recursion_level]);  
+  sprintf(suffix," in precond%d",input_options[AZ_recursion_level]);
                                               /* set string that will be used */
                                               /* for manage_memory label      */
 
@@ -167,10 +167,10 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
   m    = data_org[AZ_N_int_blk] + data_org[AZ_N_bord_blk];
   N    = data_org[AZ_N_internal] + data_org[AZ_N_border];
   max_externals = Amat->data_org[AZ_N_external];
-  if (max_externals < data_org[AZ_N_external]) 
+  if (max_externals < data_org[AZ_N_external])
      max_externals = data_org[AZ_N_external];
 
-  current_rhs = x; 
+  current_rhs = x;
   if (options[AZ_precond] == AZ_multilevel) {
 
      /* make extra vectors to hold rhs and residual */
@@ -196,7 +196,7 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
      indx     = precond->Pmat->indx;
      rpntr    = precond->Pmat->rpntr;
      bpntr    = precond->Pmat->bpntr;
-     if (max_externals < data_org[AZ_N_external]) 
+     if (max_externals < data_org[AZ_N_external])
         max_externals = data_org[AZ_N_external];
 
      switch (options[AZ_precond]) {
@@ -228,7 +228,7 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
               d2_inv   = (double *) AZ_manage_memory(N*sizeof(double),AZ_ALLOC,
 						data_org[AZ_name],tag,&i);
               Pmat = precond->Pmat;
-              if ( (Pmat->N_nz < 0) || (Pmat->max_per_row < 0)) 
+              if ( (Pmat->N_nz < 0) || (Pmat->max_per_row < 0))
                  AZ_matfree_Nnzs(Pmat);
 
               if ( (Pmat->getrow == NULL) && (N != 0) ) {
@@ -244,10 +244,10 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
               itemp = (int    *) AZ_manage_memory(Pmat->max_per_row*
 				                sizeof(int   ),AZ_ALLOC,
 						data_org[AZ_name],tag,&i);
-  
+
 	      for (i = 0; i < N; i++) {
                  Pmat->getrow(itemp,dtemp,&length,Pmat,1,&i,Pmat->max_per_row);
-                 for (k =0; k < length; k++) 
+                 for (k =0; k < length; k++)
                     if (itemp[k] == i) break;
 
                  if (k == length) d2_inv[i] = 0.0; /* no diagonal */
@@ -299,7 +299,7 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
                                             AZ_ALLOC, data_org[AZ_name],tag,&i);
                  d2_bpntr[0] = 0;
                  sprintf(tag,"dmat_calk_binv %s",precond->context->tag);
-                 Dmat     = (AZ_MATRIX *) AZ_manage_memory(sizeof(AZ_MATRIX), 
+                 Dmat     = (AZ_MATRIX *) AZ_manage_memory(sizeof(AZ_MATRIX),
                                             AZ_ALLOC,data_org[AZ_name],tag,&i);
 
                  Dmat->rpntr         = d2_rpntr;   Dmat->cpntr    = d2_rpntr;
@@ -311,7 +311,7 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
 
                  if (options[AZ_pre_calc] != AZ_reuse) {
                     AZ_calc_blk_diag_inv(val, indx, bindx, rpntr, cpntr, bpntr,
-                                         d2_inv, d2_indx, d2_bindx, d2_rpntr, 
+                                         d2_inv, d2_indx, d2_bindx, d2_rpntr,
                                          d2_bpntr, data_org);
                  }
                  else if (i == AZ_NEW_ADDRESS) {
@@ -375,7 +375,7 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
 
      case AZ_dom_decomp:
      case AZ_rilu:
-        AZ_domain_decomp(current_rhs, precond->Pmat, options, proc_config, 
+        AZ_domain_decomp(current_rhs, precond->Pmat, options, proc_config,
                          params, precond->context);
      break;
 
@@ -386,7 +386,7 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
      break;
 
      case AZ_user_precond:
-        precond->prec_function(current_rhs, options, proc_config, 
+        precond->prec_function(current_rhs, options, proc_config,
                                params, Amat, precond);
      break;
      case AZ_smoother:
@@ -396,7 +396,7 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
         for (i = 0 ; i < AZ_STATUS_SIZE ; i++ ) istatus[i] = 0.0;
 
         sprintf(label,"y %s",precond->context->tag);
-        y = AZ_manage_memory((N+max_externals)*sizeof(double), AZ_ALLOC, 
+        y = AZ_manage_memory((N+max_externals)*sizeof(double), AZ_ALLOC,
 			     AZ_SYS, label, &i);
         sprintf(label,"tttemp %s",precond->context->tag);
         tttemp = AZ_manage_memory((N+max_externals)*sizeof(double),AZ_ALLOC,
@@ -420,8 +420,8 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
                   (options[AZ_output] != AZ_last) &&
                   (options[AZ_output] != AZ_warnings))
                   printf("   %d  %e\n",j, norm1);
-              else if ((j==options[AZ_poly_ord]-1) && 
-		  (options[AZ_output] != AZ_none) && 
+              else if ((j==options[AZ_poly_ord]-1) &&
+		  (options[AZ_output] != AZ_none) &&
                   (options[AZ_output] != AZ_warnings))
                   printf("   %d  %e\n",j, norm1);
               else if ((options[AZ_output] > 0) && (j%options[AZ_output] == 0))
@@ -445,7 +445,7 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
         options[AZ_aux_vec] = AZ_rand;
 
         options[AZ_recursion_level]++;
-        AZ_oldsolve(current_rhs, y,options, params, istatus, proc_config, 
+        AZ_oldsolve(current_rhs, y,options, params, istatus, proc_config,
                     Amat, precond, NULL);
         options[AZ_recursion_level]--;
         options[AZ_output]  = opt_save1;
@@ -466,9 +466,9 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
 
            ioptions[AZ_recursion_level] = options[AZ_recursion_level] + 1;
            if ((options[AZ_pre_calc] == AZ_sys_reuse) &&
-               (ioptions[AZ_keep_info] == 1)) 
+               (ioptions[AZ_keep_info] == 1))
               ioptions[AZ_pre_calc] = AZ_reuse;
-           AZ_oldsolve(current_rhs, y,ioptions,iparams, istatus, proc_config, 
+           AZ_oldsolve(current_rhs, y,ioptions,iparams, istatus, proc_config,
                        Aptr, Pptr, Sptr);
         }
         else {
@@ -489,7 +489,7 @@ void AZ_precondition(double x[], int input_options[], int proc_config[],
         }
         else {
            for (i = 0; i < N; i++) x_precond[i] += current_rhs[i];
-           AZ_compute_residual(orig_rhs, x_precond, current_rhs, 
+           AZ_compute_residual(orig_rhs, x_precond, current_rhs,
                                proc_config, Amat);
            precond = precond->next_prec;
            options = precond->options;
@@ -1049,20 +1049,20 @@ void AZ_do_Jacobi(double val[], int indx[], int bindx[], int rpntr[],
 double *v;
 int i,step;
 int N;
- 
+
   N    = data_org[AZ_N_internal] + data_org[AZ_N_border];
- 
+
     if (data_org[AZ_matrix_type] == AZ_MSR_MATRIX) {
- 
+
       if ( (options[AZ_poly_ord] != 0) && (flag == 1) )
          for (i = data_org[AZ_N_internal]; i < N; i++) x[i] = b[i]/val[i];
- 
+
       if (options[AZ_poly_ord] > flag) {
         v = AZ_manage_memory((N+data_org[AZ_N_external])*sizeof(double),
                              AZ_ALLOC, AZ_SYS, "v in do_jacobi", &i);
- 
+
         for (i = 0; i < N; i++) v[i] = x[i];
- 
+
         for (step = flag; step < options[AZ_poly_ord]; step++) {
           Amat->matvec(v, temp, Amat, proc_config);
 
