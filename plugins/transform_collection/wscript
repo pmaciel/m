@@ -20,6 +20,7 @@ def build(ctx):
       't_lap2d.cpp',
       't_manip.cpp',
       't_math.cpp',
+      't_minmax.cpp',
       't_ren.cpp',
       't_simplex.cpp',
       't_solution.cpp',
