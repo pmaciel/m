@@ -113,11 +113,9 @@ void Update_mitrem()
   const unsigned negc_sum = accumulate(negc.begin(),negc.end(),0);
   if (negc_sum) {
     cout << "Update_mitrem: neg. concentrations sum: " << negc_sum << endl;
-    cout << "Update_mitrem: neg. concentrations:";
     for (int i=0; i<m.Nions; ++i)
       if (negc[i])
-        cout << " \"" << (m.m_mitrem)->getIonLabel((unsigned) i) << "\": " << negc[i];
-    cout << endl;
+        cout << "Update_mitrem: neg. concentrations (\"" << (m.m_mitrem)->getIonLabel((unsigned) i) << "\"): " << negc[i] << endl;
   }
   cout << "Update_mitrem: update solution." << endl;
 
