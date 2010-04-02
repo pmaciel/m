@@ -1,4 +1,5 @@
 
+#include <numeric>
 #include <memory>
 #include "boost/progress.hpp"
 #include "common.h"
@@ -69,6 +70,13 @@ void Update_mitrem()
     }
   }
 
+  // update residual L2 error norm
+  double residu = 0.;
+  for (unsigned c=0; c<(m.ls)->Nb*(m.ls)->Ne; ++c)
+    residu += (m.ls)->B(c)*(m.ls)->B(c);
+  residu = sqrt(residu);
+  cout << "Update_mitrem: residual = " << residu << endl;
+
 
   // set back main connectivity
   e2n.swap(M.vz[0].e2n);
@@ -83,13 +91,16 @@ void Update_mitrem()
   cout << "Update_mitrem: solve linear system." << endl;
 
 
-  // update solution and L2 error norm
+  cout << "Update_mitrem: update solution..." << endl;
+  // update solution, count neg. concentrations and solution L2 error norm
+  vector< unsigned > negc(m.Nions,0);
   for (int i=0; i<m.Nions+1; ++i) {
     double l2 = 0.;
     for (int n=0; n<Nnode; ++n) {
       const double dx = (m.ls)->X(n,i);
       No_W[m.iv+i][n] += dx*m.linrelx;
       l2              += dx*dx;
+      if (i<m.Nions && No_W[m.iv+i][n]<0.)  ++negc[i];
     }
     logL2[m.iv+i] = max( log10(sqrt(l2/(double) Nnode)), -42. );
   }
@@ -99,6 +110,16 @@ void Update_mitrem()
         for (int iv=m.iv; iv<m.Nions+1; ++iv)
           No_W[iv][Nobg[g][inb].node] = No_W[iv][Nobg[g][inb].twin];
   }
+  const unsigned negc_sum = accumulate(negc.begin(),negc.end(),0);
+  if (negc_sum) {
+    cout << "Update_mitrem: neg. concentrations sum: " << negc_sum << endl;
+    cout << "Update_mitrem: neg. concentrations:";
+    for (int i=0; i<m.Nions; ++i)
+      if (negc[i])
+        cout << " \"" << (m.m_mitrem)->getIonLabel((unsigned) i) << "\": " << negc[i];
+    cout << endl;
+  }
+  cout << "Update_mitrem: update solution." << endl;
 
 
   // calculate current, current densities and gas production rate

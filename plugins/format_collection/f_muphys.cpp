@@ -12,7 +12,7 @@ Register< mfoutput,f_muphys > mf_muphys(".muphys","MuPhyS output format");
 
 void f_muphys::write(GetPot& o, const mmesh& m)
 {
-  const string fn(o.get(o.inc_cursor(),""));
+  const string fn(string(o.get(o.inc_cursor(),""))+".xml");
   const unsigned d =  m.d();  // number of dimensions
   ostringstream s;            // utility stream
 
@@ -62,7 +62,7 @@ void f_muphys::write(GetPot& o, const mmesh& m)
   }
 
   // write it
-  r.writeToFile((fn+".xml").c_str());
+  r.writeToFile((fn).c_str());
   r.deleteNodeContent();
   r = XMLNode::emptyXMLNode;
 }
