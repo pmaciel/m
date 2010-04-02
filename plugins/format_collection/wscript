@@ -10,5 +10,11 @@ def build(ctx):
     features = 'cxx cshlib',
     target   = 'mformat_collection',
     includes = ['.','../../mkernel'],
-    source   = ['f_cfmesh.cpp','f_miotras.cpp','f_neu.cpp','f_steven.cpp','f_xpl.cpp'] )
+    source   = [
+      'f_cfmesh.cpp',
+      'f_miotras.cpp',
+      'f_muphys.cpp',
+      'f_neu.cpp',
+      'f_steven.cpp',
+      'f_xpl.cpp' ] )
 
