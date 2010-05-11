@@ -15,6 +15,7 @@ def build(ctx):
       't_debug.cpp',
       't_extrude.cpp',
       't_fix.cpp',
+      't_flip.cpp',
       't_geo.cpp',
       't_info.cpp',
       't_lap2d.cpp',
