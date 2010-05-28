@@ -190,7 +190,7 @@ struct mmatrix_msr : mmatrix< T,mmatrix_msr< T > > {
         T& operator()(const unsigned R, const unsigned C, const unsigned r, const unsigned c)       { return operator()(P::Nb*R+r,P::Nb*C+c); }
   // interfacing functions
   void reset(const T& v=T())                       { for (int i=0; i<bindx[nnu]; ++i) val[i] = v; };
-  void zerorow(const unsigned r)                   { for (int k=bindx[r]; k<bindx[r+1]; ++k) val[k] = T(); }
+  void zerorow(const unsigned r)                   { for (int k=bindx[r]; k<bindx[r+1]; ++k) val[k] = T(); val[r] = T(); }
   void zerorow(const unsigned R, const unsigned r) { zerorow(P::Nb*R+r); };
   // initialize methods for base/sparse variation
   void initialize(unsigned _Nr, unsigned _Nc, unsigned _Nb=1) { P::initialize(_Nr,_Nc,_Nb); }
