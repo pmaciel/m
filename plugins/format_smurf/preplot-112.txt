@@ -30,7 +30,7 @@ I.  HEADER SECTION
 
      i.  Magic number, Version number
          +-----------+
-         | "#!TDV111"|       8 Bytes, exact characters "#!TDV111".
+         | "#!TDV112"|       8 Bytes, exact characters "#!TDV112".
          +-----------+       Version number follows the "V" and
                              consumes the next 3 characters (for
                              example: "V75 ", "V101").
@@ -80,7 +80,7 @@ I.  HEADER SECTION
          | FLOAT64   |       Solution time.
          +-----------+
          +-----------+
-         | INT32     |       Not used. Set to -1.
+         | INT32     |       Not used.  Set to -1.
          +-----------+
          +-----------+
          | INT32     |       ZoneType 0=ORDERED,        1=FELINESEG,
