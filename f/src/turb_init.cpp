@@ -7,9 +7,10 @@ void turb_init(ITid model)
 {
   switch (model) {
 
-    // k-epsilon, high-Re with standard/generalized wall functions,
-    // plus two-layer model and Lam-Bremhorst low-Re
-    case ITKEHR: case ITKEHG: case ITKE2L: case ITKELB: {
+    case ITKEHR:    // k-epsilon, high-Re with standard wall functions
+    case ITKEHG:    // k-epsilon, high-Re with generalized wall functions
+    case ITKE2L:    // k-epsilon, two-layer model
+    case ITKELB: {  // k-epsilon, Lam-Bremhorst low-Re
       Cmu = 0.09;
       Ceps1 = 1.44;
       Ceps2 = 1.92;
@@ -25,8 +26,7 @@ void turb_init(ITid model)
       }
     } break;
 
-    // k-epsilon, Abe-Kondoh-Nagano low-Re
-    case ITKENA: {
+    case ITKENA: {  // k-epsilon, Abe-Kondoh-Nagano low-Re
       Cmu = 0.09;
       Ceps1 = 1.5;
       Ceps2 = 1.9;
@@ -34,8 +34,7 @@ void turb_init(ITid model)
       Sig2 = 1.4;
     } break;
 
-    // k-epsilon, Launder-Sharma (Durbin version)
-    case ITKELS: {
+    case ITKELS: {  // k-epsilon, Launder-Sharma (Durbin version)
       Cmu = 0.19;
       Ceps1 = 1.55;
       Ceps2 = 1.9;
@@ -45,8 +44,8 @@ void turb_init(ITid model)
       Ceta2 = Ceta*Ceta;
     } break;
 
-    // k-omega, Wilcox high/low-Re
-    case ITKWHR: case ITKWLR: {
+    case ITKWHR:    // k-omega, Wilcox high-Re
+    case ITKWLR: {  // k-omega, Wilcox low-Re
       Ck  = 0.09;
       Cw1 = 0.5555;
       Cw2 = 0.075;
@@ -54,8 +53,8 @@ void turb_init(ITid model)
       Sig2 = 2.0;
     } break;
 
-    // k-omega, Menter baseline model / Menter shear-stress transport
-    case ITKWBS: case ITKWSS:  {
+    case ITKWBS:    // k-omega, Menter baseline model
+    case ITKWSS: {  // k-omega, Menter shear-stress transport
       Betas = 0.09;
 
       Beta1 = 0.075;
@@ -73,8 +72,7 @@ void turb_init(ITid model)
       A1 = model==ITKWSS? 0.31 : 0.;
     } break;
 
-    // k-omega, Peng-Davidson-Holmberg
-    case ITKWPD: {
+    case ITKWPD: {  // k-omega, Peng-Davidson-Holmberg
       Ck  = 0.09;
       Cw1 = 0.42;
       Cw2 = 0.075;
@@ -83,8 +81,7 @@ void turb_init(ITid model)
       Sig2 = 1.35;
     } break;
 
-    // k-omega, with wall functions
-    case ITKWWF: {
+    case ITKWWF: {  // k-omega, with wall functions
     } break;
 
     // dummy fallback
