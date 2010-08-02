@@ -404,8 +404,8 @@ void readsoltp(const std::string& infile, int read_soln)
 
     // set initial epsilon/omega
     const double e = turmod/10==ITMGKE?
-      pow(Cmu,0.75)*pow(k,1.5)/(0.09*turb_width) : // epsilon
-      sqrt(k)/(0.09*turb_width);                   // omega
+      pow(Cmu,0.75)*pow(k,1.5)/(0.09*turb_width) : // epsilon (FIXME does not correspond with turbulence length???)
+      sqrt(k)/(0.09*turb_width);                   // omega (FIXME does not correspond with turbulence length???)
 
     for (int n=0; n<Nnode; ++n) {
       No_W[iv_turb1][n] = k;
@@ -416,8 +416,8 @@ void readsoltp(const std::string& infile, int read_soln)
     if (walldist) {
       // ... in the field
       for (int n=0; n<Nnode; ++n) {
-        const double len = pow(1. - No_wd[n]/turb_width,2.);
-        No_lenturb[n] = 0.53*turb_width*(0.14-len*(0.08+0.06*len));
+        const double len = pow(1. - No_wd[n]/turb_width,2.);  // FIXME what the hell is this?
+        No_lenturb[n] = 0.53*turb_width*(0.14-len*(0.08+0.06*len)); // FIXME (again?)
       }
       // ... at the walls (close to zero)
       for (int f=0; f<Nbface; ++f) {

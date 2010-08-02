@@ -81,7 +81,7 @@ double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, doub
     eturb = std::max< double >(1.e-10,eturb) ;
     T = std::max< double >(kturb/eturb,6.0*sqrt(nulam/eturb)) ;
     fmu = 1.-exp(-0.01*std::abs(kturb*T/nulam)) ;
-    nuturb = 0.09*kturb*T*fmu ;
+    nuturb = 0.09*kturb*T*fmu ; // should be Cmu, but Cmu=0.19 for ITKELS?
   }
   else if ( turmod==ITKWHR || turmod==ITKWWF ) {  /* Standard k-w model */
     nuturb = kturb/wturb ;
