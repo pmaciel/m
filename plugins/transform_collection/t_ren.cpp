@@ -9,6 +9,8 @@
 #include "boost/graph/king_ordering.hpp"
 #include "boost/graph/minimum_degree_ordering.hpp"
 #include "boost/graph/bandwidth.hpp"
+#include "boost/graph/connected_components.hpp"
+
 
 using namespace std;
 using namespace m;
@@ -261,6 +263,8 @@ void t_ren::transform(GetPot& o, mmesh& m)
   }
   cout << "info: building graph." << endl;
 #else
+
+#if 1 // test graph 1: small graph
   enum NODES {N1,N2,N3,N4,N5,N6,N7,N8,Nnodes};
   Graph G(Nnodes);
   add_edge(N1,N5,G);
@@ -270,6 +274,28 @@ void t_ren::transform(GetPot& o, mmesh& m)
   add_edge(N2,N8,G);
   add_edge(N6,N8,G);
   add_edge(N4,N7,G);
+  add_edge(N4,N5,G); // connects its two components
+#else // test graph 2: small graph, three disconnected components
+  enum NODES {N1,N2,N3,N4,N5,N6,Nnodes};
+  Graph G(Nnodes);
+  add_edge(N1,N2,G);
+  add_edge(N2,N5,G);
+  add_edge(N5,N1,G);
+  add_edge(N3,N6,G);
+#endif
+
+#endif
+
+
+#if 0 // test just graphs connected components (and exit)
+  vector< int > component(num_vertices(G));
+  int num = connected_components(G,&component[0]);
+
+  cout << "Total number of components: " << num << endl;
+  for (size_t i=0; i!=component.size(); ++i)
+    cout << "Vertex " << i <<" is in component " << component[i] << endl;
+  cout << endl;
+  exit(0);
 #endif
 
 
