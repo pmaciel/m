@@ -5,11 +5,12 @@
 #include "t_ren.h"
 #include "t_geo.h"
 
+#include "boost/graph/bandwidth.hpp"
+#include "boost/graph/connected_components.hpp"
+
 #include "boost/graph/cuthill_mckee_ordering.hpp"
 #include "boost/graph/king_ordering.hpp"
 #include "boost/graph/minimum_degree_ordering.hpp"
-#include "boost/graph/bandwidth.hpp"
-#include "boost/graph/connected_components.hpp"
 
 
 using namespace std;
@@ -39,10 +40,13 @@ struct renumber {
   virtual ~renumber() {}
   virtual void calc(
     // outputs: (half) bandwidth, zone title (for dumping),
-    // and renumbering maps, from new to old and old to new
-    unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    // inputs: start node (negative for automatic) and mesh graph
-    int start, Graph& G ) = 0;
+    // renumbering maps, new-to-old and old-to-new,
+    unsigned& bw, string& tag,
+    vector< unsigned >& B2A, vector< unsigned >& A2B,
+    // inputs: start node (negative for automatic),
+    // graph vertex component index and mesh graph
+    const int start,
+    const vector< unsigned >& vcomp, Graph& G ) = 0;
 };
 
 
@@ -50,9 +54,14 @@ struct renumber {
 struct ren_rcm : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    int start, Graph& G )
+    const int start, const vector< unsigned >& vcomp, Graph& G )
   {
-    using namespace boost;
+    using boost::cuthill_mckee_ordering;
+    using boost::property_map;
+    using boost::vertex_color;
+    using boost::vertex_degree;
+    using boost::vertex_index;
+    using boost::vertex_index_t;
 
     // calculate permutation
     if (start<0) {
@@ -82,9 +91,14 @@ struct ren_rcm : renumber {
 struct ren_cm : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    int start, Graph& G )
+    const int start, const vector< unsigned >& vcomp, Graph& G )
   {
-    using namespace boost;
+    using boost::cuthill_mckee_ordering;
+    using boost::property_map;
+    using boost::vertex_color;
+    using boost::vertex_degree;
+    using boost::vertex_index;
+    using boost::vertex_index_t;
 
     // calculate permutation
     if (start<0) {
@@ -114,9 +128,14 @@ struct ren_cm : renumber {
 struct ren_rk : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    int start, Graph& G )
+    const int start, const vector< unsigned >& vcomp, Graph& G )
   {
-    using namespace boost;
+    using boost::king_ordering;
+    using boost::property_map;
+    using boost::vertex_color;
+    using boost::vertex_degree;
+    using boost::vertex_index;
+    using boost::vertex_index_t;
 
     // calculate permutation
     property_map< Graph,vertex_index_t >::type index_map = get(vertex_index,G);
@@ -145,9 +164,14 @@ struct ren_rk : renumber {
 struct ren_k : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    int start, Graph& G )
+    const int start, const vector< unsigned >& vcomp, Graph& G )
   {
-    using namespace boost;
+    using boost::king_ordering;
+    using boost::property_map;
+    using boost::vertex_color;
+    using boost::vertex_degree;
+    using boost::vertex_index;
+    using boost::vertex_index_t;
 
     // calculate permutation
     property_map< Graph,vertex_index_t >::type index_map = get(vertex_index,G);
@@ -177,7 +201,7 @@ struct ren_k : renumber {
 struct ren_mindeg : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    int start, Graph& G )
+    const int start, const vector< unsigned >& vcomp, Graph& G )
   {
     /*
      * start represents delta, meaning: "Multiple elimination control variable.
@@ -185,7 +209,11 @@ struct ren_mindeg : renumber {
      * enabled. The value of delta specifies the difference between the minimum
      * degree and the degree of vertices that are to be eliminated."
      */
-    using namespace boost;
+    using boost::minimum_degree_ordering;
+    using boost::property_map;
+    using boost::vertex_degree;
+    using boost::vertex_index;
+    using boost::vertex_index_t;
 
     static vector< unsigned > supernode_sizes(B2A.size());
     supernode_sizes.assign(B2A.size(),1);
@@ -214,7 +242,11 @@ struct ren_mindeg : renumber {
 
 void t_ren::transform(GetPot& o, mmesh& m)
 {
-  using namespace boost;
+  using boost::add_edge;
+  using boost::bandwidth;
+  using boost::degree;
+  using boost::num_edges;
+  using boost::vertex;
 
 
 #if 1
@@ -287,16 +319,16 @@ void t_ren::transform(GetPot& o, mmesh& m)
 #endif
 
 
-#if 0 // test just graphs connected components (and exit)
-  vector< int > component(num_vertices(G));
-  int num = connected_components(G,&component[0]);
-
-  cout << "Total number of components: " << num << endl;
-  for (size_t i=0; i!=component.size(); ++i)
-    cout << "Vertex " << i <<" is in component " << component[i] << endl;
-  cout << endl;
-  exit(0);
-#endif
+  cout << "info: test graph connected components..." << endl;
+  // maps vertex to component index, or is empty if only one component
+  vector< unsigned > vcomponent(Nnodes);  // boost::num_vertices(G)
+  {
+    const int Ncomp = boost::connected_components(G,&vcomponent[0]);
+    cout << "info: graph number of components: " << Ncomp << endl;
+    if (Ncomp<=1)
+      vcomponent.clear();
+  }
+  cout << "info: test graph connected components." << endl;
 
 
   vector< unsigned > new2old(Nnodes);
@@ -340,7 +372,7 @@ void t_ren::transform(GetPot& o, mmesh& m)
     for (int s=0; s<(int) Nnodes; ++s) {
       renumber->calc(
         calc_b,info,new2old,old2new,
-        s,G );
+        s,vcomponent,G );
       cout << "info: " << info << (calc_b<min_b? "*":"") << endl;
       if (calc_b<min_b) {
         min_b = calc_b;
@@ -374,7 +406,7 @@ void t_ren::transform(GetPot& o, mmesh& m)
     cout << "info: build renumbering maps, using start node: " << start << endl;
     renumber->calc(
       calc_b,info,new2old,old2new,
-      start,G );
+      start,vcomponent,G );
     cout << "info: " << info << endl;
     dump(f,info,G,old2new);
     cout << "info: build renumbering maps." << endl;
@@ -394,7 +426,14 @@ void t_ren::transform(GetPot& o, mmesh& m)
 
 void t_ren::dump(ostream& o, const string& t, const Graph& G, const vector< unsigned >& A2B)
 {
-  using namespace boost;
+  using boost::edges;
+  using boost::graph_traits;
+  using boost::num_edges;
+  using boost::num_vertices;
+  using boost::source;
+  using boost::target;
+  using boost::vertices;
+
   o << "ZONE T=\"" << t << "\" I=" << num_edges(G)*2 + num_vertices(G) << endl;
 
   // upper/lower diagonal then diagonal entries
