@@ -10,7 +10,7 @@
 
 #include "boost/graph/cuthill_mckee_ordering.hpp"
 #include "boost/graph/king_ordering.hpp"
-#include "boost/graph/minimum_degree_ordering.hpp"
+#include "boost/graph/sloan_ordering.hpp"
 
 
 using namespace std;
@@ -20,13 +20,13 @@ using namespace m;
 //reverse Cuthill-McKee algorithm
 Register< mtransform,t_ren > mt_ren(11,"-tren","[str] [int] renumber nodes using boost graph library,",
                                        "",     "with [str] method:",
-                                       "",     "  \"rcm\"/\"cm\", for (reversed/normal) Cuthill-McKee algorithm, or",
-                                       "",     "  \"rk\"/\"k\", for (reversed/normal) King algorithm, or",
-                                       "",     "  \"mindeg\", for minimum degree ordering algorithm, or",
+                                       "",     "  \"rcm\"/\"cm\", for reversed/normal Cuthill-McKee, or",
+                                       "",     "  \"rking\"/\"king\", for reversed/normal King, or",
+                                       "",     "  \"rsloan\"/\"sloan\", for reversed/normal Sloan, or",
                                        "",     "  \"dump\", for just dump sparsity (\"dump.sparsity.plt\"), and",
                                        "",     "with [int] node:",
-                                       "",     "  [i] for starting at node i, or",
-                                       "",     "  [-i] for automatic starting node, or",
+                                       "",     "  [i] for start node i, or",
+                                       "",     "  [-i] for automatic start node, or",
                                        "",     "  \"b\" for minimum bandwidth nodes, or",
                                        "",     "  \"d\" for minimum degree node");
 
@@ -43,37 +43,38 @@ struct renumber {
     // renumbering maps, new-to-old and old-to-new,
     unsigned& bw, string& tag,
     vector< unsigned >& B2A, vector< unsigned >& A2B,
-    // inputs: start node (negative for automatic),
-    // graph vertex component index and mesh graph
-    const int start,
-    const vector< unsigned >& vcomp, Graph& G ) = 0;
+    // inputs: start node (negative for automatic) and mesh graph
+    const int start, Graph& G ) = 0;
 };
 
 
-// renumbering method: reverse Cuthill-McKee
+// boost graph library shortcuts
+using boost::property_map;
+using boost::vertex_color;
+using boost::vertex_degree;
+using boost::vertex_index;
+using boost::vertex_index_t;
+
+
+// renumbering method: reversed Cuthill-McKee
 struct ren_rcm : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    const int start, const vector< unsigned >& vcomp, Graph& G )
+    const int start, Graph& G )
   {
-    using boost::cuthill_mckee_ordering;
-    using boost::property_map;
-    using boost::vertex_color;
-    using boost::vertex_degree;
-    using boost::vertex_index;
-    using boost::vertex_index_t;
-
-    // calculate permutation
+    // calculate permutation (B2A)
+    for (unsigned i=0; i<B2A.size(); ++i)
+      B2A[i] = i;
     if (start<0) {
-      cuthill_mckee_ordering( G,
+      boost::cuthill_mckee_ordering( G,
         B2A.rbegin(),get(vertex_color,G),get(vertex_degree,G) );
     }
     else {
-      cuthill_mckee_ordering( G,vertex((unsigned) start,G),
+      boost::cuthill_mckee_ordering( G,vertex((unsigned) start,G),
         B2A.rbegin(),get(vertex_color,G),get(vertex_degree,G) );
     }
 
-    // calculate inverse permutation
+    // calculate inverse permutation (A2B)
     for (unsigned i=0; i<B2A.size(); ++i)
       A2B[B2A[i]] = i;
 
@@ -87,30 +88,25 @@ struct ren_rcm : renumber {
 };
 
 
-// renumbering method: non-reversed Cuthill-McKee
+// renumbering method: normal Cuthill-McKee
 struct ren_cm : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    const int start, const vector< unsigned >& vcomp, Graph& G )
+    const int start, Graph& G )
   {
-    using boost::cuthill_mckee_ordering;
-    using boost::property_map;
-    using boost::vertex_color;
-    using boost::vertex_degree;
-    using boost::vertex_index;
-    using boost::vertex_index_t;
-
-    // calculate permutation
+    // calculate permutation (B2A)
+    for (unsigned i=0; i<B2A.size(); ++i)
+      B2A[i] = i;
     if (start<0) {
-      cuthill_mckee_ordering( G,
+      boost::cuthill_mckee_ordering( G,
         B2A.begin(),get(vertex_color,G),get(vertex_degree,G) );
     }
     else {
-      cuthill_mckee_ordering( G,vertex((unsigned) start,G),
+      boost::cuthill_mckee_ordering( G,vertex((unsigned) start,G),
         B2A.begin(),get(vertex_color,G),get(vertex_degree,G) );
     }
 
-    // calculate inverse permutation
+    // calculate inverse permutation (A2B)
     for (unsigned i=0; i<B2A.size(); ++i)
       A2B[B2A[i]] = i;
 
@@ -125,30 +121,25 @@ struct ren_cm : renumber {
 
 
 // renumbering method: reversed King
-struct ren_rk : renumber {
+struct ren_rking : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    const int start, const vector< unsigned >& vcomp, Graph& G )
+    const int start, Graph& G )
   {
-    using boost::king_ordering;
-    using boost::property_map;
-    using boost::vertex_color;
-    using boost::vertex_degree;
-    using boost::vertex_index;
-    using boost::vertex_index_t;
-
-    // calculate permutation
+    // calculate permutation (B2A)
+    for (unsigned i=0; i<B2A.size(); ++i)
+      B2A[i] = i;
     property_map< Graph,vertex_index_t >::type index_map = get(vertex_index,G);
     if (start<0) {
-      king_ordering( G,
+      boost::king_ordering( G,
         B2A.rbegin(),get(vertex_color,G),get(vertex_degree,G),index_map );
     }
     else {
-      king_ordering( G,vertex((unsigned) start,G),
+      boost::king_ordering( G,vertex((unsigned) start,G),
         B2A.rbegin(),get(vertex_color,G),get(vertex_degree,G),index_map );
     }
 
-    // calculate inverse permutation
+    // calculate inverse permutation (A2B)
     for (unsigned i=0; i<B2A.size(); ++i)
       A2B[B2A[i]] = i;
 
@@ -160,31 +151,26 @@ struct ren_rk : renumber {
   }
 };
 
-// renumbering method: non-reversed King
-struct ren_k : renumber {
+// renumbering method: normal King
+struct ren_king : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    const int start, const vector< unsigned >& vcomp, Graph& G )
+    const int start, Graph& G )
   {
-    using boost::king_ordering;
-    using boost::property_map;
-    using boost::vertex_color;
-    using boost::vertex_degree;
-    using boost::vertex_index;
-    using boost::vertex_index_t;
-
-    // calculate permutation
+    // calculate permutation (B2A)
+    for (unsigned i=0; i<B2A.size(); ++i)
+      B2A[i] = i;
     property_map< Graph,vertex_index_t >::type index_map = get(vertex_index,G);
     if (start<0) {
-      king_ordering( G,
+      boost::king_ordering( G,
         B2A.begin(),get(vertex_color,G),get(vertex_degree,G),index_map );
     }
     else {
-      king_ordering( G,vertex((unsigned) start,G),
+      boost::king_ordering( G,vertex((unsigned) start,G),
         B2A.begin(),get(vertex_color,G),get(vertex_degree,G),index_map );
     }
 
-    // calculate inverse permutation
+    // calculate inverse permutation (A2B)
     for (unsigned i=0; i<B2A.size(); ++i)
       A2B[B2A[i]] = i;
 
@@ -197,41 +183,22 @@ struct ren_k : renumber {
 };
 
 
-// renumbering method: minimum degree ordering
-struct ren_mindeg : renumber {
+// renumbering method: reversed Sloan
+struct ren_rsloan : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    const int start, const vector< unsigned >& vcomp, Graph& G )
+    const int start, Graph& G )
   {
-    /*
-     * start represents delta, meaning: "Multiple elimination control variable.
-     * If it is larger than or equal to zero then multiple elimination is
-     * enabled. The value of delta specifies the difference between the minimum
-     * degree and the degree of vertices that are to be eliminated."
-     */
-    using boost::minimum_degree_ordering;
-    using boost::property_map;
-    using boost::vertex_degree;
-    using boost::vertex_index;
-    using boost::vertex_index_t;
+  }
+};
 
-    static vector< unsigned > supernode_sizes(B2A.size());
-    supernode_sizes.assign(B2A.size(),1);
 
-    // calculate permutation (and inverse permutation)
-    property_map< Graph,vertex_index_t >::type index_map = get(vertex_index,G);
-    minimum_degree_ordering( G,
-      get(vertex_degree,G),
-      B2A.begin(),
-      A2B.begin(),
-      make_iterator_property_map(&supernode_sizes[0],index_map,supernode_sizes[0]),
-      start,index_map );
-
-    // calculate bandwidth and set tag
-    bw = bandwidth(G,make_iterator_property_map(&A2B[0],index_map,A2B[0]));
-    ostringstream s;
-    s << "MinDeg[" << start << "] bandwidth: " << bw;
-    tag = s.str();
+// renumbering method: normal Sloan
+struct ren_sloan : renumber {
+  void calc(
+    unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
+    const int start, Graph& G )
+  {
   }
 };
 
@@ -242,14 +209,7 @@ struct ren_mindeg : renumber {
 
 void t_ren::transform(GetPot& o, mmesh& m)
 {
-  using boost::add_edge;
-  using boost::bandwidth;
-  using boost::degree;
-  using boost::num_edges;
-  using boost::vertex;
-
-
-#if 1
+#if 0
   const unsigned Nnodes = m.n();
   Graph G(Nnodes);
 
@@ -284,59 +244,47 @@ void t_ren::transform(GetPot& o, mmesh& m)
         n->erase(unique(n->begin(),n->end()),n->end());
         for (vector< unsigned >::const_iterator j=n->begin(); j<n->end(); ++j)
           if (*j>i)  //*2
-            add_edge(i,*j,G);
+            boost::add_edge(i,*j,G);
       }
       break;
     }
   }
-  if (!num_edges(G)) {
+  if (!boost::num_edges(G)) {
     cerr << "error: didn't find appropriate zone with d=" << m.d() << endl;
     throw 42;
   }
   cout << "info: building graph." << endl;
 #else
 
-#if 1 // test graph 1: small graph
+#if 0 // test graph 1: small graph
   enum NODES {N1,N2,N3,N4,N5,N6,N7,N8,Nnodes};
   Graph G(Nnodes);
-  add_edge(N1,N5,G);
-  add_edge(N5,N3,G);
-  add_edge(N3,N2,G);
-  add_edge(N2,N6,G);
-  add_edge(N2,N8,G);
-  add_edge(N6,N8,G);
-  add_edge(N4,N7,G);
-  add_edge(N4,N5,G); // connects its two components
+  boost::add_edge(N1,N5,G);
+  boost::add_edge(N5,N3,G);
+  boost::add_edge(N3,N2,G);
+  boost::add_edge(N2,N6,G);
+  boost::add_edge(N2,N8,G);
+  boost::add_edge(N6,N8,G);
+  boost::add_edge(N4,N7,G);
+  //boost::add_edge(N4,N5,G); // connects its two components
 #else // test graph 2: small graph, three disconnected components
   enum NODES {N1,N2,N3,N4,N5,N6,Nnodes};
   Graph G(Nnodes);
-  add_edge(N1,N2,G);
-  add_edge(N2,N5,G);
-  add_edge(N5,N1,G);
-  add_edge(N3,N6,G);
+  boost::add_edge(N1,N2,G);
+  boost::add_edge(N2,N5,G);
+  boost::add_edge(N5,N1,G);
+  boost::add_edge(N3,N6,G);
 #endif
 
 #endif
 
 
-  cout << "info: test graph connected components..." << endl;
-  // maps vertex to component index, or is empty if only one component
-  vector< unsigned > vcomponent(Nnodes);  // boost::num_vertices(G)
-  {
-    const int Ncomp = boost::connected_components(G,&vcomponent[0]);
-    cout << "info: graph number of components: " << Ncomp << endl;
-    if (Ncomp<=1)
-      vcomponent.clear();
-  }
-  cout << "info: test graph connected components." << endl;
-
-
-  vector< unsigned > new2old(Nnodes);
-  vector< unsigned > old2new(Nnodes);
+  vector< unsigned > new2old(Nnodes,0);
+  vector< unsigned > old2new(Nnodes,0);
   for (unsigned i=0; i<Nnodes; ++i)
     new2old[i] = old2new[i] = i;
   unsigned calc_b = Nnodes;
-  unsigned orig_b = bandwidth(G);
+  unsigned orig_b = boost::bandwidth(G);
   cout << "info: original bandwidth: " << orig_b << endl;
 
   ofstream f("dump.sparsity.plt",ios_base::trunc);
@@ -350,29 +298,53 @@ void t_ren::transform(GetPot& o, mmesh& m)
 
 
   cout << "info: set method..." << endl;
-  aux::renumber* renumber = (o_method=="rcm"?    new aux::ren_rcm :
-                            (o_method=="cm"?     new aux::ren_cm :
-                            (o_method=="rk"?     new aux::ren_rk :
-                            (o_method=="k"?      new aux::ren_k :
-                            (o_method=="mindeg"? new aux::ren_mindeg :
-                                                 (aux::renumber*) NULL )))));
-  if (renumber==NULL) {
-    cerr << "error: incorrect method" << endl;
-    throw 42;
+  aux::renumber* renumber = NULL;
+  {
+    mfactory< aux::renumber >* f = mfactory< aux::renumber >::instance();
+    f->Register(new ProductionLine< aux::renumber,aux::ren_rcm    >("rcm",   "reversed Cuthill-McKee"));
+    f->Register(new ProductionLine< aux::renumber,aux::ren_cm     >("cm",    "Cuthill-McKee"));
+    f->Register(new ProductionLine< aux::renumber,aux::ren_rking  >("rking", "reversed King"));
+    f->Register(new ProductionLine< aux::renumber,aux::ren_king   >("king",  "King"));
+    f->Register(new ProductionLine< aux::renumber,aux::ren_rsloan >("rsloan","reversed Sloan"));
+    f->Register(new ProductionLine< aux::renumber,aux::ren_sloan  >("sloan", "Sloan"));
+    renumber = f->Create(o_method);
+    if (renumber==NULL) {
+      vector< string > vk;
+      f->getkeys(vk);
+      ostringstream s;
+      for (vector< string >::const_iterator k=vk.begin(); k!=vk.end(); ++k)
+        s << ' ' << *k;
+      cerr << "error: incorrect method, expected one of:" << s.str() << endl;
+      throw 42;
+    }
   }
   cout << "info: set method." << endl;
 
 
+  cout << "info: check graph components..." << endl;
+  int Ncomp = -1;
+  {
+    vector< unsigned > vcomp(Nnodes);
+    Ncomp = boost::connected_components(G,&vcomp[0]);
+    cout << "info: number of graph components: " << Ncomp << endl;
+  }
+  cout << "info: check graph components." << endl;
+
+
   int start = (int) Nnodes;
   string info;
-  if (o_node=="b") {
-    cout << "info: finding minumum bandwidth..." << endl;
+  if (Ncomp>1) {
+    cout << "info: multiple components, automatic start node forced" << endl;
+    start = -1;
+  }
+  else if (o_node=="b") {
+    cout << "info: finding minimum bandwidth..." << endl;
     unsigned min_b = orig_b;
     string info;
     for (int s=0; s<(int) Nnodes; ++s) {
       renumber->calc(
         calc_b,info,new2old,old2new,
-        s,vcomponent,G );
+        s,G );
       cout << "info: " << info << (calc_b<min_b? "*":"") << endl;
       if (calc_b<min_b) {
         min_b = calc_b;
@@ -380,20 +352,20 @@ void t_ren::transform(GetPot& o, mmesh& m)
       }
     }
     cout << "info: node/bandwidth: " << start << '/' << min_b << endl;
-    cout << "info: finding minumum bandwidth." << endl;
+    cout << "info: finding minimum bandwidth." << endl;
   }
   else if (o_node=="d") {
-    cout << "info: finding minumum degree..." << endl;
+    cout << "info: finding minimum degree..." << endl;
     unsigned min_d = Nnodes;
     for (unsigned i=0; i<Nnodes; ++i) {
-      const unsigned deg = degree(vertex(i,G),G);
+      const unsigned deg = boost::degree(boost::vertex(i,G),G);
       if (deg<min_d) {
         min_d = deg;
         start = (int) i;
       }
     }
     cout << "info: node/degree: " << start << '/' << min_d << endl;
-    cout << "info: finding minumum degree..." << endl;
+    cout << "info: finding minimum degree..." << endl;
   }
   else {
     // use given index instead
@@ -406,7 +378,7 @@ void t_ren::transform(GetPot& o, mmesh& m)
     cout << "info: build renumbering maps, using start node: " << start << endl;
     renumber->calc(
       calc_b,info,new2old,old2new,
-      start,vcomponent,G );
+      start,G );
     cout << "info: " << info << endl;
     dump(f,info,G,old2new);
     cout << "info: build renumbering maps." << endl;
@@ -426,26 +398,20 @@ void t_ren::transform(GetPot& o, mmesh& m)
 
 void t_ren::dump(ostream& o, const string& t, const Graph& G, const vector< unsigned >& A2B)
 {
-  using boost::edges;
-  using boost::graph_traits;
-  using boost::num_edges;
-  using boost::num_vertices;
-  using boost::source;
-  using boost::target;
-  using boost::vertices;
-
-  o << "ZONE T=\"" << t << "\" I=" << num_edges(G)*2 + num_vertices(G) << endl;
+  o << "ZONE T=\"" << t << "\" I="
+    << boost::num_edges(G)*2 + boost::num_vertices(G)
+    << endl;
 
   // upper/lower diagonal then diagonal entries
-  graph_traits< Graph >::edge_iterator e, ef;
-  for (tie(e,ef) = edges(G); e!=ef; ++e) {
-    const int u = (int) A2B[ source(*e,G) ];
-    const int v = (int) A2B[ target(*e,G) ];
+  boost::graph_traits< Graph >::edge_iterator e, ef;
+  for (tie(e,ef) = boost::edges(G); e!=ef; ++e) {
+    const int u = (int) A2B[ boost::source(*e,G) ];
+    const int v = (int) A2B[ boost::target(*e,G) ];
     o << u << ' ' << -v << endl
       << v << ' ' << -u << endl;
   }
-  graph_traits< Graph >::vertex_iterator v, vf;
-  for (tie(v,vf) = vertices(G); v!=vf; ++v) {
+  boost::graph_traits< Graph >::vertex_iterator v, vf;
+  for (tie(v,vf) = boost::vertices(G); v!=vf; ++v) {
     const int u = (int) A2B[ *v ];
     o << u << ' ' << -u << endl;
   }
