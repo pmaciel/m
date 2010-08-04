@@ -1,5 +1,4 @@
 
-#include <list>
 #include <sstream>
 #include "mfactory.h"
 #include "t_ren.h"
@@ -45,6 +44,7 @@ struct renumber {
     vector< unsigned >& B2A, vector< unsigned >& A2B,
     // inputs: start node (negative for automatic) and mesh graph
     const int start, Graph& G ) = 0;
+  virtual void adjustperm(vector< unsigned >& perm) {}
 };
 
 
@@ -54,41 +54,10 @@ using boost::vertex_color;
 using boost::vertex_degree;
 using boost::vertex_index;
 using boost::vertex_index_t;
+using boost::vertex_priority;
 
 
-// renumbering method: reversed Cuthill-McKee
-struct ren_rcm : renumber {
-  void calc(
-    unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    const int start, Graph& G )
-  {
-    // calculate permutation (B2A)
-    for (unsigned i=0; i<B2A.size(); ++i)
-      B2A[i] = i;
-    if (start<0) {
-      boost::cuthill_mckee_ordering( G,
-        B2A.rbegin(),get(vertex_color,G),get(vertex_degree,G) );
-    }
-    else {
-      boost::cuthill_mckee_ordering( G,vertex((unsigned) start,G),
-        B2A.rbegin(),get(vertex_color,G),get(vertex_degree,G) );
-    }
-
-    // calculate inverse permutation (A2B)
-    for (unsigned i=0; i<B2A.size(); ++i)
-      A2B[B2A[i]] = i;
-
-    // calculate bandwidth and set tag
-    property_map< Graph,vertex_index_t >::type index_map = get(vertex_index,G);
-    bw = bandwidth(G,make_iterator_property_map(&A2B[0],index_map,A2B[0]));
-    ostringstream s;
-    s << "RCM[" << start << "] bandwidth: " << bw;
-    tag = s.str();
-  }
-};
-
-
-// renumbering method: normal Cuthill-McKee
+// renumbering method: Cuthill-McKee
 struct ren_cm : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
@@ -102,9 +71,10 @@ struct ren_cm : renumber {
         B2A.begin(),get(vertex_color,G),get(vertex_degree,G) );
     }
     else {
-      boost::cuthill_mckee_ordering( G,vertex((unsigned) start,G),
+      boost::cuthill_mckee_ordering( G,boost::vertex((unsigned) start,G),
         B2A.begin(),get(vertex_color,G),get(vertex_degree,G) );
     }
+    adjustperm(B2A);
 
     // calculate inverse permutation (A2B)
     for (unsigned i=0; i<B2A.size(); ++i)
@@ -114,44 +84,13 @@ struct ren_cm : renumber {
     property_map< Graph,vertex_index_t >::type index_map = get(vertex_index,G);
     bw = bandwidth(G,make_iterator_property_map(&A2B[0],index_map,A2B[0]));
     ostringstream s;
-    s << "CM[" << start << "] bandwidth: " << bw;
+    s << "cm[" << start << "] bandwidth: " << bw;
     tag = s.str();
   }
 };
 
 
-// renumbering method: reversed King
-struct ren_rking : renumber {
-  void calc(
-    unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    const int start, Graph& G )
-  {
-    // calculate permutation (B2A)
-    for (unsigned i=0; i<B2A.size(); ++i)
-      B2A[i] = i;
-    property_map< Graph,vertex_index_t >::type index_map = get(vertex_index,G);
-    if (start<0) {
-      boost::king_ordering( G,
-        B2A.rbegin(),get(vertex_color,G),get(vertex_degree,G),index_map );
-    }
-    else {
-      boost::king_ordering( G,vertex((unsigned) start,G),
-        B2A.rbegin(),get(vertex_color,G),get(vertex_degree,G),index_map );
-    }
-
-    // calculate inverse permutation (A2B)
-    for (unsigned i=0; i<B2A.size(); ++i)
-      A2B[B2A[i]] = i;
-
-    // calculate bandwidth and set tag
-    bw = bandwidth(G,make_iterator_property_map(&A2B[0],index_map,A2B[0]));
-    ostringstream s;
-    s << "RK[" << start << "] bandwidth: " << bw;
-    tag = s.str();
-  }
-};
-
-// renumbering method: normal King
+// renumbering method: King
 struct ren_king : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
@@ -169,6 +108,7 @@ struct ren_king : renumber {
       boost::king_ordering( G,vertex((unsigned) start,G),
         B2A.begin(),get(vertex_color,G),get(vertex_degree,G),index_map );
     }
+    adjustperm(B2A);
 
     // calculate inverse permutation (A2B)
     for (unsigned i=0; i<B2A.size(); ++i)
@@ -177,30 +117,56 @@ struct ren_king : renumber {
     // calculate bandwidth and set tag
     bw = bandwidth(G,make_iterator_property_map(&A2B[0],index_map,A2B[0]));
     ostringstream s;
-    s << "K[" << start << "] bandwidth: " << bw;
+    s << "king[" << start << "] bandwidth: " << bw;
     tag = s.str();
   }
 };
 
 
-// renumbering method: reversed Sloan
-struct ren_rsloan : renumber {
-  void calc(
-    unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
-    const int start, Graph& G )
-  {
-  }
-};
-
-
-// renumbering method: normal Sloan
+// renumbering method: Sloan
 struct ren_sloan : renumber {
   void calc(
     unsigned& bw, string& tag, vector< unsigned >& B2A, vector< unsigned >& A2B,
     const int start, Graph& G )
   {
+    // calculate permutation (B2A)
+    for (unsigned i=0; i<B2A.size(); ++i)
+      B2A[i] = i;
+    if (start<0) {
+      boost::sloan_ordering(G,
+        B2A.begin(),get(vertex_color,G),get(vertex_degree,G),get(vertex_priority,G) );
+    }
+    else {
+      // set pseudoperipheral radius, start and end nodes
+      typedef boost::graph_traits< Graph >::vertex_descriptor Vertex;
+      int ecc;
+      Vertex s = boost::vertex((unsigned) start,G);
+      Vertex e = boost::pseudo_peripheral_pair(G, s,
+        ecc, get(vertex_color,G),get(vertex_degree,G) );
+
+      boost::sloan_ordering(G, s,e,
+        B2A.begin(),get(vertex_color,G),get(vertex_degree,G),get(vertex_priority,G) );
+    }
+    adjustperm(B2A);
+
+    // calculate inverse permutation (A2B)
+    for (unsigned i=0; i<B2A.size(); ++i)
+      A2B[B2A[i]] = i;
+
+    // calculate bandwidth and set tag
+    property_map< Graph,vertex_index_t >::type index_map = get(vertex_index,G);
+    bw = bandwidth(G,make_iterator_property_map(&A2B[0],index_map,A2B[0]));
+    ostringstream s;
+    s << "sloan[" << start << "] bandwidth: " << bw;
+    tag = s.str();
   }
 };
+
+
+// renumbering methods (reversed): Cuthill-McKee, King, Sloan
+struct ren_rcm    : ren_cm    { void adjustperm(vector< unsigned >& perm) { std::reverse(perm.begin(),perm.end()); } };
+struct ren_rking  : ren_king  { void adjustperm(vector< unsigned >& perm) { std::reverse(perm.begin(),perm.end()); } };
+struct ren_rsloan : ren_sloan { void adjustperm(vector< unsigned >& perm) { std::reverse(perm.begin(),perm.end()); } };
 
 
 }  // namespace aux
@@ -209,7 +175,7 @@ struct ren_sloan : renumber {
 
 void t_ren::transform(GetPot& o, mmesh& m)
 {
-#if 0
+#if 1
   const unsigned Nnodes = m.n();
   Graph G(Nnodes);
 
@@ -256,7 +222,7 @@ void t_ren::transform(GetPot& o, mmesh& m)
   cout << "info: building graph." << endl;
 #else
 
-#if 0 // test graph 1: small graph
+#if 1 // test graph 1: small graph
   enum NODES {N1,N2,N3,N4,N5,N6,N7,N8,Nnodes};
   Graph G(Nnodes);
   boost::add_edge(N1,N5,G);
@@ -266,7 +232,7 @@ void t_ren::transform(GetPot& o, mmesh& m)
   boost::add_edge(N2,N8,G);
   boost::add_edge(N6,N8,G);
   boost::add_edge(N4,N7,G);
-  //boost::add_edge(N4,N5,G); // connects its two components
+  boost::add_edge(N4,N5,G); // connects its two components
 #else // test graph 2: small graph, three disconnected components
   enum NODES {N1,N2,N3,N4,N5,N6,Nnodes};
   Graph G(Nnodes);
@@ -301,22 +267,17 @@ void t_ren::transform(GetPot& o, mmesh& m)
   aux::renumber* renumber = NULL;
   {
     mfactory< aux::renumber >* f = mfactory< aux::renumber >::instance();
-    f->Register(new ProductionLine< aux::renumber,aux::ren_rcm    >("rcm",   "reversed Cuthill-McKee"));
     f->Register(new ProductionLine< aux::renumber,aux::ren_cm     >("cm",    "Cuthill-McKee"));
-    f->Register(new ProductionLine< aux::renumber,aux::ren_rking  >("rking", "reversed King"));
     f->Register(new ProductionLine< aux::renumber,aux::ren_king   >("king",  "King"));
-    f->Register(new ProductionLine< aux::renumber,aux::ren_rsloan >("rsloan","reversed Sloan"));
     f->Register(new ProductionLine< aux::renumber,aux::ren_sloan  >("sloan", "Sloan"));
+    f->Register(new ProductionLine< aux::renumber,aux::ren_rcm    >("rcm",   "reversed Cuthill-McKee"));
+    f->Register(new ProductionLine< aux::renumber,aux::ren_rking  >("rking", "reversed King"));
+    f->Register(new ProductionLine< aux::renumber,aux::ren_rsloan >("rsloan","reversed Sloan"));
     renumber = f->Create(o_method);
-    if (renumber==NULL) {
-      vector< string > vk;
-      f->getkeys(vk);
-      ostringstream s;
-      for (vector< string >::const_iterator k=vk.begin(); k!=vk.end(); ++k)
-        s << ' ' << *k;
-      cerr << "error: incorrect method, expected one of:" << s.str() << endl;
-      throw 42;
-    }
+  }
+  if (renumber==NULL) {
+    cerr << "error: incorrect method" << endl;
+    throw 42;
   }
   cout << "info: set method." << endl;
 
@@ -374,25 +335,26 @@ void t_ren::transform(GetPot& o, mmesh& m)
   }
 
 
-  if (start<(int) Nnodes) {
-    cout << "info: build renumbering maps, using start node: " << start << endl;
-    renumber->calc(
-      calc_b,info,new2old,old2new,
-      start,G );
-    cout << "info: " << info << endl;
-    dump(f,info,G,old2new);
-    cout << "info: build renumbering maps." << endl;
-
-    if (calc_b<orig_b) {
-      cout << "info: apply renumbering map..." << endl;
-      apply(old2new,m);
-      cout << "info: apply renumbering map." << endl;
-      return;
-    }
+  if (start>=(int) Nnodes) {
+    cout << "warn: problems finding start node, not renumbering." << endl;
+    return;
   }
 
 
-  cout << "info: didn't improve existing bandwidth, not renumbering." << endl;
+  cout << "info: renumber (start node: " << start << ")..."  << endl;
+  renumber->calc(
+    calc_b,info,new2old,old2new,
+    start,G );
+  cout << "info: " << info << endl;
+  if (calc_b<orig_b) {
+    apply(old2new,m);
+    dump(f,info,G,old2new);
+  }
+  else {
+    cout << "info: didn't improve existing bandwidth, not renumbering." << endl;
+  }
+  cout << "info: renumber."  << endl;
+
 }
 
 

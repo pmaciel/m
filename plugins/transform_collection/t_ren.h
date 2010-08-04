@@ -11,7 +11,8 @@ typedef boost::adjacency_list<
   boost::vecS,
   boost::undirectedS,
     boost::property< boost::vertex_color_t,  boost::default_color_type,
-    boost::property< boost::vertex_degree_t, unsigned > >
+    boost::property< boost::vertex_degree_t, unsigned,
+    boost::property< boost::vertex_priority_t, double > > >
   > Graph;
 
 
