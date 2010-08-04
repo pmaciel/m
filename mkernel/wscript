@@ -26,7 +26,6 @@ def build(ctx):
     target   = 'mkernel',
     includes = ['.'],
     source   = [
-      'libs/system/src/error_code.cpp',       # boost
       'ext/fparser.cc','ext/fpoptimizer.cc',  # function parser
       'ext/xmlParser.cpp',                    # xml parser
       'cool/Element.cpp','cool/MathTools.cpp','cool/Framework.cpp',
