@@ -179,8 +179,8 @@ void readstart(const std::string& ccase)
 
   // set linear or global/local time-step relaxation
   dtrelax        = (relax_puvw_type=="dt-global"? 1 : (relax_puvw_type=="dt-local"?  2 : 0 ));
-  dtrelax_scalar = (relax_puvw_type=="dt-global"? 1 : (relax_puvw_type=="dt-local"?  2 : 0 ));
-  dtrelax_turb   = (relax_puvw_type=="dt-global"? 1 : (relax_puvw_type=="dt-local"?  2 : 0 ));
+  dtrelax_scalar = (relax_t_type   =="dt-global"? 1 : (relax_t_type   =="dt-local"?  2 : 0 ));
+  dtrelax_turb   = (relax_ke_type  =="dt-global"? 1 : (relax_ke_type  =="dt-local"?  2 : 0 ));
   CFL            = !dtrelax?        0. : relax_puvw_value;
   CFL_scalar     = !dtrelax_scalar? 0. : relax_t_value;
   CFL_turb       = !dtrelax_turb?   0. : relax_ke_value;
