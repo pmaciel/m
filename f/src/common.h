@@ -77,6 +77,7 @@ struct mitremassembler_struct
   std::vector< double > bulk;  // bulk concentrations
   LS *ls;          // linear system solver
   m::mmesh Mj;     // mmesh structure for electrode reactions current density
+  m::mmesh Mv;     // ...                                     rates
   MITReM* m_mitrem;                     // MITReM object
   ElementMatrixAssembler* m_assembler;  // ElementMatrixAssembler object
 };

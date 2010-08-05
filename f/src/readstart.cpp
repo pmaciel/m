@@ -126,12 +126,28 @@ void readstart(const std::string& ccase)
     mitremassembler.iv       = Neqns;
     mitremassembler.Nions    = (int) (mitremassembler.m_mitrem)->getNIons();
     mitremassembler.linrelx  = mitremassembler.x.getChildNode("linrelx").getAttribute< double >("value",1.);
+
+    // override: surface gas fraction
     double tmin = mitremassembler.x.getChildNode("surfacegasfraction").getAttribute< double >("min",0.),
            tmax = mitremassembler.x.getChildNode("surfacegasfraction").getAttribute< double >("max",1.);
     tmin = std::max(0.,std::min(1.,std::min(tmax,tmin)));
     tmax = std::max(0.,std::min(1.,std::max(tmax,tmin)));
     mitremassembler.surfacegasfraction_min = tmin;
     mitremassembler.surfacegasfraction_max = tmax;
+
+    // override: set k and cSat
+    XMLNode ss = mitremassembler.x.getChildNode("supersaturation");
+    if (!(ss.isEmpty())) {
+      const double forced_k    = ss.getAttribute< double >("value",1.),
+                   forced_cSat = ss.getAttribute< double >("value",0.);
+      cout << " supersaturation (all gasreactions):"
+           << " force k="    << forced_k
+           << " force cSat=" << forced_cSat << endl;
+      for (unsigned r=0; r<(mitremassembler.m_mitrem)->getNGasReactions(); ++r) {
+        (mitremassembler.m_mitrem)->setGasReactionKinParam(r,0,forced_k);
+        (mitremassembler.m_mitrem)->setGasReactionKinParam(r,1,forced_cSat);
+      }
+    }
 
     // set bulk concentrations
     mitremassembler.bulk.resize(mitremassembler.Nions);

@@ -119,10 +119,11 @@ public :
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Gas reactions
   unsigned    getNGasReactions() const;
-  std::string  getGasReactionLabel(unsigned r) const;
+  std::string getGasReactionLabel(unsigned r) const;
   unsigned    getGasReactionDissolvedGas(unsigned r) const;
   double      calcGasReactionRate(unsigned r) const;
   double      calcGasReactionRateDerivativeCDissGas(unsigned r) const;
+  double      setGasReactionKinParam(unsigned r, unsigned p, double v);
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   void    setConductivity(double conductivity);
   //double    getConductivity() const;
@@ -503,6 +504,12 @@ inline double MITReM::calcGasReactionRate(unsigned r) const
 inline double MITReM::calcGasReactionRateDerivativeCDissGas(unsigned r) const
 {
   return gasReactions[r]->calcReactionRateDerivativeCDissGas();
+}
+//---------------------------------------------------------------------------
+inline double MITReM::setGasReactionKinParam(unsigned r, unsigned p, double v)
+{
+  gasReactions[r]->setKinParam(p,v);
+  return v;
 }
 //---------------------------------------------------------------------------
 

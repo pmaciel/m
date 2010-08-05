@@ -121,8 +121,10 @@ void Update_mitrem()
 
 
   // calculate current, current densities and gas production rate
-  for (unsigned i=0; i<(m.m_mitrem)->getNElecReactions(); ++i)
+  for (unsigned i=0; i<(m.m_mitrem)->getNElecReactions(); ++i) {
     m.Mj.vv[Ndim+i].assign(Nnode,0.);
+    m.Mv.vv[Ndim+i].assign(Nnode,0.);
+  }
   for (int i=0; i<m.x.getChildNode("bcs").nChildNode("bc"); ++i) {
     const XMLNode b = m.x.getChildNode("bcs").getChildNode("bc",i);
     const string  t = b.getAttribute("type");
@@ -154,25 +156,49 @@ void Update_mitrem()
   }
 
 
-  string outfile = file_output + ".j" + extension(file_output);
-  cout << "Update_mitrem: writing current densities to \"" << outfile << "\"..." << endl;
   {
+    string outfile_j = file_output + ".j" + extension(file_output),
+           outfile_v = file_output + ".v" + extension(file_output);
+
+
+    cout << "Update_mitrem: writing current densities to \"" << outfile_j << "\"..." << endl;
     m.Mj.vz.swap(M.vz);          // (hack)
     m.Mj.vz[0].e2n.swap(e2n);    // ...
     for (int d=0; d<Ndim; ++d)   // ...
       m.Mj.vv[d].swap(M.vv[d]);  // ...
 
-    auto_ptr< m::mfoutput > p(m::mfactory< m::mfoutput  >::instance()->Create(extension(outfile)));
-    char* argv[] = { (char*) "", const_cast< char* >(outfile.c_str()) };
-    GetPot o2(2,argv);
-    p->write(o2,m.Mj);
+    auto_ptr< m::mfoutput > p(m::mfactory< m::mfoutput  >::instance()->Create(extension(outfile_j)));
+    {
+      char* argv[] = { (char*) "", const_cast< char* >(outfile_j.c_str()) };
+      GetPot o2(2,argv);
+      p->write(o2,m.Mj);
+    }
 
     for (int d=0; d<Ndim; ++d)   // (hack back)
       m.Mj.vv[d].swap(M.vv[d]);  // ...
     m.Mj.vz[0].e2n.swap(e2n);    // ...
     m.Mj.vz.swap(M.vz);          // ...
+    cout << "Update_mitrem: writing current densities." << endl;
+
+
+    cout << "Update_mitrem: writing reaction rates to \"" << outfile_v << "\"..." << endl;
+    m.Mv.vz.swap(M.vz);          // (hack again)
+    m.Mv.vz[0].e2n.swap(e2n);    // ...
+    for (int d=0; d<Ndim; ++d)   // ...
+      m.Mv.vv[d].swap(M.vv[d]);  // ...
+
+    {
+      char* argv[] = { (char*) "", const_cast< char* >(outfile_v.c_str()) };
+      GetPot o2(2,argv);
+      p->write(o2,m.Mv);
+    }
+
+    for (int d=0; d<Ndim; ++d)   // (hack back)
+      m.Mv.vv[d].swap(M.vv[d]);  // ...
+    m.Mv.vz[0].e2n.swap(e2n);    // ...
+    m.Mv.vz.swap(M.vz);          // ...
+    cout << "Update_mitrem: writing reaction rates." << endl;
   }
-  cout << "Update_mitrem: writing current densities." << endl;
 }
 
 
@@ -351,6 +377,7 @@ double assembleElectrode(
         coordinates, concentrations, &potentials[0],
         &temperatures[0], &densities[0], &sgasfractions[0],
         ereactions.size(), p_ereactions, v );
+
       // calculate current density
       DoubleListList j = (m.m_assembler)->calcElecReactionCurrentDensities(
         coordinates, concentrations, &potentials[0],
@@ -359,6 +386,13 @@ double assembleElectrode(
       for (int i=0; i<Nenod; ++i)
         for (unsigned r=0; r<ereactions.size(); ++r)
           m.Mj.vv[Ndim+ereactions[r]][(e->n)[i]] = j[i][r];
+
+      // calculate reaction rates
+      for (int i=0; i<Nenod; ++i) {
+        (m.m_mitrem)->init(concentrations[i],potentials[i],temperatures[i],densities[i]);
+        for (unsigned r=0; r<ereactions.size(); ++r)
+          m.Mv.vv[Ndim+ereactions[r]][(e->n)[i]] = (m.m_mitrem)->calcElecReactionRate(r,v);
+      }
     }
     else if (action==GAS) {
       // calculate total gas production rate (by accumulation)
