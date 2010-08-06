@@ -46,7 +46,6 @@ struct renumber {
 
 // boost graph library shortcuts
 using boost::get;
-using boost::property_map;
 using boost::vertex_color;
 using boost::vertex_degree;
 using boost::vertex_index;
@@ -120,44 +119,40 @@ void t_ren::transform(GetPot& o, mmesh& m)
   const unsigned Nnodes = m.n();
   Graph G(Nnodes);
 
-
   cout << "info: building graph..." << endl;
-  // find a zone with "dimensionality" same as number of dimensions,
-  // hopefully connecting all nodes in the mesh -- if not, this won't work well
-  for (unsigned j=0; j<m.z(); ++j) {
-    if (m.d(j)==m.d()) {
-      vector< vector< unsigned > > M(Nnodes);
+  {
+    vector< vector< unsigned > > M(Nnodes);
+
+    // use all available zones (hopefully connecting all nodes in mesh)
+    for (unsigned j=0; j<m.z(); ++j) {
       const vector< melem >& e2n = m.vz[j].e2n;
 
-      // get all nodes neighbors then remove duplicate entries and construct graph
-      // 1* l=1 guarantees "except itself"
-      // 2* graph is built with edges with higher indices than "itself node", to
-      //    guarantee no parallel edges are introduced
+      // get all nodes neighbors
       for (unsigned j=0; j<e2n.size(); ++j) {
         const vector< unsigned >& nodes = e2n[j].n;
         const unsigned Nnodes = nodes.size();
         for (unsigned k=0; k<Nnodes; ++k)
-          for (unsigned l=1; l<Nnodes; ++l) {  //*1
+          for (unsigned l=1; l<Nnodes; ++l) {  // guarantee "except itself"
             const unsigned i = nodes[k];
             const unsigned j = nodes[(k+l)%Nnodes];
             M[i].push_back(j);
             M[j].push_back(i);
           }
       }
+    }
 
-      unsigned i=0;
-      for (vector< vector< unsigned > >::iterator n=M.begin(); n!=M.end(); ++n, ++i) {
-        sort(n->begin(),n->end());
-        n->erase(unique(n->begin(),n->end()),n->end());
-        for (vector< unsigned >::const_iterator j=n->begin(); j<n->end(); ++j)
-          if (*j>i)  //*2
-            boost::add_edge(i,*j,G);
-      }
-      break;
+    //  remove duplicate neighbor entries and add graph edges
+    unsigned i=0;
+    for (vector< vector< unsigned > >::iterator n=M.begin(); n!=M.end(); ++n, ++i) {
+      sort(n->begin(),n->end());
+      n->erase(unique(n->begin(),n->end()),n->end());
+      for (vector< unsigned >::const_iterator j=n->begin(); j<n->end(); ++j)
+        if (*j>i)  // guarantee no parallel edges are introduced
+          boost::add_edge(i,*j,G);
     }
   }
   if (!boost::num_edges(G)) {
-    cerr << "error: didn't find appropriate zone with d=" << m.d() << endl;
+    cerr << "error: couldn't build graph!" << endl;
     throw 42;
   }
   cout << "info: building graph." << endl;
@@ -190,8 +185,7 @@ void t_ren::transform(GetPot& o, mmesh& m)
   vector< unsigned > old2new(Nnodes,0);
   for (unsigned i=0; i<Nnodes; ++i)
     new2old[i] = old2new[i] = i;
-  unsigned calc_b = Nnodes;
-  unsigned orig_b = boost::bandwidth(G);
+  const unsigned orig_b = boost::bandwidth(G);
   cout << "info: original bandwidth: " << orig_b << endl;
 
   ofstream f("dump.sparsity.plt",ios_base::trunc);
@@ -246,15 +240,15 @@ void t_ren::transform(GetPot& o, mmesh& m)
       renumber->calc(new2old,old2new,s,G);
       boost::property_map< Graph,boost::vertex_index_t >::type index_map =
         boost::get(boost::vertex_index,G);
-      calc_b = boost::bandwidth( G,
+      const unsigned calc_b = boost::bandwidth( G,
         boost::make_iterator_property_map(&old2new[0],index_map,old2new[0]) );
+      cout << "info: renumber s:" << s << " bw:" << calc_b << (calc_b<min_b? "*":"") << endl;
 
       // save minimum-bandwidth start node
       if (calc_b<min_b) {
         min_b = calc_b;
         start = s;
       }
-      cout << "info: renumber s:" << s << " bw:" << calc_b << (calc_b<min_b? "*":"") << endl;
     }
     cout << "info: found s:" << start << " bw: " << min_b << endl;
     cout << "info: finding minimum bandwidth." << endl;
@@ -291,12 +285,12 @@ void t_ren::transform(GetPot& o, mmesh& m)
     renumber->calc(new2old,old2new,start,G);
     boost::property_map< Graph,boost::vertex_index_t >::type index_map =
       boost::get(boost::vertex_index,G);
-    calc_b = boost::bandwidth( G,
+    const unsigned calc_b = boost::bandwidth( G,
       boost::make_iterator_property_map(&old2new[0],index_map,old2new[0]) );
 
     // apply mapping if improvement is possible
     ostringstream os;
-    os << "renumbering s:" << start << " new/old bw:" << calc_b << "/" << orig_b;
+    os << "renumbering  s:" << start << "  bw:" << orig_b << ">" << calc_b;
     cout << "info: " << os.str() << endl;
     if (calc_b<orig_b) {
       apply(old2new,m);
