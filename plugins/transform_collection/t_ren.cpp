@@ -32,6 +32,14 @@ Register< mtransform,t_ren > mt_ren(10,"-tren","[str] [int] renumber nodes using
 namespace aux {
 
 
+// boost graph library shortcuts
+using boost::get;
+using boost::vertex_color;
+using boost::vertex_degree;
+using boost::vertex_index;
+using boost::vertex_index_t;
+
+
 // renumbering method skeleton
 struct renumber {
   virtual ~renumber() {}
@@ -42,14 +50,6 @@ struct renumber {
     const int start, Graph& G ) = 0;
   virtual void adjustperm(vector< unsigned >& perm) {}
 };
-
-
-// boost graph library shortcuts
-using boost::get;
-using boost::vertex_color;
-using boost::vertex_degree;
-using boost::vertex_index;
-using boost::vertex_index_t;
 
 
 // renumbering method: Cuthill-McKee
@@ -115,11 +115,15 @@ struct ren_rking  : ren_king  { void adjustperm(vector< unsigned >& perm) { std:
 
 void t_ren::transform(GetPot& o, mmesh& m)
 {
+  const string o_method = o.get(o.inc_cursor(),"");
+        string o_node   = o.get(o.inc_cursor(),"");
+
+
+  cout << "info: building graph..." << endl;
 #if 1
   const unsigned Nnodes = m.n();
   Graph G(Nnodes);
 
-  cout << "info: building graph..." << endl;
   {
     vector< vector< unsigned > > M(Nnodes);
 
@@ -151,13 +155,7 @@ void t_ren::transform(GetPot& o, mmesh& m)
           boost::add_edge(i,*j,G);
     }
   }
-  if (!boost::num_edges(G)) {
-    cerr << "error: couldn't build graph!" << endl;
-    throw 42;
-  }
-  cout << "info: building graph." << endl;
 #else
-
 #if 1 // test graph 1: small graph
   enum NODES {N1,N2,N3,N4,N5,N6,N7,N8,Nnodes};
   Graph G(Nnodes);
@@ -177,8 +175,20 @@ void t_ren::transform(GetPot& o, mmesh& m)
   boost::add_edge(N5,N1,G);
   boost::add_edge(N3,N6,G);
 #endif
-
 #endif
+
+  if (!boost::num_edges(G)) {
+    cerr << "error: couldn't build graph!" << endl;
+    throw 42;
+  }
+
+  {
+    vector< unsigned > vcomp(Nnodes);
+    const int Ncomp = boost::connected_components(G,&vcomp[0]);
+    o_node = Ncomp>1? "-1" : o_node;
+    cout << "info: number of components: " << Ncomp << (Ncomp>1? " (automatic start node forced)":"") << endl;
+  }
+  cout << "info: building graph." << endl;
 
 
   vector< unsigned > new2old(Nnodes,0);
@@ -191,9 +201,6 @@ void t_ren::transform(GetPot& o, mmesh& m)
   ofstream f("dump.sparsity.plt",ios_base::trunc);
   f << "VARIABLES = i j" << endl;
   dump(f,"original",G,old2new);
-
-  const string o_method = o.get(o.inc_cursor(),"");
-  const string o_node   = o.get(o.inc_cursor(),"");
   if (o_method=="dump")
     return;
 
@@ -215,22 +222,8 @@ void t_ren::transform(GetPot& o, mmesh& m)
   cout << "info: set method." << endl;
 
 
-  cout << "info: check graph components..." << endl;
-  int Ncomp = -1;
-  {
-    vector< unsigned > vcomp(Nnodes);
-    Ncomp = boost::connected_components(G,&vcomp[0]);
-    cout << "info: number of graph components: " << Ncomp << endl;
-  }
-  cout << "info: check graph components." << endl;
-
-
   int start = (int) Nnodes;
-  if (Ncomp>1) {
-    cout << "info: multiple components, automatic start node forced" << endl;
-    start = -1;
-  }
-  else if (o_node=="b") {
+  if (o_node=="b") {
     cout << "info: finding minimum bandwidth..." << endl;
     unsigned min_b = orig_b;
     string info;
