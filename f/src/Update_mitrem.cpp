@@ -1,6 +1,7 @@
 
 #include <numeric>
 #include <memory>
+#include <algorithm>
 #include "boost/progress.hpp"
 #include "common.h"
 
@@ -121,38 +122,49 @@ void Update_mitrem()
 
 
   // calculate current, current densities and gas production rate
-  for (unsigned i=0; i<(m.m_mitrem)->getNElecReactions(); ++i) {
+  for (unsigned i=0; i<(m.m_mitrem)->getNElecReactions(); ++i)
     m.Mj.vv[Ndim+i].assign(Nnode,0.);
+  for (unsigned i=0; i<(m.m_mitrem)->getNElecReactions()+(m.m_mitrem)->getNGasReactions(); ++i)
     m.Mv.vv[Ndim+i].assign(Nnode,0.);
-  }
-  for (int i=0; i<m.x.getChildNode("bcs").nChildNode("bc"); ++i) {
-    const XMLNode b = m.x.getChildNode("bcs").getChildNode("bc",i);
-    const string  t = b.getAttribute("type");
-    const vector< unsigned > z = getZones(b.getAttribute< string >("zone"));
-
-    if (t=="electrode")
-      for (vector< unsigned >::const_iterator j=z.begin(); j!=z.end(); ++j) {
-
-        const vector< unsigned > gr = getGReactions(b.getAttribute< string >("gasreaction"));
-        const vector< unsigned > er = getEReactions(b.getAttribute< string >("elecreaction"));
-        const double V = b.getAttribute< double >("metalpotential");
-        if (er.size()) {
-          const double I = assembleElectrode(M.vz[*j].e2n,gr,er,V,CURRENT),
-                       A = assembleElectrode(M.vz[*j].e2n,gr,er,V,BSIZE),
-                       J = I/max(A,1.e-20);
-          cout << "Update_mitrem:"
-               << " electrode:\"" << b.getAttribute("label") << '"'
-               << " zone:\""      << M.vz[*j].n              << '"'
-               << " current/c.density [A/A.m-2]: " << I << " / " << J << endl;
+  {
+    // create per-zone-indexed vectors to store metal potentials and
+    // electrode/gas reaction indices (removing duplicate entries)
+    vector< double >              vz_mp(M.z(),0.);
+    vector< vector < unsigned > > vz_er(M.z()),
+                                  vz_gr(M.z());
+    for (int i=0; i<m.x.getChildNode("bcs").nChildNode("bc"); ++i) {
+      const XMLNode b = m.x.getChildNode("bcs").getChildNode("bc",i);
+      const string  t = b.getAttribute("type");
+      if (t=="electrode") {
+        const vector< unsigned > z = getZones(b.getAttribute< string >("zone"));
+        for (vector< unsigned >::const_iterator j=z.begin(); j!=z.end(); ++j) {
+          vector< unsigned > er(getEReactions(b.getAttribute< string >("elecreaction"))),
+                             gr(getGReactions(b.getAttribute< string >("gasreaction")));
+          vz_mp[*j] = b.getAttribute< double >("metalpotential");
+          vz_er[*j].insert(vz_er[*j].end(),er.begin(),er.end());
+          vz_gr[*j].insert(vz_gr[*j].end(),gr.begin(),gr.end());
         }
-        if (gr.size()) {
-          cout << "Update_mitrem:"
-               << " electrode:\""  << b.getAttribute("label") << '"'
-               << " zone:\""       << M.vz[*j].n              << '"'
-               << " gas production rate [m3.s-1]: " << assembleElectrode(M.vz[*j].e2n,gr,er,V,GAS) << endl;
-        }
-
       }
+    }
+    for (unsigned i=1; i<M.z(); ++i) {
+      sort(vz_er[i].begin(),vz_er[i].end());
+      sort(vz_gr[i].begin(),vz_gr[i].end());
+      vz_er[i].erase(unique(vz_er[i].begin(),vz_er[i].end()),vz_er[i].end());
+      vz_gr[i].erase(unique(vz_gr[i].begin(),vz_gr[i].end()),vz_gr[i].end());
+    }
+
+    // calculate current, current density and gas production rate
+    for (unsigned i=1; i<M.z(); ++i) {
+      if (!vz_gr[i].size() && !vz_er[i].size())
+        continue;
+      const double I = assembleElectrode(M.vz[i].e2n,vz_gr[i],vz_er[i],vz_mp[i],CURRENT),
+                   J = I/max(assembleElectrode(M.vz[i].e2n,vz_gr[i],vz_er[i],vz_mp[i],BSIZE),1.e-20),
+                   G = assembleElectrode(M.vz[i].e2n,vz_gr[i],vz_er[i],vz_mp[i],GAS);
+      cout << "Update_mitrem: zone: \"" << M.vz[i].n << '"'
+           << "  I[A]="      << I
+           << "  J[A.m-2]="  << J
+           << "  G[m3.s-1]=" << G << endl;
+    }
   }
 
 
@@ -181,7 +193,7 @@ void Update_mitrem()
     cout << "Update_mitrem: writing current densities." << endl;
 
 
-    cout << "Update_mitrem: writing reaction rates to \"" << outfile_v << "\"..." << endl;
+    cout << "Update_mitrem: writing electrode/gas reaction rates to \"" << outfile_v << "\"..." << endl;
     m.Mv.vz.swap(M.vz);          // (hack again)
     m.Mv.vz[0].e2n.swap(e2n);    // ...
     for (int d=0; d<Ndim; ++d)   // ...
@@ -197,7 +209,7 @@ void Update_mitrem()
       m.Mv.vv[d].swap(M.vv[d]);  // ...
     m.Mv.vz[0].e2n.swap(e2n);    // ...
     m.Mv.vz.swap(M.vz);          // ...
-    cout << "Update_mitrem: writing reaction rates." << endl;
+    cout << "Update_mitrem: writing electrode/gas reaction rates." << endl;
   }
 }
 
@@ -378,20 +390,21 @@ double assembleElectrode(
         &temperatures[0], &densities[0], &sgasfractions[0],
         ereactions.size(), p_ereactions, v );
 
-      // calculate current density
+      // calculate current density and electrode/gas reaction rates
       DoubleListList j = (m.m_assembler)->calcElecReactionCurrentDensities(
         coordinates, concentrations, &potentials[0],
         &temperatures[0], &densities[0], &sgasfractions[0],
         ereactions.size(), p_ereactions, v );
-      for (int i=0; i<Nenod; ++i)
+      for (int i=0; i<Nenod; ++i) {
         for (unsigned r=0; r<ereactions.size(); ++r)
           m.Mj.vv[Ndim+ereactions[r]][(e->n)[i]] = j[i][r];
-
-      // calculate reaction rates
-      for (int i=0; i<Nenod; ++i) {
         (m.m_mitrem)->init(concentrations[i],potentials[i],temperatures[i],densities[i]);
         for (unsigned r=0; r<ereactions.size(); ++r)
-          m.Mv.vv[Ndim+ereactions[r]][(e->n)[i]] = (m.m_mitrem)->calcElecReactionRate(r,v);
+          m.Mv.vv[Ndim+ereactions[r]][(e->n)[i]] =
+            (m.m_mitrem)->calcElecReactionRate(r,v);
+        for (unsigned r=0; r<greactions.size(); ++r)
+          m.Mv.vv[Ndim+(m.m_mitrem)->getNElecReactions()+greactions[r]][(e->n)[i]] =
+            (m.m_mitrem)->calcGasReactionRate(r);
       }
     }
     else if (action==GAS) {
