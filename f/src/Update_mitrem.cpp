@@ -153,18 +153,22 @@ void Update_mitrem()
       vz_gr[i].erase(unique(vz_gr[i].begin(),vz_gr[i].end()),vz_gr[i].end());
     }
 
-    // calculate current, current density and gas production rate
+    cout << "Update_mitrem: calculating electrochemical properties..." << endl;
+    double Ibalance = 0;
     for (unsigned i=1; i<M.z(); ++i) {
       if (!vz_gr[i].size() && !vz_er[i].size())
         continue;
       const double I = assembleElectrode(M.vz[i].e2n,vz_gr[i],vz_er[i],vz_mp[i],CURRENT),
                    J = I/max(assembleElectrode(M.vz[i].e2n,vz_gr[i],vz_er[i],vz_mp[i],BSIZE),1.e-20),
                    G = assembleElectrode(M.vz[i].e2n,vz_gr[i],vz_er[i],vz_mp[i],GAS);
+      Ibalance += I;
       cout << "Update_mitrem: zone: \"" << M.vz[i].n << '"'
            << "  I[A]="      << I
            << "  J[A.m-2]="  << J
            << "  G[m3.s-1]=" << G << endl;
     }
+    cout << "Update_mitrem: current balance [A]=" << Ibalance << endl;
+    cout << "Update_mitrem: calculating electrochemical properties." << endl;
   }
 
 
