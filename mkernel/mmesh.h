@@ -64,11 +64,9 @@ struct mmesh {
   // merge: merge another mesh, into single point cloud
   // compress: apply point cloud simplification and renumbering
   // extract: compressed mesh structure with just this zone)
-  // edge: detect the edge of a given zone
   void merge(const mmesh& another);
   void compress();
   mmesh extract(const std::string& zn);
-  mmesh edge(const std::string& zn);
 
   // zones;
   // dimensionality, nb. elements and type
