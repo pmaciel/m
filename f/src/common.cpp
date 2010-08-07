@@ -81,7 +81,8 @@ std::string file_inlet;   // inlet file (some turbulent testcases)
 int iter;
 int Ndim;
 int Nvtcell;
-int Niter;
+int Nitermax;  // number of non-linear iterations (maximum)
+int Nitermin;  // ... (minimum)
 int restart;
 int scaconv;
 int turmod;

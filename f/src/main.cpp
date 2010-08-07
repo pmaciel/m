@@ -238,7 +238,7 @@ int main(int argc, char **argv)
     writesoltp(file_output);
   }
   while
-    ((logL2[iverr]>conv_thresh) && (iter<Niter));
+    (((logL2[iverr]>conv_thresh) || (iter<Nitermin)) && (iter<Nitermax));
   /* end of main loop */
 
 

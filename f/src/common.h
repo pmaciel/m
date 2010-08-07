@@ -77,7 +77,7 @@ struct mitremassembler_struct
   std::vector< double > bulk;  // bulk concentrations
   LS *ls;          // linear system solver
   m::mmesh Mj;     // mmesh structure for electrode reactions current density
-  m::mmesh Mv;     // ...                                     rates
+  m::mmesh Mv;     // ...                 electrode/gas reactions rates
   MITReM* m_mitrem;                     // MITReM object
   ElementMatrixAssembler* m_assembler;  // ElementMatrixAssembler object
 };
@@ -199,7 +199,8 @@ extern std::string file_inlet;   // inlet file (some turbulent testcases)
 extern int iter;
 extern int Ndim;
 extern int Nvtcell;
-extern int Niter;
+extern int Nitermax;  // number of non-linear iterations (maximum)
+extern int Nitermin;  // ... (minimum)
 extern int restart;
 extern int scaconv;
 extern int turmod;

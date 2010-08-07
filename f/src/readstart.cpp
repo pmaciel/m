@@ -166,7 +166,8 @@ void readstart(const std::string& ccase)
 
 
   // <solver_nonlinear/>
-  Niter               = c.getChildNode("solver_nonlinear").getAttribute< int    >("maxiterations");
+  Nitermax            = c.getChildNode("solver_nonlinear").getAttribute< int    >("maxiterations",1);
+  Nitermin            = c.getChildNode("solver_nonlinear").getAttribute< int    >("miniterations",0);
   conv_thresh         = c.getChildNode("solver_nonlinear").getAttribute< double >("convergence_level");
   newton_eps          = c.getChildNode("solver_nonlinear").getAttribute< double >("newton_eps");
   newton_thresh       = c.getChildNode("solver_nonlinear").getAttribute< double >("newton_switch");
