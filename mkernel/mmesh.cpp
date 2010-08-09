@@ -40,6 +40,7 @@ vector< bool > mmesh::vvectors() const
 
   // check names
   vector< bool > r(vn.size(),false);
+  r[0] = true;  // coordinates are always vectors
   const unsigned dim = d();
   if (dim<2)
     return r;

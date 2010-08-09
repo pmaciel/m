@@ -3,7 +3,6 @@
 #include "t_extrude.h"
 #include <sstream>
 
-using namespace std;
 using namespace m;
 
 
@@ -13,13 +12,17 @@ Register< mtransform,t_extrude > mt_extrude(2,"-tz","[z1:n:z2] mesh extrusion fr
 
 void t_extrude::transform(GetPot& o, mmesh& m2)
 {
-  const unsigned dim = m2.d();
-  if (dim>2)
+  using std::cout;
+  using std::cerr;
+  using std::endl;
+  using std::vector;
+  using std::string;
+
+  cout << "info: [d/n/e]: " << m2.d() << '/' << m2.n() << '/' << m2.e() << "..." << endl;
+  const unsigned D2 = m2.d(),
+                 N2 = m2.n();
+  if (D2>2)
     return;
-  cout << "::extrusion [n/e]: " << m2.n() << " / " << m2.e() << "..." << endl;
-
-
-  // -- point cloud --
 
 
   cout << "info: z-steps..." << endl;
@@ -41,57 +44,61 @@ void t_extrude::transform(GetPot& o, mmesh& m2)
   cout << "info: z-steps." << endl;
 
 
-  cout << "info: point cloud variable names..." << endl;
+  // mesh structure, extruded
   mmesh m3;
-  const vector< bool > vectors2d = m2.vvectors();
-  m3.vn.clear();
-  for (unsigned i=0; i<vectors2d.size(); ++i) {
-    if (vectors2d[i]) {
-      const char x = *(m2.vn[i].end()-1);
-      const string n = m2.vn[i].substr(0,m2.vn[i].length()-1);
-      m3.vn.push_back(n + char(x));
-      m3.vn.push_back(n + char(x+1));
-      m3.vn.push_back(n + char(x+2));
-      i+=1;
-    }
-    else
-      m3.vn.push_back(m2.vn[i]);
-  }
-  cout << "info: point cloud variable names." << endl;
 
 
-  cout << "info: point cloud variable values copy..." << endl;
-  const vector< bool > vectors3d = m3.vvectors();
-  m3.vv.resize(m3.vn.size());
-  for (unsigned j=0, i=0; j<vectors3d.size(); ++j, ++i) {
-    m3.vv[j].reserve(Nzsteps*m2.n());
-    if (vectors3d[j]) {
+  // -- variables --
 
-      // add vector field
-      for (unsigned d=0; d<2; ++d)
+
+  cout << "info: variable names and values..." << endl;
+  {
+    // resize (new) variables names and values
+    const vector< bool > vectors2d = m2.vvectors();
+    const size_t vextra = count(vectors2d.begin(),vectors2d.end(),true);
+    m3.vn.assign(m2.vn.size()+vextra,"");
+    m3.vv.assign(m2.vn.size()+vextra,vector< double >(Nzsteps*N2,0.));
+
+    // variable names and values iterators
+    vector< string           >::iterator n3 = m3.vn.begin();
+    vector< vector< double > >::iterator v3 = m3.vv.begin();
+    for (unsigned i=0; i<vectors2d.size(); ++i) {
+      vector< string           >::const_iterator n2 = m2.vn.begin() + i;
+      vector< vector< double > >::const_iterator v2 = m2.vv.begin() + i;
+      if (vectors2d[i]) {
+
+        // add vector field names
+        const char   x = *(n2->end()-1);
+        const string n = n2->substr(0,n2->length()-1);
+        for (unsigned j=0; j<=D2; ++j, ++n3)
+          *n3 = n + char(x+j);
+
+        // add vector field values
+        for (unsigned j=0; j<D2; ++j, ++v2, ++v3)
+          for (unsigned l=0; l<Nzsteps; ++l)
+            copy(v2->begin(),v2->end(),(v3->begin()) + (l*N2));
+        ++v3;
+
+        ++i;  // one variable was added
+      }
+      else {
+
+        // add scalar field name/values
+        *n3 = *n2;
         for (unsigned l=0; l<Nzsteps; ++l)
-          m3.vv[j+d].insert(m3.vv[j+d].end(),m2.vv[i+d].begin(),m2.vv[i+d].end());
-      m3.vv[j+2].assign(Nzsteps*m2.n(),0.);
-      i+=1;  // skip y-component
-      j+=2;  // skip y and z-component
+          copy(v2->begin(),v2->end(),(v3->begin()) + (l*N2));
+        ++n3;
+        ++v3;
 
+      }
     }
-    else {
 
-      // add scalar field
-      for (unsigned l=0; l<Nzsteps; ++l)
-        m3.vv[j].insert(m3.vv[j].end(),m2.vv[i].begin(),m2.vv[i].end());
-
-    }
+    // set extrusion layer values
+    v3 = m3.vv.begin() + D2;  // extruded coordinate
+    for (unsigned l=0; l<Nzsteps; ++l)
+      fill_n((v3->begin()) + (l*N2),N2,m_zsteps[l]);
   }
-  cout << "info: point cloud variable values copy." << endl;
-
-
-  cout << "info: point cloud extrusion layer values..." << endl;
-  m3.vv[dim].clear();
-  for (unsigned l=0; l<Nzsteps; ++l)
-    m3.vv[dim].insert(m3.vv[dim].end(),m2.n(),m_zsteps[l]);
-  cout << "info: point cloud extrusion layer values." << endl;
+  cout << "info: variable names and values." << endl;
 
 
   // -- zones --
@@ -100,7 +107,7 @@ void t_extrude::transform(GetPot& o, mmesh& m2)
   cout << "info: allocate new zones..." << endl;
   vector< mzone* > vzbottomtop;
   for (unsigned i=0; i<m2.vz.size(); ++i) {
-    if (m2.d(i)==dim) {
+    if (m2.d(i)==D2) {
       vzbottomtop.push_back(&(m2.vz[i]));
       cout << "info: zone to replicate: \"" << m2.vz[i].n << "\"" << endl;
     }
@@ -128,15 +135,15 @@ void t_extrude::transform(GetPot& o, mmesh& m2)
     zt = *vzbottomtop[i];  zt.n.append("_extruded_top");
 
     // shift top zone element indices and flip orientation
-    const unsigned Nshift = (Nzsteps-1)*m2.n();
+    const unsigned Nshift = (Nzsteps-1)*N2;
     for (unsigned c=0; c<zt.e2n.size(); ++c) {
       vector< unsigned >& en = zt.e2n[c].n;
       for (unsigned j=0; j<en.size(); ++j)
         en[j] += Nshift;
       switch (zt.t) {
         case FELINESEG:
-        case FETRIANGLE:      { swap(en[0],en[1]); } break;
-        case FEQUADRILATERAL: { swap(en[0],en[2]); } break;
+        case FETRIANGLE:      { std::swap(en[0],en[1]); } break;
+        case FEQUADRILATERAL: { std::swap(en[0],en[2]); } break;
         case FEPOLYGON:  // not extrudible (yet)
         case ORDERED:
         default: break;
@@ -155,11 +162,11 @@ void t_extrude::transform(GetPot& o, mmesh& m2)
         melem& ei = m2.vz[t].e2n[i];
         melem  ef = ei;
         for (unsigned n=0; n<ei.n.size(); ++n)
-          ei.n[n] += m2.n();
+          ei.n[n] += N2;
         ef.n.insert(ef.n.end(),ei.n.begin(),ei.n.end());
         switch (m2.vz[t].t) {
-          case FEQUADRILATERAL: { swap(ef.n[6],ef.n[7]); }
-          case FELINESEG:       { swap(ef.n[2],ef.n[3]); }
+          case FEQUADRILATERAL: { std::swap(ef.n[6],ef.n[7]); }
+          case FELINESEG:       { std::swap(ef.n[2],ef.n[3]); }
           default: break;
         }
         m3.vz[t].e2n.push_back(ef);
@@ -171,12 +178,14 @@ void t_extrude::transform(GetPot& o, mmesh& m2)
 
 
   m2 = m3;
-  cout << "::extrusion [n/e]: " << m2.n() << " / " << m2.e() << "." << endl;
+  cout << "info: [d/n/e]: " << m2.d() << '/' << m2.n() << '/' << m2.e() << "." << endl;
 }
 
 
-void t_extrude::zsteps_idf(const string& str)
+void t_extrude::zsteps_idf(const std::string& str)
 {
+  using namespace std;
+
   double z1=0., z2=1.;
   unsigned n=2;
   string s = str;
@@ -195,8 +204,10 @@ void t_extrude::zsteps_idf(const string& str)
 }
 
 
-void t_extrude::zsteps_geomp(const string& str)
+void t_extrude::zsteps_geomp(const std::string& str)
 {
+  using namespace std;
+
   double z1=0., r1=1., r2=1., z2=1.;
   unsigned n=2;
   string s = str;
@@ -217,7 +228,7 @@ void t_extrude::zsteps_geomp(const string& str)
     // first do two geom. progressions starting with 1.; if ni is odd,
     // last element of g1 is averaged with last value of g2
     vector< double > g1(1,1.),
-                     g2(1,1.);
+                          g2(1,1.);
     for (unsigned i=1; g1.size()+g2.size()<ni; ++i) {
       g1.push_back(r1*g1[i-1]);
       g2.push_back(r2*g2[i-1]);
