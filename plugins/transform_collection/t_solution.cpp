@@ -32,7 +32,7 @@ void t_solution::transform(GetPot& o, mmesh& mold)
     const int argc = 2;
     char*     argv[] = { (char*) "", const_cast< char* >(fn.c_str()) };
     GetPot o2(argc,argv);
-    const string key(aux::extension(f));
+    const string key(aux::extension(fn));
     auto_ptr< m::mfinput > p(mfactory< mfinput >::instance()->Create(key));
     p->read(o2,mnew);
   }
