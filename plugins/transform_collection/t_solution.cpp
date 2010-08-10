@@ -1,26 +1,28 @@
 
+#include <memory>
 #include "mfactory.h"
-//include "f_plt.h"
 #include "t_solution.h"
 
-using namespace std;
 using namespace m;
 
 
-Register< mtransform,t_solution > mt_solution("-tsol","[str]: Tecplot (nodal) solution file");
+Register< mtransform,t_solution > mt_solution(2,"-tsol","[str]: read solution from another file (substitution)",
+                                                "-tapp","[str]: read solution from another file (append)");
 
 
 namespace aux {
-  string extension(const string& fn)
+  std::string extension(const std::string& fn)
   {
-    const string::size_type idx = fn.rfind('.');
-    return fn.substr(idx!=string::npos? idx:0);
+    const std::string::size_type idx = fn.rfind('.');
+    return fn.substr(idx!=std::string::npos? idx:0);
   }
 }
 
 
 void t_solution::transform(GetPot& o, mmesh& mold)
 {
+  using namespace std;
+  const string k  = o[o.get_cursor()];
   const string fn = o.get(o.inc_cursor(),"");
   mmesh mnew;
 
@@ -30,10 +32,9 @@ void t_solution::transform(GetPot& o, mmesh& mold)
     const int argc = 2;
     char*     argv[] = { (char*) "", const_cast< char* >(fn.c_str()) };
     GetPot o2(argc,argv);
-    const string key(aux::extension(fn));
-    mfinput* p = mfactory< mfinput >::instance()->Create(key);
+    const string key(aux::extension(f));
+    auto_ptr< m::mfinput > p(mfactory< mfinput >::instance()->Create(key));
     p->read(o2,mnew);
-    delete p;
   }
   cout << "read: \"" << fn << "\"." << endl;
 
@@ -51,10 +52,21 @@ void t_solution::transform(GetPot& o, mmesh& mold)
   }
 
 
-  cout << "info: replace point cloud..." << endl;
-  mold.vn.swap(mnew.vn);
-  mold.vv.swap(mnew.vv);
-  cout << "info: replace point cloud." << endl;
+  if (k=="-tsol") {
+    cout << "info: replace point cloud..." << endl;
+    mold.vn.swap(mnew.vn);
+    mold.vv.swap(mnew.vv);
+    cout << "info: replace point cloud." << endl;
+  }
+  else if (k=="-tapp") {
+    cout << "info: append point cloud..." << endl;
+    // append variables with different names
+    for (unsigned i=0; i<mnew.v(); ++i)
+      if (!count(mold.vn.begin(),mold.vn.end(),mnew.vn[i])) {
+        mold.vn.push_back(mnew.vn[i]);
+        mold.vv.push_back(mnew.vv[i]);
+      }
+    cout << "info: append point cloud." << endl;
+  }
 }
-
 

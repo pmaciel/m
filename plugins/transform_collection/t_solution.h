@@ -3,7 +3,7 @@
 
 #include "mkernel.h"
 
-// Solution from Tecplot file transform module
+// Read solution from another file transform module
 class t_solution : public m::mtransform {
  public:
   void transform(GetPot& o, m::mmesh& m2);
