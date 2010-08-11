@@ -14,16 +14,18 @@ class t_manip : public m::mtransform {
   void vmv(m::mmesh& m, const unsigned i, const unsigned j);
   void vren(m::mmesh& m, const unsigned i, const std::string& n);
   void vadd(m::mmesh& m, const std::string& n, const std::string& f);
+  void vkeep(m::mmesh& m, const std::string& s);
 
   // zone operations, per se
   void zrm(m::mmesh& m, const unsigned i);
   void zmv(m::mmesh& m, const unsigned i, const unsigned j);
   void zren(m::mmesh& m, const unsigned i, const std::string& n);
+  void zkeep(m::mmesh& m, const std::string& s);
 
   // utilities
   unsigned getvindex(const m::mmesh& m, const std::string& n);
   unsigned getzindex(const m::mmesh& m, const std::string& n);
-  std::vector< std::pair< std::string,std::string > > getoperations(const std::string& s);
+  std::vector< std::pair< std::string,std::string > > getoperands(const std::string& s);
 };
 
 #endif

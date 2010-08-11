@@ -1,5 +1,4 @@
 
-#include <sstream>
 #include "mfactory.h"
 #include "mfunction.h"
 #include "t_manip.h"
@@ -7,21 +6,32 @@
 using namespace m;
 
 
-Register< mtransform,t_manip > mt_manip(7,"-tvrm", "[str:...] variable removal, by name",
-                                          "-tvmv", "[str=str:...]   variable moving, from name, to before name",
-                                          "-tvren","[str=str:...]   variable rename, from name, to name",
-                                          "-tvadd","[str[=fun]:...] variable addition, optionally set by function",
-                                          "-tzrm", "[str:...] zone removal, by name",
-                                          "-tzmv", "[str=str:...]   zone moving, from name, to before name",
-                                          "-tzren","[str=str:...]   zone rename, from name, to name");
+Register< mtransform,t_manip > mt_manip(9,"-tvrm",  "[str:...]       variable removal, by name",
+                                          "-tvkeep","[str:...]       ... to keep, removing the rest",
+                                          "-tvmv",  "[str=str:...]   ... moving, from name, to before name",
+                                          "-tvren", "[str=str:...]   ... rename, from name, to name",
+                                          "-tvadd", "[str[=fun]:...] ... addition, optionally set by function",
+                                          "-tzrm",  "[str:...]       zone removal, by name",
+                                          "-tzkeep","[str:...]       ... to keep, removing the rest",
+                                          "-tzmv",  "[str=str:...]   ... moving, from name, to before name",
+                                          "-tzren", "[str=str:...]   ... rename, from name, to name");
 
 
 void t_manip::transform(GetPot& o, mmesh& m)
 {
-  // get key and value
-  const std::string k = o[o.get_cursor()];
-  const std::vector< std::pair< std::string,std::string > > vops = getoperations(o.get(o.inc_cursor(),""));
-  for (std::vector< std::pair< std::string,std::string > >::const_iterator i=vops.begin(); i<vops.end(); ++i) {
+  using std::string;
+
+  // get options key and value
+  const string k = o[o.get_cursor()],
+               v = o.get(o.inc_cursor(),"");
+
+  // operations that apply in one shot
+       if (k=="-tvkeep") { vkeep(m,v); return; }
+  else if (k=="-tzkeep") { zkeep(m,v); return; }
+
+  // operations that apply multiple times
+  const std::vector< std::pair< string,string > > vops = getoperands(v);
+  for (std::vector< std::pair< string,string > >::const_iterator i=vops.begin(); i<vops.end(); ++i) {
          if (k=="-tvrm")  { vrm(m,getvindex(m,i->first)); }
     else if (k=="-tvmv")  { vmv(m,getvindex(m,i->first),getvindex(m,i->second)); }
     else if (k=="-tvren") { vren(m,getvindex(m,i->first),i->second); }
@@ -74,6 +84,23 @@ void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f)
   }
 }
 
+void t_manip::vkeep(m::mmesh& m, const std::string& s)
+{
+  using std::string;
+  using std::vector;
+
+  // get list of (variable) names to keep
+  vector< std::pair< string,string > > vops = getoperands(s);
+  vector< string > vkeep;
+  for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
+    vkeep.push_back(i->first);
+
+  // remove variables not in that list (apply in reverse for performance)
+  for (vector< string >::const_reverse_iterator i=m.vn.rbegin(); i!=m.vn.rend(); ++i)
+    if (!std::count(vkeep.begin(),vkeep.end(),*i))
+      vrm(m,getvindex(m,*i));
+}
+
 void t_manip::zrm(mmesh& m, const unsigned i)
 {
   m.vz.erase(m.vz.begin()+i);
@@ -88,6 +115,23 @@ void t_manip::zmv(mmesh& m, const unsigned i, const unsigned j)
 void t_manip::zren(mmesh& m, const unsigned i, const std::string& n)
 {
   m.vz[i].n = n;
+}
+
+void t_manip::zkeep(m::mmesh& m, const std::string& s)
+{
+  using std::string;
+  using std::vector;
+
+  // get list of (zone) names to keep
+  vector< std::pair< string,string > > vops = getoperands(s);
+  vector< string > zkeep;
+  for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
+    zkeep.push_back(i->first);
+
+  // remove zones not in that list (apply in reverse for performance)
+  for (vector< mzone >::const_reverse_iterator i=m.vz.rbegin(); i!=m.vz.rend(); ++i)
+    if (!std::count(zkeep.begin(),zkeep.end(),i->n))
+      zrm(m,getzindex(m,i->n));
 }
 
 unsigned t_manip::getvindex(const mmesh& m, const std::string& n)
@@ -111,7 +155,7 @@ unsigned t_manip::getzindex(const mmesh& m, const std::string& n)
 }
 
 std::vector< std::pair< std::string,std::string > >
-  t_manip::getoperations(const std::string& s)
+  t_manip::getoperands(const std::string& s)
 {
   using std::string;
 
@@ -127,6 +171,7 @@ std::vector< std::pair< std::string,std::string > >
     if (s.find("=",p1)<s.find(":",p1)) {
       p1 = p2+1;
       p2 = s.find(":",p1);
+
       p.second = s.substr(p1,(p2==string::npos? p2:p2-p1));
       /* older version, maybe works better
         string s2 = s.substr(p1,(p2==string::npos? p2:p2-p1));
