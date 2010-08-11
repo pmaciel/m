@@ -11,9 +11,18 @@ Register< mtransform,t_info > mt_info("-ti","current mesh information");
 
 void t_info::transform(GetPot& o, mmesh& m)
 {
+  using std::cout;
+  using std::endl;
+
   cout << "  mesh:  d=" << m.d() << "  n=" << m.n() << "  v=" << m.v() << endl;
-  for (unsigned t=0; t<m.vz.size(); ++t) {
-    const string q = (m.vz[t].t==ORDERED?         "ORDERED"         :
+  for (unsigned t=0; t<m.v(); ++t)
+    cout << "  variable[" << t << "]: \"" << m.vn[t] << "\"" << endl;
+  for (unsigned t=0; t<m.z(); ++t)
+    cout << "  zone[" << t << "]:"
+         << " d=" << m.d(t)
+         << " e=" << m.e(t)
+         << " n=\"" << m.vz[t].n << '"'
+         << " t=" << (m.vz[t].t==ORDERED?         "ORDERED"         :
                      (m.vz[t].t==FELINESEG?       "FELINESEG"       :
                      (m.vz[t].t==FETRIANGLE?      "FETRIANGLE"      :
                      (m.vz[t].t==FEQUADRILATERAL? "FEQUADRILATERAL" :
@@ -23,13 +32,8 @@ void t_info::transform(GetPot& o, mmesh& m)
                      (m.vz[t].t==FEPOLYHEDRON?    "FEPOLYHEDRON"    :
                      (m.vz[t].t==PRISM3?          "PRISM3"          :
                      (m.vz[t].t==PYRAMID4?        "PYRAMID4"        :
-                                                  "(unknown)" ))))))))));
-    cout << "  zone:  d=" << m.d(t) << "  e=" << m.e(t) << "  n=\"" << m.vz[t].n << "\"  t=" << q << endl;
-  }
+                                                  "(unknown)" ))))))))))
 
-  cout << "  variables: ";
-  for (unsigned i=0; i<m.v(); ++i)
-    cout << " \"" << m.vn[i] << '"';
-  cout << endl;
+         << endl;
 }
 
