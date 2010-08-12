@@ -54,15 +54,13 @@ void t_manip::vsort(mmesh& m)
   if (v<=d)
     return;
 
-  // create vector of names / (current) indices
-  vector< pair< string,unsigned > > vn(v);
-  for (unsigned i=d; i<v; ++i)
-    vn[i] = make_pair(m.vn[i],i);
-
-  // sort by name and move (variable) name to new (variable) position
+  // create vector of (variable) names and sort it (excluding coordinates)
+  vector< string > vn(m.vn);
   sort(vn.begin()+d,vn.end());
+
+  // move (variable) name to new (variable) position
   for (unsigned i=d; i<v; ++i)
-    vmv(m,getvindex(m,vn[i].first),i);
+    vmv(m,getvindex(m,vn[i]),i);
 }
 
 void t_manip::vkeep(m::mmesh& m, const std::string& s)
@@ -131,15 +129,15 @@ void t_manip::zsort(mmesh& m)
   if (!z)
     return;
 
-  // create vector of names / (current) indices
-  vector< pair< string,unsigned > > zn(z);
+  // create vector of (zone) names and sort it
+  vector< string > zn(z);
   for (unsigned i=0; i<z; ++i)
-    zn[i] = make_pair(m.vz[i].n,i);
-
-  // sort by name and move (zone) name to new (zone) position
+    zn[i] = m.vz[i].n;
   sort(zn.begin(),zn.end());
+
+  // move (zone) name to new (zone) position
   for (unsigned i=0; i<z; ++i)
-    zmv(m,getzindex(m,zn[i].first),i);
+    zmv(m,getzindex(m,zn[i]),i);
 }
 
 void t_manip::zkeep(m::mmesh& m, const std::string& s)
