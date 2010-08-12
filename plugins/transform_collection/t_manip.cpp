@@ -6,27 +6,31 @@
 using namespace m;
 
 
-Register< mtransform,t_manip > mt_manip(9,"-tvrm",  "[str:...]       variable removal, by name",
-                                          "-tvkeep","[str:...]       ... to keep, removing the rest",
-                                          "-tvmv",  "[str=str:...]   ... moving, from name, to before name",
-                                          "-tvren", "[str=str:...]   ... rename, from name, to name",
-                                          "-tvadd", "[str[=fun]:...] ... addition, optionally set by function",
-                                          "-tzrm",  "[str:...]       zone removal, by name",
-                                          "-tzkeep","[str:...]       ... to keep, removing the rest",
-                                          "-tzmv",  "[str=str:...]   ... moving, from name, to before name",
-                                          "-tzren", "[str=str:...]   ... rename, from name, to name");
+Register< mtransform,t_manip > mt_manip(11,"-tvsort","                variable sort by name (excluding coordinates)",
+                                           "-tvkeep","[str:...]       ... to keep, removing the rest",
+                                           "-tvrm",  "[str:...]       ... removal, by name",
+                                           "-tvmv",  "[str=str:...]   ... moving, from name, to before name",
+                                           "-tvren", "[str=str:...]   ... rename, from name, to name",
+                                           "-tvadd", "[str[=fun]:...] ... addition, optionally set by function",
+                                           "-tzsort","                zone sort by name",
+                                           "-tzkeep","[str:...]       ... to keep, removing the rest",
+                                           "-tzrm",  "[str:...]       ... removal, by name",
+                                           "-tzmv",  "[str=str:...]   ... moving, from name, to before name",
+                                           "-tzren", "[str=str:...]   ... rename, from name, to name");
 
 
 void t_manip::transform(GetPot& o, mmesh& m)
 {
   using std::string;
 
-  // get options key and value
+  // get options key
   const string k = o[o.get_cursor()],
-               v = o.get(o.inc_cursor(),"");
+               v = (k=="-tvsort"||k=="-tzsort"? "" : o.get(o.inc_cursor(),""));
 
   // operations that apply in one shot
-       if (k=="-tvkeep") { vkeep(m,v); return; }
+       if (k=="-tvsort") { vsort(m);   return; }
+  else if (k=="-tzsort") { zsort(m);   return; }
+  else if (k=="-tvkeep") { vkeep(m,v); return; }
   else if (k=="-tzkeep") { zkeep(m,v); return; }
 
   // operations that apply multiple times
@@ -40,6 +44,42 @@ void t_manip::transform(GetPot& o, mmesh& m)
     else if (k=="-tzmv")  { zmv(m,getzindex(m,i->first),getzindex(m,i->second)); }
     else if (k=="-tzren") { zren(m,getzindex(m,i->first),i->second); }
   }
+}
+
+void t_manip::vsort(mmesh& m)
+{
+  using namespace std;
+  const unsigned d = m.d(),
+                 v = m.v();
+  if (v<=d)
+    return;
+
+  // create vector of names / (current) indices
+  vector< pair< string,unsigned > > vn(v);
+  for (unsigned i=d; i<v; ++i)
+    vn[i] = make_pair(m.vn[i],i);
+
+  // sort by name and move (variable) name to new (variable) position
+  sort(vn.begin()+d,vn.end());
+  for (unsigned i=d; i<v; ++i)
+    vmv(m,getvindex(m,vn[i].first),i);
+}
+
+void t_manip::vkeep(m::mmesh& m, const std::string& s)
+{
+  using std::string;
+  using std::vector;
+
+  // get list of (variable) names to keep
+  vector< std::pair< string,string > > vops = getoperands(s);
+  vector< string > vkeep;
+  for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
+    vkeep.push_back(i->first);
+
+  // remove variables not in that list (apply in reverse for performance)
+  for (vector< string >::const_reverse_iterator i=m.vn.rbegin(); i!=m.vn.rend(); ++i)
+    if (!std::count(vkeep.begin(),vkeep.end(),*i))
+      vrm(m,getvindex(m,*i));
 }
 
 void t_manip::vrm(mmesh& m, const unsigned i)
@@ -84,37 +124,22 @@ void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f)
   }
 }
 
-void t_manip::vkeep(m::mmesh& m, const std::string& s)
+void t_manip::zsort(mmesh& m)
 {
-  using std::string;
-  using std::vector;
+  using namespace std;
+  const unsigned z = m.z();
+  if (!z)
+    return;
 
-  // get list of (variable) names to keep
-  vector< std::pair< string,string > > vops = getoperands(s);
-  vector< string > vkeep;
-  for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
-    vkeep.push_back(i->first);
+  // create vector of names / (current) indices
+  vector< pair< string,unsigned > > zn(z);
+  for (unsigned i=0; i<z; ++i)
+    zn[i] = make_pair(m.vz[i].n,i);
 
-  // remove variables not in that list (apply in reverse for performance)
-  for (vector< string >::const_reverse_iterator i=m.vn.rbegin(); i!=m.vn.rend(); ++i)
-    if (!std::count(vkeep.begin(),vkeep.end(),*i))
-      vrm(m,getvindex(m,*i));
-}
-
-void t_manip::zrm(mmesh& m, const unsigned i)
-{
-  m.vz.erase(m.vz.begin()+i);
-}
-
-void t_manip::zmv(mmesh& m, const unsigned i, const unsigned j)
-{
-  m.vz.insert(m.vz.begin()+j,*(m.vz.begin()+i));
-  zrm(m,i<j? i:i+1);
-}
-
-void t_manip::zren(mmesh& m, const unsigned i, const std::string& n)
-{
-  m.vz[i].n = n;
+  // sort by name and move (zone) name to new (zone) position
+  sort(zn.begin(),zn.end());
+  for (unsigned i=0; i<z; ++i)
+    zmv(m,getzindex(m,zn[i].first),i);
 }
 
 void t_manip::zkeep(m::mmesh& m, const std::string& s)
@@ -132,6 +157,22 @@ void t_manip::zkeep(m::mmesh& m, const std::string& s)
   for (vector< mzone >::const_reverse_iterator i=m.vz.rbegin(); i!=m.vz.rend(); ++i)
     if (!std::count(zkeep.begin(),zkeep.end(),i->n))
       zrm(m,getzindex(m,i->n));
+}
+
+void t_manip::zrm(mmesh& m, const unsigned i)
+{
+  m.vz.erase(m.vz.begin()+i);
+}
+
+void t_manip::zmv(mmesh& m, const unsigned i, const unsigned j)
+{
+  m.vz.insert(m.vz.begin()+j,*(m.vz.begin()+i));
+  zrm(m,i<j? i:i+1);
+}
+
+void t_manip::zren(mmesh& m, const unsigned i, const std::string& n)
+{
+  m.vz[i].n = n;
 }
 
 unsigned t_manip::getvindex(const mmesh& m, const std::string& n)
