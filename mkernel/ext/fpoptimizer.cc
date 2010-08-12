@@ -1,8012 +1,11107 @@
-#line 1 "fpoptimizer/fpoptimizer_header.txt"
 /***************************************************************************\
-|* Function Parser for C++ v3.3.2                                          *|
+|* Function Parser for C++ v4.2                                            *|
 |*-------------------------------------------------------------------------*|
 |* Function optimizer                                                      *|
 |*-------------------------------------------------------------------------*|
 |* Copyright: Joel Yliluoma                                                *|
+|*                                                                         *|
+|* This library is distributed under the terms of the                      *|
+|* GNU Lesser General Public License version 3.                            *|
+|* (See lgpl.txt and gpl.txt for the license text.)                        *|
 \***************************************************************************/
 
 /* NOTE:
-   This is a concatenation of all the header and source files of the
-   original optimizer source code. All the code has been concatenated
-   into this single file for convenience of usage (in other words, to
-   simply use the optimizer, it's enough to add this file to the project
-   rather than a multitude of files which the original optimizer source
-   code is composed of).
-
-   Thus this file exists for the usage of the Function parser library
-   only, and is not suitable for developing it further. If you want to
-   develop the library further, you should download the development
-   version of the library, which has all the original source files.
- */
+ This file contains generated code (from the optimizer sources) and is
+ not intended to be modified by hand. If you want to modify the optimizer,
+ download the development version of the library.
+*/
 
 #include "fpconfig.hh"
 #ifdef FP_SUPPORT_OPTIMIZER
-
-
-#line 1 "fpoptimizer/fpoptimizer_hash.hh"
-#ifndef FPoptimizerHashHH
-#define FPoptimizerHashHH
-
+#include "fparser.hh"
+#include "fptypes.hh"
+#define tZ3 (p0.min
+#define tY3 size_t>
+#define tX3 ),has_min(
+#define tW3 ;size_t
+#define tV3 );Value
+#define tU3 ?cNotNot:cAbsNotNot);
+#define tT3 nD cIf?
+#define tS3 ).xP 2))
+#define tR3 ).xP 1))
+#define tQ3 >yM1 lF
+#define tP3 xE2 eV1
+#define tO3 yD,y1))
+#define tN3 info.xR
+#define tM3 ),info,
+#define tL3 .n32 p.
+#define tK3 sim.xA
+#define tJ3 addgroup
+#define tI3 lR1 2)
+#define tH3 {pow.lH1
+#define tG3 "Found "
+#define tF3 if(eM1==
+#define tE3 stackpos
+#define tD3 "dup(%u) "
+#define tC3 "%d, cost "
+#define tB3 FuncParsers
+#define tA3 "immed "<<
+#define t93 "PUSH ";nX3(
+#define t83 .GetOpcode
+#define t73 eH2 assert
+#define t63 stderr
+#define t53 sep2=" "
+#define t43 FPHASH_CONST
+#define t33 cache_needed[
+#define t23 fprintf
+#define t13 "Applying "
+#define t03 ||tree t83
+#define eZ3 HANDLE_UNARY_CONST_FUNC
+#define eY3 within,
+#define eX3 ==false
+#define eW3 ),Depth(
+#define eV3 ),Hash(
+#define eU3 1)yK1){
+#define eT3 c_count
+#define eS3 s_count
+#define eR3 else n5
+#define eQ3 c01 max
+#define eP3 c01 min
+#define eO3 =fp_pow
+#define eN3 else{m.
+#define eM3 .l22&&(
+#define eL3 ,cMul);
+#define eK3 codes[b
+#define eJ3 whydump
+#define eI3 lD1.c93
+#define eH3 nparams
+#define eG3 first!=
+#define eF3 true,1,
+#define eE3 cTan,l2
+#define eD3 cLog,l2
+#define eC3 cAtan2,
+#define eB3 x4 0,
+#define eA3 cAbs x4
+#define e93 std::cK
+#define e83 :tree
+#define e73 base,iQ
+#define e63 lH1 cC.
+#define e53 .data.
+#define e43 iK;++b)
+#define e33 IfBalanceGood
+#define e23 =false;
+#define e13 :{n21 r=
+#define e03 iQ(1)))
+#define cZ3 .second
+#define cY3 ]cZ3
+#define cX3 ].first
+#define cW3 Ne_Mask
+#define cV3 Gt_Mask
+#define cU3 Lt_Mask
+#define cT3 FindPos
+#define cS3 (lR1 a),
+#define cR3 public:
+#define cQ3 result
+#define cP3 cQ3[n]
+#define cO3 cQ3 yQ
+#define cN3 }lO static
+#define cM3 cQ3))iF1
+#define cL3 cQ3(
+#define cK3 yI tY&b
+#define cJ3 ++a)if(
+#define cI3 switch(
+#define cH3 cM tJ3)
+#define cG3 cM yB1
+#define cF3 middle2
+#define cE3 )const
+#define cD3 (cE3{
+#define cC3 (value
+#define cB3 pclone
+#define cA3 fpdata
+#define c93 Immeds
+#define c83 CalculateGroupFunction
+#define c73 ,cD2 cC2 start_at,y93
+#define c63 ,tree
+#define c53 b.Value)
+#define c43 b.Opcode)
+#define c33 .SetParamsMove(
+#define c23 x5(),x91
+#define c13 0x1},{
+#define c03 newpow
+#define yZ3 yI tW&
+#define yY3 change
+#define yX3 (count
+#define yW3 133,2,
+#define yV3 Params
+#define yU3 Needs
+#define yT3 byteCode
+#define yS3 cQ3;}
+#define yR3 AddFrom(
+#define yQ3 cLog2by
+#define yP3 factor_t
+#define yO3 value1
+#define yN3 ))nT iS1
+#define yM3 >(iQ(1),
+#define yL3 )l23::
+#define yK3 model);
+#define yJ3 has_min)
+#define yI3 {iQ tmp=
+#define yH3 x5());tC
+#define yG3 iO ifp2
+#define yF3 ,nU 1,
+#define yE3 nR[++IP]
+#define yD3 .eK1 n]
+#define yC3 .what nO1
+#define yB3 )yK1){iQ
+#define yA3 cLog);n3
+#define y93 t6 info
+#define y83 Ge0Lt1
+#define y73 1),iQ(1));
+#define y63 yS3 case
+#define y53 cQ3.max
+#define y43 cQ3.min
+#define y33 =y3 a));if(
+#define y23 iG cQ3
+#define y13 if(&*tX){
+#define y03 y7 cMul);
+#define xZ3 (*this c63
+#define xY3 ,nZ1);lB
+#define xX3 ){if(
+#define xW3 default_function_handling
+#define xV3 n6 2,cAdd);
+#define xU3 n6 1,
+#define xT3 .empty()
+#define xS3 stack e72)
+#define xR3 stack[xS3-
+#define xQ3 stack yX
+#define xP3 )){n5 iQ(
+#define xO3 ),child);
+#define xN3 ;range.n52
+#define xM3 lN 0));
+#define xL3 nR[IP]==
+#define xK3 opcodes
+#define xJ3 did_muli
+#define xI3 y7 data.
+#define xH3 =GetParam(
+#define xG3 ;if(half
+#define xF3 break;}}
+#define xE3 *xB)[a].
+#define xD3 yC<bool>
+#define xC3 e1(),yC<
+#define xB3 sizeof(
+#define xA3 cAbsIf,
+#define x93 225496,
+#define x83 x73 tL
+#define x73 456911
+#define x63 444,{3,
+#define x53 Gt0Le1
+#define x43 402,{3,
+#define x33 398,{3,
+#define x23 0x12 y4
+#define x13 |lR 0,
+#define x03 cI3 n02.first tV2
+#define nZ3 param.
+#define nY3 lC1;case
+#define nX3 DumpTree
+#define nW3 &&p.max
+#define nV3 cAdd i01
+#define nU3 (op1==
+#define nT3 lR3 n91
+#define nS3 cAbsIf)
+#define nR3 ,leaf1 lN
+#define nQ3 Become(
+#define nP3 iterator
+#define nO3 parent
+#define nN3 insert(i
+#define nM3 lO bool
+#define nL3 newrel
+#define nK3 b_needed
+#define nJ3 cachepos
+#define nI3 half=
+#define nH3 ,tS1&i6
+#define nG3 src_pos
+#define nF3 xS2|eS1)
+#define nE3 reserve(
+#define nD3 lO void
+#define nC3 treeptr
+#define nB3 }case lA2
+#define nA3 .begin();
+#define n93 .resize(
+#define n83 };enum
+#define n73 eF1 void
+#define n63 ImmedTag
+#define n53 lO class
+#define n43 a,const
+#define n33 RefCount
+#define n23 :l9 m.eB1
+#define n13 (half&63)-1;
+#define n03 Birth();
+#define lZ3 typename
+#define lY3 mulgroup
+#define lX3 return
+#define lW3 unsigned
+#define lV3 cost_t
+#define lU3 middle
+#define lT3 ,l0 2,
+#define lS3 info l83
+#define lR3 ;tree.
+#define lQ3 sqrt_cost
+#define lP3 const int
+#define lO3 lE1 tmp2)
+#define lN3 cQ3=
+#define lM3 mul_count
+#define lL3 maxValue1
+#define lK3 minValue1
+#define lJ3 maxValue0
+#define lI3 minValue0
+#define lH3 ValueType
+#define lG3 abs_mul
+#define lF3 lN a));
+#define lE3 pos_set
+#define lD3 nD1);}if(
+#define lC3 cI3 tB
+#define lB3 subtree
+#define lA3 invtree
+#define l93 specs;if(r.found){
+#define l83 =(*xB)[
+#define l73 rulenumit
+#define l63 cHypot,l0
+#define l53 yV3.
+#define l43 MakeEqual
+#define l33 lR3 eI1
+#define l23 ;nZ l5
+#define l13 nA1,l5::
+#define l03 e83.lT
+#define iZ2 (cQ3.
+#define iY2 nA1,{l5::
+#define iX2 newbase
+#define iW2 branch1op
+#define iV2 branch2op
+#define iU2 (cJ lN iS
+#define iT2 overlap
+#define iS2 truth_b
+#define iR2 truth_a
+#define iQ2 found_dup
+#define iP2 );lB yU
+#define iO2 1,l91+1);
+#define iN2 goto cX
+#define iM2 constvalue
+#define iL2 .l22 nW3
+#define iK2 1,2,1,4,1,2,
+#define iJ2 Plan_Has(
+#define iI2 StackMax)
+#define iH2 ;}void
+#define iG2 +1)iH2
+#define iF2 namespace
+#define iE2 template
+#define iD2 iE2<
+#define iC2 inverted
+#define iB2 IsNever:
+#define iA2 m.has_min
+#define i92 >=iQ(0))
+#define i82 model.
+#define i72 iftree
+#define i62 }cI3
+#define i52 depcodes
+#define i42 tree iK)
+#define i32 explicit
+#define i22 cPow,tA1
+#define i12 :start_at()
+#define i02 const xI
+#define tZ2 VarBegin
+#define tY2 ].data);
+#define tX2 y1)));nZ
+#define tW2 lL1 tW
+#define tV2 ){case
+#define tU2 lR1 1)
+#define tT2 begin(),
+#define tS2 cond_add
+#define tR2 cond_mul
+#define tQ2 cond_and
+#define tP2 if(op==
+#define tO2 const std::eL
+#define tN2 IsLogicalValue(lR1
+#define tM2 const tW
+#define tL2 bool cL1
+#define tK2 exponent
+#define tJ2 costree
+#define tI2 sintree
+#define tH2 leaf_count
+#define tG2 sub_params
+#define tF2 nD cLog2&&
+#define tE2 printf(
+#define tD2 cbrt_count
+#define tC2 sqrt_count
+#define tB2 tK2);
+#define tA2 PlusInf
+#define t92 Finite
+#define t82 p1.eO1 p1)
+#define t72 p1 iO ifp1
+#define t62 pcall_tree
+#define t52 ;sim.Push(
+#define t42 after_powi
+#define t32 GetHash().
+#define t22 info=info;
+#define t12 ;tC lB
+#define t02 (nZ3
+#define eZ2 grammar
+#define eY2 cCos,l2
+#define eX2 xA1 1,
+#define eW2 ,cPow,l1
+#define eV2 e21 0x1 y4
+#define eU2 0x12},{{3,
+#define eT2 cNeg,xO 1,
+#define eS2 std::move(
+#define eR2 MakeNEqual
+#define eQ2 Dump(std::
+#define eP2 isInteger(
+#define eO2 yI iQ&value
+#define eN2 lD1.SubTrees
+#define eM2 lD1.Others
+#define eL2 }break;}case
+#define eK2 *)n02 cZ3;
+#define eJ2 param=*yI
+#define eI2 cZ3)
+#define eH2 tW&tree){
+#define eG2 .n_int_sqrt
+#define eF2 ){tW r;r y7
+#define eE2 tmp lE1 tree);
+#define eD2 lR3 SetParam(
+#define eC2 {tW tmp;tmp y7
+#define eB2 (p0.l22&&p0.max tQ
+#define eA2 (p0.n32 p0.min>=0.0)
+#define e92 for cB1 a=y6 a-->0;)
+#define e82 );tmp2.nK
+#define e72 .size(
+#define e62 if(fp_equal(
+#define e52 );for cB1 a=
+#define e42 Suboptimal
+#define e32 break;i62
+#define e22 e72);++
+#define e12 Comparison
+#define e02 needs_flip
+#define cZ2 value]
+#define cY2 {l5::yK,{l5
+#define cX2 );nR[xN2.ofs
+#define cW2 ~size_t(0)
+#define cV2 ,yI void*)&
+#define cU2 constraints=
+#define cT2 ||(cond.cB yG2
+#define cS2 .constraints
+#define cR2 ,o);o<<"\n";
+#define cQ2 Rule&rule,
+#define cP2 tree))c9
+#define cO2 (leaf1 lN
+#define cN2 if(iP Find(
+#define cM2 }data;data.
+#define cL2 (lY3
+#define cK2 info.lS[b].
+#define cJ2 ,l7 x23
+#define cI2 for(lZ3
+#define cH2 );break;}
+#define cG2 <nO yH;++a)
+#define cF2 else{xB=new
+#define cE2 tree.GetHash()
+#define cD2 tM2&tree
+#define cC2 ,const cV&
+#define cB2 >::res,b8<
+#define cA2 n92 true;
+#define c92 mul_item
+#define c82 innersub
+#define c72 ;t1=!t1;}
+#define c62 cbrt_cost
+#define c52 best_cost
+#define c42 lC1 lI
+#define c32 fp_mod(m.
+#define c22 nD lQ2){tree x1
+#define c12 nD cNot||
+#define c02 IsAlways
+#define yZ2 condition
+#define yY2 TopLevel)
+#define yX2 per_item
+#define yW2 item_type
+#define yV2 first2
+#define yU2 tL 386426
+#define yT2 Decision
+#define yS2 not_tree
+#define yR2 group_by
+#define yQ2 ->second
+#define yP2 iP DoDup(
+#define yO2 targetpos
+#define yN2 eat_count
+#define yM2 ParamSpec
+#define yL2 ,lW3
+#define yK2 rhs.hash2;}
+#define yJ2 rhs.hash1
+#define yI2 struct
+#define yH2 Forget()
+#define yG2 &&cond eA))
+#define yF2 source_tree
+#define yE2 nD cPow&&tE
+#define yD2 <eD,lV3>
+#define yC2 i1 tK2
+#define yB2 .swap(tmp);
+#define yA2 p1_evenness
+#define y92 isNegative(
+#define y82 ,std::cout)
+#define y72 neg_set
+#define y62 StackTopIs(
+#define y52 cNop,cNop}}
+#define y42 cTanh,cNop,
+#define y32 ;i6.Remember(
+#define y22 :{xW1.hash1
+#define y12 matches
+#define y02 cSin,l2
+#define xZ2 cTan x4
+#define xY2 ,cLog x4
+#define xX2 cCos x4
+#define xW2 tU2 yK1&&
+#define xV2 tree.nS if(
+#define xU2 negated
+#define xT2 ,eN,synth);
+#define xS2 nR yX yE
+#define xR2 ,bool abs){
+#define xQ2 ;lW3
+#define xP2 :8 xQ2
+#define xO2 factor
+#define xN2 ifdata
+#define xM2 best_score
+#define xL2 mulvalue
+#define xK2 pow_item
+#define xJ2 PowiResult
+#define xI2 maxValue
+#define xH2 minValue
+#define xG2 fp_min(x9,
+#define xF2 set_min_max(
+#define xE2 has_min=
+#define xD2 div_tree
+#define xC2 ;else cQ3.
+#define xB2 pow_tree
+#define xA2 preserve
+#define x92 tree nD
+#define x82 dup_or_fetch
+#define x72 nominator]
+#define x62 test_order
+#define x52 shift(index)
+#define x42 rulenumber
+#define x32 AnyParams,l4
+#define x22 ,{1,209,
+#define x12 cLessOrEq,
+#define x02 cTanh x4
+#define nZ2 cMul,xO 2,
+#define nY2 cInv,xO 1,
+#define nX2 GetDepth()
+#define nW2 lE GetParam(
+#define nV2 factor_immed
+#define nU2 changes
+#define nT2 iO leaf2 lN
+#define nS2 iO leaf1 lN
+#define nR2 iO cond lN
+#define nQ2 exp_diff
+#define nP2 ExponentInfo
+#define nO2 lower_bound(
+#define nN2 is_logical
+#define nM2 newrel_and
+#define nL2 c02;if(
+#define nK2 res_stackpos
+#define nJ2 half_pos
+#define nI2 .match_tree
+#define nH2 );tK3 n6 2,
+#define nG2 (tK2
+#define nF2 nF OPCODE
+#define nE2 yC<tY>&
+#define nD2 yC x5&immed,
+#define nC2 fphash_t
+#define nB2 >>1)):(
+#define nA2 CodeTreeData
+#define n92 )lX3
+#define n82 <lW3>&lN2
+#define n72 ;xW1.hash2+=
+#define n62 cB1 a=0;a<
+#define n52 multiply(
+#define n42 ;tK2
+#define n32 has_min&&
+#define n22 var_trees
+#define n12 cOr,lQ 2,
+#define n02 parampair
+#define lZ2 lO inline
+#define lY2 (xO2
+#define lX2 second cZ3;
+#define lW2 second.first;
+#define lV2 {cV start_at;
+#define lU2 )cM lY3)
+#define lT2 changed=true;
+#define lS2 log2_exponent
+#define lR2 yI iQ&v,iQ(lW
+#define lQ2 cAbsNot
+#define lP2 .PullResult()
+#define lO2 dup_fetch_pos
+#define lN2 nR,size_t&l51
+#define lM2 :iP PushImmed(
+#define lL2 Rehash(false)
+#define lK2 GetOpcode()!=
+#define lJ2 *)&*start_at;
+#define lI2 cPow,l2
+#define lH2 ){iQ tK2=
+#define lG2 ;}static y61
+#define lF2 ):Value(Value::
+#define lE2 ,lL 0 cR 2,
+#define lD2 0x4 y4 6144,
+#define lC2 cSin x4
+#define lB2 Value_EvenInt
+#define lA2 SubFunction:{
+#define l92 ParamHolder:{
+#define l82 MakeFalse,{l5
+#define l72 if(list.first
+#define l62 AddCollection
+#define l52 ConditionType
+#define l42 ),lU 3*
+#define l32 yI iQ&v,iQ(lH
+#define l22 has_max
+#define l12 AddOperation(
+#define l02 SpecialOpcode
+#define iZ1 ByteCodeSynth
+#define iY1 synth_it
+#define iX1 fp_max(x9);
+#define iW1 ;n6 2,cPow);
+#define iV1 lJ1 y6++a){
+#define iU1 assimilated
+#define iT1 fraction
+#define iS1 lO nC tY
+#define iR1 DUP_BOTH();
+#define iQ1 -1-offset].
+#define iP1 IsDescendantOf
+#define iO1 parent_opcode)
+#define iN1 TreeCounts
+#define iM1 bool t1 e23
+#define iL1 SetOpcode(
+#define iK1 found_log2
+#define iJ1 div_params
+#define iI1 case c02:
+#define iH1 immed_sum
+#define iG1 OPCODE(opcode)
+#define iF1 break;cQ3*=
+#define iE1 FactorStack x5
+#define iD1 AnyParams,0 cQ
+#define iC1 238799 tL
+#define iB1 cAnd,lQ 2,
+#define iA1 cNot x4
+#define i91 l0 2,6144,
+#define i81 DumpHashesFrom
+#define i71 replacing_slot
+#define i61 RefParams
+#define i51 if_always[
+#define i41 WhatDoWhenCase
+#define i31 exponent_immed
+#define i21 new_base_immed
+#define i11 base_immed
+#define i01 ||op1==
+#define tZ1 data[a cY3
+#define tY1 if(newrel_or==
+#define tX1 MinMaxTree
+#define tW1 ;changed_if
+#define tV1 DUP_ONE(apos);
+#define tU1 flipped
+#define tT1 .UseGetNeeded(
+#define tS1 PowiCache
+#define tR1 e2 2,131,
+#define tQ1 lC1 true;}
+#define tP1 OptimizedUsing
+#define tO1 Var_or_Funcno
+#define tN1 tO1;
+#define tM1 GetParams(
+#define tL1 crc32_t
+#define tK1 signed_chain
+#define tJ1 MinusInf
+#define tI1 n_immeds
+#define tH1 FindClone(xK
+#define tG1 denominator]
+#define tF1 needs_rehash
+#define tE1 AnyWhere_Rec
+#define tD1 minimum_need
+#define tC1 ~lW3(0)
+#define tB1 45,46,47,48,
+#define tA1 l1 162816 tL
+#define t91 constraints&
+#define t81 p1_logical_b
+#define t71 p0_logical_b
+#define t61 p1_logical_a
+#define t51 p0_logical_a
+#define t41 else if(
+#define t31 cache_needed
+#define t21 e2 2,1,e2 2,
+#define t11 treelist
+#define t01 const yC<tW>
+#define eZ1 >::Optimize(){}
+#define eY1 has_bad_balance
+#define eX1 yP3 xO2
+#define eW1 static const iG
+#define eV1 true;min=iQ(0);
+#define eU1 AddParamMove n0
+#define eT1 std::cout<<"POP "
+#define eS1 (lW3
+#define eR1 for eS1 n=
+#define eQ1 Value_IsInteger
+#define eP1 tP1(
+#define eO1 Rehash()c7
+#define eN1 eO1 r);}
+#define eM1 reltype
+#define eL1 SequenceOpcodes
+#define eK1 sep_list[
+#define eJ1 },0,0x4},{{1,
+#define eI1 DelParam(
+#define eH1 ContainsOtherCandidates
+#define eG1 x5(),0},{
+#define eF1 i61);
+#define eE1 },0,0x0},{{
+#define eD1 TreeCountItem
+#define eC1 IsDefined()){
+#define eB1 set_min(fp_floor
+#define eA1 pihalf_limits
+#define e91 tX1<nJ
+#define e81 ParsePowiMuli
+#define e71 MaxChildDepth
+#define e61 repl_param_list,
+#define e51 e31;if(&*start_at){xB=(
+#define e41 ;for(e31=0;a cG2
+#define e31 lW3 a
+#define e21 ,cPow,l7
+#define e11 std::pair<It,It>
+#define e01 cNotNot x4
+#define cZ1 Value_Logical
+#define cY1 new_factor_immed
+#define cX1 y7 leaf1.e7 tree.
+#define cW1 y7 tree.e7
+#define cV1 occurance_pos
+#define cU1 exponent_hash
+#define cT1 exponent_list
+#define cS1 CollectionSet x5
+#define cR1 CollectMulGroup(
+#define cQ1 source_set
+#define cP1 tK2,TreeSet
+#define cO1 pair<iQ,TreeSet>
+#define cN1 TriTruthValue
+#define cM1 produce_count
+#define cL1 operator
+#define cK1 lL1 tG2 yX
+#define cJ1 if(iP FindAndDup(
+#define cI1 retry_anyparams_3
+#define cH1 retry_anyparams_2
+#define cG1 needlist_cached_t
+#define cF1 grammar_rules[*r]
+#define cE1 nA 2 eE1 1,
+#define cD1 yG,std::ostream&o
+#define cC1 <<std::dec<<")";}
+#define cB1 (size_t
+#define cA1 Oneness_NotOne
+#define c91 for cB1 b=0;b<
+#define c81 by_float_exponent
+#define c71 new_exp
+#define c61 CodeTreeImmed(iQ(
+#define c51 end()&&i->first==
+#define c41 lX3 BecomeZero;
+#define c31 lX3 BecomeOne;
+#define c21 if(lS e72)<=lY)
+#define c11 MakesInteger
+#define c01 )cQ3.
+#define yZ1 tO1)
+#define yY1 branch1_backup
+#define yX1 branch2_backup
+#define yW1 exponent_map
+#define yV1 plain_set
+#define yU1 .back().thenbranch
+#define yT1 );iP l12
+#define yS1 ());n6 2 eL3 lB
+#define yR1 );xK c33
+#define yQ1 LightWeight(
+#define yP1 ,i6 xT2
+#define yO1 if cC3
+#define yN1 set_max(fp_ceil cD
+#define yM1 {iD2
+#define yL1 0.5)iW1 lB
+#define yK1 .IsImmed()
+#define yJ1 should_regenerate=true;
+#define yI1 should_regenerate,
+#define yH1 Collection
+#define yG1 RelationshipResult
+#define yF1 Subdivide_Combine(
+#define yE1 iP nP 1
+#define yD1 long value
+#define yC1 PositionalParams,0
+#define yB1 subgroup
+#define yA1 best_sep_factor
+#define y91 SynthesizeParam
+#define y81 needlist_cached
+#define y71 lW3 index){lX3
+#define y61 inline lW3
+#define y51 cLess,l1
+#define y41 opcode,bool pad
+#define y31 n_occurrences
+#define y21 found_log2by
+#define y11 eI1 a);}
+#define y01 best_sep_cost
+#define xZ1 MultiplicationRange
+#define xY1 if(keep_powi)
+#define xX1 n_stacked
+#define xW1 NewHash
+#define xV1 AnyParams_Rec
+#define xU1 continue;
+#define xT1 nQ3 value lN 0))
+#define xS1 =comp.AddItem(atree
+#define xR1 lX3 false;
+#define xQ1 needs_sincos
+#define xP1 Recheck_RefCount_Div
+#define xO1 Recheck_RefCount_Mul
+#define xN1 divgroup
+#define xM1 lY3.
+#define xL1 lY3;lY3 y7
+#define xK1 t41!cQ3.
+#define xJ1 covers_plus1
+#define xI1 iG1);
+#define xH1 AssembleSequence
+#define xG1 grammar_func
+#define xF1 :public e1,public yC<
+#define xE1 =yE|lW3(nR e72)
+#define xD1 xR1}
+#define xC1 tree t83()
+#define xB1 212414 tL 24791,
+#define xA1 ,l7 0x4},{{
+#define x91 Modulo_Radians},
+#define x81 ,lZ3 nC
+#define x71 lE GetOpcode()==
+#define x61 PositionType
+#define x51 CollectionResult
+#define x41 const_offset
+#define x31 stacktop_desired
+#define x21 StackTop
+#define x11 cEqual,l1
+#define x01 cIf,l0 3,
+#define nZ1 cond_type
+#define nY1 fphash_value_t
+#define nX1 lZ3 i0::nP3
+#define nW1 Recheck_RefCount_RDiv
+#define nV1 ParamSpec_Extract x5(
+#define nU1 DataP slot_holder(xF[
+#define nT1 fPExponentIsTooLarge(
+#define nS1 CollectMulGroup_Item(
+#define nR1 covers_full_cycle
+#define nQ1 212201 tL 225495,
+#define nP1 },{l5::MakeNotP1,l5::
+#define nO1 !=xG)if(TestCase(
+#define nN1 &&IsLogicalValue(
+#define nM1 std::pair<T1,T2>&
+#define nL1 iD2 lZ3
+#define nK1 has_good_balance_found
+#define nJ1 found_log2_on_exponent
+#define nI1 covers_minus1
+#define nH1 needs_resynth
+#define nG1 immed_product
+#define nF1 ,2,1)nV if(found[data.
+#define nE1 GetPositivityInfo(tree
+#define nD1 tree.eI1 a
+#define nC1 cNEqual,l1
+#define nB1 Sign_Positive
+#define nA1 ::MakeTrue
+#define n91 SetParamMove(
+#define n81 yC<lW3>&yT3,
+#define n71 cE3{lX3
+#define n61 rhs n71 hash1
+#define n51 opposite=
+#define n41 Constness_Const
+#define n31 lC1 e42;
+#define n21 MatchResultType
+#define n11 resulting_exponent
+#define n01 Unknown:default:;}
+#define lZ1 inverse_nominator]
+#define lY1 nY1 key
+#define lX1 ;if(yY2 info.SaveMatchedParamIndex(
+#define lW1 &1)?(poly^(
+#define lV1 y7 cLog);tree y03
+#define lU1 ,nR,IP,limit,xZ,stack);
+#define lT1 SetParams(tM1));
+#define lS1 o<<"("<<std::hex<<data.
+#define lR1 tree lN
+#define lQ1 n_as_tan_param
+#define lP1 changed_exponent
+#define lO1 MultiplyAndMakeLong
+#define lN1 retry_positionalparams_2
+#define lM1 119,120,121,122,
+#define lL1 .Rehash();
+#define lK1 for cB1 a=GetParamCount();a
+#define lJ1 ;for n62
+#define lI1 {l5::MakeNotP0,l5::
+#define lH1 CopyOnWrite();
+#define lG1 PositionalParams,l4
+#define lF1 ,cIf,l2
+#define lE1 .AddParamMove(
+#define lD1 NeedList
+#define lC1 ;lX3
+#define lB1 IsNever lC1 Unknown;}
+#define lA1 iZ1 x5&synth){
+#define l91 recursioncount
+#define l81 PlanNtimesCache(
+#define l71 FPoptimizer_Grammar
+#define l61 ;const eD1&occ=
+#define l51 IP,size_t limit,size_t xZ
+#define l41 yP2 found[data.
+#define l31 l12 cInv,1,1)nV}
+#define l21 !=IsNever)xR1 lB
+#define l11 AddParamMove(lR1 0));
+#define l01 CalculateResultBoundaries
+#define iZ ParamSpec_SubFunctionData
+#define iY inverse_denominator]
+#define iX PositionalParams_Rec
+#define iW =e33(root lN
+#define iV DumpTreeWithIndent(*this);
+#define iU cI3 type tV2 cond_or:
+#define iT ;n91 0,tB2 eI1 1);
+#define iS a).IsIdenticalTo(
+#define iR ;tmp y03 tmp.nK 0));tmp
+#define iQ Value_t
+#define iP synth.
+#define iO .AddParam(
+#define iN tree yK1)xR1
+#define iM )!=c02)xR1 lB
+#define iL iJ std::endl;DumpHashes(
+#define iK .GetParamCount()
+#define iJ ;std::cout<<
+#define iI {l5::MakeNotNotP1,l5::
+#define iH {l5::MakeNotNotP0,l5::
+#define iG tX1 x5
+#define iF edited_powgroup
+#define iE has_unknown_max
+#define iD has_unknown_min
+#define iC l22 e23
+#define iB ,cAdd,SelectedParams,0},0,
+#define iA 1.5)*fp_const_pi x5()
+#define i9 synthed_tree
+#define i8 6144 tL 260348,
+#define i7 collections
+#define i6 cache
+#define i5 i32 nA2
+#define i4 }inline
+#define i3 !=xG n92 i51
+#define i2 c81.data
+#define i1 ,(long double)
+#define i0 TreeCountType x5
+#define tZ matched_params
+#define tY CodeTree
+#define tX (xE3 start_at
+#define tW tY x5
+#define tV needs_cow){lH1 goto
+#define tU +2]=yE|lW3(Immed e72));
+#define tT ;bool needs_cow=GetRefCount()>1;
+#define tS MakeFalse,l5::
+#define tR ].relationship
+#define tQ <=fp_const_negativezero x5())
+#define tP GetParam(a)
+#define tO by_exponent
+#define tN .GetImmed()
+#define tM xR1 e32 bitmask&
+#define tL ,{2,
+#define tK cOr,x32
+#define tJ 457728 tL 27911,
+#define tI 347441 tL 24833,
+#define tH 455790 tL 24697,
+#define tG [lY cX3=true;lS[lY cY3
+#define tF l71::Grammar*
+#define tE powgroup lN
+#define tD }lO iD2 lW3 Compare>nQ
+#define tC lX3;}
+#define tB GetLogicalValue(lR1
+#define tA cW2&&found[data.
+#define t9 c61(
+#define t8 has_mulgroups_remaining
+#define t7 iZ&params
+#define t6 MatchInfo x5&
+#define t5 RootPowerTable x5::RootPowers[
+#define t4 MatchPositionSpec_AnyParams x5
+#define t3 iD2 lW3 Compare>void
+#define t2 iF2 FPoptimizer_ByteCode
+#define t1 is_signed
+#define t0 result_positivity
+#define eZ biggest_minimum
+#define eY nY1(
+#define eX cAnd,AnyParams,
+#define eW 314674 tL 266497,
+#define eV 113774 tL 120949,
+#define eU (tM1));lY3 lL1
+#define eT GetParamCount();a-->0;)if(
+#define eS 127086 tL 126073,
+#define eR lL 2 eE1 1,
+#define eQ cond_tree
+#define eP else_tree
+#define eO then_tree
+#define eN sequencing
+#define eM StackState
+#define eL string FP_GetOpcodeName(
+#define eK i32 tY
+#define eJ if_stack
+#define eI {lX3 tW(
+#define eH void OutFloatHex(std::ostream&o,
+#define eG n_as_sin_param
+#define eF n_as_cos_param
+#define eE PowiResolver::
+#define eD int_exponent_t
+#define eC ];};extern"C"{
+#define eB cGreater,l1
+#define eA .BalanceGood
+#define e9 valueType
+#define e8 back().endif_location
+#define e7 GetOpcode());
+#define e6 AddParamMove(mul);
+#define e5 goto ReplaceTreeWithOne;case
+#define e4 :goto ReplaceTreeWithZero;case
+#define e3 ;p2.eO1 p2);tree y7 i72.e7 c9}
+#define e2 130,1,
+#define e1 MatchPositionSpecBase
+#define e0 smallest_maximum
+#define cZ iD2>void FunctionParserBase<
+#define cY ++IP;xU1}if(xL3 xK3.
+#define cX ReplaceTreeWithParam0;
+#define cW factor_needs_rehashing
+#define cV MatchPositionSpecBaseP
+#define cU n5 iQ(-y73
+#define cT {AdoptChildrenWithSameOpcode(tree);
+#define cS nV1 nO.param_list,
+#define cR }},{ReplaceParams,false,
+#define cQ }},{ProduceNewTree,false,1,
+#define cP data.subfunc_opcode
+#define cO }l72 tN==iQ(
+#define cN otherhalf
+#define cM ;AddParamMove(
+#define cL x12 l1
+#define cK map<nC2,std::set<std::string> >
+#define cJ branch1
+#define cI const SequenceOpCode x5
+#define cH =fp_cosh(m.min);m.max=fp_cosh(m.max);
+#define cG MatchPositionSpec_PositionalParams x5
+#define cF T1,lZ3 T2>inline tL2()
+#define cE best_factor
+#define cD )lC1 m;}case
+#define cC branch2
+#define cB FoundChild
+#define cA CalculatePowiFactorCost(
+#define c9 goto redo;
+#define c8 ;nX3(tree)iJ"\n";
+#define c7 ;tree lE1
+#define c6 AddParamMove(comp.yV1[a].value);
+#define c5 has_nonlogical_values
+#define c4 from_logical_context)
+#define c3 l3 2,
+#define c2 POWI_CACHE_SIZE
+#define c1 l12 GetOpcode(),
+#define c0 static inline tW
+#define yZ BalanceResultType
+#define yY n33(0),Opcode(
+#define yX .push_back(
+#define yW const{lX3 data->
+#define yV iO CodeTreeImmed(
+#define yU ComparisonSetBase::
+#define yT +=fp_const_twopi x5();
+#define yS (keep_powi){xU3 cInv cH2 n3-1)iW1 lB
+#define yR for n62 GetParamCount();++a xX3
+#define yQ +=cQ3 lC1 yS3 lZ2 iQ
+#define yP MatchPositionSpec_AnyWhere
+#define yO if t02 data.match_type==
+#define yN }PACKED_GRAMMAR_ATTRIBUTE;
+#define yM b;}};iD2>yI2 Comp<
+#define yL ParamSpec_NumConstant x5
+#define yK xG,l5::Never},{l5::xG,l5::Never}}
+#define yJ relationships
+#define yI (const
+#define yH .param_count
+#define yG yZ3 tree
+#define yF AssembleSequence_Subdivide(
+#define yE 0x80000000u
+#define yD (lE GetImmed()
+#define yC std::vector
+#define yB for cB1 a=cJ iK;a-->0;)
+#define yA fp_const_twopi x5());if(
+#define y9 iE2 set_min_max_if<cGreater>(iQ(0),
+#define y8 for n62 nO3 iK;cJ3
+#define y7 .iL1
+#define y6 tree iK;
+#define y5 !=cW2){l41
+#define y4 },{{2,
+#define y3 l01(lR1
+#define y2 y3 0));iG
+#define y1 tU2 tN
+#define y0 x8&&tU2 yK1
+#define xZ factor_stack_base
+#define xY for(l73 r=range.first;r!=range cZ3;++r){
+#define xX {iN1.erase(i);xU1}
+#define xW ,iQ(-1))xX3 tV
+#define xV cGreaterOrEq,l1
+#define xU ));tmp y7 cInv);tmp lO3 lC1
+#define xT n62 y6 cJ3 remaining[a])
+#define xS nA 1 eE1
+#define xR paramholder_matches
+#define xQ cD2,std::ostream&o=std::cout
+#define xP IsIdenticalTo(leaf2 lN
+#define xO GroupFunction,0},lR{
+#define xN SetStackTop(x21
+#define xM FPOPT_autoptr
+#define xL int_exponent
+#define xK newnode
+#define xJ ParamSpec_SubFunction
+#define xI ParamSpec_ParamHolder
+#define xH has_highlevel_opcodes
+#define xG Unchanged
+#define xF data->yV3
+#define xE best_selected_sep
+#define xD 27,28,29,30,31,32,33,34,35,36,37,38,39,40,
+#define xC fp_nequal(tmp,iQ(0)))lM iQ(1)/tmp);tC}lB
+#define xB position
+#define xA SwapLastTwoInStack();
+#define x9 fp_sin(min),fp_sin(max))
+#define x8 if(lE IsImmed()
+#define x7 )){tree.FixIncompleteHashes();}
+#define x6 <y6 cJ3 ApplyGrammar(eZ2,lR1 a),
+#define x5 <iQ>
+#define x4 ,l0 1,
+#define x3 FPoptimizer_CodeTree::tW&tree
+#define x2 TestImmedConstraints(param cS2 c63))xR1
+#define x1 .SetParam(0,i72 xM3 tW p1;p1 y7
+#define x0 paramholder_index
+#define nZ lX3 true;case
+#define nY occurance_counts
+#define nX for n62 y6++a){iG
+#define nW -->0;){tM2&powgroup=tP;if(powgroup
+#define nV ;iP y62*this);tC
+#define nU lL 1 eE1
+#define nT {data->Recalculate_Hash_NoRecursion();}
+#define nS AddParamMove(changed_if)tQ1}
+#define nR ByteCode
+#define nQ void iG::
+#define nP GetStackTop()-
+#define nO model_tree
+#define nN yC<tW>&i61
+#define nM lW3 c xQ2 char l[
+#define nL tW tmp,tmp2;tmp2 y7
+#define nK AddParam(lR1
+#define nJ iQ>p y33 p.
+#define nI :data(new nA2 x5(
+#define nH nL1 Ref>inline void xM<Ref>::
+#define nG 157,158,159,169,191,203,230,231,232,233,234,237,238,239,240,243,244,245,247,248}};}yI2
+#define nF FUNCTIONPARSERTYPES::
+#define nE using iF2 FUNCTIONPARSERTYPES;
+#define nD t83()==
+#define nC tW::
+#define nB lC1 ConstantFolding_LogicCommon(tree,yU
+#define nA cAdd,AnyParams,
+#define n9 SynthesizeByteCode(synth);
+#define n8 ,tO1(),yV3(eV3 eW3 1),eP1 0){}
+#define n7 nA2 x5::nA2(
+#define n6 sim.Eat(
+#define n5 lX3 iG(
+#define n4 GetIntegerInfo(lR1 0))==c02)iN2
+#define n3 sim.AddConst(
+#define n2 cPow,l7 0x4 y4
+#define n1 while(ApplyGrammar(yI Grammar&)
+#define n0 (pow lN 1));pow.eI1 1);pow lL1 tree.n91 0,pow);goto NowWeAreMulGroup;}
+#define lZ DumpParams x5 t02 data.param_list,nZ3 data yH,o);
+#define lY restholder_index
+#define lX tW tK2 n42 y7 cMul)n42 iO
+#define lW *const func)(iQ),iG model){
+#define lV eC2 cPow);tmp.nK 0));tmp yV iQ(
+#define lU iQ(1)/iQ(
+#define lT SetParam(0,nW2 0))eD2 1,CodeTreeImmed(
+#define lS restholder_matches
+#define lR n41,0x0},{
+#define lQ SelectedParams,0 eE1
+#define lP :if(ParamComparer x5()(yV3[1],yV3[0])){std::swap(yV3[0],yV3[1]);Opcode=
+#define lO nL1 iQ>
+#define lN .GetParam(
+#define lM {tree.ReplaceWithImmed(
+#define lL cMul,AnyParams,
+#define lK ,nA l4
+#define lJ cMul,SelectedParams,0},0,
+#define lI l01(tmp);}case
+#define lH *const func)(iQ),iG model=iG());
+#define lG cPow,l0 2
+#define lF lZ3 iQ>tL2()yI iQ&n43 iQ&b){lX3 a
+#define lE lR1 0).
+#define lD ,lL l4
+#define lC :yY3=comp.AddRelationship(atree lN 0),atree lN 1),yU
+#define lB break;case
+#define lA nD3 nC
+#define l9 {iG m=y3 0));
+#define l8 )?0:1));tW changed_if tW1 cW1 changed_if c33 tree.tM1))tW1 lL1 tree y7
+#define l7 yC1},0,
+#define l6 cAdd,lQ 2,
+#define l5 RangeComparisonData
+#define l4 0 cR 1,
+#define l3 lJ 0x0},{{
+#define l2 yC1 cQ
+#define l1 yC1 cR 2,
+#define l0 l7 0x0},{{
 #ifdef _MSC_VER
-
-typedef unsigned long long fphash_value_t;
-#define FPHASH_CONST(x) x##ULL
-
+typedef
+lW3
+int
+tL1;
 #else
-
 #include <stdint.h>
-typedef uint_fast64_t fphash_value_t;
-#define FPHASH_CONST(x) x##ULL
-
+typedef
+uint_least32_t
+tL1;
 #endif
-
-namespace FUNCTIONPARSERTYPES
-{
-    struct fphash_t
-    {
-        fphash_value_t hash1, hash2;
-
-        bool operator==(const fphash_t& rhs) const
-        { return hash1 == rhs.hash1 && hash2 == rhs.hash2; }
-
-        bool operator!=(const fphash_t& rhs) const
-        { return hash1 != rhs.hash1 || hash2 != rhs.hash2; }
-
-        bool operator<(const fphash_t& rhs) const
-        { return hash1 != rhs.hash1 ? hash1 < rhs.hash1 : hash2 < rhs.hash2; }
-    };
+iF2
+crc32{enum{startvalue=0xFFFFFFFFUL,poly=0xEDB88320UL}
+;iD2
+tL1
+crc>yI2
+b8{enum{b1=(crc
+lW1
+crc
+nB2
+crc>>1),b2=(b1
+lW1
+b1
+nB2
+b1>>1),b3=(b2
+lW1
+b2
+nB2
+b2>>1),b4=(b3
+lW1
+b3
+nB2
+b3>>1),b5=(b4
+lW1
+b4
+nB2
+b4>>1),b6=(b5
+lW1
+b5
+nB2
+b5>>1),b7=(b6
+lW1
+b6
+nB2
+b6>>1),res=(b7
+lW1
+b7
+nB2
+b7>>1)}
+;}
+;inline
+tL1
+update(tL1
+crc
+yL2
+b){
+#define B4(n) b8<n cB2 n+1 cB2 n+2 cB2 n+3>::res
+#define R(n) B4(n),B4(n+4),B4(n+8),B4(n+12)
+static
+const
+tL1
+table[256]={R(0x00),R(0x10),R(0x20),R(0x30),R(0x40),R(0x50),R(0x60),R(0x70),R(0x80),R(0x90),R(0xA0),R(0xB0),R(0xC0),R(0xD0),R(0xE0),R(0xF0)}
+;
+#undef R
+#undef B4
+lX3((crc>>8))^table[(crc^b)&0xFF];i4
+tL1
+calc_upd(tL1
+c,const
+lW3
+char*buf,size_t
+size){tL1
+value=c;for
+cB1
+p=0;p<size;++p)value=update
+cC3,buf[p])lC1
+value;i4
+tL1
+calc
+yI
+lW3
+char*buf,size_t
+size){lX3
+calc_upd(startvalue,buf,size);}
 }
-
-#endif
-
-#line 1 "fpoptimizer/fpoptimizer_autoptr.hh"
 #ifndef FPOptimizerAutoPtrHH
 #define FPOptimizerAutoPtrHH
-
-template<typename Ref>
-class FPOPT_autoptr
-{
-public:
-    FPOPT_autoptr()                   : p(0)   { }
-    FPOPT_autoptr(Ref*        b) : p(b)   { Birth(); }
-    FPOPT_autoptr(const FPOPT_autoptr& b) : p(b.p) { Birth(); }
-
-    inline Ref& operator* () const { return *p; }
-    inline Ref* operator->() const { return p; }
-
-    FPOPT_autoptr& operator= (Ref*        b) { Set(b); return *this; }
-    FPOPT_autoptr& operator= (const FPOPT_autoptr& b) { Set(b.p); return *this; }
+nL1
+Ref>class
+xM{cR3
+xM():p(0){}
+xM(Ref*b):p(b){n03}
+xM
+yI
+xM&b):p(b.p){n03
+i4
+Ref&cL1*(n71*p;i4
+Ref*cL1->(n71
+p;}
+xM&cL1=(Ref*b){Set(b)lC1*this;}
+xM&cL1=yI
+xM&b){Set(b.p)lC1*this;}
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
-    FPOPT_autoptr(FPOPT_autoptr&& b)      : p(b.p) { b.p = 0; }
-    FPOPT_autoptr& operator= (FPOPT_autoptr&& b) { if(p != b.p) { Forget(); p=b.p; b.p=0; }
-                                                   return *this; }
+xM(xM&&b):p(b.p){b.p=0;}
+xM&cL1=(xM&&b
+xX3
+p!=b.p){yH2;p=b.p;b.p=0;}
+lX3*this;}
 #endif
-
-    ~FPOPT_autoptr() { Forget(); }
-
-    void UnsafeSetP(Ref* newp) { p = newp; }
-    void swap(FPOPT_autoptr<Ref>& b) { Ref* tmp=p; p=b.p; b.p=tmp; }
-
-private:
-    inline static void Have(Ref* p2);
-    inline void Forget();
-    inline void Birth();
-    inline void Set(Ref* p2);
-private:
-    Ref* p;
-};
-
-//
-template<typename Ref>
-inline void FPOPT_autoptr<Ref>::Forget()
-{
-    if(!p) return;
-    p->RefCount -= 1;
-    if(!p->RefCount) delete p;
-    //assert(p->RefCount >= 0);
-}
-template<typename Ref>
-inline void FPOPT_autoptr<Ref>::Have(Ref* p2)
-{
-    if(p2) ++(p2->RefCount);
-}
-template<typename Ref>
-inline void FPOPT_autoptr<Ref>::Birth()
-{
-    Have(p);
-}
-template<typename Ref>
-inline void FPOPT_autoptr<Ref>::Set(Ref* p2)
-{
-    Have(p2);
-    Forget();
-    p = p2;
-}
-
+~xM(){yH2
+iH2
+UnsafeSetP(Ref*newp){p=newp
+iH2
+swap(xM<Ref>&b){Ref*tmp=p;p=b.p;b.p=tmp;}
+private:inline
+static
+void
+Have(Ref*p2);inline
+void
+yH2;inline
+void
+n03
+inline
+void
+Set(Ref*p2);private:Ref*p;}
+;nH
+yH2{if(!p
+n92;p->n33-=1;if(!p->n33)delete
+p;}
+nH
+Have(Ref*p2
+xX3
+p2)++(p2->n33);}
+nH
+Birth(){Have(p);}
+nH
+Set(Ref*p2){Have(p2);yH2;p=p2;}
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_codetree.hh"
+#include <utility>
+yI2
+Compare2ndRev{nL1
+T>inline
+tL2()yI
+T&n43
+T&b
+n71
+a
+cZ3>b
+cZ3;}
+}
+;yI2
+Compare1st{nL1
+cF
+yI
+nM1
+n43
+nM1
+b
+n71
+a.first<b.first;}
+nL1
+cF
+yI
+nM1
+a,T1
+b
+n71
+a.first<b;}
+nL1
+cF(T1
+n43
+nM1
+b
+n71
+a<b.first;}
+}
+;
+#ifndef FPoptimizerHashHH
+#define FPoptimizerHashHH
+#ifdef _MSC_VER
+typedef
+lW3
+long
+long
+nY1;
+#define FPHASH_CONST(x) x##ULL
+#else
+#include <stdint.h>
+typedef
+uint_fast64_t
+nY1;
+#define FPHASH_CONST(x) x##ULL
+#endif
+iF2
+FUNCTIONPARSERTYPES{yI2
+nC2{nY1
+hash1,hash2;nC2():hash1(0),hash2(0){}
+nC2
+yI
+nY1&n43
+nY1&b):hash1(a),hash2(b){}
+tL2==yI
+nC2&n61==yJ2&&hash2==yK2
+tL2!=yI
+nC2&n61!=yJ2||hash2!=yK2
+tL2<yI
+nC2&n61!=yJ2?hash1<yJ2:hash2<yK2}
+;}
+#endif
 #ifndef FPOptimizer_CodeTreeHH
 #define FPOptimizer_CodeTreeHH
-
-#include "fpconfig.hh"
-#include "fparser.hh"
-#include "fptypes.hh"
-
 #ifdef FP_SUPPORT_OPTIMIZER
-
 #include <vector>
 #include <utility>
-
-// line removed
-// line removed
-
-#ifdef FP_EPSILON
- #define NEGATIVE_MAXIMUM (-FP_EPSILON)
-#else
- #define NEGATIVE_MAXIMUM (-1e-14)
-#endif
-
-namespace FPoptimizer_Grammar
-{
-    struct Grammar;
-}
-
-namespace FPoptimizer_ByteCode
-{
-    class ByteCodeSynth;
-}
-
-namespace FPoptimizer_CodeTree
-{
-    class CodeTree;
-
-    struct MinMaxTree
-    {
-        double min,max;
-        bool has_min, has_max;
-        MinMaxTree() : min(),max(),has_min(false),has_max(false) { }
-        MinMaxTree(double mi,double ma): min(mi),max(ma),has_min(true),has_max(true) { }
-        MinMaxTree(bool,double ma): min(),max(ma),has_min(false),has_max(true) { }
-        MinMaxTree(double mi,bool): min(mi),max(),has_min(true),has_max(false) { }
-    };
-
-    struct CodeTreeData;
-    class CodeTree
-    {
-        typedef FPOPT_autoptr<CodeTreeData> DataP;
-        DataP data;
-
-    public:
-    public:
-        CodeTree();
-        ~CodeTree();
-
-        explicit CodeTree(double v); // produce an immed
-        struct VarTag { };
-        explicit CodeTree(unsigned varno, VarTag); // produce a var reference
-        struct CloneTag { };
-        explicit CodeTree(const CodeTree& b, CloneTag);
-
-        /* Generates a CodeTree from the given bytecode */
-        void GenerateFrom(
-            const std::vector<unsigned>& byteCode,
-            const std::vector<double>& immed,
-            const FunctionParser::Data& data);
-
-        void SynthesizeByteCode(
-            std::vector<unsigned>& byteCode,
-            std::vector<double>&   immed,
-            size_t& stacktop_max);
-        void SynthesizeByteCode(FPoptimizer_ByteCode::ByteCodeSynth& synth) const;
-
-        void SetParams(const std::vector<CodeTree>& RefParams);
-        void SetParamsMove(std::vector<CodeTree>& RefParams);
-
-        CodeTree GetUniqueRef();
-        // ^use this when CodeTree tmp=x; tmp.CopyOnWrite(); does not do exactly what you want
-
+iF2
+l71{yI2
+Grammar;}
+t2{n53
+iZ1;}
+iF2
+FPoptimizer_CodeTree{n53
+tY;lO
+yI2
+nA2;n53
+tY{typedef
+xM<nA2
+x5>DataP;DataP
+data;cR3
+tY();~tY();yI2
+OpcodeTag{}
+;eK(nF2
+o,OpcodeTag);yI2
+FuncOpcodeTag{}
+;eK(nF2
+o
+yL2
+f,FuncOpcodeTag);yI2
+n63{}
+;eK
+yI
+iQ&v,n63);
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
-        void SetParams(std::vector<CodeTree>&& RefParams);
+eK(iQ&&v,n63);
 #endif
-        void SetParam(size_t which, const CodeTree& b);
-        void SetParamMove(size_t which, CodeTree& b);
-        void AddParam(const CodeTree& param);
-        void AddParamMove(CodeTree& param);
-        void AddParams(const std::vector<CodeTree>& RefParams);
-        void AddParamsMove(std::vector<CodeTree>& RefParams);
-        void AddParamsMove(std::vector<CodeTree>& RefParams, size_t replacing_slot);
-        void DelParam(size_t index);
-        void DelParams();
-
-        void Become(const CodeTree& b);
-
-        inline size_t GetParamCount() const { return GetParams().size(); }
-        inline CodeTree& GetParam(size_t n) { return GetParams()[n]; }
-        inline const CodeTree& GetParam(size_t n) const { return GetParams()[n]; }
-        inline void SetOpcode(FUNCTIONPARSERTYPES::OPCODE o);
-        inline void SetFuncOpcode(FUNCTIONPARSERTYPES::OPCODE o, unsigned f);
-        inline void SetVar(unsigned v);
-        inline void SetImmed(double v);
-        inline FUNCTIONPARSERTYPES::OPCODE GetOpcode() const;
-        inline FUNCTIONPARSERTYPES::fphash_t GetHash() const;
-        inline const std::vector<CodeTree>& GetParams() const;
-        inline std::vector<CodeTree>& GetParams();
-        inline size_t GetDepth() const;
-        inline double GetImmed() const;
-        inline unsigned GetVar() const;
-        inline unsigned GetFuncNo() const;
-        inline bool IsDefined() const { return (&*data) != 0; }
-
-        inline bool    IsImmed() const { return GetOpcode() == FUNCTIONPARSERTYPES::cImmed; }
-        inline bool      IsVar() const { return GetOpcode() == FUNCTIONPARSERTYPES::cVar; }
-        bool    IsLongIntegerImmed() const { return IsImmed() && GetImmed() == (double)GetLongIntegerImmed(); }
-        long   GetLongIntegerImmed() const { return (long)GetImmed(); }
-        bool    IsLogicalValue() const;
-        inline unsigned GetRefCount() const;
-        /* This function calculates the minimum and maximum values
-         * of the tree's result. If an estimate cannot be made,
-         * has_min/has_max are indicated as false.
-         */
-        MinMaxTree CalculateResultBoundaries_do() const;
-        MinMaxTree CalculateResultBoundaries() const;
-
-        enum TriTruthValue { IsAlways, IsNever, Unknown };
-        TriTruthValue GetEvennessInfo() const;
-
-        bool IsAlwaysSigned(bool positive) const;
-        bool IsAlwaysParity(bool odd) const
-            { return GetEvennessInfo() == (odd?IsNever:IsAlways); }
-        bool IsAlwaysInteger() const;
-
-        void ConstantFolding();
-        void ConstantFolding_FromLogicalParent();
-        bool ConstantFolding_AndLogic();
-        bool ConstantFolding_OrLogic();
-        bool ConstantFolding_LogicCommon(bool is_or);
-        bool ConstantFolding_MulGrouping();
-        bool ConstantFolding_AddGrouping();
-        bool ConstantFolding_Assimilate();
-
-        void Rehash(bool constantfolding = true);
-        inline void Mark_Incompletely_Hashed();
-        inline bool Is_Incompletely_Hashed() const;
-
-        inline const FPoptimizer_Grammar::Grammar* GetOptimizedUsing() const;
-        inline void SetOptimizedUsing(const FPoptimizer_Grammar::Grammar* g);
-
-        void swap(CodeTree& b) { data.swap(b.data); }
-        bool IsIdenticalTo(const CodeTree& b) const;
-        void CopyOnWrite();
-    };
-
-    struct CodeTreeData
-    {
-        int RefCount;
-
-        /* Describing the codetree node */
-        FUNCTIONPARSERTYPES::OPCODE Opcode;
-        union
-        {
-            double   Value;   // In case of cImmed: value of the immed
-            unsigned Var;     // In case of cVar:   variable number
-            unsigned Funcno;  // In case of cFCall or cPCall
-        };
-
-        // Parameters for the function
-        //  These use the sign:
-        //   For cAdd: operands to add together (0 to n)
-        //             sign indicates that the value is negated before adding (0-x)
-        //   For cMul: operands to multiply together (0 to n)
-        //             sign indicates that the value is inverted before multiplying (1/x)
-        //   For cAnd: operands to bitwise-and together (0 to n)
-        //             sign indicates that the value is inverted before anding (!x)
-        //   For cOr:  operands to bitwise-or together (0 to n)
-        //             sign indicates that the value is inverted before orring (!x)
-        //  These don't use the sign (sign is always false):
-        //   For cMin: operands to select the minimum of
-        //   For cMax: operands to select the maximum of
-        //   For cImmed, not used
-        //   For cVar,   not used
-        //   For cIf:  operand 1 = condition, operand 2 = yes-branch, operand 3 = no-branch
-        //   For anything else: the parameters required by the operation/function
-        std::vector<CodeTree> Params;
-
-        /* Internal operation */
-        FUNCTIONPARSERTYPES::fphash_t      Hash;
-        size_t        Depth;
-        const FPoptimizer_Grammar::Grammar* OptimizedUsing;
-
-        CodeTreeData();
-        CodeTreeData(const CodeTreeData& b);
-        explicit CodeTreeData(double i);
+yI2
+VarTag{}
+;eK
+eS1
+varno,VarTag);yI2
+CloneTag{}
+;eK
+cK3,CloneTag);void
+GenerateFrom
+yI
+n81
+const
+nD2
+const
+lZ3
+FunctionParserBase
+x5::Data&data,bool
+keep_powi=false);void
+GenerateFrom
+yI
+n81
+const
+nD2
+const
+lZ3
+FunctionParserBase
+x5::Data&data,const
+nE2
+n22,bool
+keep_powi=false);void
+SynthesizeByteCode(n81
+nD2
+size_t&stacktop_max);void
+SynthesizeByteCode(FPoptimizer_ByteCode::iZ1
+x5&synth,bool
+MustPopTemps=true
+cE3
+tW3
+SynthCommonSubExpressions(FPoptimizer_ByteCode::iZ1
+x5&synth
+cE3;void
+SetParams
+yI
+nE2
+n73
+SetParamsMove(nE2
+eF1
+tY
+GetUniqueRef();
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
-        CodeTreeData(CodeTreeData&& b);
+void
+SetParams(yC<tY>&&eF1
 #endif
-
-        bool IsIdenticalTo(const CodeTreeData& b) const;
-        void Sort();
-        void Recalculate_Hash_NoRecursion();
-    };
-
-    inline void CodeTree::SetOpcode(FUNCTIONPARSERTYPES::OPCODE o)
-        { data->Opcode = o; }
-    inline void CodeTree::SetFuncOpcode(FUNCTIONPARSERTYPES::OPCODE o, unsigned f)
-        { SetOpcode(o); data->Funcno = f; }
-    inline void CodeTree::SetVar(unsigned v)
-        { SetOpcode(FUNCTIONPARSERTYPES::cVar); data->Var = v; }
-    inline void CodeTree::SetImmed(double v)
-        { SetOpcode(FUNCTIONPARSERTYPES::cImmed); data->Value = v; }
-    inline FUNCTIONPARSERTYPES::OPCODE CodeTree::GetOpcode() const { return data->Opcode; }
-    inline FUNCTIONPARSERTYPES::fphash_t CodeTree::GetHash() const { return data->Hash; }
-    inline const std::vector<CodeTree>& CodeTree::GetParams() const { return data->Params; }
-    inline std::vector<CodeTree>& CodeTree::GetParams() { return data->Params; }
-    inline size_t CodeTree::GetDepth() const { return data->Depth; }
-    inline double CodeTree::GetImmed() const { return data->Value; }
-    inline unsigned CodeTree::GetVar() const { return data->Var; }
-    inline unsigned CodeTree::GetFuncNo() const { return data->Funcno; }
-
-    inline const FPoptimizer_Grammar::Grammar* CodeTree::GetOptimizedUsing() const
-        { return data->OptimizedUsing; }
-    inline void CodeTree::SetOptimizedUsing(const FPoptimizer_Grammar::Grammar* g)
-        { data->OptimizedUsing = g; }
-    inline unsigned CodeTree::GetRefCount() const { return data->RefCount; }
-
-    inline void CodeTree::Mark_Incompletely_Hashed() { data->Depth = 0; }
-    inline bool CodeTree::Is_Incompletely_Hashed() const { return data->Depth == 0; }
-
-    void FixIncompleteHashes(CodeTree& tree);
+void
+SetParam
+cB1
+which,const
+tY&b);void
+n91
+size_t
+which,tY&b);void
+AddParam
+yI
+tY&param);void
+AddParamMove(tY&param);void
+AddParams
+yI
+nE2
+n73
+AddParamsMove(nE2
+n73
+AddParamsMove(nE2
+i61,size_t
+i71);void
+DelParam
+cB1
+index);void
+DelParams();void
+Become
+cK3);inline
+size_t
+GetParamCount(n71
+tM1)e72);i4
+tY&GetParam
+cB1
+n){lX3
+tM1)[n];i4
+const
+tY&GetParam
+cB1
+n
+n71
+tM1)[n];i4
+void
+iL1
+nF2
+o){data->Opcode=o;i4
+nF2
+GetOpcode()yW
+Opcode;i4
+nF
+nC2
+GetHash()yW
+Hash;i4
+const
+nE2
+tM1
+n71
+xF;i4
+nE2
+tM1){lX3
+xF;i4
+size_t
+nX2
+yW
+Depth;i4
+const
+iQ&GetImmed()yW
+Value;i4
+lW3
+GetVar()yW
+tN1
+i4
+lW3
+GetFuncNo()yW
+tN1
+i4
+bool
+IsDefined(n71
+lK2
+nF
+cNop;i4
+bool
+IsImmed(n71
+GetOpcode()==nF
+cImmed;i4
+bool
+IsVar(n71
+GetOpcode()==nF
+tZ2;i4
+lW3
+GetRefCount()yW
+n33
+iH2
+ReplaceWithImmed
+yI
+iQ&i);void
+Rehash(bool
+constantfolding=true);void
+Sort();inline
+void
+Mark_Incompletely_Hashed(){data->Depth=0;i4
+bool
+Is_Incompletely_Hashed()yW
+Depth==0;i4
+const
+tF
+GetOptimizedUsing()yW
+tP1;i4
+void
+SetOptimizedUsing
+yI
+tF
+g){data->tP1=g;}
+bool
+RecreateInversionsAndNegations(bool
+prefer_base2=false);void
+FixIncompleteHashes();void
+swap(tY&b){data.swap(b.data);}
+bool
+IsIdenticalTo
+cK3
+cE3;void
+lH1}
+;lO
+yI2
+nA2{int
+n33;nF2
+Opcode;iQ
+Value
+xQ2
+tN1
+yC<tW>yV3;nF
+nC2
+Hash
+tW3
+Depth;const
+tF
+tP1;nA2();nA2
+yI
+nA2&b);i5(nF2
+o);i5(nF2
+o
+yL2
+f);i5
+yI
+iQ&i);
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+i5(iQ&&i);nA2(nA2&&b);
+#endif
+bool
+IsIdenticalTo
+yI
+nA2&b
+cE3;void
+Sort();void
+Recalculate_Hash_NoRecursion();private:void
+cL1=yI
+nA2&b);}
+;lO
+c0
+CodeTreeImmed
+yI
+iQ&i)eI
+i
+x81
+n63());}
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+lO
+c0
+CodeTreeImmed(iQ&&i)eI
+eS2
+i)x81
+n63());}
+#endif
+lO
+c0
+CodeTreeOp(nF2
+opcode)eI
+opcode
+x81
+OpcodeTag());}
+lO
+c0
+CodeTreeFuncOp(nF2
+opcode
+yL2
+f)eI
+opcode,f
+x81
+FuncOpcodeTag());}
+lO
+c0
+CodeTreeVar
+eS1
+varno)eI
+varno
+x81
+VarTag());}
+#ifdef FUNCTIONPARSER_SUPPORT_DEBUG_OUTPUT
+nD3
+DumpHashes(xQ);nD3
+nX3(xQ);nD3
+DumpTreeWithIndent(xQ,const
+std::string&indent="\\"
+);
+#endif
 }
-
 #endif
-
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_grammar.hh"
 #ifndef FPOPT_NAN_CONST
-
 #include <iostream>
-
-#include "fpconfig.hh"
-#include "fparser.hh"
-#include "fptypes.hh"
-
-#define FPOPT_NAN_CONST (-1712345.25) /* Would use 0.0 / 0.0 here, but some compilers don't accept it. */
-
-namespace FPoptimizer_CodeTree
-{
-    class CodeTree;
-}
-
-namespace FPoptimizer_Grammar
-{
-    enum ImmedConstraint_Value
-    {
-        ValueMask = 0x07,
-        Value_AnyNum     = 0x0, // any value
-        Value_EvenInt    = 0x1, // any even integer (0,2,4, etc)
-        Value_OddInt     = 0x2, // any odd integer (1,3, etc)
-        Value_IsInteger  = 0x3, // any integer-value (excludes e.g. 0.2)
-        Value_NonInteger = 0x4, // any non-integer (excludes e.g. 1 or 5)
-        Value_Logical    = 0x5  // a result of cNot,cNotNot,cAnd,cOr or comparators
-    };
-    enum ImmedConstraint_Sign
-    {
-        SignMask  = 0x18,
-        Sign_AnySign     = 0x00, // - or +
-        Sign_Positive    = 0x08, // positive only
-        Sign_Negative    = 0x10, // negative only
-        Sign_NoIdea      = 0x18  // where sign cannot be guessed
-    };
-    enum ImmedConstraint_Oneness
-    {
-        OnenessMask   = 0x60,
-        Oneness_Any      = 0x00,
-        Oneness_One      = 0x20, // +1 or -1
-        Oneness_NotOne   = 0x40  // anything but +1 or -1
-    };
-    enum ImmedConstraint_Constness
-    {
-        ConstnessMask = 0x80,
-        Constness_Any    = 0x00,
-        Constness_Const  = 0x80
-    };
-
-    /* The param_opcode field of the ParamSpec has the following
-     * possible values (from enum SpecialOpcode):
-     *   NumConstant:
-     *      this describes a specific constant value (constvalue)
-     *      that must be matched / synthesized.
-     *   ParamHolder:
-     *      this describes any node
-     *      that must be matched / synthesized.
-     *      "index" is the ID of the NamedHolder:
-     *      In matching, all NamedHolders having the same ID
-     *      must match the identical node.
-     *      In synthesizing, the node matched by
-     *      a NamedHolder with this ID must be synthesized.
-     *    SubFunction:
-     *      this describes a subtree
-     *      that must be matched / synthesized.
-     *      The subtree is described in subfunc_opcode,param_begin..+param_count.
-     *      If the type is GroupFunction, the tree is expected
-     *      to yield a constant value which is tested.
-     */
-    enum SpecialOpcode
-    {
-        NumConstant,        // Holds a particular value (syntax-time constant)
-        ParamHolder,        // Holds a particular named param
-        SubFunction         // Holds an opcode and the params
-    };
-
-    enum ParamMatchingType
-    {
-        PositionalParams, // this set of params in this order
-        SelectedParams,   // this set of params in any order
-        AnyParams,        // these params are included
-        GroupFunction     // this function represents a constant value
-    };
-
-    enum RuleType
-    {
-        ProduceNewTree, // replace self with the first (and only) from replaced_param
-        ReplaceParams   // replace indicate params with replaced_params
-    };
-
+#define FPOPT_NAN_CONST (-1712345.25)
+iF2
+FPoptimizer_CodeTree{n53
+tY;}
+iF2
+l71{enum
+ImmedConstraint_Value{ValueMask=0x07,Value_AnyNum=0x0,lB2=0x1,Value_OddInt=0x2,eQ1=0x3,Value_NonInteger=0x4,cZ1=0x5
+n83
+ImmedConstraint_Sign{SignMask=0x18,Sign_AnySign=0x00,nB1=0x08,Sign_Negative=0x10,Sign_NoIdea=0x18
+n83
+ImmedConstraint_Oneness{OnenessMask=0x60,Oneness_Any=0x00,Oneness_One=0x20,cA1=0x40
+n83
+ImmedConstraint_Constness{ConstnessMask=0x80,Constness_Any=0x00,n41=0x80
+n83
+Modulo_Mode{Modulo_None=0,Modulo_Radians=1
+n83
+l02{NumConstant,ParamHolder,SubFunction
+n83
+ParamMatchingType{PositionalParams,SelectedParams,AnyParams,GroupFunction
+n83
+RuleType{ProduceNewTree,ReplaceParams}
+;
 #ifdef __GNUC__
 # define PACKED_GRAMMAR_ATTRIBUTE __attribute__((packed))
 #else
 # define PACKED_GRAMMAR_ATTRIBUTE
 #endif
-
-    enum { PARAM_INDEX_BITS = 9 };
-
-    /* A ParamSpec object describes
-     * either a parameter (leaf, node) that must be matched,
-     * or a parameter (leaf, node) that must be synthesized.
-     */
-    typedef std::pair<SpecialOpcode, const void*> ParamSpec;
-    ParamSpec ParamSpec_Extract(unsigned paramlist, unsigned index);
-    bool ParamSpec_Compare(const void* a, const void* b, SpecialOpcode type);
-    unsigned ParamSpec_GetDepCode(const ParamSpec& b);
-
-    struct ParamSpec_ParamHolder
-    {
-        unsigned index       : 8; // holder ID
-        unsigned constraints : 8; // constraints
-        unsigned depcode     :16;
-    } PACKED_GRAMMAR_ATTRIBUTE;
-
-    struct ParamSpec_NumConstant
-    {
-        double constvalue;        // the value
-    } PACKED_GRAMMAR_ATTRIBUTE;
-
-    struct ParamSpec_SubFunctionData
-    {
-        /* Expected parameters (leaves) of the tree: */
-        unsigned param_count         : 2;
-        unsigned param_list          : 30;
-        /* The opcode that the tree must have when SubFunction */
-        FUNCTIONPARSERTYPES::OPCODE subfunc_opcode : 8;
-
-        /* When matching, type describes the method of matching.
-         *
-         *               Sample input tree:      (cOr 2 3)  (cOr 2 4) (cOr 3 2) (cOr 4 2 3) (cOr 2)
-         * Possible methods:
-         *    PositionalParams, e.g. (cOr [2 3]):  match     no match  no match  no match   no match
-         *      The nodes described here are
-         *      to be matched, in this order.
-         *    SelectedParams,   e.g. (cOr {2 3}):  match     no match   match    no match   no match
-         *      The nodes described here are
-         *      to be matched, in any order.
-         *    AnyParams,        e.g. (cOr 2 3  ):  match     no match   match     match     no match
-         *      At least the nodes described here
-         *      are to be matched, in any order.
-         * When synthesizing, the type is ignored.
-         */
-        ParamMatchingType match_type : 3; /* When SubFunction */
-        /* Note: match_type needs 2, but we specify 3 because
-         * otherwise Microsoft VC++ borks things up
-         * as it interprets the value as signed.
-         */
-        /* Optional restholder index for capturing the rest of parameters (0=not used)
-         * Only valid when match_type = AnyParams
-         */
-        unsigned restholder_index : 5;
-    } PACKED_GRAMMAR_ATTRIBUTE; // size: 2+30+6+2+8=48 bits=6 bytes
-
-    struct ParamSpec_SubFunction
-    {
-        ParamSpec_SubFunctionData data;
-        unsigned constraints : 8; // constraints
-        unsigned depcode     : 8;
-    } PACKED_GRAMMAR_ATTRIBUTE; // 8 bytes
-
-    /* Theoretical minimal sizes in each param_opcode cases:
-     * Assume param_opcode needs 3 bits.
-     *    NumConstant:   3 + 64              (or 3+4 if just use index to clist[])
-     *    ParamHolder:   3 + 7 + 2           (7 for constraints, 2 for immed index)
-     *    SubFunction:   3 + 7 + 2 + 2 + 3*9 = 41
-     */
-
-    /* A rule describes a pattern for matching
-     * and the method how to reconstruct the
-     * matched node(s) in the tree.
-     */
-    struct Rule
-    {
-        /* For optimization: Number of minimum parameters (leaves)
-         * that the source tree must contain for this rule to match.
-         */
-        unsigned  n_minimum_params : 2;
-
-        /* If the rule matched, this field describes how to perform
-         * the replacement.
-         *   When type==ProduceNewTree,
-         *       the source tree is replaced entirely with
-         *       the new tree described at repl_param_begin[0].
-         *   When type==ReplaceParams,
-         *       the matching leaves in the source tree are removed
-         *       and new leaves are constructedfrom the trees
-         *       described at repl_param_begin[0..repl_param_count].
-         *       Other leaves remain intact.
-         */
-        RuleType  ruletype         : 1;
-
-        /* The replacement parameters (if NewTree, begin[0] represents the new tree) */
-        unsigned  repl_param_count : 2; /* Assumed to be 1 when type == ProduceNewTree */
-        unsigned  repl_param_list  : 27;
-
-        /* The function that we must match. Always a SubFunction. */
-        ParamSpec_SubFunctionData match_tree;
-    } PACKED_GRAMMAR_ATTRIBUTE; // size: 2+1+2+27 + 48 = 80 bits = 10 bytes
-
-    /* Grammar is a set of rules for tree substitutions. */
-    struct Grammar
-    {
-        /* The rules of this grammar */
-        const Rule*    rule_begin;
-        unsigned       rule_count;
-    };
-
-    bool ApplyGrammar(const Grammar& grammar,
-                      FPoptimizer_CodeTree::CodeTree& tree,
-                      bool recurse = true);
-
-    /* GrammarPack is the structure which contains all
-     * the information regarding the optimization rules.
-     */
-    extern const struct GrammarPack
-    {
-        Grammar               glist[3];
-    } pack;
-
-    void DumpParam(const ParamSpec& p, std::ostream& o = std::cout);
-    void DumpParams(unsigned paramlist, unsigned count, std::ostream& o = std::cout);
-}
-
+typedef
+std::pair<l02,const
+void*>yM2;lO
+yM2
+ParamSpec_Extract
+eS1
+paramlist
+yL2
+index);nM3
+ParamSpec_Compare
+yI
+void*n43
+void*b,l02
+type)xQ2
+ParamSpec_GetDepCode
+yI
+yM2&b);yI2
+xI{lW3
+index
+xP2
+constraints
+xP2
+depcode:16;yN
+lO
+yI2
+ParamSpec_NumConstant{iQ
+iM2
+xQ2
+modulo;yN
+yI2
+iZ{lW3
+param_count:2
+xQ2
+param_list:30;nF2
+subfunc_opcode:8;ParamMatchingType
+match_type:3
+xQ2
+lY:5;yN
+yI2
+xJ{iZ
+data
+xQ2
+constraints
+xP2
+depcode:8;yN
+yI2
+Rule{RuleType
+ruletype:2;bool
+logical_context:1
+xQ2
+repl_param_count:2+13
+xQ2
+repl_param_list:30;iZ
+match_tree;yN
+yI2
+Grammar{lW3
+rule_count
+xQ2
+char
+rule_list[999
+eC
+extern
+const
+Rule
+grammar_rules[];}
+nD3
+DumpParam
+yI
+yM2&p,std::ostream&o=std::cout);nD3
+DumpParams
+eS1
+paramlist
+yL2
+count,std::ostream&o=std::cout);}
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_consts.hh"
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
 #endif
-
-#define CONSTANT_E     2.71828182845904509080  // exp(1)
-#define CONSTANT_EI    0.3678794411714423215955 // exp(-1)
-#define CONSTANT_2E    7.3890560989306502272304 // exp(2)
-#define CONSTANT_2EI   0.135335283236612691894 // exp(-2)
-#define CONSTANT_PI    M_PI                    // atan2(0,-1)
-#define CONSTANT_L10   2.30258509299404590109  // log(10)
-#define CONSTANT_L2    0.69314718055994530943  // log(2)
-#define CONSTANT_L10I  0.43429448190325176116  // 1/log(10)
-#define CONSTANT_L2I   1.4426950408889634074   // 1/log(2)
-#define CONSTANT_L10E  CONSTANT_L10I           // log10(e)
-#define CONSTANT_L10EI CONSTANT_L10            // 1/log10(e)
-#define CONSTANT_L10B  0.3010299956639811952137 // log10(2)
-#define CONSTANT_L10BI 3.3219280948873623478703 // 1/log10(2)
-#define CONSTANT_LB10  CONSTANT_L10BI          // log2(10)
-#define CONSTANT_LB10I CONSTANT_L10B           // 1/log2(10)
-#define CONSTANT_L2E   CONSTANT_L2I            // log2(e)
-#define CONSTANT_L2EI  CONSTANT_L2             // 1/log2(e)
-#define CONSTANT_DR    (180.0 / M_PI)          // 180/pi
-#define CONSTANT_RD    (M_PI / 180.0)          // pi/180
-
-#define CONSTANT_POS_INF     HUGE_VAL  // positive infinity, from math.h
-#define CONSTANT_NEG_INF   (-HUGE_VAL) // negative infinity
-#define CONSTANT_PIHALF (M_PI / 2)
-
-#line 1 "fpoptimizer/fpoptimizer_optimize.hh"
-// line removed
-// line removed
-
-#ifdef FP_SUPPORT_OPTIMIZER
-
-#include <map>
-#include <vector>
-#include <iostream>
-
-//#define DEBUG_SUBSTITUTIONS
-
-namespace FPoptimizer_Optimize
-{
-    using namespace FPoptimizer_Grammar;
-    using namespace FPoptimizer_CodeTree;
-    using namespace FUNCTIONPARSERTYPES;
-
-    /* This struct collects information regarding the matching process so far */
-    class MatchInfo
-    {
-    public:
-        std::multimap<unsigned, CodeTree> restholder_matches;
-        std::map<unsigned, CodeTree> paramholder_matches;
-        std::vector<unsigned> matched_params;
-    public:
-        /* These functions save data from matching */
-        void SaveRestHolderMatch(unsigned restholder_index, const CodeTree& treeptr)
-        {
-            restholder_matches.insert( std::make_pair(restholder_index, treeptr) );
-        }
-
-        bool SaveOrTestParamHolder(unsigned paramholder_index, const CodeTree& treeptr)
-        {
-            std::map<unsigned, CodeTree>::iterator i = paramholder_matches.lower_bound(paramholder_index);
-            if(i == paramholder_matches.end() || i->first != paramholder_index)
-                { paramholder_matches.insert(i, std::make_pair(paramholder_index, treeptr));
-                  return true; }
-            return treeptr.IsIdenticalTo(i->second);
-        }
-
-        void SaveMatchedParamIndex(unsigned index)
-        {
-            matched_params.push_back(index);
-        }
-
-        /* These functions retrieve the data from matching
-         * for use when synthesizing the resulting tree.
-         */
-        const CodeTree& GetParamHolderValueIfFound( unsigned paramholder_index ) const
-        {
-            std::map<unsigned, CodeTree>::const_iterator i = paramholder_matches.find(paramholder_index);
-            if(i == paramholder_matches.end() || i->first != paramholder_index)
-            {
-                static const CodeTree dummytree;
-                return dummytree;
-            }
-            return i->second;
-        }
-
-        const CodeTree& GetParamHolderValue( unsigned paramholder_index ) const
-            { return paramholder_matches.find(paramholder_index)->second; }
-
-        std::vector<CodeTree> GetRestHolderValues( unsigned restholder_index ) const
-        {
-            std::vector<CodeTree> result;
-            for(std::multimap<unsigned, CodeTree>::const_iterator
-                i = restholder_matches.lower_bound(restholder_index);
-                i != restholder_matches.end() && i->first == restholder_index;
-                ++i)
-                result.push_back(i->second);
-            return result;
-        }
-
-        const std::vector<unsigned>& GetMatchedParamIndexes() const
-            { return matched_params; }
-
-        /* */
-        void swap(MatchInfo& b)
-        {
-            restholder_matches.swap(b.restholder_matches);
-            paramholder_matches.swap(b.paramholder_matches);
-            matched_params.swap(b.matched_params);
-        }
-        MatchInfo& operator=(const MatchInfo& b)
-        {
-            restholder_matches = b.restholder_matches;
-            paramholder_matches = b.paramholder_matches;
-            matched_params = b.matched_params;
-            return *this;
-        }
-    };
-
-    class MatchPositionSpecBase;
-
-    // For iterating through match candidates
-    typedef FPOPT_autoptr<MatchPositionSpecBase> MatchPositionSpecBaseP;
-
-    class MatchPositionSpecBase
-    {
-    public:
-        int RefCount;
-    public:
-        MatchPositionSpecBase() : RefCount(0) { }
-        virtual ~MatchPositionSpecBase() { }
-    };
-    struct MatchResultType
-    {
-        bool found;
-        MatchPositionSpecBaseP specs;
-
-        MatchResultType(bool f) : found(f), specs() { }
-        MatchResultType(bool f,
-                        const MatchPositionSpecBaseP& s) : found(f), specs(s) { }
-    };
-
-    /* Synthesize the given grammatic rule's replacement into the codetree */
-    void SynthesizeRule(
-        const Rule& rule,
-        CodeTree& tree,
-        MatchInfo& info);
-
-    /* Test the given parameter to a given CodeTree */
-    MatchResultType TestParam(
-        const ParamSpec& parampair,
-        const CodeTree& tree,
-        const MatchPositionSpecBaseP& start_at,
-        MatchInfo& info);
-
-    /* Test the list of parameters to a given CodeTree */
-    MatchResultType TestParams(
-        const ParamSpec_SubFunctionData& model_tree,
-        const CodeTree& tree,
-        const MatchPositionSpecBaseP& start_at,
-        MatchInfo& info,
-        bool TopLevel);
-}
-
-namespace FPoptimizer_Grammar
-{
-    void DumpTree(const FPoptimizer_CodeTree::CodeTree& tree, std::ostream& o = std::cout);
-    void DumpTreeWithIndent(const FPoptimizer_CodeTree::CodeTree& tree, std::ostream& o = std::cout, const std::string& indent = "\\");
-    void DumpHashes(const FPoptimizer_CodeTree::CodeTree& tree, std::ostream& o = std::cout);
-    void DumpMatch(const Rule& rule,
-                   const FPoptimizer_CodeTree::CodeTree& tree,
-                   const FPoptimizer_Optimize::MatchInfo& info,
-                   bool DidMatch,
-                   std::ostream& o = std::cout);
-}
-
-#endif
-
-#line 1 "fpoptimizer/crc32.hh"
-/* crc32 */
-
-#ifdef _MSC_VER
-
- typedef unsigned int crc32_t;
-
+#define CONSTANT_POS_INF HUGE_VAL
+#define CONSTANT_NEG_INF (-HUGE_VAL)
+iF2
+FUNCTIONPARSERTYPES{lZ2
+iQ
+fp_const_pihalf(){lX3
+fp_const_pi
+x5()*iQ(0.5);}
+lZ2
+iQ
+fp_const_twopi(){iQ
+cL3
+fp_const_pi
+x5());cO3
+fp_const_twoe(){iQ
+cL3
+fp_const_e
+x5());cO3
+fp_const_twoeinv(){iQ
+cL3
+fp_const_einv
+x5());cO3
+fp_const_negativezero(){
+#ifdef FP_EPSILON
+lX3-fp_epsilon
+x5();
 #else
-
- #include <stdint.h>
- typedef uint_least32_t crc32_t;
-
-#endif
-
-namespace crc32
-{
-    enum { startvalue = 0xFFFFFFFFUL, poly = 0xEDB88320UL };
-
-    /* This code constructs the CRC32 table at compile-time,
-     * avoiding the need for a huge explicitly written table of magical numbers. */
-    template<crc32_t crc> // One byte of a CRC32 (eight bits):
-    struct b8
-    {
-        enum { b1 = (crc & 1) ? (poly ^ (crc >> 1)) : (crc >> 1),
-               b2 = (b1  & 1) ? (poly ^ (b1  >> 1)) : (b1  >> 1),
-               b3 = (b2  & 1) ? (poly ^ (b2  >> 1)) : (b2  >> 1),
-               b4 = (b3  & 1) ? (poly ^ (b3  >> 1)) : (b3  >> 1),
-               b5 = (b4  & 1) ? (poly ^ (b4  >> 1)) : (b4  >> 1),
-               b6 = (b5  & 1) ? (poly ^ (b5  >> 1)) : (b5  >> 1),
-               b7 = (b6  & 1) ? (poly ^ (b6  >> 1)) : (b6  >> 1),
-               res= (b7  & 1) ? (poly ^ (b7  >> 1)) : (b7  >> 1) };
-    };
-    inline crc32_t update(crc32_t crc, unsigned/* char */b) // __attribute__((pure))
-    {
-        // Four values of the table
-        #define B4(n) b8<n>::res,b8<n+1>::res,b8<n+2>::res,b8<n+3>::res
-        // Sixteen values of the table
-        #define R(n) B4(n),B4(n+4),B4(n+8),B4(n+12)
-        // The whole table, index by steps of 16
-        static const crc32_t table[256] =
-        { R(0x00),R(0x10),R(0x20),R(0x30), R(0x40),R(0x50),R(0x60),R(0x70),
-          R(0x80),R(0x90),R(0xA0),R(0xB0), R(0xC0),R(0xD0),R(0xE0),R(0xF0) };
-        #undef R
-        #undef B4
-        return ((crc >> 8) /* & 0x00FFFFFF*/) ^ table[/*(unsigned char)*/(crc^b)&0xFF];
-    }
-    inline crc32_t calc_upd(crc32_t c, const unsigned char* buf, size_t size)
-    {
-        crc32_t value = c;
-        for(size_t p=0; p<size; ++p) value = update(value, buf[p]);
-        return value;
-    }
-    inline crc32_t calc(const unsigned char* buf, size_t size)
-    {
-        return calc_upd(startvalue, buf, size);
-    }
-}
-
-#line 1 "fpoptimizer/fpoptimizer_opcodename.hh"
-// line removed
-#include <string>
-
-const std::string FP_GetOpcodeName(FPoptimizer_Grammar::SpecialOpcode opcode, bool pad=false);
-const std::string FP_GetOpcodeName(FUNCTIONPARSERTYPES::OPCODE opcode,        bool pad=false);
-
-#line 1 "fpoptimizer/fpoptimizer_opcodename.cc"
-#include <string>
-#include <sstream>
-#include <assert.h>
-
-#include <iostream>
-
-#include "fpconfig.hh"
-#include "fptypes.hh"
-
-// line removed
-// line removed
-
-using namespace FPoptimizer_Grammar;
-using namespace FUNCTIONPARSERTYPES;
-
-const std::string FP_GetOpcodeName(FPoptimizer_Grammar::SpecialOpcode opcode, bool pad)
-{
-#if 1
-    /* Symbolic meanings for the opcodes? */
-    const char* p = 0;
-    switch( opcode )
-    {
-        case NumConstant:   p = "NumConstant"; break;
-        case ParamHolder:   p = "ParamHolder"; break;
-        case SubFunction:   p = "SubFunction"; break;
-    }
-    std::ostringstream tmp;
-    //if(!p) std::cerr << "o=" << opcode << "\n";
-    assert(p);
-    tmp << p;
-    if(pad) while(tmp.str().size() < 12) tmp << ' ';
-    return tmp.str();
-#else
-    /* Just numeric meanings */
-    std::ostringstream tmp;
-    tmp << opcode;
-    if(pad) while(tmp.str().size() < 5) tmp << ' ';
-    return tmp.str();
+lX3
+iQ(-1e-14);
 #endif
 }
-
-const std::string FP_GetOpcodeName(FUNCTIONPARSERTYPES::OPCODE opcode,        bool pad)
-{
-#if 1
-    /* Symbolic meanings for the opcodes? */
-    const char* p = 0;
-    switch(opcode)
-    {
-        case cAbs: p = "cAbs"; break;
-        case cAcos: p = "cAcos"; break;
-        case cAcosh: p = "cAcosh"; break;
-        case cAsin: p = "cAsin"; break;
-        case cAsinh: p = "cAsinh"; break;
-        case cAtan: p = "cAtan"; break;
-        case cAtan2: p = "cAtan2"; break;
-        case cAtanh: p = "cAtanh"; break;
-        case cCeil: p = "cCeil"; break;
-        case cCos: p = "cCos"; break;
-        case cCosh: p = "cCosh"; break;
-        case cCot: p = "cCot"; break;
-        case cCsc: p = "cCsc"; break;
-        case cEval: p = "cEval"; break;
-        case cExp: p = "cExp"; break;
-        case cExp2: p = "cExp2"; break;
-        case cFloor: p = "cFloor"; break;
-        case cIf: p = "cIf"; break;
-        case cInt: p = "cInt"; break;
-        case cLog: p = "cLog"; break;
-        case cLog2: p = "cLog2"; break;
-        case cLog10: p = "cLog10"; break;
-        case cMax: p = "cMax"; break;
-        case cMin: p = "cMin"; break;
-        case cPow: p = "cPow"; break;
-        case cSec: p = "cSec"; break;
-        case cSin: p = "cSin"; break;
-        case cSinh: p = "cSinh"; break;
-        case cSqrt: p = "cSqrt"; break;
-        case cTan: p = "cTan"; break;
-        case cTanh: p = "cTanh"; break;
-        case cImmed: p = "cImmed"; break;
-        case cJump: p = "cJump"; break;
-        case cNeg: p = "cNeg"; break;
-        case cAdd: p = "cAdd"; break;
-        case cSub: p = "cSub"; break;
-        case cMul: p = "cMul"; break;
-        case cDiv: p = "cDiv"; break;
-        case cMod: p = "cMod"; break;
-        case cEqual: p = "cEqual"; break;
-        case cNEqual: p = "cNEqual"; break;
-        case cLess: p = "cLess"; break;
-        case cLessOrEq: p = "cLessOrEq"; break;
-        case cGreater: p = "cGreater"; break;
-        case cGreaterOrEq: p = "cGreaterOrEq"; break;
-        case cNot: p = "cNot"; break;
-        case cAnd: p = "cAnd"; break;
-        case cOr: p = "cOr"; break;
-        case cDeg: p = "cDeg"; break;
-        case cRad: p = "cRad"; break;
-        case cFCall: p = "cFCall"; break;
-        case cPCall: p = "cPCall"; break;
-        case cRPow: p = "cRPow"; break;
+}
 #ifdef FP_SUPPORT_OPTIMIZER
-        case cVar: p = "cVar"; break;
-        case cFetch: p = "cFetch"; break;
-        case cPopNMov: p = "cPopNMov"; break;
-#endif
-        case cDup: p = "cDup"; break;
-        case cInv: p = "cInv"; break;
-        case cSqr: p = "cSqr"; break;
-        case cRDiv: p = "cRDiv"; break;
-        case cRSub: p = "cRSub"; break;
-        case cNotNot: p = "cNotNot"; break;
-        case cRSqrt: p = "cRSqrt"; break;
-        case cNop: p = "cNop"; break;
-        case VarBegin: p = "VarBegin"; break;
-    }
-    std::ostringstream tmp;
-    //if(!p) std::cerr << "o=" << opcode << "\n";
-    assert(p);
-    tmp << p;
-    if(pad) while(tmp.str().size() < 12) tmp << ' ';
-    return tmp.str();
-#else
-    /* Just numeric meanings */
-    std::ostringstream tmp;
-    tmp << opcode;
-    if(pad) while(tmp.str().size() < 5) tmp << ' ';
-    return tmp.str();
-#endif
-}
-
-#line 1 "fpoptimizer/fpoptimizer_bytecodesynth.hh"
-#include "fpconfig.hh"
-#include "fparser.hh"
-#include "fptypes.hh"
-
-#ifdef FP_SUPPORT_OPTIMIZER
-
 #include <vector>
 #include <utility>
-
-// line removed
-
-namespace FPoptimizer_ByteCode
-{
-    class ByteCodeSynth
-    {
-    public:
-        ByteCodeSynth()
-            : ByteCode(), Immed(), StackTop(0), StackMax(0)
-        {
-            /* estimate the initial requirements as such */
-            ByteCode.reserve(64);
-            Immed.reserve(8);
-            StackHash.reserve(16);
-        }
-
-        void Pull(std::vector<unsigned>& bc,
-                  std::vector<double>&   imm,
-                  size_t& StackTop_max)
-        {
-            ByteCode.swap(bc);
-            Immed.swap(imm);
-            StackTop_max = StackMax;
-        }
-
-        size_t GetByteCodeSize() const { return ByteCode.size(); }
-        size_t GetStackTop()     const { return StackTop; }
-
-        void PushVar(unsigned varno)
-        {
-            ByteCode.push_back(varno);
-            SetStackTop(StackTop+1);
-        }
-
-        void PushImmed(double immed)
-        {
-            using namespace FUNCTIONPARSERTYPES;
-            ByteCode.push_back(cImmed);
-            Immed.push_back(immed);
-            SetStackTop(StackTop+1);
-        }
-
-        void StackTopIs(const FPoptimizer_CodeTree::CodeTree& hash)
-        {
-            if(StackTop > 0)
-            {
-                StackHash[StackTop-1].first = true;
-                StackHash[StackTop-1].second = hash;
-            }
-        }
-
-        void AddOperation(unsigned opcode, unsigned eat_count, unsigned produce_count = 1)
-        {
-            using namespace FUNCTIONPARSERTYPES;
-            SetStackTop(StackTop - eat_count);
-
-            if(opcode == cMul && ByteCode.back() == cDup)
-                ByteCode.back() = cSqr;
-            else
-                ByteCode.push_back(opcode);
-            SetStackTop(StackTop + produce_count);
-        }
-
-        void DoPopNMov(size_t targetpos, size_t srcpos)
-        {
-            using namespace FUNCTIONPARSERTYPES;
-            ByteCode.push_back(cPopNMov);
-            ByteCode.push_back( (unsigned) targetpos);
-            ByteCode.push_back( (unsigned) srcpos);
-
-            SetStackTop(srcpos+1);
-            StackHash[targetpos] = StackHash[srcpos];
-            SetStackTop(targetpos+1);
-        }
-
-        void DoDup(size_t src_pos)
-        {
-            using namespace FUNCTIONPARSERTYPES;
-            if(src_pos == StackTop-1)
-            {
-                ByteCode.push_back(cDup);
-            }
-            else
-            {
-                ByteCode.push_back(cFetch);
-                ByteCode.push_back( (unsigned) src_pos);
-            }
-            SetStackTop(StackTop + 1);
-            StackHash[StackTop-1] = StackHash[src_pos];
-        }
-
-        bool FindAndDup(const FPoptimizer_CodeTree::CodeTree& hash)
-        {
-            for(size_t a=StackTop; a-->0; )
-            {
-                if(StackHash[a].first && StackHash[a].second.IsIdenticalTo(hash))
-                {
-                    DoDup(a);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        void SynthIfStep1(size_t& ofs)
-        {
-            using namespace FUNCTIONPARSERTYPES;
-            SetStackTop(StackTop-1); // the If condition was popped.
-
-            ofs = ByteCode.size();
-            ByteCode.push_back(cIf);
-            ByteCode.push_back(0); // code index
-            ByteCode.push_back(0); // Immed index
-        }
-        void SynthIfStep2(size_t& ofs)
-        {
-            using namespace FUNCTIONPARSERTYPES;
-            SetStackTop(StackTop-1); // ignore the pushed then-branch result.
-
-            ByteCode[ofs+1] = unsigned( ByteCode.size()+2 );
-            ByteCode[ofs+2] = unsigned( Immed.size()      );
-
-            ofs = ByteCode.size();
-            ByteCode.push_back(cJump);
-            ByteCode.push_back(0); // code index
-            ByteCode.push_back(0); // Immed index
-        }
-        void SynthIfStep3(size_t& ofs)
-        {
-            SetStackTop(StackTop-1); // ignore the pushed else-branch result.
-
-            ByteCode[ofs+1] = unsigned( ByteCode.size()-1 );
-            ByteCode[ofs+2] = unsigned( Immed.size()      );
-
-            SetStackTop(StackTop+1); // one or the other was pushed.
-        }
-
-    private:
-        void SetStackTop(size_t value)
-        {
-            StackTop = value;
-            if(StackTop > StackMax)
-            {
-                StackMax = StackTop;
-                StackHash.resize(StackMax);
-            }
-        }
-
-    private:
-        std::vector<unsigned> ByteCode;
-        std::vector<double>   Immed;
-
-        std::vector<
-            std::pair<bool/*known*/, FPoptimizer_CodeTree::CodeTree/*hash*/>
-                   > StackHash;
-        size_t StackTop;
-        size_t StackMax;
-    };
-
-    struct SequenceOpCode;
-    extern const SequenceOpCode AddSequence; /* Multiplication implemented with adds */
-    extern const SequenceOpCode MulSequence; /* Exponentiation implemented with muls */
-
-    /* Generate a sequence that multiplies or exponentifies the
-     * last operand in the stack by the given constant integer
-     * amount (positive or negative).
-     */
-    void AssembleSequence(
-        long count,
-        const SequenceOpCode& sequencing,
-        ByteCodeSynth& synth);
+#include <iostream>
+iF2
+FPoptimizer_Optimize{using
+iF2
+l71;using
+iF2
+FPoptimizer_CodeTree;nE
+n53
+MatchInfo{cR3
+yC<std::pair<bool,yC<tW> > >lS;yC<tW>xR;yC<lW3>tZ;cR3
+MatchInfo():lS(),xR(),tZ(){}
+cR3
+bool
+SaveOrTestRestHolder
+eS1
+lY,t01&t11){c21{lS
+n93
+lY+1);lS
+tG=t11
+tQ1
+if(lS[lY
+cX3
+eX3){lS
+tG=t11
+tQ1
+t01&found=lS[lY
+cY3;if(t11
+e72)!=found
+e72)n92
+false
+lJ1
+t11
+e22
+a)if(!t11[a].IsIdenticalTo(found[a])n92
+false
+tQ1
+void
+SaveRestHolder
+eS1
+lY,yC<tW>&t11){c21
+lS
+n93
+lY+1);lS
+tG.swap(t11);}
+bool
+SaveOrTestParamHolder
+eS1
+x0,tM2&nC3
+xX3
+xR
+e72)<=x0){xR.nE3
+x0+1);xR
+n93
+x0);xR
+yX
+nC3)tQ1
+if(!xR[x0].eC1
+xR[x0]=nC3
+tQ1
+lX3
+nC3.IsIdenticalTo(xR[x0])iH2
+SaveMatchedParamIndex
+eS1
+index){tZ
+yX
+index);}
+tM2&GetParamHolderValueIfFound
+eS1
+x0
+cE3{static
+tM2
+dummytree;if(xR
+e72)<=x0
+n92
+dummytree
+lC1
+xR[x0];}
+tM2&GetParamHolderValue
+eS1
+x0
+n71
+xR[x0];}
+bool
+HasRestHolder
+eS1
+lY
+n71
+lS
+e72)>lY&&lS[lY
+cX3==true;}
+t01&GetRestHolderValues
+eS1
+lY
+cE3{static
+t01
+empty_result;c21
+lX3
+empty_result
+lC1
+lS[lY
+cY3;}
+const
+yC<lW3>&GetMatchedParamIndexes(n71
+tZ
+iH2
+swap(t6
+b){lS.swap(b.lS);xR.swap(b.xR);tZ.swap(b.tZ);}
+t6
+cL1=yI
+t6
+b){lS=b.lS;xR=b.xR;tZ=b.tZ
+lC1*this;}
 }
-
+;class
+e1;typedef
+xM<e1>cV;class
+e1{cR3
+int
+n33;cR3
+e1():n33(0){}
+virtual~e1(){}
+}
+;yI2
+n21{bool
+found;cV
+specs;n21(bool
+f):found(f),specs(){}
+n21(bool
+f
+cC2
+s):found(f),specs(s){}
+}
+;nD3
+SynthesizeRule
+yI
+cQ2
+tW&tree,y93);lO
+n21
+TestParam
+yI
+yM2&n02
+c73);lO
+n21
+TestParams
+yI
+iZ&nO
+c73,bool
+yY2;nM3
+ApplyGrammar
+yI
+Grammar&eZ2,x3,bool
+from_logical_context=false);nD3
+ApplyGrammars(x3);nM3
+IsLogisticallyPlausibleParamsMatch
+yI
+t7,cD2);}
+iF2
+l71{nD3
+DumpMatch
+yI
+cQ2
+const
+x3,const
+FPoptimizer_Optimize::y93,bool
+DidMatch,std::ostream&o=std::cout);nD3
+DumpMatch
+yI
+cQ2
+const
+x3,const
+FPoptimizer_Optimize::y93,const
+char*eJ3,std::ostream&o=std::cout);}
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_bytecodesynth.cc"
-// line removed
-
-#ifdef FP_SUPPORT_OPTIMIZER
-
-using namespace FUNCTIONPARSERTYPES;
-
-namespace FPoptimizer_ByteCode
-{
-    const struct SequenceOpCode
-    {
-        double basevalue;
-        unsigned op_flip;
-        unsigned op_normal, op_normal_flip;
-        unsigned op_inverse, op_inverse_flip;
-    } AddSequence = {0.0, cNeg, cAdd, cAdd, cSub, cRSub },
-      MulSequence = {1.0, cInv, cMul, cMul, cDiv, cRDiv };
+#include <string>
+tO2
+l71::l02
+y41=false);tO2
+nF2
+y41=false);
+#include <string>
+#include <sstream>
+#include <assert.h>
+#include <iostream>
+using
+iF2
+l71;nE
+tO2
+l71::l02
+y41){
+#if 1
+const
+char*p=0;cI3
+opcode
+tV2
+NumConstant:p="NumConstant"
+;lB
+ParamHolder:p="ParamHolder"
+;lB
+SubFunction:p="SubFunction"
+;break;}
+std::ostringstream
+tmp;assert(p);tmp<<p;if(pad)while(tmp.str()e72)<12)tmp<<' 'lC1
+tmp.str();
+#else
+std::ostringstream
+tmp;tmp<<opcode;if(pad)while(tmp.str()e72)<5)tmp<<' 'lC1
+tmp.str();
+#endif
 }
-
-using namespace FPoptimizer_ByteCode;
-
+tO2
+nF2
+y41){
+#if 1
+const
+char*p=0;cI3
+opcode
+tV2
+cAbs:p="cAbs"
+;lB
+cAcos:p="cAcos"
+;lB
+cAcosh:p="cAcosh"
+;lB
+cAsin:p="cAsin"
+;lB
+cAsinh:p="cAsinh"
+;lB
+cAtan:p="cAtan"
+;lB
+cAtan2:p="cAtan2"
+;lB
+cAtanh:p="cAtanh"
+;lB
+cCbrt:p="cCbrt"
+;lB
+cCeil:p="cCeil"
+;lB
+cCos:p="cCos"
+;lB
+cCosh:p="cCosh"
+;lB
+cCot:p="cCot"
+;lB
+cCsc:p="cCsc"
+;lB
+cEval:p="cEval"
+;lB
+cExp:p="cExp"
+;lB
+cExp2:p="cExp2"
+;lB
+cFloor:p="cFloor"
+;lB
+cHypot:p="cHypot"
+;lB
+cIf:p="cIf"
+;lB
+cInt:p="cInt"
+;lB
+cLog:p="cLog"
+;lB
+cLog2:p="cLog2"
+;lB
+cLog10:p="cLog10"
+;lB
+cMax:p="cMax"
+;lB
+cMin:p="cMin"
+;lB
+cPow:p="cPow"
+;lB
+cSec:p="cSec"
+;lB
+cSin:p="cSin"
+;lB
+cSinh:p="cSinh"
+;lB
+cSqrt:p="cSqrt"
+;lB
+cTan:p="cTan"
+;lB
+cTanh:p="cTanh"
+;lB
+cTrunc:p="cTrunc"
+;lB
+cImmed:p="cImmed"
+;lB
+cJump:p="cJump"
+;lB
+cNeg:p="cNeg"
+;lB
+cAdd:p="cAdd"
+;lB
+cSub:p="cSub"
+;lB
+cMul:p="cMul"
+;lB
+cDiv:p="cDiv"
+;lB
+cMod:p="cMod"
+;lB
+cEqual:p="cEqual"
+;lB
+cNEqual:p="cNEqual"
+;lB
+cLess:p="cLess"
+;lB
+cLessOrEq:p="cLessOrEq"
+;lB
+cGreater:p="cGreater"
+;lB
+cGreaterOrEq:p="cGreaterOrEq"
+;lB
+cNot:p="cNot"
+;lB
+cAnd:p="cAnd"
+;lB
+cOr:p="cOr"
+;lB
+cDeg:p="cDeg"
+;lB
+cRad:p="cRad"
+;lB
+cFCall:p="cFCall"
+;lB
+cPCall:p="cPCall"
+;break;
+#ifdef FP_SUPPORT_OPTIMIZER
+case
+cFetch:p="cFetch"
+;lB
+cPopNMov:p="cPopNMov"
+;lB
+yQ3:p="cLog2by"
+;lB
+cSinCos:p="cSinCos"
+;break;
+#endif
+case
+lQ2:p="cAbsNot"
+;lB
+cAbsNotNot:p="cAbsNotNot"
+;lB
+cAbsAnd:p="cAbsAnd"
+;lB
+cAbsOr:p="cAbsOr"
+;lB
+cAbsIf:p="cAbsIf"
+;lB
+cDup:p="cDup"
+;lB
+cInv:p="cInv"
+;lB
+cSqr:p="cSqr"
+;lB
+cRDiv:p="cRDiv"
+;lB
+cRSub:p="cRSub"
+;lB
+cNotNot:p="cNotNot"
+;lB
+cRSqrt:p="cRSqrt"
+;lB
+cNop:p="cNop"
+;lB
+tZ2:p="VarBegin"
+;break;}
+std::ostringstream
+tmp;assert(p);tmp<<p;if(pad)while(tmp.str()e72)<12)tmp<<' 'lC1
+tmp.str();
+#else
+std::ostringstream
+tmp;tmp<<opcode;if(pad)while(tmp.str()e72)<5)tmp<<' 'lC1
+tmp.str();
+#endif
+}
+#ifdef FP_SUPPORT_OPTIMIZER
+#include <vector>
+#include <utility>
+#ifndef FP_GENERATING_POWI_TABLE
+enum{MAX_POWI_BYTECODE_LENGTH=20}
+;
+#else
+enum{MAX_POWI_BYTECODE_LENGTH=999}
+;
+#endif
+enum{MAX_MULI_BYTECODE_LENGTH=3}
+;t2{n53
+iZ1{cR3
+iZ1():nR(),Immed(),eM(),x21(0),StackMax(0){nR.nE3
+64);Immed.nE3
+8);eM.nE3
+16)iH2
+Pull(yC<lW3>&bc,yC
+x5&imm,size_t&StackTop_max){for(e31=0;a<nR
+e22
+a){nR[a]&=~yE;}
+nR.swap(bc);Immed.swap(imm);StackTop_max=StackMax;}
+size_t
+GetByteCodeSize(n71
+nR
+e72);}
+size_t
+GetStackTop(n71
+x21
+iH2
+PushVar
+eS1
+varno){nR
+yX
+varno);xN
+iG2
+PushImmed(iQ
+immed){nE
+nR
+yX
+cImmed);Immed
+yX
+immed);xN
+iG2
+StackTopIs
+yI
+x3,int
+offset=0
+xX3(int)x21>offset){eM[x21
+iQ1
+first=true;eM[x21
+iQ1
+second=tree;}
+}
+bool
+IsStackTop
+yI
+x3,int
+offset=0
+n71(int)x21>offset&&eM[x21
+iQ1
+first&&eM[x21
+iQ1
+second.IsIdenticalTo(tree);i4
+void
+EatNParams
+eS1
+yN2){x21-=yN2
+iH2
+ProducedNParams
+eS1
+cM1){xN+cM1)iH2
+AddOperation
+eS1
+opcode
+yL2
+yN2
+yL2
+cM1=1){EatNParams(yN2);nE
+AddFunctionOpcode(opcode);ProducedNParams(cM1)iH2
+DoPopNMov
+cB1
+yO2,size_t
+srcpos){nE
+nR
+yX
+cPopNMov);nF3
+yO2);nF3
+srcpos);SetStackTop(srcpos+1);eM[yO2]=eM[srcpos];SetStackTop(yO2
+iG2
+DoDup
+cB1
+nG3){nE
+if(nG3==x21-1){nR
+yX
+cDup);}
+else{nR
+yX
+cFetch);nF3
+nG3);}
+xN+1);eM[x21-1]=eM[nG3];}
+size_t
+cT3
+yI
+x3
+cE3{for
+cB1
+a=x21;a-->0;)if(eM[a
+cX3&&eM[a
+cY3.IsIdenticalTo(tree)n92
+a
+lC1
+cW2;}
+bool
+Find
+yI
+x3
+n71
+cT3(tree)!=cW2;}
+bool
+FindAndDup
+yI
+x3){size_t
+pos=cT3(tree);if(pos!=cW2){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<tG3"duplicate at ["
+<<pos<<"]: "
+;nX3(tree)iJ" -- issuing cDup or cFetch\n"
+;
+#endif
+DoDup(pos)tQ1
+xD1
+yI2
+IfData{size_t
+ofs;}
+;void
+SynthIfStep1(IfData&xN2,nF2
+op){nE
+xN-1);xN2.ofs=nR
+e72);nR
+yX
+op);xS2);xS2)iH2
+SynthIfStep2(IfData&xN2){nE
+xN-1
+cX2+1]xE1+2
+cX2
+tU
+xN2.ofs=nR
+e72);nR
+yX
+cJump);xS2);xS2)iH2
+SynthIfStep3(IfData&xN2){nE
+xN-1);nR.back()|=yE;nR[xN2.ofs+1]xE1-1
+cX2
+tU
+xN+1)lJ1
+xN2.ofs;++a
+xX3
+nR[a]==cJump&&nR[a+1]==(yE|(xN2.ofs-1))){nR[a+1]xE1-1);nR[a
+tU
+i62
+nR[a]tV2
+cAbsIf:case
+cIf:case
+cJump:case
+cPopNMov:a+=2;lB
+cFCall:case
+cPCall:case
+cFetch:a+=1;break;default:xF3}
+protected:void
+SetStackTop
+cB1
+value){x21=value;if(x21>iI2{StackMax=x21;eM
+n93
+iI2;}
+}
+void
+AddFunctionOpcode
+eS1
+opcode);private:yC<lW3>nR;yC
+x5
+Immed;yC<std::pair<bool,FPoptimizer_CodeTree::tW> >eM
+tW3
+x21
+tW3
+StackMax;}
+;lO
+yI2
+SequenceOpCode;lO
+yI2
+eL1{static
+cI
+AddSequence;static
+cI
+MulSequence;}
+;nD3
+xH1(long
+count,cI&eN,iZ1
+x5&synth);}
+#endif
+#ifdef FP_SUPPORT_OPTIMIZER
+nE
+t2{lO
+yI2
+SequenceOpCode{iQ
+basevalue
+xQ2
+op_flip
+xQ2
+op_normal,op_normal_flip
+xQ2
+op_inverse,op_inverse_flip;}
+;lO
+cI
+eL1
+x5::AddSequence={0.0,cNeg,cAdd,cAdd,cSub,cRSub}
+;lO
+cI
+eL1
+x5::MulSequence={1.0,cInv,cMul,cMul,cDiv,cRDiv}
+;nD3
+iZ1
+x5::AddFunctionOpcode
+eS1
+opcode){int
+StackPtr=0;
+#define incStackPtr() do{if(x21+2>iI2 eM n93 StackMax=x21+2);}while(0)
+#define findName(a,b,c) "var"
+#define TryCompilePowi(o) false
+#define data this
+# define FP_FLOAT_VERSION 1
+# include "fp_opcode_add.inc"
+# undef FP_FLOAT_VERSION
+#undef data
+#undef TryCompilePowi
+#undef incStackPtr
+}
+}
+using
+t2;
 #define POWI_TABLE_SIZE 256
 #define POWI_WINDOW_SIZE 3
-namespace FPoptimizer_ByteCode
-{
-    signed char powi_table[POWI_TABLE_SIZE] =
-    {
-          0,   1,   1,   1,   2,   1,   3,   1, /*   0 -   7 */
-          4,   1,   5,   1,   6,   1,   7,   5, /*   8 -  15 */
-          8,   1,   9,   1,  10,   1,  11,   1, /*  16 -  23 */
-         12,   5,  13,   9,  14,   1,  15,   1, /*  24 -  31 */
-         16,   1,  17,   1,  18,   1,  19,  13, /*  32 -  39 */
-         20,   1,  21,   1,  22,   9,   1,   2, /*  40 -  47 */
-         24,   1,  25,  17,  26,   1,  27,  11, /*  48 -  55 */
-         28,  19,  29,   8,  30,   1,  31,  21, /*  56 -  63 */
-         32,   1,  33,   1,  34,   1,  35,   1, /*  64 -  71 */
-         36,   1,  37,  25,  38,   1,  39,   1, /*  72 -  79 */
-         40,   9,  41,   1,  42,  17,   1,  29, /*  80 -  87 */
-         44,   1,  45,   1,  46,  31,  47,  19, /*  88 -  95 */
-         48,   1,  49,  33,  50,   1,  51,   1, /*  96 - 103 */
-         52,  35,  53,   8,  54,   1,  55,  37, /* 104 - 111 */
-         56,   1,  57,  16,  58,  13,  59,  17, /* 112 - 119 */
-         60,   1,  61,  41,  62,  25,  63,   1, /* 120 - 127 */
-         64,   1,  65,   1,  66,   1,  67,  45, /* 128 - 135 */
-         68,   1,  69,   1,  70,   1,  71,   8, /* 136 - 143 */
-         72,   1,  73,  49,  74,   1,  75,   1, /* 144 - 151 */
-         76,  17,   1,  31,  78,   1,  79,  53, /* 152 - 159 */
-         80,   1,  81,   1,  82,  33,   1,   2, /* 160 - 167 */
-         84,   1,  85,  19,  86,   8,  87,  35, /* 168 - 175 */
-         88,   1,  89,   1,  90,   1,  91,  61, /* 176 - 183 */
-         92,  37,  93,  17,  94,  21,  95,   1, /* 184 - 191 */
-         96,   1,  97,  65,  98,   1,  99,   1, /* 192 - 199 */
-        100,  67, 101,   8, 102,  41, 103,  69, /* 200 - 207 */
-        104,   1, 105,  16, 106,  71, 107,   1, /* 208 - 215 */
-        108,   1, 109,  73, 110,  17, 111,   1, /* 216 - 223 */
-        112,  45, 113,  32, 114,   1, 115,  33, /* 224 - 231 */
-        116,   1, 117,   1, 118,   1, 119,   1, /* 232 - 239 */
-        120,   1, 121,  81, 122,  49, 123,  19, /* 240 - 247 */
-        124,   1, 125,   1, 126,   1, 127,  85  /* 248 - 255 */
-    }; /* as in gcc, but custom-optimized for stack calculation */
-}
-static const int POWI_CACHE_SIZE = 256;
-
-#define FPO(x) /**/
-//#define FPO(x) x
-
-
-namespace
-{
-    class PowiCache
-    {
-    private:
-        int cache[POWI_CACHE_SIZE];
-        int cache_needed[POWI_CACHE_SIZE];
-
-    public:
-        PowiCache()
-            : cache(), cache_needed() /* Assume we have no factors in the cache */
-        {
-            /* Decide which factors we would need multiple times.
-             * Output:
-             *   cache[]        = these factors were generated
-             *   cache_needed[] = number of times these factors were desired
-             */
-            cache[1] = 1; // We have this value already.
-        }
-
-        bool Plan_Add(long value, int count)
-        {
-            if(value >= POWI_CACHE_SIZE) return false;
-            //FPO(fprintf(stderr, "%ld will be needed %d times more\n", count, need_count));
-            cache_needed[value] += count;
-            return cache[value] != 0;
-        }
-
-        void Plan_Has(long value)
-        {
-            if(value < POWI_CACHE_SIZE)
-                cache[value] = 1; // This value has been generated
-        }
-
-        void Start(size_t value1_pos)
-        {
-            for(int n=2; n<POWI_CACHE_SIZE; ++n)
-                cache[n] = -1; /* Stack location for each component */
-
-            Remember(1, value1_pos);
-
-            DumpContents();
-        }
-
-        int Find(long value) const
-        {
-            if(value < POWI_CACHE_SIZE)
-            {
-                if(cache[value] >= 0)
-                {
-                    // found from the cache
-                    FPO(fprintf(stderr, "* I found %ld from cache (%u,%d)\n",
-                        value, (unsigned)cache[value], cache_needed[value]));
-                    return cache[value];
-                }
-            }
-            return -1;
-        }
-
-        void Remember(long value, size_t stackpos)
-        {
-            if(value >= POWI_CACHE_SIZE) return;
-
-            FPO(fprintf(stderr, "* Remembering that %ld can be found at %u (%d uses remain)\n",
-                value, (unsigned)stackpos, cache_needed[value]));
-            cache[value] = (int) stackpos;
-        }
-
-        void DumpContents() const
-        {
-            FPO(for(int a=1; a<POWI_CACHE_SIZE; ++a)
-                if(cache[a] >= 0 || cache_needed[a] > 0)
-                {
-                    fprintf(stderr, "== cache: sp=%d, val=%d, needs=%d\n",
-                        cache[a], a, cache_needed[a]);
-                })
-        }
-
-        int UseGetNeeded(long value)
-        {
-            if(value >= 0 && value < POWI_CACHE_SIZE)
-                return --cache_needed[value];
-            return 0;
-        }
-    };
-
-
-    size_t AssembleSequence_Subdivide(
-        long count,
-        PowiCache& cache,
-        const SequenceOpCode& sequencing,
-        ByteCodeSynth& synth);
-
-    void Subdivide_Combine(
-        size_t apos, long aval,
-        size_t bpos, long bval,
-        PowiCache& cache,
-
-        unsigned cumulation_opcode,
-        unsigned cimulation_opcode_flip,
-
-        ByteCodeSynth& synth);
-
-    void PlanNtimesCache
-        (long value,
-         PowiCache& cache,
-         int need_count,
-         int recursioncount=0)
-    {
-        if(value < 1) return;
-
-    #ifdef FP_GENERATING_POWI_TABLE
-        if(recursioncount > 32) throw false;
-    #endif
-
-        if(cache.Plan_Add(value, need_count)) return;
-
-        long half = 1;
-        if(value < POWI_TABLE_SIZE)
-            half = powi_table[value];
-        else if(value & 1)
-            half = value & ((1 << POWI_WINDOW_SIZE) - 1); // that is, value & 7
-        else
-            half = value / 2;
-
-        long otherhalf = value-half;
-        if(half > otherhalf || half<0) std::swap(half,otherhalf);
-
-        FPO(fprintf(stderr, "value=%ld, half=%ld, otherhalf=%ld\n", value,half,otherhalf));
-
-        if(half == otherhalf)
-        {
-            PlanNtimesCache(half,      cache, 2, recursioncount+1);
-        }
-        else
-        {
-            PlanNtimesCache(half,      cache, 1, recursioncount+1);
-            PlanNtimesCache(otherhalf>0?otherhalf:-otherhalf,
-                                       cache, 1, recursioncount+1);
-        }
-
-        cache.Plan_Has(value);
-    }
-
-    size_t AssembleSequence_Subdivide(
-        long value,
-        PowiCache& cache,
-        const SequenceOpCode& sequencing,
-        ByteCodeSynth& synth)
-    {
-        int cachepos = cache.Find(value);
-        if(cachepos >= 0)
-        {
-            // found from the cache
-            return cachepos;
-        }
-
-        long half = 1;
-        if(value < POWI_TABLE_SIZE)
-            half = powi_table[value];
-        else if(value & 1)
-            half = value & ((1 << POWI_WINDOW_SIZE) - 1); // that is, value & 7
-        else
-            half = value / 2;
-        long otherhalf = value-half;
-        if(half > otherhalf || half<0) std::swap(half,otherhalf);
-
-        FPO(fprintf(stderr, "* I want %ld, my plan is %ld + %ld\n", value, half, value-half));
-
-        if(half == otherhalf)
-        {
-            size_t half_pos = AssembleSequence_Subdivide(half, cache, sequencing, synth);
-
-            // self-cumulate the subdivide result
-            Subdivide_Combine(half_pos,half, half_pos,half, cache,
-                sequencing.op_normal, sequencing.op_normal_flip,
-                synth);
-        }
-        else
-        {
-            long part1 = half;
-            long part2 = otherhalf>0?otherhalf:-otherhalf;
-
-            size_t part1_pos = AssembleSequence_Subdivide(part1, cache, sequencing, synth);
-            size_t part2_pos = AssembleSequence_Subdivide(part2, cache, sequencing, synth);
-
-            FPO(fprintf(stderr, "Subdivide(%ld: %ld, %ld)\n", value, half, otherhalf));
-
-            Subdivide_Combine(part1_pos,part1, part2_pos,part2, cache,
-                otherhalf>0 ? sequencing.op_normal      : sequencing.op_inverse,
-                otherhalf>0 ? sequencing.op_normal_flip : sequencing.op_inverse_flip,
-                synth);
-        }
-        size_t stackpos = synth.GetStackTop()-1;
-        cache.Remember(value, stackpos);
-        cache.DumpContents();
-        return stackpos;
-    }
-
-    void Subdivide_Combine(
-        size_t apos, long aval,
-        size_t bpos, long bval,
-        PowiCache& cache,
-        unsigned cumulation_opcode,
-        unsigned cumulation_opcode_flip,
-        ByteCodeSynth& synth)
-    {
-        /*FPO(fprintf(stderr, "== making result for (sp=%u, val=%d, needs=%d) and (sp=%u, val=%d, needs=%d), stacktop=%u\n",
-            (unsigned)apos, aval, aval>=0 ? cache_needed[aval] : -1,
-            (unsigned)bpos, bval, bval>=0 ? cache_needed[bval] : -1,
-            (unsigned)synth.GetStackTop()));*/
-
-        // Figure out whether we can trample a and b
-        int a_needed = cache.UseGetNeeded(aval);
-        int b_needed = cache.UseGetNeeded(bval);
-
-        bool flipped = false;
-
-        #define DUP_BOTH() do { \
-            if(apos < bpos) { size_t tmp=apos; apos=bpos; bpos=tmp; flipped=!flipped; } \
-            FPO(fprintf(stderr, "-> dup(%u) dup(%u) op\n", (unsigned)apos, (unsigned)bpos)); \
-            synth.DoDup(apos); \
-            synth.DoDup(apos==bpos ? synth.GetStackTop()-1 : bpos); } while(0)
-        #define DUP_ONE(p) do { \
-            FPO(fprintf(stderr, "-> dup(%u) op\n", (unsigned)p)); \
-            synth.DoDup(p); \
-        } while(0)
-
-        if(a_needed > 0)
-        {
-            if(b_needed > 0)
-            {
-                // If they must both be preserved, make duplicates
-                // First push the one that is at the larger stack
-                // address. This increases the odds of possibly using cDup.
-                DUP_BOTH();
-
-                //SCENARIO 1:
-                // Input:  x B A x x
-                // Temp:   x B A x x A B
-                // Output: x B A x x R
-                //SCENARIO 2:
-                // Input:  x A B x x
-                // Temp:   x A B x x B A
-                // Output: x A B x x R
-            }
-            else
-            {
-                // A must be preserved, but B can be trampled over
-
-                // SCENARIO 1:
-                //  Input:  x B x x A
-                //   Temp:  x B x x A A B   (dup both, later first)
-                //  Output: x B x x A R
-                // SCENARIO 2:
-                //  Input:  x A x x B
-                //   Temp:  x A x x B A
-                //  Output: x A x x R       -- only commutative cases
-                // SCENARIO 3:
-                //  Input:  x x x B A
-                //   Temp:  x x x B A A B   (dup both, later first)
-                //  Output: x x x B A R
-                // SCENARIO 4:
-                //  Input:  x x x A B
-                //   Temp:  x x x A B A     -- only commutative cases
-                //  Output: x x x A R
-                // SCENARIO 5:
-                //  Input:  x A B x x
-                //   Temp:  x A B x x A B   (dup both, later first)
-                //  Output: x A B x x R
-
-                // if B is not at the top, dup both.
-                if(bpos != synth.GetStackTop()-1)
-                    DUP_BOTH();    // dup both
-                else
-                {
-                    DUP_ONE(apos); // just dup A
-                    flipped=!flipped;
-                }
-            }
-        }
-        else if(b_needed > 0)
-        {
-            // B must be preserved, but A can be trampled over
-            // This is a mirror image of the a_needed>0 case, so I'll cut the chase
-            if(apos != synth.GetStackTop()-1)
-                DUP_BOTH();
-            else
-                DUP_ONE(bpos);
-        }
-        else
-        {
-            // Both can be trampled over.
-            // SCENARIO 1:
-            //  Input:  x B x x A
-            //   Temp:  x B x x A B
-            //  Output: x B x x R
-            // SCENARIO 2:
-            //  Input:  x A x x B
-            //   Temp:  x A x x B A
-            //  Output: x A x x R       -- only commutative cases
-            // SCENARIO 3:
-            //  Input:  x x x B A
-            //  Output: x x x R         -- only commutative cases
-            // SCENARIO 4:
-            //  Input:  x x x A B
-            //  Output: x x x R
-            // SCENARIO 5:
-            //  Input:  x A B x x
-            //   Temp:  x A B x x A B   (dup both, later first)
-            //  Output: x A B x x R
-            // SCENARIO 6:
-            //  Input:  x x x C
-            //   Temp:  x x x C C   (c is both A and B)
-            //  Output: x x x R
-
-            if(apos == bpos && apos == synth.GetStackTop()-1)
-                DUP_ONE(apos); // scenario 6
-            else if(apos == synth.GetStackTop()-1 && bpos == synth.GetStackTop()-2)
-            {
-                FPO(fprintf(stderr, "-> op\n")); // scenario 3
-                flipped=!flipped;
-            }
-            else if(apos == synth.GetStackTop()-2 && bpos == synth.GetStackTop()-1)
-                FPO(fprintf(stderr, "-> op\n")); // scenario 4
-            else if(apos == synth.GetStackTop()-1)
-                DUP_ONE(bpos); // scenario 1
-            else if(bpos == synth.GetStackTop()-1)
-            {
-                DUP_ONE(apos); // scenario 2
-                flipped=!flipped;
-            }
-            else
-                DUP_BOTH(); // scenario 5
-        }
-        // Add them together.
-        synth.AddOperation(flipped ? cumulation_opcode_flip : cumulation_opcode, 2);
-    }
-}
-
-namespace FPoptimizer_ByteCode
-{
-    void AssembleSequence(
-        long count,
-        const SequenceOpCode& sequencing,
-        ByteCodeSynth& synth)
-    {
-        if(count == 0)
-            synth.PushImmed(sequencing.basevalue);
-        else
-        {
-            if(count < 0)
-            {
-                synth.AddOperation(sequencing.op_flip, 1);
-                count = -count;
-            }
-
-            if(count > 1)
-            {
-                /* To prevent calculating the same factors over and over again,
-                 * we use a cache. */
-                PowiCache cache;
-                PlanNtimesCache(count, cache, 1);
-
-                size_t stacktop_desired = synth.GetStackTop();
-
-                cache.Start( synth.GetStackTop()-1 );
-
-                FPO(fprintf(stderr, "Calculating result for %ld...\n", count));
-                size_t res_stackpos = AssembleSequence_Subdivide(
-                    count, cache, sequencing,
-                    synth);
-
-                size_t n_excess = synth.GetStackTop() - stacktop_desired;
-                if(n_excess > 0 || res_stackpos != stacktop_desired-1)
-                {
-                    // Remove the cache values
-                    synth.DoPopNMov(stacktop_desired-1, res_stackpos);
-                }
-            }
-        }
-    }
-}
-
+t2{
+#ifndef FP_GENERATING_POWI_TABLE
+extern
+const
+lW3
+char
+powi_table[POWI_TABLE_SIZE];const
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_codetree.cc"
+lW3
+char
+powi_table[POWI_TABLE_SIZE]={0,1,1,1,2,iK2
+1,4,1,2,131,8,iK2
+1,8,yW3
+131,4,1,15,1,16,iK2
+131,8,1,2,1,4,yW3
+1,16,1,25,131,4,1,27,5,8,3,2,1,30,1,31,3,32,iK2
+1,8,1,2,131,4,1,39,1,16,137,2,1,4,yW3
+131,8,1,45,135,4,31,2,5,32,1,2,131,50,1,51,1,8,3,2,1,54,1,55,3,16,1,57,133,4,137,2,135,60,1,61,3,62,133,63,1,t21
+131,t21
+139,tR1
+e2
+30,1,130,137,2,31,tR1
+e2
+e2
+130,yW3
+1,e2
+e2
+2,1,130,133,t21
+61,130,133,62,139,130,137,e2
+tR1
+e2
+e2
+t21
+131,e2
+e2
+130,131,2,133,tR1
+130,141,e2
+130,yW3
+1,e2
+5,135,e2
+tR1
+e2
+tR1
+130,133,130,141,130,131,e2
+e2
+2,131}
+;}
+static
+lP3
+c2=256;
+#define FPO(x)
+iF2{class
+tS1{private:int
+i6[c2];int
+t31[c2];cR3
+tS1():i6(),t31(){i6[1]=1;}
+bool
+Plan_Add(yD1,int
+count){yO1>=c2)xR1
+t31[cZ2+=count
+lC1
+i6[cZ2!=0
+iH2
+iJ2
+yD1){yO1<c2)i6[cZ2=1
+iH2
+Start
+cB1
+value1_pos){for(int
+n=2;n<c2;++n)i6[n]=-1;Remember(1,value1_pos);DumpContents();}
+int
+Find(yD1
+cE3{yO1<c2
+xX3
+i6[cZ2>=0){FPO(t23(t63,"* I found %ld from cache (%u,%d)\n",value,(unsigned)cache[value],t33 value]))lC1
+i6[cZ2;}
+}
+lX3-1
+iH2
+Remember(yD1,size_t
+tE3){yO1>=c2
+n92;FPO(t23(t63,"* Remembering that %ld can be found at %u (%d uses remain)\n",value,(unsigned)tE3,t33 value]));i6[cZ2=(int)tE3
+iH2
+DumpContents
+cD3
+FPO(for(int a=1;a<POWI_CACHE_SIZE;++a)if(cache[a]>=0||t33 a]>0){t23(t63,"== cache: sp=%d, val=%d, needs=%d\n",cache[a],a,t33 a]);})}
+int
+UseGetNeeded(yD1){yO1>=0&&value<c2
+n92--t31[cZ2
+lC1
+0;}
+}
+;lO
+size_t
+yF
+long
+count
+nH3,cI&eN,iZ1
+x5&synth);nD3
+yF1
+size_t
+apos,long
+aval,size_t
+bpos,long
+bval
+nH3
+yL2
+cumulation_opcode
+yL2
+cimulation_opcode_flip,iZ1
+x5&synth);void
+l81
+yD1
+nH3,int
+need_count,int
+l91=0){yO1<1
+n92;
+#ifdef FP_GENERATING_POWI_TABLE
+if(l91>32)throw
+false;
+#endif
+if(i6.Plan_Add
+cC3,need_count)n92;long
+nI3
+1;yO1<POWI_TABLE_SIZE){nI3
+powi_table[cZ2
+xG3&128){half&=127
+xG3&64)nI3-n13
+FPO(t23(t63,"value=%ld, half=%ld, otherhalf=%ld\n",value,half,value/half));l81
+half,i6,iO2
+i6.iJ2
+half);tC
+t41
+half&64){nI3-n13}
+}
+else
+yO1&1)nI3
+value&((1<<POWI_WINDOW_SIZE)-1);else
+nI3
+value/2;long
+cN=value-half
+xG3>cN||half<0)std::swap(half,cN);FPO(t23(t63,"value=%ld, half=%ld, otherhalf=%ld\n",value,half,otherhalf))xG3==cN){l81
+half,i6,2,l91+1);}
+else{l81
+half,i6,iO2
+l81
+cN>0?cN:-cN,i6,iO2}
+i6.iJ2
+value);}
+lO
+size_t
+yF
+yD1
+nH3,cI&eN,lA1
+int
+nJ3=i6.Find
+cC3);if(nJ3>=0){lX3
+nJ3;}
+long
+nI3
+1;yO1<POWI_TABLE_SIZE){nI3
+powi_table[cZ2
+xG3&128){half&=127
+xG3&64)nI3-n13
+FPO(t23(t63,"* I want %ld, my plan is %ld * %ld\n",value,half,value/half))tW3
+nJ2=yF
+half
+yP1
+if(i6
+tT1
+half)>0||nJ2!=yE1){yP2
+nJ2)y32
+half,yE1);}
+xH1
+cC3/half
+xT2
+size_t
+tE3=yE1
+y32
+value,tE3);i6.DumpContents()lC1
+tE3;}
+t41
+half&64){nI3-n13}
+}
+else
+yO1&1)nI3
+value&((1<<POWI_WINDOW_SIZE)-1);else
+nI3
+value/2;long
+cN=value-half
+xG3>cN||half<0)std::swap(half,cN);FPO(t23(t63,"* I want %ld, my plan is %ld + %ld\n",value,half,value-half))xG3==cN){size_t
+nJ2=yF
+half
+yP1
+yF1
+nJ2,half,nJ2,half,i6,eN.op_normal,eN.op_normal_flip,synth);}
+else{long
+part1=half;long
+part2=cN>0?cN:-cN
+tW3
+part1_pos=yF
+part1
+yP1
+size_t
+part2_pos=yF
+part2
+yP1
+FPO(t23(t63,"Subdivide(%ld: %ld, %ld)\n",value,half,otherhalf));yF1
+part1_pos,part1,part2_pos,part2,i6,cN>0?eN.op_normal:eN.op_inverse,cN>0?eN.op_normal_flip:eN.op_inverse_flip,synth);}
+size_t
+tE3=yE1
+y32
+value,tE3);i6.DumpContents()lC1
+tE3;}
+nD3
+yF1
+size_t
+apos,long
+aval,size_t
+bpos,long
+bval
+nH3
+yL2
+cumulation_opcode
+yL2
+cumulation_opcode_flip,lA1
+int
+a_needed=i6
+tT1
+aval);int
+nK3=i6
+tT1
+bval);bool
+tU1
+e23
+#define DUP_BOTH() do{if(apos<bpos){size_t tmp=apos;apos=bpos;bpos=tmp;tU1=!tU1;}FPO(t23(t63,"-> "tD3 tD3"op\n",(unsigned)apos,(unsigned)bpos));yP2 apos);yP2 apos==bpos?yE1:bpos);}while(0)
+#define DUP_ONE(p) do{FPO(t23(t63,"-> "tD3"op\n",(unsigned)p));yP2 p);}while(0)
+if(a_needed>0
+xX3
+nK3>0){iR1}
+else{if(bpos!=yE1)iR1
+else{tV1
+tU1=!tU1;}
+}
+}
+t41
+nK3>0
+xX3
+apos!=yE1)iR1
+else
+DUP_ONE(bpos);}
+else{if(apos==bpos&&apos==yE1)tV1
+t41
+apos==yE1&&bpos==iP
+nP
+2){FPO(t23(t63,"-> op\n"));tU1=!tU1;}
+t41
+apos==iP
+nP
+2&&bpos==yE1)FPO(t23(t63,"-> op\n"));t41
+apos==yE1)DUP_ONE(bpos);t41
+bpos==yE1){tV1
+tU1=!tU1;}
+else
+iR1}
+iP
+l12
+tU1?cumulation_opcode_flip:cumulation_opcode,2);}
+nD3
+yQ1
+long
+count,cI&eN,lA1
+while
+yX3<256){int
+nI3
+FPoptimizer_ByteCode::powi_table[count]xG3&128){half&=127;yQ1
+half
+xT2
+count/=half;}
+else
+break;}
+if
+yX3==1
+n92;if(!yX3&1)){iP
+l12
+cSqr,1);yQ1
+count/2
+xT2}
+else{yP2
+yE1);yQ1
+count-1,eN,synth
+yT1
+cMul,2);}
+}
+}
+t2{nD3
+xH1(long
+count,cI&eN,lA1
+if
+yX3==0)iP
+PushImmed(eN.basevalue);else{bool
+e02
+e23
+if
+yX3<0){e02=true;count=-count;}
+if(false)yQ1
+count
+xT2
+t41
+count>1){tS1
+i6;l81
+count,i6,1)tW3
+x31=iP
+GetStackTop();i6.Start(yE1);FPO(t23(t63,"Calculating result for %ld...\n",count))tW3
+nK2=yF
+count
+yP1
+size_t
+n_excess=iP
+nP
+x31;if(n_excess>0||nK2!=x31-1){iP
+DoPopNMov(x31-1,nK2);}
+}
+if(e02)iP
+l12
+eN.op_flip,1);}
+}
+}
+#endif
+#ifndef FPOptimizer_RangeEstimationHH
+#define FPOptimizer_RangeEstimationHH
+iF2
+FPoptimizer_CodeTree{enum
+cN1{c02,IsNever,Unknown}
+;lO
+yI2
+tX1{iQ
+min,max;bool
+has_min,l22;tX1():min(),max(tX3
+false),l22(false){}
+tX1(iQ
+mi,iQ
+ma):min(mi),max(ma
+tX3
+true),l22(true){}
+tX1(bool,iQ
+ma):min(),max(ma
+tX3
+false),l22(true){}
+tX1(iQ
+mi,bool):min(mi),max(tX3
+true),l22(false){}
+void
+set_abs();void
+set_neg();t3
+set_min_max_if
+l32
+t3
+set_min_if
+l32
+t3
+set_max_if
+l32
+void
+set_min(iQ(lH
+void
+set_max(iQ(lH
+void
+xF2
+iQ(lH}
+;lZ2
+bool
+IsLogicalTrueValue
+yI
+iG&p
+xR2
+if(p
+tL3
+min>=0.5
+cA2
+if(!abs&&p
+iL2<=-0.5
+n92
+true
+lC1
+false;}
+lZ2
+bool
+IsLogicalFalseValue
+yI
+iG&p
+xR2
+if(abs
+n92
+p
+iL2<0.5;else
+lX3
+p
+tL3
+l22&&p.min>-0.5
+nW3<0.5;}
+lO
+iG
+l01
+yG);nM3
+IsLogicalValue
+yG);lO
+cN1
+GetIntegerInfo
+yG);lZ2
+cN1
+GetEvennessInfo
+yG
+xX3!tree
+yK1
+n92
+Unknown;const
+iQ&value=tree
+tN;if(isEvenInteger
+cC3)n92
+nL2
+isOddInteger
+cC3)n92
+lB1
+lZ2
+cN1
+GetPositivityInfo
+yG){iG
+p=l01(tree);if(p
+tL3
+min>=iQ(0)n92
+nL2
+p
+iL2<iQ(0)n92
+lB1
+lZ2
+cN1
+GetLogicalValue
+yG
+xR2
+iG
+p=l01(tree);if(IsLogicalTrueValue(p,abs)n92
+nL2
+IsLogicalFalseValue(p,abs)n92
+lB1}
+#endif
+#ifndef FPOptimizer_ConstantFoldingHH
+#define FPOptimizer_ConstantFoldingHH
+iF2
+FPoptimizer_CodeTree{nD3
+ConstantFolding(tW&tree);}
+#endif
+iF2{nE
+using
+iF2
+FPoptimizer_CodeTree;yI2
+ComparisonSetBase{enum{cU3=0x1,Eq_Mask=0x2,Le_Mask=0x3,cV3=0x4,cW3=0x5,Ge_Mask=0x6}
+;static
+int
+Swap_Mask(int
+m){lX3(m&Eq_Mask)|((m&cU3)?cV3:0)|((m&cV3)?cU3:0);}
+enum
+yG1{Ok,BecomeZero,BecomeOne,e42
+n83
+l52{cond_or,tQ2,tR2,tS2}
+;}
+;lO
+yI2
+ComparisonSet:public
+ComparisonSetBase{yI2
+e12{tW
+a;tW
+b;int
+relationship;e12():a(),b(),relationship(){}
+}
+;yC<e12>yJ;yI2
+Item{tW
+value;bool
+xU2;Item():value(),xU2(false){}
+}
+;yC<Item>yV1;int
+x41;ComparisonSet():yJ(),yV1(),x41(0){}
+yG1
+AddItem
+yZ3
+a,bool
+xU2,l52
+type){for
+cB1
+c=0;c<yV1
+e22
+c)if(yV1[c].value.IsIdenticalTo(a)xX3
+xU2!=yV1[c].xU2){iU
+c31
+case
+tS2:yV1.erase(yV1.begin()+c);x41+=1
+n31
+case
+tQ2:case
+tR2:c41}
+}
+lX3
+e42;}
+Item
+pole;pole.value=a;pole.xU2=xU2;yV1
+yX
+pole)lC1
+Ok;}
+yG1
+AddRelationship(tW
+a,tW
+b,int
+eM1,l52
+type){iU
+tF3
+7)c31
+lB
+tS2:tF3
+7){x41+=1
+n31}
+lB
+tQ2:case
+tR2:tF3
+0)c41
+break;}
+if(!(a.GetHash()<b.GetHash())){a.swap(b);eM1=Swap_Mask(eM1);}
+for
+cB1
+c=0;c<yJ
+e22
+c
+xX3
+yJ[c].a.IsIdenticalTo(a)&&yJ[c].b.IsIdenticalTo(b)){iU{int
+nL3=yJ[c
+tR|eM1;if(nL3==7)c31
+yJ[c
+tR=nL3;break;}
+case
+tQ2:case
+tR2:{int
+nL3=yJ[c
+tR&eM1;if(nL3==0)c41
+yJ[c
+tR=nL3;break;}
+case
+tS2:{int
+newrel_or=yJ[c
+tR|eM1;int
+nM2=yJ[c
+tR&eM1;tY1
+5&&nM2==0){yJ[c
+tR=cW3
+n31}
+tY1
+7&&nM2==0){x41+=1;yJ.erase(yJ.begin()+c)n31}
+tY1
+7&&nM2==Eq_Mask){yJ[c
+tR=Eq_Mask;x41+=1
+n31}
+xU1}
+}
+lX3
+e42;}
+}
+e12
+comp;comp.a=a;comp.b=b;comp.relationship=eM1;yJ
+yX
+comp)lC1
+Ok;}
+}
+;nL1
+iQ,lZ3
+CondType>bool
+ConstantFolding_LogicCommon(tW&tree,CondType
+nZ1,bool
+nN2){bool
+should_regenerate
+e23
+ComparisonSet
+x5
+comp
+iV1
+lZ3
+yU
+yG1
+yY3=yU
+Ok;tM2&atree=lR1
+a);cI3
+atree
+t83()tV2
+cEqual
+lC
+Eq_Mask
+xY3
+cNEqual
+lC
+cW3
+xY3
+cLess
+lC
+cU3
+xY3
+cLessOrEq
+lC
+Le_Mask
+xY3
+cGreater
+lC
+cV3
+xY3
+cGreaterOrEq
+lC
+Ge_Mask
+xY3
+cNot:yY3
+xS1
+lN
+0),true
+xY3
+cNotNot:yY3
+xS1
+lN
+0),false,nZ1);break;default:if(nN2||IsLogicalValue(atree))yY3
+xS1,false,nZ1);i62
+yY3){ReplaceTreeWithZero
+e83.ReplaceWithImmed(0)lC1
+true;ReplaceTreeWithOne
+e83.ReplaceWithImmed(1);nZ
+yU
+Ok:lB
+yU
+BecomeZero
+e4
+yU
+BecomeOne:e5
+yU
+e42:yJ1
+xF3
+if(should_regenerate){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Before ConstantFolding_LogicCommon: "
+c8
+#endif
+if(nN2){tree.DelParams();}
+else{e92{tM2&atree=lR1
+a);if(IsLogicalValue(atree))nD1);}
+}
+for
+n62
+comp.yV1
+e22
+a
+xX3
+comp.yV1[a].xU2
+eF2
+cNot);r.c6
+r.eN1
+t41!nN2
+eF2
+cNotNot);r.c6
+r.eN1
+else
+tree.c6}
+for
+n62
+comp.yJ
+e22
+a
+eF2
+cNop);cI3
+comp.yJ[a
+tR
+tV2
+yU
+cU3:r
+y7
+cLess
+iP2
+Eq_Mask:r
+y7
+cEqual
+iP2
+cV3:r
+y7
+cGreater
+iP2
+Le_Mask:r
+y7
+cLessOrEq
+iP2
+cW3:r
+y7
+cNEqual
+iP2
+Ge_Mask:r
+y7
+cGreaterOrEq
+cH2
+r
+lE1
+comp.yJ[a].a);r
+lE1
+comp.yJ[a].b);r.eN1
+if(comp.x41!=0)tree
+yV
+iQ(comp.x41)));
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"After ConstantFolding_LogicCommon: "
+c8
+#endif
+lX3
+true;}
+xD1
+nM3
+ConstantFolding_AndLogic(t73(tree
+t83()==cAnd
+t03()==cAbsAnd)nB
+tQ2,true);}
+nM3
+ConstantFolding_OrLogic(t73(tree
+t83()==cOr
+t03()==cAbsOr)nB
+cond_or,true);}
+nM3
+ConstantFolding_AddLogicItems(t73(tree
+t83()==cAdd)nB
+tS2,false);}
+nM3
+ConstantFolding_MulLogicItems(t73(tree
+t83()==cMul)nB
+tR2,false);}
+}
+#include <vector>
+#include <map>
+#include <algorithm>
+iF2{nE
+using
+iF2
+FPoptimizer_CodeTree;yI2
+CollectionSetBase{enum
+x51{Ok,e42}
+;}
+;lO
+yI2
+CollectionSet:public
+CollectionSetBase{yI2
+yH1{tW
+value;tW
+xO2;bool
+cW;yH1():value(),xO2(),cW(false){}
+yH1
+yZ3
+v,tM2&f):value(v),xO2(f),cW(false){}
+}
+;std::multimap<nC2,yH1>i7;typedef
+lZ3
+std::multimap<nC2,yH1>::nP3
+x61;CollectionSet():i7(){}
+x61
+FindIdenticalValueTo
+yZ3
+value){nC2
+hash=value.GetHash();for(x61
+i=i7.nO2
+hash);i!=i7.c51
+hash;++i){yO1.IsIdenticalTo(i
+yQ2.value)n92
+i;}
+lX3
+i7.end();}
+bool
+Found
+yI
+x61&b){lX3
+b!=i7.end();}
+x51
+AddCollectionTo
+yZ3
+xO2,const
+x61&into_which){yH1&c=into_which
+yQ2;if(c.cW)c.xO2
+iO
+xO2);else{tW
+add;add
+y7
+cAdd);add
+lE1
+c.xO2);add
+iO
+xO2);c.xO2.swap(add);c.cW=true;}
+lX3
+e42;}
+x51
+l62
+yZ3
+value,tM2&xO2){const
+nC2
+hash=value.GetHash();x61
+i=i7.nO2
+hash);for(;i!=i7.c51
+hash;++i
+xX3
+i
+yQ2.value.IsIdenticalTo
+cC3)n92
+AddCollectionTo
+lY2,i);}
+i7.nN3,std::make_pair(hash,yH1
+cC3,xO2)))lC1
+Ok;}
+x51
+l62
+yZ3
+a){lX3
+l62(a,c61
+1)));}
+}
+;lO
+yI2
+ConstantExponentCollection{typedef
+yC<tW>TreeSet;typedef
+std::cO1
+nP2;yC<nP2>data;ConstantExponentCollection():data(){}
+void
+MoveToSet_Unique
+yI
+iQ&cP1&cQ1){data
+yX
+std::cO1(cP1()));data.back()cZ3.swap(cQ1)iH2
+MoveToSet_NonUnique
+yI
+iQ&cP1&cQ1){lZ3
+yC<nP2>::nP3
+i=std::nO2
+data.tT2
+data.end(),tK2,Compare1st());if(i!=data.c51
+tK2){i
+yQ2.nN3
+yQ2.end(),cQ1.tT2
+cQ1.end());}
+else{data.nN3,std::cO1
+nG2,cQ1));}
+}
+bool
+Optimize(){bool
+changed
+e23
+std::sort(data.tT2
+data.end(),Compare1st());redo:for
+n62
+data
+e22
+a){iQ
+exp_a=data[a
+cX3;e62
+exp_a,e03
+xU1
+for
+cB1
+b=a+1;b<data
+e22
+b){iQ
+exp_b=data[b
+cX3;iQ
+nQ2=exp_b-exp_a;if(nQ2>=fp_abs(exp_a))break;iQ
+exp_diff_still_probable_integer=nQ2*iQ(16);if(eP2
+exp_diff_still_probable_integer)&&!(eP2
+exp_b)&&!eP2
+nQ2))){TreeSet&a_set=tZ1;TreeSet&b_set=data[b
+cY3;
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Before ConstantExponentCollection iteration:\n"
+;eQ2
+cout);
+#endif
+if(isEvenInteger(exp_b)&&!isEvenInteger(nQ2+exp_a)){tW
+tmp2;tmp2
+y03
+tmp2
+c33
+b_set);tmp2
+tW2
+tmp;tmp
+y7
+cAbs);tmp
+lO3;tmp
+lL1
+b_set
+n93
+1);b_set[0]yB2}
+a_set.insert(a_set.end(),b_set.tT2
+b_set.end());TreeSet
+b_copy=b_set;data.erase(data.begin()+b);MoveToSet_NonUnique(nQ2,b_copy);lT2
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"After ConstantExponentCollection iteration:\n"
+;eQ2
+cout);
+#endif
+c9}
+}
+}
+lX3
+changed;}
+#ifdef DEBUG_SUBSTITUTIONS
+void
+eQ2
+ostream&out){for
+n62
+data
+e22
+a){out.precision(12);out<<data[a
+cX3<<": "
+;c91
+tZ1
+e22
+b
+xX3
+b>0)out<<'*';nX3(tZ1[b],out);}
+out<<std::endl;}
+}
+#endif
+}
+;lO
+static
+tW
+nS1
+tW&value,bool&xH){switch
+cC3
+t83()tV2
+cPow:{tW
+tK2=value
+lN
+1);value.xT1
+lC1
+tK2;}
+case
+cRSqrt:value.xT1;xH=true
+lC1
+c61-0.5));case
+cInv:value.xT1;xH=true
+lC1
+c61-1));default:break;}
+lX3
+c61
+1));cN3
+void
+cR1
+cS1&mul,cD2,tM2&xO2,bool&yI1
+bool&xH){for
+n62
+y6++a){tW
+value(lR1
+a));tW
+tK2(nS1
+value,xH));if(!xO2
+yK1||xO2
+tN!=1.0){tW
+c71;c71
+y03
+c71
+iO
+tB2
+c71
+iO
+xO2);c71
+lL1
+tK2.swap(c71);}
+#if 0 /* FIXME: This does not work */
+yO1
+nD
+cMul
+xX3
+1){bool
+exponent_is_even=tK2
+yK1&&isEvenInteger
+nG2
+tN);c91
+value
+e43{bool
+tmp
+e23
+tW
+val
+cC3
+lN
+b));tW
+exp(nS1
+val,tmp));if(exponent_is_even||(exp
+yK1&&isEvenInteger(exp
+tN))){tW
+c71;c71
+y03
+c71
+iO
+tB2
+c71
+lE1
+exp);c71.ConstantFolding();if(!c71
+yK1||!isEvenInteger(c71
+tN)){goto
+cannot_adopt_mul;}
+}
+}
+}
+cR1
+mul,value,tK2,yI1
+xH);}
+else
+cannot_adopt_mul:
+#endif
+{if(mul.l62
+cC3,tK2)==CollectionSetBase::e42)yJ1}
+}
+}
+nM3
+ConstantFolding_MulGrouping(eH2
+bool
+xH
+e23
+bool
+should_regenerate
+e23
+cS1
+mul;cR1
+mul
+c63,c61
+1)),yI1
+xH);typedef
+std::pair<tW,yC<tW> >cT1;typedef
+std::multimap<nC2,cT1>yW1;yW1
+tO;cI2
+cS1::x61
+j=mul.i7
+nA3
+j!=mul.i7.end();++j){tW&value=j
+yQ2.value;tW&tK2=j
+yQ2.xO2;if(j
+yQ2.cW)tK2
+lL1
+const
+nC2
+cU1=tK2.GetHash();lZ3
+yW1::nP3
+i=tO.nO2
+cU1);for(;i!=tO.c51
+cU1;++i)if(i
+yQ2.first.IsIdenticalTo
+nG2)xX3!tK2
+yK1||!fp_equal
+nG2
+tN,e03
+yJ1
+i
+yQ2
+cZ3
+yX
+value);goto
+skip_b;}
+tO.nN3,std::make_pair(cU1,std::make_pair
+nG2,yC<tW>cB1(1),value))));skip_b:;}
+#ifdef FP_MUL_COMBINE_EXPONENTS
+ConstantExponentCollection
+x5
+c81;cI2
+yW1::nP3
+j,i=tO
+nA3
+i!=tO.end();i=j){j=i;++j;cT1&list=i
+yQ2;l72
+yK1
+lH2
+list.first
+tN;if(!nG2==iQ(0)))c81.MoveToSet_Unique
+nG2,list
+eI2;tO.erase(i);}
+}
+if(c81.Optimize())yJ1
+#endif
+if(should_regenerate){tW
+before=tree;before.lH1
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Before ConstantFolding_MulGrouping: "
+;nX3(before)iJ"\n"
+;
+#endif
+tree.DelParams();cI2
+yW1::nP3
+i=tO
+nA3
+i!=tO.end();++i){cT1&list=i
+yQ2;
+#ifndef FP_MUL_COMBINE_EXPONENTS
+l72
+yK1
+lH2
+list.first
+tN;if
+nG2==iQ(0))xU1
+if(FloatEqual
+nG2,e03{tree.AddParamsMove(list
+eI2;xU1}
+}
+#endif
+tW
+mul;mul
+y03
+mul
+c33
+list
+eI2;mul
+lL1
+if(xH&&list.first
+yK1){l72
+tN==lU
+3)){tW
+cbrt;cbrt
+y7
+cCbrt);cbrt.e6
+cbrt.eO1
+cbrt);xU1
+cO
+0.5)){tW
+sqrt;sqrt
+y7
+cSqrt);sqrt.e6
+sqrt.eO1
+sqrt);xU1
+cO-0.5)){tW
+rsqrt;rsqrt
+y7
+cRSqrt);rsqrt.e6
+rsqrt.eO1
+rsqrt);xU1
+cO-1)){tW
+inv;inv
+y7
+cInv);inv.e6
+inv.eO1
+inv);xU1}
+}
+tW
+pow;pow
+y7
+cPow);pow.e6
+pow
+lE1
+list.first);pow.eO1
+pow);}
+#ifdef FP_MUL_COMBINE_EXPONENTS
+tO.clear()lJ1
+i2
+e22
+a
+lH2
+i2[a
+cX3;if(fp_equal
+nG2,e03{tree.AddParamsMove(i2[a]eI2;xU1}
+tW
+mul;mul
+y03
+mul
+c33
+i2[a]eI2;mul
+tW2
+pow;pow
+y7
+cPow);pow.e6
+pow
+yV
+tK2));pow.eO1
+pow);}
+#endif
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"After ConstantFolding_MulGrouping: "
+c8
+#endif
+lX3!tree.IsIdenticalTo(before);}
+xD1
+nM3
+ConstantFolding_AddGrouping(eH2
+bool
+should_regenerate
+e23
+cS1
+add
+iV1
+if(lR1
+a)nD
+cMul)xU1
+if(add.l62(lR1
+a))==CollectionSetBase::e42)yJ1}
+xD3
+remaining(i42
+tW3
+t8=0
+iV1
+tM2&lY3=lR1
+a);if
+cL2
+nD
+cMul){c91
+lY3
+e43{if
+cL2
+lN
+b)yK1)xU1
+lZ3
+cS1::x61
+c=add.FindIdenticalValueTo
+cL2
+lN
+b));if(add.Found(c)){tW
+tmp
+cL2
+x81
+CloneTag());tmp.eI1
+b);tmp
+lL1
+add.AddCollectionTo(tmp,c);yJ1
+goto
+done_a;}
+}
+remaining[a]=true;t8+=1;done_a:;}
+}
+if(t8>0
+xX3
+t8>1){yC<std::pair<tW,tY3>nY;std::multimap<nC2,tY3
+cV1;bool
+iQ2
+e23
+for
+xT{c91
+lR1
+a)e43{tM2&p=lR1
+a)lN
+b);const
+nC2
+p_hash=p.GetHash();for(std::multimap<nC2,tY3::const_iterator
+i=cV1.nO2
+p_hash);i!=cV1.c51
+p_hash;++i
+xX3
+nY[i
+yQ2
+cX3.IsIdenticalTo(p)){nY[i
+yQ2
+cY3+=1;iQ2=true;goto
+found_mulgroup_item_dup;}
+}
+nY
+yX
+std::make_pair(p,size_t(1)));cV1.insert(std::make_pair(p_hash,nY
+e72)-1));found_mulgroup_item_dup:;}
+}
+if(iQ2){tW
+yR2;{size_t
+max=0;for
+cB1
+p=0;p<nY
+e22
+p)if(nY[p
+cY3<=1)nY[p
+cY3=0;else{nY[p
+cY3*=nY[p
+cX3.nX2;if(nY[p
+cY3>max){yR2=nY[p
+cX3;max=nY[p
+cY3;}
+}
+}
+tW
+group_add;group_add
+y7
+cAdd);
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Duplicate across some trees: "
+;nX3(yR2)iJ" in "
+c8
+#endif
+for
+xT
+c91
+lR1
+a)e43
+if(yR2.IsIdenticalTo(lR1
+a)lN
+b))){tW
+tmp(lR1
+a)x81
+CloneTag());tmp.eI1
+b);tmp
+lL1
+group_add
+lE1
+tmp);remaining[a]e23
+break;}
+group_add
+tW2
+group;group
+y03
+group
+lE1
+yR2);group
+lE1
+group_add);group
+lL1
+add.l62(group);yJ1}
+}
+for
+xT{if(add.l62(lR1
+a))==CollectionSetBase::e42)yJ1}
+}
+if(should_regenerate){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Before ConstantFolding_AddGrouping: "
+c8
+#endif
+tree.DelParams();cI2
+cS1::x61
+j=add.i7
+nA3
+j!=add.i7.end();++j){tW&value=j
+yQ2.value;tW&coeff=j
+yQ2.xO2;if(j
+yQ2.cW)coeff
+lL1
+if(coeff
+yK1){e62
+coeff
+tN,iQ(0)))xU1
+e62
+coeff
+tN,e03{tree
+lE1
+value);xU1}
+}
+tW
+mul;mul
+y03
+mul
+lE1
+value);mul
+lE1
+coeff);mul.eO1
+mul);}
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"After ConstantFolding_AddGrouping: "
+c8
+#endif
+lX3
+true;}
+xD1}
+iF2{nE
+using
+iF2
+FPoptimizer_CodeTree;nM3
+ConstantFolding_IfOperations(t73(tree
+t83()==cIf
+t03()==cAbsIf);for(;;xX3
+x71
+cNot){tree
+y7
+cIf);lE
+nQ3
+nW2
+0));tU2.swap(tI3);}
+t41
+x71
+lQ2){tree
+y7
+nS3;lE
+nQ3
+nW2
+0));tU2.swap(tI3);}
+else
+e32
+tB
+0),x92
+nS3){iI1
+tree.nQ3
+tU2);nZ
+iB2
+tree.nQ3
+tI3);nZ
+n01
+if(x71
+cIf||x71
+nS3{tW
+cond=lR1
+0);tW
+iR2;iR2
+y7
+cond
+tT3
+cNotNot:cAbsNotNot);iR2
+nR2
+1));ConstantFolding(iR2);tW
+iS2;iS2
+y7
+cond
+tT3
+cNotNot:cAbsNotNot);iS2
+nR2
+2));ConstantFolding(iS2);if(iR2
+yK1||iS2
+yK1){tW
+eO;eO
+y7
+cond.e7
+eO
+nR2
+1));eO.nK
+1));eO.nK
+2));eO
+tW2
+eP;eP
+y7
+cond.e7
+eP
+nR2
+2));eP.nK
+1));eP.nK
+2));eP
+lL1
+tree
+y7
+cond.e7
+tree.SetParam(0,cond
+lN
+0))nT3
+1,eO)nT3
+2,eP)tQ1}
+if(tU2
+nD
+tI3
+t83()&&(tU2
+nD
+cIf||tU2
+nD
+nS3){tW&leaf1=tU2;tW&leaf2=tI3;if
+cO2
+0).xP
+0))&&cO2
+1
+tR3||leaf1
+lN
+2
+tS3)){tW
+eO;eO
+cW1
+eO.nK
+0));eO
+nS2
+1));eO
+nT2
+1));eO
+tW2
+eP;eP
+cW1
+eP.nK
+0));eP
+nS2
+2));eP
+nT2
+2));eP
+lL1
+tree
+cX1
+SetParam(0
+nR3
+0))nT3
+1,eO)nT3
+2,eP)tQ1
+if
+cO2
+1
+tR3&&leaf1
+lN
+2
+tS3){tW
+eQ;eQ
+cW1
+eQ.l11
+eQ
+nS2
+0));eQ
+nT2
+0));eQ
+lL1
+tree
+cX1
+n91
+0,eQ)eD2
+2
+nR3
+2))eD2
+1
+nR3
+1))tQ1
+if
+cO2
+1
+tS3&&leaf1
+lN
+2
+tR3){tW
+yS2;yS2
+y7
+leaf2
+tT3
+cNot:lQ2);yS2
+nT2
+0));yS2
+tW2
+eQ;eQ
+cW1
+eQ.l11
+eQ
+nS2
+0));eQ
+lE1
+yS2);eQ
+lL1
+tree
+cX1
+n91
+0,eQ)eD2
+2
+nR3
+2))eD2
+1
+nR3
+1))tQ1}
+tW&cJ=tU2;tW&cC=tI3;if(cJ.IsIdenticalTo(cC)){tree.nQ3
+tU2)tQ1
+const
+OPCODE
+op1=cJ
+t83();const
+OPCODE
+op2=cC
+t83();if
+nU3
+op2
+xX3
+cJ
+iK==1){tW
+changed_if
+tW1
+cW1
+changed_if.l11
+changed_if
+iO
+cJ
+lN
+0))tW1
+iO
+cC
+lN
+0))tW1
+lL1
+tree
+y7
+op1)lR3
+DelParams()c7
+changed_if)tQ1
+if
+nU3
+nV3
+cMul
+i01
+cAnd
+i01
+cOr
+i01
+cAbsAnd
+i01
+cAbsOr
+i01
+cMin
+i01
+cMax){yC<tW>iT2;yB{for
+cB1
+b=cC
+iK;b-->0;){if
+iU2
+cC
+lN
+b))xX3
+iT2
+xT3){cJ.e63
+lH1}
+iT2
+yX
+cJ
+lF3
+cC.eI1
+b);cJ.eI1
+a
+cH2}
+}
+if(!iT2
+xT3){cJ
+lL1
+cC
+tW2
+changed_if
+tW1
+cW1
+changed_if
+c33
+tree.tM1))tW1
+lL1
+tree
+y7
+op1)lR3
+SetParamsMove(iT2)lR3
+nS}
+if
+nU3
+nV3
+cMul||nU3
+cAnd
+nN1
+cC))||nU3
+cOr
+nN1
+cC))){yB
+if
+iU2
+cC)){cJ.lH1
+cJ.eI1
+a);cJ
+tW2
+yX1=cC;cC=t9
+op1==nV3
+cOr
+l8
+op1)c7
+yX1);xV2
+nU3
+cAnd
+i01
+cOr)&&op2==cNotNot){tW&iV2=cC
+lN
+0);yB
+if
+iU2
+iV2)){cJ.lH1
+cJ.eI1
+a);cJ
+tW2
+yX1=iV2;cC=t9
+op1==cOr
+l8
+op1)c7
+yX1);xV2
+op2==cAdd||op2==cMul||(op2==cAnd
+nN1
+cJ))||(op2==cOr
+nN1
+cJ))){for
+cB1
+a=cC.eT
+cC
+lN
+iS
+cJ)){cC.e63
+eI1
+a);cC
+tW2
+yY1=cJ;cJ=t9
+op2==cAdd||op2==cOr
+l8
+op2)c7
+yY1);xV2(op2==cAnd||op2==cOr)&&op1==cNotNot){tW&iW2=cJ
+lN
+0
+e52
+cC.eT
+cC
+lN
+iS
+iW2)){cC.e63
+eI1
+a);cC
+tW2
+yY1=iW2;cJ=t9
+op2==cOr
+l8
+op2)c7
+yY1)lR3
+nS
+xD1}
+#include <limits>
+iF2{nE
+using
+iF2
+FPoptimizer_CodeTree;lO
+int
+maxFPExponent(){lX3
+std::numeric_limits
+x5::max_exponent;}
+nM3
+nT1
+iQ
+e73
+tK2
+xX3
+base<iQ(0)cA2
+e62
+e73(0))||fp_equal(e73(1))n92
+false
+lC1
+tK2>=iQ(maxFPExponent
+x5())/fp_log2(base);}
+nM3
+ConstantFolding_PowOperations(t73(tree
+t83()==cPow);y0){iQ
+const_value
+eO3
+yD,y1)lR3
+ReplaceWithImmed(const_value)lC1
+false;}
+if(xW2(float)y1==1.0){tree.nQ3
+lR1
+0))tQ1
+x8&&(float)lE
+GetImmed()==1.0)lM
+1)lC1
+false;}
+x8&&tU2
+nD
+cMul){bool
+nU2
+e23
+iQ
+i11=lE
+GetImmed();tW
+lY3=lR1
+1
+e52
+xM1
+eT
+lY3
+lN
+a
+yB3
+imm=lY3
+lN
+a)tN;{if(nT1
+i11,imm))break;iQ
+i21
+eO3(i11,imm);e62
+i21,iQ(0)))break;if(!nU2){nU2=true;xM1
+lH1}
+i11=i21;xM1
+eI1
+a
+cH2}
+if(nU2){lY3
+lL1
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Before pow-mul change: "
+c8
+#endif
+lE
+nQ3
+CodeTreeImmed(i11));tU2.Become
+cL2);
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"After pow-mul change: "
+c8
+#endif
+}
+}
+if(xW2
+x71
+cMul){iQ
+i31=y1;iQ
+nV2=1.0;bool
+nU2
+e23
+tW&lY3=lR1
+0
+e52
+xM1
+eT
+lY3
+lN
+a
+yB3
+imm=lY3
+lN
+a)tN;{if(nT1
+imm,i31))break;iQ
+cY1
+eO3(imm,i31);e62
+cY1,iQ(0)))break;if(!nU2){nU2=true;xM1
+lH1}
+nV2*=cY1;xM1
+eI1
+a
+cH2}
+if(nU2){lY3
+tW2
+c03;c03
+y7
+cPow);c03
+c33
+tree.tM1));c03.lL2;tree
+y7
+cMul)c7
+c03);tree
+yV
+nV2))tQ1}
+if(x71
+cPow&&xW2
+nW2
+1
+yB3
+a=nW2
+1)tN;iQ
+b=y1;iQ
+c=a*b;if(isEvenInteger(a)&&!isEvenInteger(c)){tW
+iX2;iX2
+y7
+cAbs);iX2
+iO
+nW2
+0));iX2
+lL1
+tree.n91
+0,iX2);}
+else
+tree.lT
+c));}
+xD1}
+iF2{nE
+using
+iF2
+FPoptimizer_CodeTree;yI2
+l5{enum
+yT2{MakeFalse=0,MakeTrue=1,eR2=2,l43=3,MakeNotNotP0=4,MakeNotNotP1=5,MakeNotP0=6,MakeNotP1=7,xG=8
+n83
+i41{Never=0,Eq0=1,Eq1=2,x53=3,y83=4}
+;yT2
+if_identical;yT2
+i51
+4];yI2{yT2
+what:4;i41
+when:4;}
+t51,t61,t71,t81;lO
+yT2
+Analyze
+yZ3
+a,tM2&b
+cE3{if(a.IsIdenticalTo(b)n92
+if_identical;iG
+p0=l01(a);iG
+p1=l01(b);if(p0.l22&&p1.has_min
+xX3
+p0.max<p1.min&&i51
+0]i3
+0];if(p0.max<=p1.min&&i51
+1]i3
+1];}
+if(p0.n32
+p1.l22
+xX3
+p0.min>p1.max&&i51
+2]i3
+2];if
+tZ3>=p1.max&&i51
+3]i3
+3];}
+if(IsLogicalValue(a)xX3
+t51
+yC3
+t51.when,p1)n92
+t51.what;if(t71
+yC3
+t71.when,p1)n92
+t71.what;}
+if(IsLogicalValue(b)xX3
+t61
+yC3
+t61.when,p0)n92
+t61.what;if(t81
+yC3
+t81.when,p0)n92
+t81.what;}
+lX3
+xG;cN3
+bool
+TestCase(i41
+when,const
+iG&p
+xX3!p.has_min||!p.l22)xR1
+cI3
+when
+tV2
+Eq0:lX3
+p.min==0.0
+nW3==p.min;case
+Eq1:lX3
+p.min==1.0
+nW3==p.max;case
+x53:lX3
+p.min>0
+nW3<=1;case
+y83:lX3
+p.min>=0
+nW3<1;default:;}
+xD1}
+;iF2
+RangeComparisonsData{static
+const
+l5
+Data[6]={{l5
+iY2
+tS
+xG,l5::tS
+xG}
+,iH
+Eq1}
+,iI
+Eq1}
+,lI1
+Eq0
+nP1
+Eq0}
+}
+,{l5::l82
+l13
+xG,l5
+l13
+xG}
+,iH
+Eq0}
+,iI
+Eq0}
+,lI1
+Eq1
+nP1
+Eq1}
+}
+,{l5::l82
+l13
+eR2,l5::tS
+MakeFalse}
+,lI1
+x53}
+,iI
+y83}
+,cY2
+iY2
+xG,l5
+l13
+tS
+l43}
+,lI1
+y83}
+,iI
+x53}
+,cY2::l82::tS
+tS
+MakeTrue,l5::eR2}
+,iH
+y83
+nP1
+x53}
+,cY2
+iY2
+tS
+l43,l5::xG,l5
+nA1}
+,iH
+x53
+nP1
+y83}
+,{l5::yK}
+;}
+nM3
+ConstantFolding_Comparison(eH2
+using
+iF2
+RangeComparisonsData;assert(tree t83()>=cEqual&&tree t83()<=cGreaterOrEq);cI3
+Data[xC1-cEqual].Analyze(lR1
+0),tU2)tV2
+l5::MakeFalse
+e83.ReplaceWithImmed(0)l23
+nA1
+e83.ReplaceWithImmed(1
+yL3
+l43
+e83
+y7
+cEqual
+yL3
+eR2
+e83
+y7
+cNEqual
+yL3
+MakeNotNotP0
+e83
+y7
+cNotNot)l33
+1
+yL3
+MakeNotNotP1
+e83
+y7
+cNotNot)l33
+0
+yL3
+MakeNotP0
+e83
+y7
+cNot)l33
+1
+yL3
+MakeNotP1
+e83
+y7
+cNot)l33
+0
+yL3
+xG:;}
+if(tU2
+yK1)cI3
+lE
+GetOpcode()tV2
+cAsin
+l03
+fp_sin(tX2
+cAcos
+l03
+fp_cos(y1)));tree
+y7
+x92
+cLess?cGreater:x92
+cLessOrEq?cGreaterOrEq:x92
+cGreater?cLess:x92
+cGreaterOrEq?cLessOrEq
+e83.e7
+nZ
+cAtan
+l03
+fp_tan(tX2
+cLog
+l03
+fp_exp(tX2
+cSinh
+l03
+fp_asinh(tX2
+cTanh:if(fp_less(fp_abs(y1),e03{tree.lT
+fp_atanh(y1)))tQ1
+break;default:break;}
+xD1}
 #include <list>
 #include <algorithm>
-
-// line removed
-#include "fptypes.hh"
-// line removed
-// line removed
-
 #ifdef FP_SUPPORT_OPTIMIZER
-
-using namespace FUNCTIONPARSERTYPES;
-//using namespace FPoptimizer_Grammar;
-
-namespace
-{
-    bool MarkIncompletes(FPoptimizer_CodeTree::CodeTree& tree)
-    {
-        if(tree.Is_Incompletely_Hashed())
-            return true;
-
-        bool needs_rehash = false;
-        for(size_t a=0; a<tree.GetParamCount(); ++a)
-            needs_rehash |= MarkIncompletes(tree.GetParam(a));
-        if(needs_rehash)
-            tree.Mark_Incompletely_Hashed();
-        return needs_rehash;
-    }
-
-    void FixIncompletes(FPoptimizer_CodeTree::CodeTree& tree)
-    {
-        if(tree.Is_Incompletely_Hashed())
-        {
-            for(size_t a=0; a<tree.GetParamCount(); ++a)
-                FixIncompletes(tree.GetParam(a));
-            tree.Rehash();
-        }
-    }
+nE
+iF2{
+#ifdef DEBUG_SUBSTITUTIONS
+eH
+double
+d){union{double
+d;uint_least64_t
+h;cM2
+d=d;lS1
+h
+cC1
+eH
+float
+f){union{float
+f;uint_least32_t
+h;cM2
+f=f;lS1
+h
+cC1
+eH
+long
+double
+ld){union{long
+double
+ld;yI2{uint_least64_t
+a
+xQ2
+short
+b;}
+s;cM2
+ld=ld;lS1
+s.b<<data.s.a
+cC1
+#endif
 }
-
-namespace FPoptimizer_CodeTree
-{
-    CodeTree::CodeTree()
-        : data(new CodeTreeData)
-    {
-    }
-
-    CodeTree::CodeTree(double i)
-        : data(new CodeTreeData(i))
-    {
-        data->Recalculate_Hash_NoRecursion();
-    }
-
-    CodeTree::CodeTree(unsigned v, CodeTree::VarTag)
-        : data(new CodeTreeData)
-    {
-        data->Opcode = cVar;
-        data->Var    = v;
-        data->Recalculate_Hash_NoRecursion();
-    }
-
-    CodeTree::CodeTree(const CodeTree& b, CodeTree::CloneTag)
-        : data(new CodeTreeData(*b.data))
-    {
-    }
-
-    CodeTree::~CodeTree()
-    {
-    }
-
-    struct ParamComparer
-    {
-        bool operator() (const CodeTree& a, const CodeTree& b) const
-        {
-            if(a.GetDepth() != b.GetDepth())
-                return a.GetDepth() > b.GetDepth();
-            return a.GetHash() < b.GetHash();
-        }
-    };
-
-    void CodeTreeData::Sort()
-    {
-        /* If the tree is commutative, order the parameters
-         * in a set order in order to make equality tests
-         * efficient in the optimizer
-         */
-        switch(Opcode)
-        {
-            case cAdd:
-            case cMul:
-            case cMin:
-            case cMax:
-            case cAnd:
-            case cOr:
-            case cEqual:
-            case cNEqual:
-                std::sort(Params.begin(), Params.end(), ParamComparer());
-                break;
-            case cLess:
-                if(ParamComparer() (Params[1], Params[0]))
-                    { std::swap(Params[0], Params[1]); Opcode = cGreater; }
-                break;
-            case cLessOrEq:
-                if(ParamComparer() (Params[1], Params[0]))
-                    { std::swap(Params[0], Params[1]); Opcode = cGreaterOrEq; }
-                break;
-            case cGreater:
-                if(ParamComparer() (Params[1], Params[0]))
-                    { std::swap(Params[0], Params[1]); Opcode = cLess; }
-                break;
-            case cGreaterOrEq:
-                if(ParamComparer() (Params[1], Params[0]))
-                    { std::swap(Params[0], Params[1]); Opcode = cLessOrEq; }
-                break;
-            default:
-                break;
-        }
-    }
-
-    void CodeTree::Rehash(bool constantfolding)
-    {
-        if(constantfolding)
-            ConstantFolding();
-        data->Sort();
-        data->Recalculate_Hash_NoRecursion();
-    }
-
-    void CodeTreeData::Recalculate_Hash_NoRecursion()
-    {
-        fphash_t NewHash = { Opcode * FPHASH_CONST(0x3A83A83A83A83A0),
-                             Opcode * FPHASH_CONST(0x1131462E270012B)};
-        Depth = 1;
-        switch(Opcode)
-        {
-            case cImmed:
-                if(Value != 0.0)
-                {
-                    crc32_t crc = crc32::calc( (const unsigned char*) &Value,
-                                                sizeof(Value) );
-                    NewHash.hash1 ^= crc | (fphash_value_t(crc) << FPHASH_CONST(32));
-                    NewHash.hash2 += ((~fphash_value_t(crc)) * 3) ^ 1234567;
-                }
-                break; // no params
-            case cVar:
-                NewHash.hash1 ^= (Var<<24) | (Var>>24);
-                NewHash.hash2 += (fphash_value_t(Var)*5) ^ 2345678;
-                break; // no params
-            case cFCall: case cPCall:
-            {
-                crc32_t crc = crc32::calc( (const unsigned char*) &Funcno, sizeof(Funcno) );
-                NewHash.hash1 ^= (crc<<24) | (crc>>24);
-                NewHash.hash2 += ((~fphash_value_t(crc)) * 7) ^ 3456789;
-                /* passthru */
-            }
-            default:
-            {
-                size_t MaxChildDepth = 0;
-                for(size_t a=0; a<Params.size(); ++a)
-                {
-                    if(Params[a].GetDepth() > MaxChildDepth)
-                        MaxChildDepth = Params[a].GetDepth();
-
-                    NewHash.hash1 += (1)*FPHASH_CONST(0x2492492492492492);
-                    NewHash.hash1 *= FPHASH_CONST(1099511628211);
-                    //assert(&*Params[a] != this);
-                    NewHash.hash1 += Params[a].GetHash().hash1;
-
-                    NewHash.hash2 += (3)*FPHASH_CONST(0x9ABCD801357);
-                    NewHash.hash2 *= FPHASH_CONST(0xECADB912345);
-                    NewHash.hash2 += (~Params[a].GetHash().hash1) ^ 4567890;
-                }
-                Depth += MaxChildDepth;
-            }
-        }
-        if(Hash != NewHash)
-        {
-            Hash = NewHash;
-            OptimizedUsing = 0;
-        }
-    }
-
-    void CodeTree::AddParam(const CodeTree& param)
-    {
-        //std::cout << "AddParam called\n";
-        data->Params.push_back(param);
-    }
-    void CodeTree::AddParamMove(CodeTree& param)
-    {
-        data->Params.push_back(CodeTree());
-        data->Params.back().swap(param);
-    }
-    void CodeTree::SetParam(size_t which, const CodeTree& b)
-    {
-        DataP slot_holder ( data->Params[which].data );
-        data->Params[which] = b;
-    }
-    void CodeTree::SetParamMove(size_t which, CodeTree& b)
-    {
-        DataP slot_holder ( data->Params[which].data );
-        data->Params[which].swap(b);
-    }
-
-    void CodeTree::AddParams(const std::vector<CodeTree>& RefParams)
-    {
-        data->Params.insert(data->Params.end(), RefParams.begin(), RefParams.end());
-    }
-    void CodeTree::AddParamsMove(std::vector<CodeTree>& RefParams)
-    {
-        size_t endpos = data->Params.size(), added = RefParams.size();
-        data->Params.resize(endpos + added, CodeTree());
-        for(size_t p=0; p<added; ++p)
-            data->Params[endpos+p].swap( RefParams[p] );
-    }
-    void CodeTree::AddParamsMove(std::vector<CodeTree>& RefParams, size_t replacing_slot)
-    {
-        DataP slot_holder ( data->Params[replacing_slot].data );
-        DelParam(replacing_slot);
-        AddParamsMove(RefParams);
-    /*
-        const size_t n_added = RefParams.size();
-        const size_t oldsize = data->Params.size();
-        const size_t newsize = oldsize + n_added - 1;
-        if(RefParams.empty())
-            DelParam(replacing_slot);
-        else
-        {
-            //    0 1 2 3 4 5 6 7 8 9 10 11
-            //    a a a a X b b b b b
-            //    a a a a Y Y Y b b b b  b
-            //
-            //   replacing_slot = 4
-            //   n_added = 3
-            //   oldsize = 10
-            //   newsize = 12
-            //   tail_length = 5
-
-            data->Params.resize(newsize);
-            data->Params[replacing_slot].data = 0;
-            const size_t tail_length = oldsize - replacing_slot -1;
-            for(size_t tail=0; tail<tail_length; ++tail)
-                data->Params[newsize-1-tail].data.UnsafeSetP(
-                &*data->Params[newsize-1-tail-(n_added-1)].data);
-            for(size_t head=1; head<n_added; ++head)
-                data->Params[replacing_slot+head].data.UnsafeSetP( 0 );
-            for(size_t p=0; p<n_added; ++p)
-                data->Params[replacing_slot+p].swap( RefParams[p] );
-        }
-    */
-    }
-
-    void CodeTree::SetParams(const std::vector<CodeTree>& RefParams)
-    {
-        //std::cout << "SetParams called" << (do_clone ? ", clone" : ", no clone") << "\n";
-        std::vector<CodeTree> tmp(RefParams);
-        data->Params.swap(tmp);
-    }
-
-    void CodeTree::SetParamsMove(std::vector<CodeTree>& RefParams)
-    {
-        data->Params.swap(RefParams);
-        RefParams.clear();
-    }
-
+iF2
+FPoptimizer_CodeTree{iS1()nI)){}
+iS1
+yI
+iQ&i
+x81
+n63)nI
+i))nT
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
-    void CodeTree::SetParams(std::vector<CodeTree>&& RefParams)
-    {
-        //std::cout << "SetParams&& called\n";
-        SetParamsMove(RefParams);
-    }
+iS1(iQ&&i
+x81
+n63)nI
+eS2
+i)))nT
 #endif
-
-    void CodeTree::DelParam(size_t index)
-    {
-        std::vector<CodeTree>& Params = data->Params;
-        //std::cout << "DelParam(" << index << ") called\n";
-    #ifdef __GXX_EXPERIMENTAL_CXX0X__
-        /* rvalue reference semantics makes this optimal */
-        Params.erase( Params.begin() + index );
-    #else
-        /* This labor evades the need for refcount +1/-1 shuffling */
-        Params[index].data = 0;
-        for(size_t p=index; p+1<Params.size(); ++p)
-            Params[p].data.UnsafeSetP( &*Params[p+1].data );
-        Params[Params.size()-1].data.UnsafeSetP( 0 );
-        Params.resize(Params.size()-1);
-    #endif
-    }
-
-    void CodeTree::DelParams()
-    {
-        data->Params.clear();
-    }
-
-    /* Is the value of this tree definitely odd(true) or even(false)? */
-    CodeTree::TriTruthValue CodeTree::GetEvennessInfo() const
-    {
-        if(!IsImmed()) return Unknown;
-        if(!IsLongIntegerImmed()) return Unknown;
-        return (GetLongIntegerImmed() & 1) ? IsNever : IsAlways;
-    }
-
-    bool CodeTree::IsLogicalValue() const
-    {
-        switch(data->Opcode)
-        {
-            case cImmed:
-                return FloatEqual(data->Value, 0.0)
-                    || FloatEqual(data->Value, 1.0);
-            case cAnd:
-            case cOr:
-            case cNot:
-            case cNotNot:
-            case cEqual:
-            case cNEqual:
-            case cLess:
-            case cLessOrEq:
-            case cGreater:
-            case cGreaterOrEq:
-                /* These operations always produce truth values (0 or 1) */
-                return true;
-            case cMul:
-            {
-                std::vector<CodeTree>& Params = data->Params;
-                for(size_t a=0; a<Params.size(); ++a)
-                    if(!Params[a].IsLogicalValue())
-                        return false;
-                return true;
-            }
-            case cIf:
-            {
-                std::vector<CodeTree>& Params = data->Params;
-                return Params[1].IsLogicalValue()
-                    && Params[2].IsLogicalValue();
-            }
-            default:
-                break;
-        }
-        return false; // Not a logical value.
-    }
-
-    bool CodeTree::IsAlwaysInteger() const
-    {
-        switch(data->Opcode)
-        {
-            case cImmed:
-                return IsLongIntegerImmed();
-            case cFloor:
-            case cInt:
-                return true;
-            case cAnd:
-            case cOr:
-            case cNot:
-            case cNotNot:
-            case cEqual:
-            case cNEqual:
-            case cLess:
-            case cLessOrEq:
-            case cGreater:
-            case cGreaterOrEq:
-                /* These operations always produce truth values (0 or 1) */
-                return true; /* 0 and 1 are both integers */
-            case cIf:
-            {
-                std::vector<CodeTree>& Params = data->Params;
-                return Params[1].IsAlwaysInteger()
-                    && Params[2].IsAlwaysInteger();
-            }
-            default:
-                break;
-        }
-        return false; /* Don't know whether it's integer. */
-    }
-
-    bool CodeTree::IsAlwaysSigned(bool positive) const
-    {
-        MinMaxTree tmp = CalculateResultBoundaries();
-
-        if(positive)
-            return tmp.has_min && tmp.min >= 0.0
-              && (!tmp.has_max || tmp.max >= 0.0);
-        else
-            return tmp.has_max && tmp.max < 0.0
-              && (!tmp.has_min || tmp.min < 0.0);
-    }
-
-    bool CodeTree::IsIdenticalTo(const CodeTree& b) const
-    {
-        if((!&*data) != (!&*b.data)) return false;
-        if(&*data == &*b.data) return true;
-        return data->IsIdenticalTo(*b.data);
-    }
-
-    bool CodeTreeData::IsIdenticalTo(const CodeTreeData& b) const
-    {
-        if(Hash   != b.Hash) return false; // a quick catch-all
-        if(Opcode != b.Opcode) return false;
-        switch(Opcode)
-        {
-            case cImmed: return FloatEqual(Value, b.Value);
-            case cVar:   return Var == b.Var;
-            case cFCall:
-            case cPCall: if(Funcno != b.Funcno) return false; break;
-            default: break;
-        }
-        if(Params.size() != b.Params.size()) return false;
-        for(size_t a=0; a<Params.size(); ++a)
-        {
-            if(!Params[a].IsIdenticalTo(b.Params[a])) return false;
-        }
-        return true;
-    }
-
-    void CodeTree::Become(const CodeTree& b)
-    {
-        if(&b != this && &*data != &*b.data)
-        {
-            DataP tmp = b.data;
-            CopyOnWrite();
-            data.swap(tmp);
-        }
-    }
-
-    void CodeTree::CopyOnWrite()
-    {
-        if(data->RefCount > 1)
-            data = new CodeTreeData(*data);
-    }
-
-    CodeTree CodeTree::GetUniqueRef()
-    {
-        if(data->RefCount > 1)
-            return CodeTree(*this, CloneTag());
-        return *this;
-    }
-
-    CodeTreeData::CodeTreeData()
-        : RefCount(0),
-          Opcode(), Params(), Hash(), Depth(1), OptimizedUsing(0)
-    {
-    }
-
-    CodeTreeData::CodeTreeData(const CodeTreeData& b)
-        : RefCount(0),
-          Opcode(b.Opcode),
-          Params(b.Params),
-          Hash(b.Hash),
-          Depth(b.Depth),
-          OptimizedUsing(b.OptimizedUsing)
-    {
-        switch(Opcode)
-        {
-            case cVar:   Var   = b.Var; break;
-            case cImmed: Value = b.Value; break;
-            case cPCall:
-            case cFCall: Funcno = b.Funcno; break;
-            default: break;
-        }
-    }
-
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
-    CodeTreeData::CodeTreeData(CodeTreeData&& b)
-        : RefCount(0),
-          Opcode(b.Opcode),
-          Params(b.Params),
-          Hash(b.Hash),
-          Depth(b.Depth),
-          OptimizedUsing(b.OptimizedUsing)
-    {
-        switch(Opcode)
-        {
-            case cVar:   Var   = b.Var; break;
-            case cImmed: Value = b.Value; break;
-            case cPCall:
-            case cFCall: Funcno = b.Funcno; break;
-            default: break;
-        }
-    }
+iS1
+eS1
+v
+x81
+VarTag)nI
+tZ2,v
+yN3(nF2
+o
+x81
+OpcodeTag)nI
+o
+yN3(nF2
+o
+yL2
+f
+x81
+FuncOpcodeTag)nI
+o,f
+yN3
+yZ3
+b
+x81
+CloneTag)nI*b.data)){}
+lO
+nC~tY(){}
+lA
+ReplaceWithImmed
+yI
+iQ&i){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Replacing "
+;nX3(*this);if(IsImmed())OutFloatHex(std::cout,GetImmed())iJ" with const value "
+<<i;OutFloatHex(std::cout,i)iJ"\n"
+;
 #endif
-
-    CodeTreeData::CodeTreeData(double i)
-        : RefCount(0), Opcode(cImmed), Params(), Hash(), Depth(1), OptimizedUsing(0)
-    {
-        Value = i;
-    }
-
-    void FixIncompleteHashes(CodeTree& tree)
-    {
-        MarkIncompletes(tree);
-        FixIncompletes(tree);
-    }
+data=new
+nA2
+x5(i);}
+lO
+yI2
+ParamComparer{tL2()yZ3
+a,tM2&b
+cE3{if(a.nX2!=b.nX2
+n92
+a.nX2<b.nX2
+lC1
+a.GetHash()<b.GetHash();}
 }
-
+;nD3
+nA2
+x5::Sort(){cI3
+Opcode
+tV2
+cAdd:case
+cMul:case
+cMin:case
+cMax:case
+cAnd:case
+cOr:case
+cHypot:case
+cEqual:case
+cNEqual:std::sort(l53
+tT2
+l53
+end(),ParamComparer
+x5());lB
+cLess
+lP
+cGreater;}
+lB
+cLessOrEq
+lP
+cGreaterOrEq;}
+lB
+cGreater
+lP
+cLess;}
+lB
+cGreaterOrEq
+lP
+cLessOrEq;}
+break;default:xF3
+lA
+AddParam
+yZ3
+param){xF
+yX
+param);}
+lA
+AddParamMove(tW&param){xF
+yX
+tW());xF.back().swap(param);}
+lA
+SetParam
+cB1
+which,tM2&b){nU1
+which
+tY2
+xF[which]=b;}
+lA
+n91
+size_t
+which,tW&b){nU1
+which
+tY2
+xF[which].swap(b);}
+lA
+AddParams
+yI
+nN){xF.insert(xF.end(),i61.tT2
+i61.end());}
+lA
+AddParamsMove(nN){size_t
+endpos=xF
+e72),added=i61
+e72);xF
+n93
+endpos+added,tW());for
+cB1
+p=0;p<added;++p)xF[endpos+p].swap(i61[p]);}
+lA
+AddParamsMove(nN,size_t
+i71){nU1
+i71
+tY2
+eI1
+i71);AddParamsMove(eF1}
+lA
+SetParams
+yI
+nN){yC<tW>tmp(eF1
+xF
+yB2}
+lA
+SetParamsMove(nN){xF.swap(eF1
+i61.clear();}
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+lA
+SetParams(yC<tW>&&i61){SetParamsMove(eF1}
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_grammar.cc"
-#include "fparser.hh"
-#include "fptypes.hh"
-// line removed
-// line removed
-
-// line removed
-using namespace FPoptimizer_Grammar;
-using namespace FUNCTIONPARSERTYPES;
-
+lA
+DelParam
+cB1
+index){yC<tW>&yV3=xF;
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+l53
+erase(l53
+begin()+index);
+#else
+yV3[index].data=0;for
+cB1
+p=index;p+1<yV3
+e22
+p)yV3[p]e53
+UnsafeSetP(&*yV3[p+1
+tY2
+yV3[yV3
+e72)-1]e53
+UnsafeSetP(0);l53
+resize(yV3
+e72)-1);
+#endif
+}
+lA
+DelParams(){xF.clear();}
+nM3
+nC
+IsIdenticalTo
+yZ3
+b
+cE3{if(&*data==&*b.data
+n92
+true
+lC1
+data->IsIdenticalTo(*b.data);}
+nM3
+nA2
+x5::IsIdenticalTo
+yI
+nA2
+x5&b
+cE3{if(Hash!=b.Hash)xR1
+if(Opcode!=c43
+xR1
+cI3
+Opcode
+tV2
+cImmed:lX3
+FloatEqual(Value,c53;case
+tZ2:lX3
+tO1==b.tN1
+case
+cFCall:case
+cPCall:if(tO1!=b.yZ1
+xR1
+break;default:break;}
+if(yV3
+e72)!=b.yV3
+e72)n92
+false
+lJ1
+yV3
+e22
+a
+xX3!yV3[a].IsIdenticalTo(b.yV3[a]))xD1
+lX3
+true;}
+lA
+Become
+yZ3
+b
+xX3&b!=this&&&*data!=&*b.data){DataP
+tmp=b.data;lH1
+data
+yB2}
+}
+lA
+CopyOnWrite(xX3
+GetRefCount()>1)data=new
+nA2
+x5(*data);}
+lO
+tW
+nC
+GetUniqueRef(xX3
+GetRefCount()>1
+n92
+tW(*this,CloneTag())lC1*this;}
+lO
+n7):yY
+cNop),Value()n8
+lO
+n7
+const
+nA2&b):yY
+c43,Value(c53,tO1(b.yZ1,yV3(b.yV3
+eV3
+b.Hash
+eW3
+b.Depth),eP1
+b.tP1){}
+lO
+n7
+const
+iQ&i):yY
+cImmed),Value(i)n8
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+lO
+n7
+nA2
+x5&&b):yY
+c43,Value(eS2
+c53),tO1(b.yZ1,yV3(eS2
+b.yV3)eV3
+b.Hash
+eW3
+b.Depth),eP1
+b.tP1){}
+lO
+n7
+iQ&&i):yY
+cImmed),Value(eS2
+i))n8
+#endif
+lO
+n7
+nF2
+o):yY
+o),Value()n8
+lO
+n7
+nF2
+o
+yL2
+f):yY
+o),Value(),tO1(f),yV3(eV3
+eW3
+1),eP1
+0){}
+}
+#endif
+#ifdef FP_SUPPORT_OPTIMIZER
+#include <sstream>
+#include <string>
+#include <map>
+#include <set>
+#include <iostream>
+nE
+#ifdef FUNCTIONPARSER_SUPPORT_DEBUG_OUTPUT
+iF2{nD3
+i81
+yI
+x3,e93&done,std::ostream&o){for
+n62
+y6++a)i81
+cS3
+done,o);std::ostringstream
+buf;nX3(tree,buf);done[cE2].insert(buf.str());}
+}
+#endif
+iF2
+FPoptimizer_CodeTree{
+#ifdef FUNCTIONPARSER_SUPPORT_DEBUG_OUTPUT
+nD3
+DumpHashes
+cD1){e93
+done;i81(tree,done,o);for(e93::const_iterator
+i=done
+nA3
+i!=done.end();++i){const
+std::set<std::string>&flist=i
+yQ2;if(flist
+e72)!=1)o<<"ERROR - HASH COLLISION?\n"
+;for(std::set<std::string>::const_iterator
+j=flist
+nA3
+j!=flist.end();++j){o<<'['<<std::hex<<i->first.hash1<<','<<i->first.hash2<<']'<<std::dec;o<<": "
+<<*j<<"\n"
+;}
+}
+}
+nD3
+nX3
+cD1){const
+char*t53;cI3
+xC1
+tV2
+cImmed:o<<tree
+tN
+nY3
+tZ2:o<<"Var"
+<<(tree.GetVar()-tZ2)nY3
+cAdd:t53"+"
+;lB
+cMul:t53"*"
+;lB
+cAnd:t53"&"
+;lB
+cOr:t53"|"
+;lB
+cPow:t53"^"
+;break;default:t53;o<<FP_GetOpcodeName(tree.e7
+if(x92
+cFCall||x92
+cPCall)o<<':'<<tree.GetFuncNo();}
+o<<'(';if(tree
+iK<=1&&sep2[1])o<<(sep2+1)<<' 'iV1
+if(a>0)o<<' ';nX3
+cS3
+o);if(a+1<i42
+o<<sep2;}
+o<<')';}
+nD3
+DumpTreeWithIndent
+cD1,const
+std::string&indent){o<<'['<<std::hex<<(void*)(&tree.tM1))<<std::dec<<','<<tree.GetRefCount()<<']';o<<indent<<'_';cI3
+xC1
+tV2
+cImmed:o<<"cImmed "
+<<tree
+tN;o<<'\n'nY3
+tZ2:o<<"VarBegin "
+<<(tree.GetVar()-tZ2);o<<'\n'lC1;default:o<<FP_GetOpcodeName(tree.e7
+if(x92
+cFCall||x92
+cPCall)o<<':'<<tree.GetFuncNo();o<<'\n';}
+for
+n62
+y6++a){std::string
+ind=indent;for
+cB1
+p=0;p<ind
+e72);p+=2)if(ind[p]=='\\')ind[p]=' ';ind+=(a+1<i42?" |"
+:" \\"
+;DumpTreeWithIndent
+cS3
+o,ind);}
+o<<std::flush;}
+#endif
+}
+#endif
+using
+iF2
+l71;nE
 #include <cctype>
-
-namespace FPoptimizer_Grammar
-{
-    bool ParamSpec_Compare(const void* aa, const void* bb, SpecialOpcode type)
-    {
-        switch(type)
-        {
-            case ParamHolder:
-            {
-                ParamSpec_ParamHolder& a = *(ParamSpec_ParamHolder*) aa;
-                ParamSpec_ParamHolder& b = *(ParamSpec_ParamHolder*) bb;
-                return a.constraints == b.constraints
-                    && a.index       == b.index
-                    && a.depcode     == b.depcode;
-            }
-            case NumConstant:
-            {
-                ParamSpec_NumConstant& a = *(ParamSpec_NumConstant*) aa;
-                ParamSpec_NumConstant& b = *(ParamSpec_NumConstant*) bb;
-                return FloatEqual(a.constvalue, b.constvalue);
-            }
-            case SubFunction:
-            {
-                ParamSpec_SubFunction& a = *(ParamSpec_SubFunction*) aa;
-                ParamSpec_SubFunction& b = *(ParamSpec_SubFunction*) bb;
-                return a.constraints    == b.constraints
-                    && a.data.subfunc_opcode   == b.data.subfunc_opcode
-                    && a.data.match_type       == b.data.match_type
-                    && a.data.param_count      == b.data.param_count
-                    && a.data.param_list       == b.data.param_list
-                    && a.data.restholder_index == b.data.restholder_index
-                    && a.depcode               == b.depcode;
-            }
-        }
-        return true;
-    }
-
-    unsigned ParamSpec_GetDepCode(const ParamSpec& b)
-    {
-        switch(b.first)
-        {
-            case ParamHolder:
-            {
-                const ParamSpec_ParamHolder* s = (const ParamSpec_ParamHolder*) b.second;
-                return s->depcode;
-            }
-            case SubFunction:
-            {
-                const ParamSpec_SubFunction* s = (const ParamSpec_SubFunction*) b.second;
-                return s->depcode;
-            }
-            default: break;
-        }
-        return 0;
-    }
-
-    void DumpParam(const ParamSpec& parampair, std::ostream& o)
-    {
-        static const char ParamHolderNames[][2]  = {"%","&", "x","y","z","a","b","c"};
-
-        //o << "/*p" << (&p-pack.plist) << "*/";
-        unsigned constraints = 0;
-        switch(parampair.first)
-        {
-            case NumConstant:
-              { const ParamSpec_NumConstant& param = *(const ParamSpec_NumConstant*) parampair.second;
-                o.precision(12);
-                o << param.constvalue; break; }
-            case ParamHolder:
-              { const ParamSpec_ParamHolder& param = *(const ParamSpec_ParamHolder*) parampair.second;
-                o << ParamHolderNames[param.index];
-                constraints = param.constraints;
-                break; }
-            case SubFunction:
-              { const ParamSpec_SubFunction& param = *(const ParamSpec_SubFunction*) parampair.second;
-                constraints = param.constraints;
-                if(param.data.match_type == GroupFunction)
-                {
-                    if(param.data.subfunc_opcode == cNeg)
-                        { o << "-"; DumpParams(param.data.param_list, param.data.param_count, o); }
-                    else if(param.data.subfunc_opcode == cInv)
-                        { o << "/"; DumpParams(param.data.param_list, param.data.param_count, o); }
-                    else
-                    {
-                        std::string opcode = FP_GetOpcodeName(param.data.subfunc_opcode).substr(1);
-                        for(size_t a=0; a<opcode.size(); ++a) opcode[a] = (char) std::toupper(opcode[a]);
-                        o << opcode << "( ";
-                        DumpParams(param.data.param_list, param.data.param_count, o);
-                        o << " )";
-                    }
-                }
-                else
-                {
-                    o << '(' << FP_GetOpcodeName(param.data.subfunc_opcode) << ' ';
-                    if(param.data.match_type == PositionalParams) o << '[';
-                    if(param.data.match_type == SelectedParams) o << '{';
-                    DumpParams(param.data.param_list, param.data.param_count, o);
-                    if(param.data.restholder_index != 0)
-                        o << " <" << param.data.restholder_index << '>';
-                    if(param.data.match_type == PositionalParams) o << "]";
-                    if(param.data.match_type == SelectedParams) o << "}";
-                    o << ')';
-                }
-                break; }
-        }
-        switch( ImmedConstraint_Value(constraints & ValueMask) )
-        {
-            case ValueMask: break;
-            case Value_AnyNum: break;
-            case Value_EvenInt:   o << "@E"; break;
-            case Value_OddInt:    o << "@O"; break;
-            case Value_IsInteger: o << "@I"; break;
-            case Value_NonInteger:o << "@F"; break;
-            case Value_Logical:   o << "@L"; break;
-        }
-        switch( ImmedConstraint_Sign(constraints & SignMask) )
-        {
-            case SignMask: break;
-            case Sign_AnySign: break;
-            case Sign_Positive:   o << "@P"; break;
-            case Sign_Negative:   o << "@N"; break;
-        }
-        switch( ImmedConstraint_Oneness(constraints & OnenessMask) )
-        {
-            case OnenessMask: break;
-            case Oneness_Any: break;
-            case Oneness_One:     o << "@1"; break;
-            case Oneness_NotOne:  o << "@M"; break;
-        }
-    }
-
-    void DumpParams(unsigned paramlist, unsigned count, std::ostream& o)
-    {
-        for(unsigned a=0; a<count; ++a)
-        {
-            if(a > 0) o << ' ';
-            const ParamSpec& param = ParamSpec_Extract(paramlist,a);
-            DumpParam(param, o);
-            unsigned depcode = ParamSpec_GetDepCode(param);
-            if(depcode != 0)
-                o << "@D" << depcode;
-        }
-    }
+iF2
+l71{nM3
+ParamSpec_Compare
+yI
+void*aa,const
+void*bb,l02
+type){cI3
+type
+tV2
+l92
+xI&a=*(xI*)aa;xI&b=*(xI*)bb
+lC1
+a
+cS2==b
+cS2&&a.index==b.index&&a.depcode==b.depcode;}
+case
+NumConstant:{yL&a=*(yL*)aa;yL&b=*(yL*)bb
+lC1
+FloatEqual(a.iM2,b.iM2)&&a.modulo==b.modulo;nB3
+xJ&a=*(xJ*)aa;xJ&b=*(xJ*)bb
+lC1
+a
+cS2==b
+cS2&&a.cP==b.cP&&a
+e53
+match_type==b
+e53
+match_type&&a.data
+yH==b.data
+yH&&a
+e53
+param_list==b
+e53
+param_list&&a
+e53
+lY==b
+e53
+lY&&a.depcode==b.depcode;}
 }
-
-#line 1 "fpoptimizer/fpoptimizer_grammar_data.cc"
-/* This file is automatically generated. Do not edit... */
-// line removed
-// line removed
-#include "fpconfig.hh"
-#include "fptypes.hh"
+lX3
+true;}
+lW3
+ParamSpec_GetDepCode
+yI
+yM2&b){cI3
+b.first
+tV2
+l92
+i02*s=yI
+xI*)b
+cZ3
+lC1
+s->depcode;nB3
+const
+xJ*s=yI
+xJ*)b
+cZ3
+lC1
+s->depcode;}
+default:break;}
+lX3
+0;}
+nD3
+DumpParam
+yI
+yM2&n02,std::ostream&o){static
+const
+char
+ParamHolderNames[][2]={"%"
+,"&"
+,"x"
+,"y"
+,"z"
+,"a"
+,"b"
+,"c"
+}
+xQ2
+cU2
+0;x03
+NumConstant:{const
+yL&eJ2
+yL
+eK2
+o.precision(12);o<<nZ3
+iM2;break;}
+case
+l92
+i02&eJ2
+xI
+eK2
+o<<ParamHolderNames[nZ3
+index];cU2
+param
+cS2;break;nB3
+const
+xJ&eJ2
+xJ
+eK2
+cU2
+param
+cS2;yO
+GroupFunction){if
+t02
+cP==cNeg){o<<"-"
+;lZ}
+t41
+nZ3
+cP==cInv){o<<"/"
+;lZ}
+else{std::string
+opcode=FP_GetOpcodeName((nF2)nZ3
+cP).substr(1)lJ1
+opcode
+e22
+a)opcode[a]=(char)std::toupper(opcode[a]);o<<opcode<<"( "
+;lZ
+o<<" )"
+;}
+}
+else{o<<'('<<FP_GetOpcodeName((nF2)nZ3
+cP)<<' ';yO
+PositionalParams)o<<'[';yO
+SelectedParams)o<<'{';lZ
+if
+t02
+data.lY!=0)o<<" <"
+<<nZ3
+data.lY<<'>';yO
+PositionalParams)o<<"]"
+;yO
+SelectedParams)o<<"}"
+;o<<')';}
+break;}
+i62
+ImmedConstraint_Value(t91
+ValueMask)tV2
+ValueMask:lB
+Value_AnyNum:lB
+lB2:o<<"@E"
+;lB
+Value_OddInt:o<<"@O"
+;lB
+eQ1:o<<"@I"
+;lB
+Value_NonInteger:o<<"@F"
+;lB
+cZ1:o<<"@L"
+;e32
+ImmedConstraint_Sign(t91
+SignMask)tV2
+SignMask:lB
+Sign_AnySign:lB
+nB1:o<<"@P"
+;lB
+Sign_Negative:o<<"@N"
+;e32
+ImmedConstraint_Oneness(t91
+OnenessMask)tV2
+OnenessMask:lB
+Oneness_Any:lB
+Oneness_One:o<<"@1"
+;lB
+cA1:o<<"@M"
+;e32
+ImmedConstraint_Constness(t91
+ConstnessMask)tV2
+n41:if(n02.first==ParamHolder){i02&eJ2
+xI
+eK2
+if
+t02
+index<2)break;}
+o<<"@C"
+;lB
+Oneness_Any:xF3
+nD3
+DumpParams
+eS1
+paramlist
+yL2
+count,std::ostream&o){for(e31=0;a<count;++a
+xX3
+a>0)o<<' ';const
+yM2&param=nV1
+paramlist,a);DumpParam
+x5(param,o)xQ2
+depcode=ParamSpec_GetDepCode(param);if(depcode!=0)o<<"@D"
+<<depcode;}
+}
+}
 #include <algorithm>
-
-using namespace FPoptimizer_Grammar;
-using namespace FUNCTIONPARSERTYPES;
-
-#define P1(a) a
-#define P2(a,b) (P1(a) | (b << PARAM_INDEX_BITS))
-#define P3(a,b,c) (P2(a,b) | (c << (PARAM_INDEX_BITS*2)))
-
-namespace
-{
-    const struct ParamSpec_List
-    {
-        ParamSpec_ParamHolder plist_p[20];
-#define P(n) (n)
-        ParamSpec_NumConstant plist_n[14];
-#define N(n) (n+20)
-        ParamSpec_SubFunction plist_s[292];
-#define S(n) (n+20+14)
-    } /*PACKED_GRAMMAR_ATTRIBUTE*/ plist =
-    {
-        { /* plist_p - ParamSpec_ParamHolder[20] */
-        /* 0	*/ {0, Sign_Negative | Constness_Const, 0x0}, /* %@N */
-        /* 1	*/ {0, Constness_Const, 0x0}, /* % */
-        /* 2	*/ {0, Sign_Positive | Constness_Const, 0x0}, /* %@P */
-        /* 3	*/ {0, Constness_Const, 0x1}, /* % */
-        /* 4	*/ {0, Oneness_NotOne | Constness_Const, 0x0}, /* %@M */
-        /* 5	*/ {1, Constness_Const, 0x0}, /* & */
-        /* 6	*/ {1, Oneness_NotOne | Constness_Const, 0x0}, /* &@M */
-        /* 7	*/ {2, 0, 0x0}, /* x */
-        /* 8	*/ {2, 0, 0x4}, /* x */
-        /* 9	*/ {2, Value_Logical, 0x4}, /* x@L */
-        /* 10	*/ {2, Value_Logical, 0x0}, /* x@L */
-        /* 11	*/ {2, Sign_Positive, 0x0}, /* x@P */
-        /* 12	*/ {2, Sign_NoIdea, 0x0}, /* x */
-        /* 13	*/ {3, 0, 0x0}, /* y */
-        /* 14	*/ {3, Value_EvenInt, 0x0}, /* y@E */
-        /* 15	*/ {3, Value_OddInt, 0x0}, /* y@O */
-        /* 16	*/ {3, Value_NonInteger, 0x0}, /* y@F */
-        /* 17	*/ {3, Value_Logical, 0x0}, /* y@L */
-        /* 18	*/ {4, 0, 0x16}, /* z */
-        /* 19	*/ {4, 0, 0x0}, /* z */
-        },
-
-        { /* plist_n - ParamSpec_NumConstant[14] */
-        /* 0	*/ {-2}, /* -2 */
-        /* 1	*/ {-CONSTANT_PIHALF}, /* -1.57079632679 */
-        /* 2	*/ {-1}, /* -1 */
-        /* 3	*/ {0}, /* 0 */
-        /* 4	*/ {CONSTANT_RD}, /* 0.0174532925199 */
-        /* 5	*/ {CONSTANT_2EI}, /* 0.135335283237 */
-        /* 6	*/ {CONSTANT_EI}, /* 0.367879441171 */
-        /* 7	*/ {0.5}, /* 0.5 */
-        /* 8	*/ {1}, /* 1 */
-        /* 9	*/ {CONSTANT_PIHALF}, /* 1.57079632679 */
-        /* 10	*/ {2}, /* 2 */
-        /* 11	*/ {CONSTANT_E}, /* 2.71828182846 */
-        /* 12	*/ {CONSTANT_2E}, /* 7.38905609893 */
-        /* 13	*/ {CONSTANT_DR}, /* 57.2957795131 */
-        },
-
-        { /* plist_s - ParamSpec_SubFunction[292] */
-        /* 0	*/ {{1,P1(P(7))                , cAbs        ,PositionalParams,0}, 0, 0x0}, /* (cAbs [x]) */
-        /* 1	*/ {{1,P1(P(13))               , cAbs        ,PositionalParams,0}, 0, 0x0}, /* (cAbs [y]) */
-        /* 2	*/ {{1,P1(S(194))              , cAbs        ,PositionalParams,0}, 0, 0x0}, /* (cAbs [(cMul {x y})]) */
-        /* 3	*/ {{1,P1(P(7))                , cAcos       ,PositionalParams,0}, 0, 0x0}, /* (cAcos [x]) */
-        /* 4	*/ {{1,P1(P(7))                , cAcosh      ,PositionalParams,0}, 0, 0x0}, /* (cAcosh [x]) */
-        /* 5	*/ {{1,P1(P(7))                , cAsin       ,PositionalParams,0}, 0, 0x0}, /* (cAsin [x]) */
-        /* 6	*/ {{1,P1(P(7))                , cAsinh      ,PositionalParams,0}, 0, 0x0}, /* (cAsinh [x]) */
-        /* 7	*/ {{1,P1(P(7))                , cAtan       ,PositionalParams,0}, 0, 0x0}, /* (cAtan [x]) */
-        /* 8	*/ {{1,P1(P(7))                , cAtanh      ,PositionalParams,0}, 0, 0x0}, /* (cAtanh [x]) */
-        /* 9	*/ {{1,P1(P(7))                , cCos        ,PositionalParams,0}, 0, 0x0}, /* (cCos [x]) */
-        /* 10	*/ {{1,P1(P(7))                , cCos        ,PositionalParams,0}, 0, 0x4}, /* (cCos [x]) */
-        /* 11	*/ {{1,P1(P(13))               , cCos        ,PositionalParams,0}, 0, 0x0}, /* (cCos [y]) */
-        /* 12	*/ {{1,P1(S(134))              , cCos        ,PositionalParams,0}, 0, 0x0}, /* (cCos [(cAdd {x y})]) */
-        /* 13	*/ {{1,P1(S(141))              , cCos        ,PositionalParams,0}, 0, 0x0}, /* (cCos [(cAdd {x (cMul {-1 y})})]) */
-        /* 14	*/ {{1,P1(S(161))              , cCos        ,PositionalParams,0}, 0, 0x0}, /* (cCos [(cAdd  <1>)]) */
-        /* 15	*/ {{1,P1(S(254))              , cCos        ,PositionalParams,0}, 0, 0x0}, /* (cCos [(cMul -% <1>)]) */
-        /* 16	*/ {{1,P1(P(7))                , cCosh       ,PositionalParams,0}, 0, 0x4}, /* (cCosh [x]) */
-        /* 17	*/ {{1,P1(P(7))                , cCosh       ,PositionalParams,0}, 0, 0x0}, /* (cCosh [x]) */
-        /* 18	*/ {{1,P1(S(191))              , cCosh       ,PositionalParams,0}, 0, 0x0}, /* (cCosh [(cMul {x LOG( & )})]) */
-        /* 19	*/ {{1,P1(P(7))                , cCot        ,PositionalParams,0}, 0, 0x0}, /* (cCot [x]) */
-        /* 20	*/ {{1,P1(P(7))                , cCsc        ,PositionalParams,0}, 0, 0x0}, /* (cCsc [x]) */
-        /* 21	*/ {{3,P3(P(13),N(3),S(161))   , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y 0 (cAdd  <1>)]) */
-        /* 22	*/ {{3,P3(P(13),N(3),S(279))   , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y 0 (cOr  <1>)]) */
-        /* 23	*/ {{3,P3(P(13),N(8),S(229))   , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y 1 (cMul  <1>)]) */
-        /* 24	*/ {{3,P3(P(13),N(8),S(270))   , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y 1 (cAnd  <1>)]) */
-        /* 25	*/ {{3,P3(P(13),S(161),N(3))   , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y (cAdd  <1>) 0]) */
-        /* 26	*/ {{3,P3(P(13),S(161),S(162)) , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y (cAdd  <1>) (cAdd  <2>)]) */
-        /* 27	*/ {{3,P3(P(13),S(229),N(8))   , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y (cMul  <1>) 1]) */
-        /* 28	*/ {{3,P3(P(13),S(229),S(230)) , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y (cMul  <1>) (cMul  <2>)]) */
-        /* 29	*/ {{3,P3(P(13),S(270),S(271)) , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y (cAnd  <1>) (cAnd  <2>)]) */
-        /* 30	*/ {{3,P3(P(13),S(279),N(3))   , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y (cOr  <1>) 0]) */
-        /* 31	*/ {{3,P3(P(13),S(270),N(8))   , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y (cAnd  <1>) 1]) */
-        /* 32	*/ {{3,P3(P(13),S(279),S(280)) , cIf         ,PositionalParams,0}, 0, 0x0}, /* (cIf [y (cOr  <1>) (cOr  <2>)]) */
-        /* 33	*/ {{1,P1(P(7))                , cLog        ,PositionalParams,0}, 0, 0x0}, /* (cLog [x]) */
-        /* 34	*/ {{1,P1(P(13))               , cLog        ,PositionalParams,0}, 0, 0x0}, /* (cLog [y]) */
-        /* 35	*/ {{1,P1(P(19))               , cLog        ,PositionalParams,0}, 0, 0x0}, /* (cLog [z]) */
-        /* 36	*/ {{1,P1(S(0))                , cLog        ,PositionalParams,0}, 0, 0x0}, /* (cLog [(cAbs [x])]) */
-        /* 37	*/ {{1,P1(S(194))              , cLog        ,PositionalParams,0}, 0, 0x0}, /* (cLog [(cMul {x y})]) */
-        /* 38	*/ {{1,P1(S(229))              , cLog        ,PositionalParams,0}, 0, 0x0}, /* (cLog [(cMul  <1>)]) */
-        /* 39	*/ {{1,P1(P(1))                , cLog        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* LOG( % ) */
-        /* 40	*/ {{1,P1(P(5))                , cLog        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* LOG( & ) */
-        /* 41	*/ {{2,P2(P(1),N(8))           , cMin        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* MIN( % 1 ) */
-        /* 42	*/ {{2,P2(P(1),P(5))           , cMin        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* MIN( % & ) */
-        /* 43	*/ {{2,P2(N(5),P(7))           , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [0.135335283237 x]) */
-        /* 44	*/ {{2,P2(N(6),P(7))           , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [0.367879441171 x]) */
-        /* 45	*/ {{2,P2(N(11),P(7))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [2.71828182846 x]) */
-        /* 46	*/ {{2,P2(N(11),P(7))          , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [2.71828182846 x]) */
-        /* 47	*/ {{2,P2(N(12),P(7))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [7.38905609893 x]) */
-        /* 48	*/ {{2,P2(N(11),S(230))        , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [2.71828182846 (cMul  <2>)]) */
-        /* 49	*/ {{2,P2(P(5),P(7))           , cPow        ,PositionalParams,0}, 0, 0x6}, /* (cPow [& x]) */
-        /* 50	*/ {{2,P2(P(5),P(7))           , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [& x]) */
-        /* 51	*/ {{2,P2(P(7),N(10))          , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [x 2]) */
-        /* 52	*/ {{2,P2(P(7),N(10))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x 2]) */
-        /* 53	*/ {{2,P2(P(13),N(10))         , cPow        ,PositionalParams,0}, 0, 0x8}, /* (cPow [y 2]) */
-        /* 54	*/ {{2,P2(P(7),P(1))           , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x %]) */
-        /* 55	*/ {{2,P2(P(7),P(5))           , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x &]) */
-        /* 56	*/ {{2,P2(P(1),P(13))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [% y]) */
-        /* 57	*/ {{2,P2(P(11),P(13))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x@P y]) */
-        /* 58	*/ {{2,P2(P(7),P(14))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x y@E]) */
-        /* 59	*/ {{2,P2(P(7),P(15))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x y@O]) */
-        /* 60	*/ {{2,P2(P(7),P(16))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x y@F]) */
-        /* 61	*/ {{2,P2(P(12),P(13))         , cPow        ,PositionalParams,0}, Sign_Positive, 0x0}, /* (cPow [x y])@P */
-        /* 62	*/ {{2,P2(P(7),S(39))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x LOG( % )]) */
-        /* 63	*/ {{2,P2(P(7),S(41))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x MIN( % 1 )]) */
-        /* 64	*/ {{2,P2(P(7),S(42))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x MIN( % & )]) */
-        /* 65	*/ {{2,P2(P(7),S(130))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x (cAdd {1 -MIN( % 1 )})]) */
-        /* 66	*/ {{2,P2(P(7),S(135))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x (cAdd {% -MIN( % 1 )})]) */
-        /* 67	*/ {{2,P2(P(7),S(136))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x (cAdd {% -MIN( % & )})]) */
-        /* 68	*/ {{2,P2(P(7),S(137))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [x (cAdd {& -MIN( % & )})]) */
-        /* 69	*/ {{2,P2(P(1),S(161))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [% (cAdd  <1>)]) */
-        /* 70	*/ {{2,P2(P(19),S(161))        , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [z (cAdd  <1>)]) */
-        /* 71	*/ {{2,P2(S(9),N(2))           , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cCos [x]) -1]) */
-        /* 72	*/ {{2,P2(S(9),N(2))           , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cCos [x]) -1]) */
-        /* 73	*/ {{2,P2(S(17),N(2))          , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cCosh [x]) -1]) */
-        /* 74	*/ {{2,P2(S(17),N(2))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cCosh [x]) -1]) */
-        /* 75	*/ {{2,P2(S(102),N(2))         , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cSin [x]) -1]) */
-        /* 76	*/ {{2,P2(S(111),N(2))         , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cSinh [x]) -1]) */
-        /* 77	*/ {{2,P2(S(116),N(2))         , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cTan [x]) -1]) */
-        /* 78	*/ {{2,P2(S(116),N(2))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cTan [x]) -1]) */
-        /* 79	*/ {{2,P2(S(121),N(2))         , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cTanh [x]) -1]) */
-        /* 80	*/ {{2,P2(S(121),N(2))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cTanh [x]) -1]) */
-        /* 81	*/ {{2,P2(S(131),N(2))         , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cAdd {1 (cMul {-1 x})}) -1]) */
-        /* 82	*/ {{2,P2(S(143),N(2))         , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cAdd {(cPow [0.135335283237 x]) -1}) -1]) */
-        /* 83	*/ {{2,P2(S(145),N(2))         , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cAdd {(cPow [7.38905609893 x]) -1}) -1]) */
-        /* 84	*/ {{2,P2(S(146),N(2))         , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cAdd {(cPow [0.135335283237 x]) 1}) -1]) */
-        /* 85	*/ {{2,P2(S(148),N(2))         , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cAdd {(cPow [7.38905609893 x]) 1}) -1]) */
-        /* 86	*/ {{2,P2(S(186),N(2))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cMul {-1 (cTanh [x])}) -1]) */
-        /* 87	*/ {{2,P2(S(150),N(7))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cAdd {(cPow [x 2]) -1}) 0.5]) */
-        /* 88	*/ {{2,P2(S(151),N(7))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cAdd {(cPow [x 2]) 1}) 0.5]) */
-        /* 89	*/ {{2,P2(S(230),N(2))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cMul  <2>) -1]) */
-        /* 90	*/ {{2,P2(S(239),N(2))         , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cMul x <2>) -1]) */
-        /* 91	*/ {{2,P2(S(9),N(10))          , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cCos [x]) 2]) */
-        /* 92	*/ {{2,P2(S(9),N(10))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cCos [x]) 2]) */
-        /* 93	*/ {{2,P2(S(35),N(2))          , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cLog [z]) -1]) */
-        /* 94	*/ {{2,P2(S(102),N(10))        , cPow        ,PositionalParams,0}, 0, 0x4}, /* (cPow [(cSin [x]) 2]) */
-        /* 95	*/ {{2,P2(S(102),N(10))        , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cSin [x]) 2]) */
-        /* 96	*/ {{2,P2(S(134),N(10))        , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cAdd {x y}) 2]) */
-        /* 97	*/ {{2,P2(S(229),P(5))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [(cMul  <1>) &]) */
-        /* 98	*/ {{2,P2(S(290),P(7))         , cPow        ,PositionalParams,0}, 0, 0x0}, /* (cPow [/& x]) */
-        /* 99	*/ {{2,P2(S(290),P(7))         , cPow        ,PositionalParams,0}, 0, 0x6}, /* (cPow [/& x]) */
-        /* 100	*/ {{2,P2(P(1),P(5))           , cPow        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* POW( % & ) */
-        /* 101	*/ {{1,P1(P(7))                , cSec        ,PositionalParams,0}, 0, 0x0}, /* (cSec [x]) */
-        /* 102	*/ {{1,P1(P(7))                , cSin        ,PositionalParams,0}, 0, 0x0}, /* (cSin [x]) */
-        /* 103	*/ {{1,P1(P(7))                , cSin        ,PositionalParams,0}, 0, 0x4}, /* (cSin [x]) */
-        /* 104	*/ {{1,P1(P(13))               , cSin        ,PositionalParams,0}, 0, 0x0}, /* (cSin [y]) */
-        /* 105	*/ {{1,P1(S(134))              , cSin        ,PositionalParams,0}, 0, 0x0}, /* (cSin [(cAdd {x y})]) */
-        /* 106	*/ {{1,P1(S(141))              , cSin        ,PositionalParams,0}, 0, 0x0}, /* (cSin [(cAdd {x (cMul {-1 y})})]) */
-        /* 107	*/ {{1,P1(S(161))              , cSin        ,PositionalParams,0}, 0, 0x0}, /* (cSin [(cAdd  <1>)]) */
-        /* 108	*/ {{1,P1(S(234))              , cSin        ,PositionalParams,0}, 0, 0x0}, /* (cSin [(cMul % <1>)]) */
-        /* 109	*/ {{1,P1(S(254))              , cSin        ,PositionalParams,0}, 0, 0x0}, /* (cSin [(cMul -% <1>)]) */
-        /* 110	*/ {{1,P1(P(7))                , cSinh       ,PositionalParams,0}, 0, 0x4}, /* (cSinh [x]) */
-        /* 111	*/ {{1,P1(P(7))                , cSinh       ,PositionalParams,0}, 0, 0x0}, /* (cSinh [x]) */
-        /* 112	*/ {{1,P1(S(191))              , cSinh       ,PositionalParams,0}, 0, 0x0}, /* (cSinh [(cMul {x LOG( & )})]) */
-        /* 113	*/ {{1,P1(S(229))              , cSinh       ,PositionalParams,0}, 0, 0x0}, /* (cSinh [(cMul  <1>)]) */
-        /* 114	*/ {{1,P1(S(234))              , cSinh       ,PositionalParams,0}, 0, 0x0}, /* (cSinh [(cMul % <1>)]) */
-        /* 115	*/ {{1,P1(S(254))              , cSinh       ,PositionalParams,0}, 0, 0x0}, /* (cSinh [(cMul -% <1>)]) */
-        /* 116	*/ {{1,P1(P(7))                , cTan        ,PositionalParams,0}, 0, 0x0}, /* (cTan [x]) */
-        /* 117	*/ {{1,P1(P(7))                , cTan        ,PositionalParams,0}, 0, 0x4}, /* (cTan [x]) */
-        /* 118	*/ {{1,P1(S(229))              , cTan        ,PositionalParams,0}, 0, 0x0}, /* (cTan [(cMul  <1>)]) */
-        /* 119	*/ {{1,P1(S(234))              , cTan        ,PositionalParams,0}, 0, 0x0}, /* (cTan [(cMul % <1>)]) */
-        /* 120	*/ {{1,P1(S(254))              , cTan        ,PositionalParams,0}, 0, 0x0}, /* (cTan [(cMul -% <1>)]) */
-        /* 121	*/ {{1,P1(P(7))                , cTanh       ,PositionalParams,0}, 0, 0x0}, /* (cTanh [x]) */
-        /* 122	*/ {{1,P1(P(7))                , cTanh       ,PositionalParams,0}, 0, 0x4}, /* (cTanh [x]) */
-        /* 123	*/ {{1,P1(S(229))              , cTanh       ,PositionalParams,0}, 0, 0x0}, /* (cTanh [(cMul  <1>)]) */
-        /* 124	*/ {{1,P1(S(234))              , cTanh       ,PositionalParams,0}, 0, 0x0}, /* (cTanh [(cMul % <1>)]) */
-        /* 125	*/ {{1,P1(S(254))              , cTanh       ,PositionalParams,0}, 0, 0x0}, /* (cTanh [(cMul -% <1>)]) */
-        /* 126	*/ {{1,P1(P(1))                , cNeg        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* -% */
-        /* 127	*/ {{1,P1(S(41))               , cNeg        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* -MIN( % 1 ) */
-        /* 128	*/ {{1,P1(S(42))               , cNeg        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* -MIN( % & ) */
-        /* 129	*/ {{2,P2(N(8),P(7))           , cAdd        ,SelectedParams  ,0}, 0, 0x4}, /* (cAdd {1 x}) */
-        /* 130	*/ {{2,P2(N(8),S(127))         , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {1 -MIN( % 1 )}) */
-        /* 131	*/ {{2,P2(N(8),S(173))         , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {1 (cMul {-1 x})}) */
-        /* 132	*/ {{2,P2(N(8),S(216))         , cAdd        ,SelectedParams  ,0}, 0, 0x1}, /* (cAdd {1 (cMul {(cLog [x]) /%})}) */
-        /* 133	*/ {{2,P2(N(9),S(232))         , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {1.57079632679 (cMul %@N <1>)}) */
-        /* 134	*/ {{2,P2(P(7),P(13))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {x y}) */
-        /* 135	*/ {{2,P2(P(1),S(127))         , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {% -MIN( % 1 )}) */
-        /* 136	*/ {{2,P2(P(1),S(128))         , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {% -MIN( % & )}) */
-        /* 137	*/ {{2,P2(P(5),S(128))         , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {& -MIN( % & )}) */
-        /* 138	*/ {{2,P2(P(7),S(21))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {x (cIf [y 0 (cAdd  <1>)])}) */
-        /* 139	*/ {{2,P2(P(7),S(25))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {x (cIf [y (cAdd  <1>) 0])}) */
-        /* 140	*/ {{2,P2(P(7),S(26))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {x (cIf [y (cAdd  <1>) (cAdd  <2>)])}) */
-        /* 141	*/ {{2,P2(P(7),S(174))         , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {x (cMul {-1 y})}) */
-        /* 142	*/ {{2,P2(S(43),N(2))          , cAdd        ,SelectedParams  ,0}, 0, 0x4}, /* (cAdd {(cPow [0.135335283237 x]) -1}) */
-        /* 143	*/ {{2,P2(S(43),N(2))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cPow [0.135335283237 x]) -1}) */
-        /* 144	*/ {{2,P2(S(47),N(2))          , cAdd        ,SelectedParams  ,0}, 0, 0x4}, /* (cAdd {(cPow [7.38905609893 x]) -1}) */
-        /* 145	*/ {{2,P2(S(47),N(2))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cPow [7.38905609893 x]) -1}) */
-        /* 146	*/ {{2,P2(S(43),N(8))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cPow [0.135335283237 x]) 1}) */
-        /* 147	*/ {{2,P2(S(43),N(8))          , cAdd        ,SelectedParams  ,0}, 0, 0x4}, /* (cAdd {(cPow [0.135335283237 x]) 1}) */
-        /* 148	*/ {{2,P2(S(47),N(8))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cPow [7.38905609893 x]) 1}) */
-        /* 149	*/ {{2,P2(S(47),N(8))          , cAdd        ,SelectedParams  ,0}, 0, 0x4}, /* (cAdd {(cPow [7.38905609893 x]) 1}) */
-        /* 150	*/ {{2,P2(S(52),N(2))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cPow [x 2]) -1}) */
-        /* 151	*/ {{2,P2(S(52),N(8))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cPow [x 2]) 1}) */
-        /* 152	*/ {{2,P2(S(33),P(1))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cLog [x]) %}) */
-        /* 153	*/ {{2,P2(S(229),N(0))         , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cMul  <1>) -2}) */
-        /* 154	*/ {{2,P2(S(33),P(5))          , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cLog [x]) &}) */
-        /* 155	*/ {{2,P2(S(220),S(38))        , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cMul {LOG( % ) y}) (cLog [(cMul  <1>)])}) */
-        /* 156	*/ {{2,P2(S(38),S(39))         , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cLog [(cMul  <1>)]) LOG( % )}) */
-        /* 157	*/ {{2,P2(S(240),S(192))       , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cMul % & <1>) (cMul {& (cAdd  <2>)})}) */
-        /* 158	*/ {{2,P2(S(256),S(193))       , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {MUL( % & ) (cMul {& (cAdd  <1>)})}) */
-        /* 159	*/ {{2,P2(S(249),S(248))       , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cMul (cPow [x (cAdd {% -MIN( % 1 )})]) <1>) (cMul (cPow [x (cAdd {1 -MIN( % 1 )})]) <2>)}) */
-        /* 160	*/ {{2,P2(S(250),S(251))       , cAdd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAdd {(cMul (cPow [x (cAdd {% -MIN( % & )})]) <1>) (cMul (cPow [x (cAdd {& -MIN( % & )})]) <2>)}) */
-        /* 161	*/ {{0,0                       , cAdd        ,AnyParams       ,1}, 0, 0x0}, /* (cAdd  <1>) */
-        /* 162	*/ {{0,0                       , cAdd        ,AnyParams       ,2}, 0, 0x0}, /* (cAdd  <2>) */
-        /* 163	*/ {{0,0                       , cAdd        ,AnyParams       ,1}, Sign_Positive, 0x0}, /* (cAdd  <1>)@P */
-        /* 164	*/ {{1,P1(N(1))                , cAdd        ,AnyParams       ,1}, 0, 0x0}, /* (cAdd -1.57079632679 <1>) */
-        /* 165	*/ {{1,P1(P(1))                , cAdd        ,AnyParams       ,1}, 0, 0x0}, /* (cAdd % <1>) */
-        /* 166	*/ {{1,P1(P(6))                , cAdd        ,AnyParams       ,1}, 0, 0x0}, /* (cAdd &@M <1>) */
-        /* 167	*/ {{1,P1(P(7))                , cAdd        ,AnyParams       ,1}, 0, 0x4}, /* (cAdd x <1>) */
-        /* 168	*/ {{1,P1(P(7))                , cAdd        ,AnyParams       ,2}, 0, 0x4}, /* (cAdd x <2>) */
-        /* 169	*/ {{1,P1(P(7))                , cAdd        ,AnyParams       ,1}, 0, 0x0}, /* (cAdd x <1>) */
-        /* 170	*/ {{1,P1(S(93))               , cAdd        ,AnyParams       ,1}, 0, 0x16}, /* (cAdd (cPow [(cLog [z]) -1]) <1>) */
-        /* 171	*/ {{1,P1(S(235))              , cAdd        ,AnyParams       ,2}, 0, 0x0}, /* (cAdd (cMul %@M <1>) <2>) */
-        /* 172	*/ {{1,P1(S(252))              , cAdd        ,AnyParams       ,1}, 0, 0x16}, /* (cAdd (cMul (cPow [(cLog [z]) -1]) <2>) <1>) */
-        /* 173	*/ {{2,P2(N(2),P(7))           , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 x}) */
-        /* 174	*/ {{2,P2(N(2),P(13))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 y}) */
-        /* 175	*/ {{2,P2(N(2),S(13))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 (cCos [(cAdd {x (cMul {-1 y})})])}) */
-        /* 176	*/ {{2,P2(N(2),S(14))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 (cCos [(cAdd  <1>)])}) */
-        /* 177	*/ {{2,P2(N(2),S(17))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 (cCosh [x])}) */
-        /* 178	*/ {{2,P2(N(2),S(50))          , cMul        ,SelectedParams  ,0}, 0, 0x6}, /* (cMul {-1 (cPow [& x])}) */
-        /* 179	*/ {{2,P2(N(2),S(92))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 (cPow [(cCos [x]) 2])}) */
-        /* 180	*/ {{2,P2(N(2),S(95))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 (cPow [(cSin [x]) 2])}) */
-        /* 181	*/ {{2,P2(N(2),S(98))          , cMul        ,SelectedParams  ,0}, 0, 0x6}, /* (cMul {-1 (cPow [/& x])}) */
-        /* 182	*/ {{2,P2(N(2),S(109))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 (cSin [(cMul -% <1>)])}) */
-        /* 183	*/ {{2,P2(N(2),S(111))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 (cSinh [x])}) */
-        /* 184	*/ {{2,P2(N(2),S(113))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 (cSinh [(cMul  <1>)])}) */
-        /* 185	*/ {{2,P2(N(2),S(118))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 (cTan [(cMul  <1>)])}) */
-        /* 186	*/ {{2,P2(N(2),S(121))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 (cTanh [x])}) */
-        /* 187	*/ {{2,P2(N(2),S(123))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {-1 (cTanh [(cMul  <1>)])}) */
-        /* 188	*/ {{2,P2(N(11),S(70))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {2.71828182846 (cPow [z (cAdd  <1>)])}) */
-        /* 189	*/ {{2,P2(P(1),S(50))          , cMul        ,SelectedParams  ,0}, 0, 0x7}, /* (cMul {% (cPow [& x])}) */
-        /* 190	*/ {{2,P2(P(1),S(98))          , cMul        ,SelectedParams  ,0}, 0, 0x7}, /* (cMul {% (cPow [/& x])}) */
-        /* 191	*/ {{2,P2(P(7),S(40))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {x LOG( & )}) */
-        /* 192	*/ {{2,P2(P(5),S(162))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {& (cAdd  <2>)}) */
-        /* 193	*/ {{2,P2(P(5),S(161))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {& (cAdd  <1>)}) */
-        /* 194	*/ {{2,P2(P(7),P(13))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {x y}) */
-        /* 195	*/ {{3,P3(P(7),P(13),S(153))   , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {x y (cAdd {(cMul  <1>) -2})}) */
-        /* 196	*/ {{2,P2(P(13),P(19))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {y z}) */
-        /* 197	*/ {{2,P2(P(7),S(23))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {x (cIf [y 1 (cMul  <1>)])}) */
-        /* 198	*/ {{2,P2(P(7),S(27))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {x (cIf [y (cMul  <1>) 1])}) */
-        /* 199	*/ {{2,P2(P(7),S(28))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {x (cIf [y (cMul  <1>) (cMul  <2>)])}) */
-        /* 200	*/ {{2,P2(P(13),S(33))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {y (cLog [x])}) */
-        /* 201	*/ {{2,P2(P(13),S(36))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {y (cLog [(cAbs [x])])}) */
-        /* 202	*/ {{2,P2(S(17),N(2))          , cMul        ,SelectedParams  ,0}, 0, 0x4}, /* (cMul {(cCosh [x]) -1}) */
-        /* 203	*/ {{2,P2(S(44),N(2))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cPow [0.367879441171 x]) -1}) */
-        /* 204	*/ {{2,P2(S(45),N(2))          , cMul        ,SelectedParams  ,0}, 0, 0x4}, /* (cMul {(cPow [2.71828182846 x]) -1}) */
-        /* 205	*/ {{2,P2(S(111),N(2))         , cMul        ,SelectedParams  ,0}, 0, 0x4}, /* (cMul {(cSinh [x]) -1}) */
-        /* 206	*/ {{2,P2(S(8),N(10))          , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cAtanh [x]) 2}) */
-        /* 207	*/ {{3,P3(S(18),N(10),P(1))    , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cCosh [(cMul {x LOG( & )})]) 2 %}) */
-        /* 208	*/ {{2,P2(S(112),N(0))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cSinh [(cMul {x LOG( & )})]) -2}) */
-        /* 209	*/ {{2,P2(S(18),N(10))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cCosh [(cMul {x LOG( & )})]) 2}) */
-        /* 210	*/ {{2,P2(S(112),N(10))        , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cSinh [(cMul {x LOG( & )})]) 2}) */
-        /* 211	*/ {{3,P3(S(112),N(10),P(1))   , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cSinh [(cMul {x LOG( & )})]) 2 %}) */
-        /* 212	*/ {{2,P2(S(9),S(11))          , cMul        ,SelectedParams  ,0}, 0, 0x12}, /* (cMul {(cCos [x]) (cCos [y])}) */
-        /* 213	*/ {{2,P2(S(126),S(98))        , cMul        ,SelectedParams  ,0}, 0, 0x7}, /* (cMul {-% (cPow [/& x])}) */
-        /* 214	*/ {{2,P2(S(129),S(81))        , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cAdd {1 x})@D4 (cPow [(cAdd {1 (cMul {-1 x})}) -1])@D4}) */
-        /* 215	*/ {{2,P2(S(9),S(104))         , cMul        ,SelectedParams  ,0}, 0, 0x12}, /* (cMul {(cCos [x]) (cSin [y])}) */
-        /* 216	*/ {{2,P2(S(33),S(289))        , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cLog [x]) /%}) */
-        /* 217	*/ {{3,P3(S(9),S(11),N(2))     , cMul        ,SelectedParams  ,0}, 0, 0x12}, /* (cMul {(cCos [x]) (cCos [y]) -1}) */
-        /* 218	*/ {{2,P2(S(102),S(104))       , cMul        ,SelectedParams  ,0}, 0, 0x12}, /* (cMul {(cSin [x]) (cSin [y])}) */
-        /* 219	*/ {{3,P3(S(9),S(104),N(2))    , cMul        ,SelectedParams  ,0}, 0, 0x12}, /* (cMul {(cCos [x]) (cSin [y]) -1}) */
-        /* 220	*/ {{2,P2(S(39),P(13))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {LOG( % ) y}) */
-        /* 221	*/ {{2,P2(S(102),S(11))        , cMul        ,SelectedParams  ,0}, 0, 0x12}, /* (cMul {(cSin [x]) (cCos [y])}) */
-        /* 222	*/ {{3,P3(S(102),S(104),N(2))  , cMul        ,SelectedParams  ,0}, 0, 0x12}, /* (cMul {(cSin [x]) (cSin [y]) -1}) */
-        /* 223	*/ {{2,P2(S(63),S(159))        , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cPow [x MIN( % 1 )]) (cAdd {(cMul (cPow [x (cAdd {% -MIN( % 1 )})]) <1>) (cMul (cPow [x (cAdd {1 -MIN( % 1 )})]) <2>)})}) */
-        /* 224	*/ {{2,P2(S(64),S(160))        , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cPow [x MIN( % & )]) (cAdd {(cMul (cPow [x (cAdd {% -MIN( % & )})]) <1>) (cMul (cPow [x (cAdd {& -MIN( % & )})]) <2>)})}) */
-        /* 225	*/ {{2,P2(S(70),S(48))         , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {(cPow [z (cAdd  <1>)]) (cPow [2.71828182846 (cMul  <2>)])}) */
-        /* 226	*/ {{2,P2(S(100),S(69))        , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {POW( % & ) (cPow [% (cAdd  <1>)])}) */
-        /* 227	*/ {{2,P2(S(100),S(62))        , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {POW( % & ) (cPow [x LOG( % )])}) */
-        /* 228	*/ {{2,P2(S(100),S(97))        , cMul        ,SelectedParams  ,0}, 0, 0x0}, /* (cMul {POW( % & ) (cPow [(cMul  <1>) &])}) */
-        /* 229	*/ {{0,0                       , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul  <1>) */
-        /* 230	*/ {{0,0                       , cMul        ,AnyParams       ,2}, 0, 0x0}, /* (cMul  <2>) */
-        /* 231	*/ {{1,P1(N(2))                , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul -1 <1>) */
-        /* 232	*/ {{1,P1(P(0))                , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul %@N <1>) */
-        /* 233	*/ {{1,P1(P(2))                , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul %@P <1>) */
-        /* 234	*/ {{1,P1(P(1))                , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul % <1>) */
-        /* 235	*/ {{1,P1(P(4))                , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul %@M <1>) */
-        /* 236	*/ {{1,P1(P(7))                , cMul        ,AnyParams       ,1}, 0, 0x4}, /* (cMul x <1>) */
-        /* 237	*/ {{1,P1(P(7))                , cMul        ,AnyParams       ,2}, 0, 0x4}, /* (cMul x <2>) */
-        /* 238	*/ {{1,P1(P(7))                , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul x <1>) */
-        /* 239	*/ {{1,P1(P(7))                , cMul        ,AnyParams       ,2}, 0, 0x0}, /* (cMul x <2>) */
-        /* 240	*/ {{2,P2(P(1),P(5))           , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul % & <1>) */
-        /* 241	*/ {{2,P2(P(7),P(13))          , cMul        ,AnyParams       ,1}, 0, 0x12}, /* (cMul x y <1>) */
-        /* 242	*/ {{1,P1(S(0))                , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul (cAbs [x]) <1>) */
-        /* 243	*/ {{1,P1(S(33))               , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul (cLog [x]) <1>) */
-        /* 244	*/ {{1,P1(S(39))               , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul LOG( % ) <1>) */
-        /* 245	*/ {{1,P1(S(54))               , cMul        ,AnyParams       ,1}, 0, 0x4}, /* (cMul (cPow [x %]) <1>) */
-        /* 246	*/ {{1,P1(S(55))               , cMul        ,AnyParams       ,2}, 0, 0x4}, /* (cMul (cPow [x &]) <2>) */
-        /* 247	*/ {{1,P1(S(56))               , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul (cPow [% y]) <1>) */
-        /* 248	*/ {{1,P1(S(65))               , cMul        ,AnyParams       ,2}, 0, 0x0}, /* (cMul (cPow [x (cAdd {1 -MIN( % 1 )})]) <2>) */
-        /* 249	*/ {{1,P1(S(66))               , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul (cPow [x (cAdd {% -MIN( % 1 )})]) <1>) */
-        /* 250	*/ {{1,P1(S(67))               , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul (cPow [x (cAdd {% -MIN( % & )})]) <1>) */
-        /* 251	*/ {{1,P1(S(68))               , cMul        ,AnyParams       ,2}, 0, 0x0}, /* (cMul (cPow [x (cAdd {& -MIN( % & )})]) <2>) */
-        /* 252	*/ {{1,P1(S(93))               , cMul        ,AnyParams       ,2}, 0, 0x0}, /* (cMul (cPow [(cLog [z]) -1]) <2>) */
-        /* 253	*/ {{2,P2(S(93),S(33))         , cMul        ,AnyParams       ,1}, 0, 0x16}, /* (cMul (cPow [(cLog [z]) -1]) (cLog [x]) <1>) */
-        /* 254	*/ {{1,P1(S(126))              , cMul        ,AnyParams       ,1}, 0, 0x0}, /* (cMul -% <1>) */
-        /* 255	*/ {{2,P2(S(291),S(33))        , cMul        ,AnyParams       ,1}, 0, 0x1}, /* (cMul /LOG( % ) (cLog [x]) <1>) */
-        /* 256	*/ {{2,P2(P(1),P(5))           , cMul        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* MUL( % & ) */
-        /* 257	*/ {{2,P2(P(7),P(13))          , cEqual      ,PositionalParams,0}, 0, 0x12}, /* (cEqual [x y]) */
-        /* 258	*/ {{2,P2(P(7),P(13))          , cEqual      ,PositionalParams,0}, 0, 0x0}, /* (cEqual [x y]) */
-        /* 259	*/ {{2,P2(P(7),P(19))          , cEqual      ,PositionalParams,0}, 0, 0x20}, /* (cEqual [x z]) */
-        /* 260	*/ {{2,P2(P(13),P(19))         , cEqual      ,PositionalParams,0}, 0, 0x24}, /* (cEqual [y z]) */
-        /* 261	*/ {{2,P2(P(13),P(19))         , cEqual      ,PositionalParams,0}, 0, 0x0}, /* (cEqual [y z]) */
-        /* 262	*/ {{1,P1(P(7))                , cNot        ,PositionalParams,0}, 0, 0x0}, /* (cNot [x]) */
-        /* 263	*/ {{1,P1(P(13))               , cNot        ,PositionalParams,0}, 0, 0x0}, /* (cNot [y]) */
-        /* 264	*/ {{1,P1(S(275))              , cNot        ,PositionalParams,0}, 0, 0x0}, /* (cNot [(cOr {x y})]) */
-        /* 265	*/ {{2,P2(P(7),P(13))          , cAnd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAnd {x y}) */
-        /* 266	*/ {{2,P2(P(7),S(24))          , cAnd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAnd {x (cIf [y 1 (cAnd  <1>)])}) */
-        /* 267	*/ {{2,P2(P(7),S(31))          , cAnd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAnd {x (cIf [y (cAnd  <1>) 1])}) */
-        /* 268	*/ {{2,P2(P(7),S(29))          , cAnd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAnd {x (cIf [y (cAnd  <1>) (cAnd  <2>)])}) */
-        /* 269	*/ {{2,P2(S(262),P(13))        , cAnd        ,SelectedParams  ,0}, 0, 0x0}, /* (cAnd {(cNot [x]) y}) */
-        /* 270	*/ {{0,0                       , cAnd        ,AnyParams       ,1}, 0, 0x0}, /* (cAnd  <1>) */
-        /* 271	*/ {{0,0                       , cAnd        ,AnyParams       ,2}, 0, 0x0}, /* (cAnd  <2>) */
-        /* 272	*/ {{1,P1(P(7))                , cAnd        ,AnyParams       ,1}, 0, 0x4}, /* (cAnd x <1>) */
-        /* 273	*/ {{1,P1(P(10))               , cAnd        ,AnyParams       ,1}, 0, 0x4}, /* (cAnd x@L <1>) */
-        /* 274	*/ {{1,P1(P(7))                , cAnd        ,AnyParams       ,2}, 0, 0x4}, /* (cAnd x <2>) */
-        /* 275	*/ {{2,P2(P(7),P(13))          , cOr         ,SelectedParams  ,0}, 0, 0x0}, /* (cOr {x y}) */
-        /* 276	*/ {{2,P2(P(7),S(22))          , cOr         ,SelectedParams  ,0}, 0, 0x0}, /* (cOr {x (cIf [y 0 (cOr  <1>)])}) */
-        /* 277	*/ {{2,P2(P(7),S(30))          , cOr         ,SelectedParams  ,0}, 0, 0x0}, /* (cOr {x (cIf [y (cOr  <1>) 0])}) */
-        /* 278	*/ {{2,P2(P(7),S(32))          , cOr         ,SelectedParams  ,0}, 0, 0x0}, /* (cOr {x (cIf [y (cOr  <1>) (cOr  <2>)])}) */
-        /* 279	*/ {{0,0                       , cOr         ,AnyParams       ,1}, 0, 0x0}, /* (cOr  <1>) */
-        /* 280	*/ {{0,0                       , cOr         ,AnyParams       ,2}, 0, 0x0}, /* (cOr  <2>) */
-        /* 281	*/ {{1,P1(P(7))                , cOr         ,AnyParams       ,1}, 0, 0x4}, /* (cOr x <1>) */
-        /* 282	*/ {{1,P1(P(10))               , cOr         ,AnyParams       ,1}, 0, 0x4}, /* (cOr x@L <1>) */
-        /* 283	*/ {{1,P1(P(7))                , cOr         ,AnyParams       ,2}, 0, 0x4}, /* (cOr x <2>) */
-        /* 284	*/ {{1,P1(P(7))                , cNotNot     ,PositionalParams,0}, 0, 0x4}, /* (cNotNot [x]) */
-        /* 285	*/ {{1,P1(P(7))                , cNotNot     ,PositionalParams,0}, 0, 0x0}, /* (cNotNot [x]) */
-        /* 286	*/ {{1,P1(P(13))               , cNotNot     ,PositionalParams,0}, 0, 0x0}, /* (cNotNot [y]) */
-        /* 287	*/ {{1,P1(S(229))              , cDeg        ,PositionalParams,0}, 0, 0x0}, /* (cDeg [(cMul  <1>)]) */
-        /* 288	*/ {{1,P1(S(229))              , cRad        ,PositionalParams,0}, 0, 0x0}, /* (cRad [(cMul  <1>)]) */
-        /* 289	*/ {{1,P1(P(1))                , cInv        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* /% */
-        /* 290	*/ {{1,P1(P(5))                , cInv        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* /& */
-        /* 291	*/ {{1,P1(S(39))               , cInv        ,GroupFunction   ,0}, Constness_Const, 0x0}, /* /LOG( % ) */
-        },
-
-    };
-    const Rule rlist[161] =
-    {
-        /* 0:	(cCos [(cAdd {1.57079632679 (cMul %@N <1>)})])
-         *	->	(cSin [(cMul -% <1>)])
-         */		 {1, ProduceNewTree, 1,P1(S(109))              , {1,P1(S(133))              , cCos        ,PositionalParams,0}},
-        /* 1:	(cCos [(cAdd -1.57079632679 <1>)])
-         *	->	(cSin [(cAdd  <1>)])
-         */		 {1, ProduceNewTree, 1,P1(S(107))              , {1,P1(S(164))              , cCos        ,PositionalParams,0}},
-        /* 2:	(cCos [(cAcos [x])])
-         *	->	x
-         */		 {1, ProduceNewTree, 1,P1(P(7))                , {1,P1(S(3))                , cCos        ,PositionalParams,0}},
-        /* 3:	(cCos [(cMul %@N <1>)])
-         *	:	(cMul -% <1>)
-         */		 {1, ReplaceParams , 1,P1(S(254))              , {1,P1(S(232))              , cCos        ,PositionalParams,0}},
-        /* 4:	(cIf [y (cMul x <1>)@D4 (cMul x <2>)@D4])
-         *	->	(cMul {x (cIf [y (cMul  <1>) (cMul  <2>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(199))              , {3,P3(P(13),S(236),S(237)) , cIf         ,PositionalParams,0}},
-        /* 5:	(cIf [y x@D4 x@D4])
-         *	->	x
-         */		 {3, ProduceNewTree, 1,P1(P(7))                , {3,P3(P(13),P(8),P(8))     , cIf         ,PositionalParams,0}},
-        /* 6:	(cIf [y (cAdd x <1>)@D4 x@D4])
-         *	->	(cAdd {x (cIf [y (cAdd  <1>) 0])})
-         */		 {3, ProduceNewTree, 1,P1(S(139))              , {3,P3(P(13),S(167),P(8))   , cIf         ,PositionalParams,0}},
-        /* 7:	(cIf [y (cMul x <1>)@D4 x@D4])
-         *	->	(cMul {x (cIf [y (cMul  <1>) 1])})
-         */		 {3, ProduceNewTree, 1,P1(S(198))              , {3,P3(P(13),S(236),P(8))   , cIf         ,PositionalParams,0}},
-        /* 8:	(cIf [y x@D4 (cAdd x <1>)@D4])
-         *	->	(cAdd {x (cIf [y 0 (cAdd  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(138))              , {3,P3(P(13),P(8),S(167))   , cIf         ,PositionalParams,0}},
-        /* 9:	(cIf [y (cAdd x <1>)@D4 (cAdd x <2>)@D4])
-         *	->	(cAdd {x (cIf [y (cAdd  <1>) (cAdd  <2>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(140))              , {3,P3(P(13),S(167),S(168)) , cIf         ,PositionalParams,0}},
-        /* 10:	(cIf [y x@D4 (cMul x <1>)@D4])
-         *	->	(cMul {x (cIf [y 1 (cMul  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(197))              , {3,P3(P(13),P(8),S(236))   , cIf         ,PositionalParams,0}},
-        /* 11:	(cIf [y (cNotNot [x])@D4 (cAnd x <1>)@D4])
-         *	->	(cAnd {x (cIf [y 1 (cAnd  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(266))              , {3,P3(P(13),S(284),S(272)) , cIf         ,PositionalParams,0}},
-        /* 12:	(cIf [y (cAnd x <1>)@D4 (cNotNot [x])@D4])
-         *	->	(cAnd {x (cIf [y (cAnd  <1>) 1])})
-         */		 {3, ProduceNewTree, 1,P1(S(267))              , {3,P3(P(13),S(272),S(284)) , cIf         ,PositionalParams,0}},
-        /* 13:	(cIf [y (cOr x <1>)@D4 (cNotNot [x])@D4])
-         *	->	(cOr {x (cIf [y (cOr  <1>) 0])})
-         */		 {3, ProduceNewTree, 1,P1(S(277))              , {3,P3(P(13),S(281),S(284)) , cIf         ,PositionalParams,0}},
-        /* 14:	(cIf [y x@L@D4 (cAnd x@L <1>)@D4])
-         *	->	(cAnd {x (cIf [y 1 (cAnd  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(266))              , {3,P3(P(13),P(9),S(273))   , cIf         ,PositionalParams,0}},
-        /* 15:	(cIf [y (cAnd x@L <1>)@D4 x@L@D4])
-         *	->	(cAnd {x (cIf [y (cAnd  <1>) 1])})
-         */		 {3, ProduceNewTree, 1,P1(S(267))              , {3,P3(P(13),S(273),P(9))   , cIf         ,PositionalParams,0}},
-        /* 16:	(cIf [y (cOr x@L <1>)@D4 x@L@D4])
-         *	->	(cOr {x (cIf [y (cOr  <1>) 0])})
-         */		 {3, ProduceNewTree, 1,P1(S(277))              , {3,P3(P(13),S(282),P(9))   , cIf         ,PositionalParams,0}},
-        /* 17:	(cIf [y (cAnd x <1>)@D4 (cAnd x <2>)@D4])
-         *	->	(cAnd {x (cIf [y (cAnd  <1>) (cAnd  <2>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(268))              , {3,P3(P(13),S(272),S(274)) , cIf         ,PositionalParams,0}},
-        /* 18:	(cIf [y (cNotNot [x])@D4 (cOr x <1>)@D4])
-         *	->	(cOr {x (cIf [y 0 (cOr  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(276))              , {3,P3(P(13),S(284),S(281)) , cIf         ,PositionalParams,0}},
-        /* 19:	(cIf [y x@L@D4 (cOr x@L <1>)@D4])
-         *	->	(cOr {x (cIf [y 0 (cOr  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(276))              , {3,P3(P(13),P(9),S(282))   , cIf         ,PositionalParams,0}},
-        /* 20:	(cIf [y (cOr x <1>)@D4 (cOr x <2>)@D4])
-         *	->	(cOr {x (cIf [y (cOr  <1>) (cOr  <2>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(278))              , {3,P3(P(13),S(281),S(283)) , cIf         ,PositionalParams,0}},
-        /* 21:	(cLog [(cPow [x@P y])])
-         *	->	(cMul {y (cLog [x])})
-         */		 {1, ProduceNewTree, 1,P1(S(200))              , {1,P1(S(57))               , cLog        ,PositionalParams,0}},
-        /* 22:	(cLog [(cPow [x y@E])])
-         *	->	(cMul {y (cLog [(cAbs [x])])})
-         */		 {1, ProduceNewTree, 1,P1(S(201))              , {1,P1(S(58))               , cLog        ,PositionalParams,0}},
-        /* 23:	(cLog [(cMul %@P <1>)])
-         *	->	(cAdd {(cLog [(cMul  <1>)]) LOG( % )})
-         */		 {1, ProduceNewTree, 1,P1(S(156))              , {1,P1(S(233))              , cLog        ,PositionalParams,0}},
-        /* 24:	(cLog [(cMul (cPow [% y]) <1>)])
-         *	->	(cAdd {(cMul {LOG( % ) y}) (cLog [(cMul  <1>)])})
-         */		 {1, ProduceNewTree, 1,P1(S(155))              , {1,P1(S(247))              , cLog        ,PositionalParams,0}},
-        /* 25:	(cMax x@D4 x@D4)
-         *	:	x
-         */		 {2, ReplaceParams , 1,P1(P(7))                , {2,P2(P(8),P(8))           , cMax        ,AnyParams       ,0}},
-        /* 26:	(cMin x@D4 x@D4)
-         *	:	x
-         */		 {2, ReplaceParams , 1,P1(P(7))                , {2,P2(P(8),P(8))           , cMin        ,AnyParams       ,0}},
-        /* 27:	(cPow [(cMul % <1>) &])
-         *	->	(cMul {POW( % & ) (cPow [(cMul  <1>) &])})
-         */		 {2, ProduceNewTree, 1,P1(S(228))              , {2,P2(S(234),P(5))         , cPow        ,PositionalParams,0}},
-        /* 28:	(cPow [% (cAdd {(cLog [x]) &})])
-         *	->	(cMul {POW( % & ) (cPow [x LOG( % )])})
-         */		 {2, ProduceNewTree, 1,P1(S(227))              , {2,P2(P(1),S(154))         , cPow        ,PositionalParams,0}},
-        /* 29:	(cPow [z@D16 (cAdd (cMul (cPow [(cLog [z]) -1]) <2>) <1>)@D16])
-         *	->	(cMul {(cPow [z (cAdd  <1>)]) (cPow [2.71828182846 (cMul  <2>)])})
-         */		 {2, ProduceNewTree, 1,P1(S(225))              , {2,P2(P(18),S(172))        , cPow        ,PositionalParams,0}},
-        /* 30:	(cPow [z@D16 (cAdd (cPow [(cLog [z]) -1]) <1>)@D16])
-         *	->	(cMul {2.71828182846 (cPow [z (cAdd  <1>)])})
-         */		 {2, ProduceNewTree, 1,P1(S(188))              , {2,P2(P(18),S(170))        , cPow        ,PositionalParams,0}},
-        /* 31:	(cPow [% (cAdd &@M <1>)])
-         *	->	(cMul {POW( % & ) (cPow [% (cAdd  <1>)])})
-         */		 {2, ProduceNewTree, 1,P1(S(226))              , {2,P2(P(1),S(166))         , cPow        ,PositionalParams,0}},
-        /* 32:	(cPow [% (cLog [x])])
-         *	:	x LOG( % )
-         */		 {2, ReplaceParams , 2,P2(P(7),S(39))          , {2,P2(P(1),S(33))          , cPow        ,PositionalParams,0}},
-        /* 33:	(cPow [(cAbs [x]) y@E])
-         *	:	x y
-         */		 {2, ReplaceParams , 2,P2(P(7),P(13))          , {2,P2(S(0),P(14))          , cPow        ,PositionalParams,0}},
-        /* 34:	(cPow [(cMul (cAbs [x]) <1>) y@E])
-         *	:	(cMul x <1>) y
-         */		 {2, ReplaceParams , 2,P2(S(238),P(13))        , {2,P2(S(242),P(14))        , cPow        ,PositionalParams,0}},
-        /* 35:	(cPow [% (cMul (cLog [x]) <1>)])
-         *	:	x (cMul LOG( % ) <1>)
-         */		 {2, ReplaceParams , 2,P2(P(7),S(244))         , {2,P2(P(1),S(243))         , cPow        ,PositionalParams,0}},
-        /* 36:	(cPow [(cPow [x@P y]) z])
-         *	:	x (cMul {y z})
-         */		 {2, ReplaceParams , 2,P2(P(7),S(196))         , {2,P2(S(57),P(19))         , cPow        ,PositionalParams,0}},
-        /* 37:	(cPow [(cPow [x y@O]) z])
-         *	:	x (cMul {y z})
-         */		 {2, ReplaceParams , 2,P2(P(7),S(196))         , {2,P2(S(59),P(19))         , cPow        ,PositionalParams,0}},
-        /* 38:	(cPow [(cPow [x y@F]) z])
-         *	:	x (cMul {y z})
-         */		 {2, ReplaceParams , 2,P2(P(7),S(196))         , {2,P2(S(60),P(19))         , cPow        ,PositionalParams,0}},
-        /* 39:	(cPow [(cPow [x y])@P z])
-         *	:	(cAbs [x]) (cMul {y z})
-         */		 {2, ReplaceParams , 2,P2(S(0),S(196))         , {2,P2(S(61),P(19))         , cPow        ,PositionalParams,0}},
-        /* 40:	(cPow [z@D16 (cMul (cPow [(cLog [z]) -1]) (cLog [x]) <1>)@D16])
-         *	:	x (cMul  <1>)
-         */		 {2, ReplaceParams , 2,P2(P(7),S(229))         , {2,P2(P(18),S(253))        , cPow        ,PositionalParams,0}},
-        /* 41:	(cPow [%@D1 (cMul /LOG( % ) (cLog [x]) <1>)@D1])
-         *	:	x (cMul  <1>)
-         */		 {2, ReplaceParams , 2,P2(P(7),S(229))         , {2,P2(P(3),S(255))         , cPow        ,PositionalParams,0}},
-        /* 42:	(cSin [(cMul %@N <1>)])
-         *	->	(cMul {-1 (cSin [(cMul -% <1>)])})
-         */		 {1, ProduceNewTree, 1,P1(S(182))              , {1,P1(S(232))              , cSin        ,PositionalParams,0}},
-        /* 43:	(cSin [(cAdd {1.57079632679 (cMul %@N <1>)})])
-         *	->	(cCos [(cMul -% <1>)])
-         */		 {1, ProduceNewTree, 1,P1(S(15))               , {1,P1(S(133))              , cSin        ,PositionalParams,0}},
-        /* 44:	(cSin [(cAdd -1.57079632679 <1>)])
-         *	->	(cMul {-1 (cCos [(cAdd  <1>)])})
-         */		 {1, ProduceNewTree, 1,P1(S(176))              , {1,P1(S(164))              , cSin        ,PositionalParams,0}},
-        /* 45:	(cSin [(cAsin [x])])
-         *	->	x
-         */		 {1, ProduceNewTree, 1,P1(P(7))                , {1,P1(S(5))                , cSin        ,PositionalParams,0}},
-        /* 46:	(cAdd (cMul (cPow [x %]) <1>)@D4 (cMul (cPow [x &]) <2>)@D4)
-         *	:	(cMul {(cPow [x MIN( % & )]) (cAdd {(cMul (cPow [x (cAdd {% -MIN( % & )})]) <1>) (cMul (cPow [x (cAdd {& -MIN( % & )})]) <2>)})})
-         */		 {2, ReplaceParams , 1,P1(S(224))              , {2,P2(S(245),S(246))       , cAdd        ,AnyParams       ,0}},
-        /* 47:	(cAdd (cMul (cPow [x %]) <1>)@D4 (cMul x <2>)@D4)
-         *	:	(cMul {(cPow [x MIN( % 1 )]) (cAdd {(cMul (cPow [x (cAdd {% -MIN( % 1 )})]) <1>) (cMul (cPow [x (cAdd {1 -MIN( % 1 )})]) <2>)})})
-         */		 {2, ReplaceParams , 1,P1(S(223))              , {2,P2(S(245),S(237))       , cAdd        ,AnyParams       ,0}},
-        /* 48:	(cAdd (cPow [(cSin [x]) 2])@D4 (cPow [(cCos [x]) 2])@D4)
-         *	:	1
-         */		 {2, ReplaceParams , 1,P1(N(8))                , {2,P2(S(94),S(91))         , cAdd        ,AnyParams       ,0}},
-        /* 49:	(cAdd 1 (cMul {-1 (cPow [(cSin [x]) 2])}))
-         *	:	(cPow [(cCos [x]) 2])
-         */		 {2, ReplaceParams , 1,P1(S(92))               , {2,P2(N(8),S(180))         , cAdd        ,AnyParams       ,0}},
-        /* 50:	(cAdd 1 (cMul {-1 (cPow [(cCos [x]) 2])}))
-         *	:	(cPow [(cSin [x]) 2])
-         */		 {2, ReplaceParams , 1,P1(S(95))               , {2,P2(N(8),S(179))         , cAdd        ,AnyParams       ,0}},
-        /* 51:	(cAdd (cMul {(cSin [x]) (cCos [y])})@D12 (cMul {(cCos [x]) (cSin [y])})@D12)
-         *	:	(cSin [(cAdd {x y})])
-         */		 {2, ReplaceParams , 1,P1(S(105))              , {2,P2(S(221),S(215))       , cAdd        ,AnyParams       ,0}},
-        /* 52:	(cAdd (cMul {(cSin [x]) (cCos [y])})@D12 (cMul {(cCos [x]) (cSin [y]) -1})@D12)
-         *	:	(cSin [(cAdd {x (cMul {-1 y})})])
-         */		 {2, ReplaceParams , 1,P1(S(106))              , {2,P2(S(221),S(219))       , cAdd        ,AnyParams       ,0}},
-        /* 53:	(cAdd (cMul {(cCos [x]) (cCos [y])})@D12 (cMul {(cSin [x]) (cSin [y])})@D12)
-         *	:	(cCos [(cAdd {x y})])
-         */		 {2, ReplaceParams , 1,P1(S(12))               , {2,P2(S(212),S(218))       , cAdd        ,AnyParams       ,0}},
-        /* 54:	(cAdd (cMul {(cCos [x]) (cCos [y]) -1})@D12 (cMul {(cSin [x]) (cSin [y])})@D12)
-         *	:	(cMul {-1 (cCos [(cAdd {x (cMul {-1 y})})])})
-         */		 {2, ReplaceParams , 1,P1(S(175))              , {2,P2(S(217),S(218))       , cAdd        ,AnyParams       ,0}},
-        /* 55:	(cAdd (cMul {(cCos [x]) (cCos [y])})@D12 (cMul {(cSin [x]) (cSin [y]) -1})@D12)
-         *	:	(cCos [(cAdd {x (cMul {-1 y})})])
-         */		 {2, ReplaceParams , 1,P1(S(13))               , {2,P2(S(212),S(222))       , cAdd        ,AnyParams       ,0}},
-        /* 56:	(cAdd (cLog [x]) (cLog [y]))
-         *	:	(cLog [(cMul {x y})])
-         */		 {2, ReplaceParams , 1,P1(S(37))               , {2,P2(S(33),S(34))         , cAdd        ,AnyParams       ,0}},
-        /* 57:	(cAdd (cPow [x 2])@D4 (cPow [y 2])@D8 (cMul x y <1>)@D12)
-         *	:	(cPow [(cAdd {x y}) 2]) (cMul {x y (cAdd {(cMul  <1>) -2})})
-         */		 {3, ReplaceParams , 2,P2(S(96),S(195))        , {3,P3(S(51),S(53),S(241))  , cAdd        ,AnyParams       ,0}},
-        /* 58:	(cMul {%@D1 (cAdd {1 (cMul {(cLog [x]) /%})})@D1})
-         *	->	(cAdd {(cLog [x]) %})
-         */		 {2, ProduceNewTree, 1,P1(S(152))              , {2,P2(P(3),S(132))         , cMul        ,SelectedParams  ,0}},
-        /* 59:	(cMul (cAdd (cMul %@M <1>) <2>) &)
-         *	:	(cAdd {(cMul % & <1>) (cMul {& (cAdd  <2>)})})
-         */		 {2, ReplaceParams , 1,P1(S(157))              , {2,P2(S(171),P(5))         , cMul        ,AnyParams       ,0}},
-        /* 60:	(cMul (cAdd % <1>) &)
-         *	:	(cAdd {MUL( % & ) (cMul {& (cAdd  <1>)})})
-         */		 {2, ReplaceParams , 1,P1(S(158))              , {2,P2(S(165),P(5))         , cMul        ,AnyParams       ,0}},
-        /* 61:	(cMul (cAbs [x]) (cAbs [y]))
-         *	:	(cAbs [(cMul {x y})])
-         */		 {2, ReplaceParams , 1,P1(S(2))                , {2,P2(S(0),S(1))           , cMul        ,AnyParams       ,0}},
-        /* 62:	(cMul (cPow [(cMul x <2>) -1])@D4 x@D4)
-         *	:	(cPow [(cMul  <2>) -1])
-         */		 {2, ReplaceParams , 1,P1(S(89))               , {2,P2(S(90),P(8))          , cMul        ,AnyParams       ,0}},
-        /* 63:	(cMul (cNot [x]) (cNotNot [y]))
-         *	:	(cAnd {(cNot [x]) y})
-         */		 {2, ReplaceParams , 1,P1(S(269))              , {2,P2(S(262),S(286))       , cMul        ,AnyParams       ,0}},
-        /* 64:	(cMul (cNotNot [x]) (cNotNot [y]))
-         *	:	(cAnd {x y})
-         */		 {2, ReplaceParams , 1,P1(S(265))              , {2,P2(S(285),S(286))       , cMul        ,AnyParams       ,0}},
-        /* 65:	(cMul (cNot [x]) (cNot [y]))
-         *	:	(cNot [(cOr {x y})])
-         */		 {2, ReplaceParams , 1,P1(S(264))              , {2,P2(S(262),S(263))       , cMul        ,AnyParams       ,0}},
-        /* 66:	(cNot [(cMul {-1 x})])
-         *	:	x
-         */		 {1, ReplaceParams , 1,P1(P(7))                , {1,P1(S(173))              , cNot        ,PositionalParams,0}},
-        /* 67:	(cAnd (cEqual [x y])@D12 (cEqual [y z])@D24 (cEqual [x z])@D20)
-         *	:	(cEqual [x y]) (cEqual [y z])
-         */		 {3, ReplaceParams , 2,P2(S(258),S(261))       , {3,P3(S(257),S(260),S(259)), cAnd        ,AnyParams       ,0}},
-        /*********************/
-        /* 68:	(cAtan2 [(cMul x <1>)@D4 (cMul x <2>)@D4])
-         *	:	(cMul  <1>) (cMul  <2>)
-         */		 {2, ReplaceParams , 2,P2(S(229),S(230))       , {2,P2(S(236),S(237))       , cAtan2      ,PositionalParams,0}},
-        /* 69:	(cCosh [(cAsinh [x])])
-         *	->	(cPow [(cAdd {(cPow [x 2]) 1}) 0.5])
-         */		 {1, ProduceNewTree, 1,P1(S(88))               , {1,P1(S(6))                , cCosh       ,PositionalParams,0}},
-        /* 70:	(cCosh [(cMul -1 <1>)])
-         *	:	(cMul  <1>)
-         */		 {1, ReplaceParams , 1,P1(S(229))              , {1,P1(S(231))              , cCosh       ,PositionalParams,0}},
-        /* 71:	(cIf [y (cMul x <1>)@D4 (cMul x <2>)@D4])
-         *	->	(cMul {x (cIf [y (cMul  <1>) (cMul  <2>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(199))              , {3,P3(P(13),S(236),S(237)) , cIf         ,PositionalParams,0}},
-        /* 72:	(cIf [y x@D4 x@D4])
-         *	->	x
-         */		 {3, ProduceNewTree, 1,P1(P(7))                , {3,P3(P(13),P(8),P(8))     , cIf         ,PositionalParams,0}},
-        /* 73:	(cIf [y (cAdd x <1>)@D4 x@D4])
-         *	->	(cAdd {x (cIf [y (cAdd  <1>) 0])})
-         */		 {3, ProduceNewTree, 1,P1(S(139))              , {3,P3(P(13),S(167),P(8))   , cIf         ,PositionalParams,0}},
-        /* 74:	(cIf [y (cMul x <1>)@D4 x@D4])
-         *	->	(cMul {x (cIf [y (cMul  <1>) 1])})
-         */		 {3, ProduceNewTree, 1,P1(S(198))              , {3,P3(P(13),S(236),P(8))   , cIf         ,PositionalParams,0}},
-        /* 75:	(cIf [y x@D4 (cAdd x <1>)@D4])
-         *	->	(cAdd {x (cIf [y 0 (cAdd  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(138))              , {3,P3(P(13),P(8),S(167))   , cIf         ,PositionalParams,0}},
-        /* 76:	(cIf [y (cAdd x <1>)@D4 (cAdd x <2>)@D4])
-         *	->	(cAdd {x (cIf [y (cAdd  <1>) (cAdd  <2>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(140))              , {3,P3(P(13),S(167),S(168)) , cIf         ,PositionalParams,0}},
-        /* 77:	(cIf [y x@D4 (cMul x <1>)@D4])
-         *	->	(cMul {x (cIf [y 1 (cMul  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(197))              , {3,P3(P(13),P(8),S(236))   , cIf         ,PositionalParams,0}},
-        /* 78:	(cIf [y (cNotNot [x])@D4 (cAnd x <1>)@D4])
-         *	->	(cAnd {x (cIf [y 1 (cAnd  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(266))              , {3,P3(P(13),S(284),S(272)) , cIf         ,PositionalParams,0}},
-        /* 79:	(cIf [y (cAnd x <1>)@D4 (cNotNot [x])@D4])
-         *	->	(cAnd {x (cIf [y (cAnd  <1>) 1])})
-         */		 {3, ProduceNewTree, 1,P1(S(267))              , {3,P3(P(13),S(272),S(284)) , cIf         ,PositionalParams,0}},
-        /* 80:	(cIf [y (cOr x <1>)@D4 (cNotNot [x])@D4])
-         *	->	(cOr {x (cIf [y (cOr  <1>) 0])})
-         */		 {3, ProduceNewTree, 1,P1(S(277))              , {3,P3(P(13),S(281),S(284)) , cIf         ,PositionalParams,0}},
-        /* 81:	(cIf [y x@L@D4 (cAnd x@L <1>)@D4])
-         *	->	(cAnd {x (cIf [y 1 (cAnd  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(266))              , {3,P3(P(13),P(9),S(273))   , cIf         ,PositionalParams,0}},
-        /* 82:	(cIf [y (cAnd x@L <1>)@D4 x@L@D4])
-         *	->	(cAnd {x (cIf [y (cAnd  <1>) 1])})
-         */		 {3, ProduceNewTree, 1,P1(S(267))              , {3,P3(P(13),S(273),P(9))   , cIf         ,PositionalParams,0}},
-        /* 83:	(cIf [y (cOr x@L <1>)@D4 x@L@D4])
-         *	->	(cOr {x (cIf [y (cOr  <1>) 0])})
-         */		 {3, ProduceNewTree, 1,P1(S(277))              , {3,P3(P(13),S(282),P(9))   , cIf         ,PositionalParams,0}},
-        /* 84:	(cIf [y (cAnd x <1>)@D4 (cAnd x <2>)@D4])
-         *	->	(cAnd {x (cIf [y (cAnd  <1>) (cAnd  <2>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(268))              , {3,P3(P(13),S(272),S(274)) , cIf         ,PositionalParams,0}},
-        /* 85:	(cIf [y (cNotNot [x])@D4 (cOr x <1>)@D4])
-         *	->	(cOr {x (cIf [y 0 (cOr  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(276))              , {3,P3(P(13),S(284),S(281)) , cIf         ,PositionalParams,0}},
-        /* 86:	(cIf [y x@L@D4 (cOr x@L <1>)@D4])
-         *	->	(cOr {x (cIf [y 0 (cOr  <1>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(276))              , {3,P3(P(13),P(9),S(282))   , cIf         ,PositionalParams,0}},
-        /* 87:	(cIf [y (cOr x <1>)@D4 (cOr x <2>)@D4])
-         *	->	(cOr {x (cIf [y (cOr  <1>) (cOr  <2>)])})
-         */		 {3, ProduceNewTree, 1,P1(S(278))              , {3,P3(P(13),S(281),S(283)) , cIf         ,PositionalParams,0}},
-        /* 88:	(cLog [(cPow [x@P y])])
-         *	->	(cMul {y (cLog [x])})
-         */		 {1, ProduceNewTree, 1,P1(S(200))              , {1,P1(S(57))               , cLog        ,PositionalParams,0}},
-        /* 89:	(cLog [(cPow [x y@E])])
-         *	->	(cMul {y (cLog [(cAbs [x])])})
-         */		 {1, ProduceNewTree, 1,P1(S(201))              , {1,P1(S(58))               , cLog        ,PositionalParams,0}},
-        /* 90:	(cLog [(cMul %@P <1>)])
-         *	->	(cAdd {(cLog [(cMul  <1>)]) LOG( % )})
-         */		 {1, ProduceNewTree, 1,P1(S(156))              , {1,P1(S(233))              , cLog        ,PositionalParams,0}},
-        /* 91:	(cLog [(cMul (cPow [% y]) <1>)])
-         *	->	(cAdd {(cMul {LOG( % ) y}) (cLog [(cMul  <1>)])})
-         */		 {1, ProduceNewTree, 1,P1(S(155))              , {1,P1(S(247))              , cLog        ,PositionalParams,0}},
-        /* 92:	(cLog [(cMul {(cAdd {1 x})@D4 (cPow [(cAdd {1 (cMul {-1 x})}) -1])@D4})])
-         *	->	(cMul {(cAtanh [x]) 2})
-         */		 {1, ProduceNewTree, 1,P1(S(206))              , {1,P1(S(214))              , cLog        ,PositionalParams,0}},
-        /* 93:	(cMax x@D4 x@D4)
-         *	:	x
-         */		 {2, ReplaceParams , 1,P1(P(7))                , {2,P2(P(8),P(8))           , cMax        ,AnyParams       ,0}},
-        /* 94:	(cMin x@D4 x@D4)
-         *	:	x
-         */		 {2, ReplaceParams , 1,P1(P(7))                , {2,P2(P(8),P(8))           , cMin        ,AnyParams       ,0}},
-        /* 95:	(cPow [(cMul % <1>) &])
-         *	->	(cMul {POW( % & ) (cPow [(cMul  <1>) &])})
-         */		 {2, ProduceNewTree, 1,P1(S(228))              , {2,P2(S(234),P(5))         , cPow        ,PositionalParams,0}},
-        /* 96:	(cPow [% (cAdd {(cLog [x]) &})])
-         *	->	(cMul {POW( % & ) (cPow [x LOG( % )])})
-         */		 {2, ProduceNewTree, 1,P1(S(227))              , {2,P2(P(1),S(154))         , cPow        ,PositionalParams,0}},
-        /* 97:	(cPow [z@D16 (cAdd (cMul (cPow [(cLog [z]) -1]) <2>) <1>)@D16])
-         *	->	(cMul {(cPow [z (cAdd  <1>)]) (cPow [2.71828182846 (cMul  <2>)])})
-         */		 {2, ProduceNewTree, 1,P1(S(225))              , {2,P2(P(18),S(172))        , cPow        ,PositionalParams,0}},
-        /* 98:	(cPow [z@D16 (cAdd (cPow [(cLog [z]) -1]) <1>)@D16])
-         *	->	(cMul {2.71828182846 (cPow [z (cAdd  <1>)])})
-         */		 {2, ProduceNewTree, 1,P1(S(188))              , {2,P2(P(18),S(170))        , cPow        ,PositionalParams,0}},
-        /* 99:	(cPow [% (cAdd &@M <1>)])
-         *	->	(cMul {POW( % & ) (cPow [% (cAdd  <1>)])})
-         */		 {2, ProduceNewTree, 1,P1(S(226))              , {2,P2(P(1),S(166))         , cPow        ,PositionalParams,0}},
-        /* 100:	(cPow [% (cLog [x])])
-         *	:	x LOG( % )
-         */		 {2, ReplaceParams , 2,P2(P(7),S(39))          , {2,P2(P(1),S(33))          , cPow        ,PositionalParams,0}},
-        /* 101:	(cPow [(cAbs [x]) y@E])
-         *	:	x y
-         */		 {2, ReplaceParams , 2,P2(P(7),P(13))          , {2,P2(S(0),P(14))          , cPow        ,PositionalParams,0}},
-        /* 102:	(cPow [(cMul (cAbs [x]) <1>) y@E])
-         *	:	(cMul x <1>) y
-         */		 {2, ReplaceParams , 2,P2(S(238),P(13))        , {2,P2(S(242),P(14))        , cPow        ,PositionalParams,0}},
-        /* 103:	(cPow [% (cMul (cLog [x]) <1>)])
-         *	:	x (cMul LOG( % ) <1>)
-         */		 {2, ReplaceParams , 2,P2(P(7),S(244))         , {2,P2(P(1),S(243))         , cPow        ,PositionalParams,0}},
-        /* 104:	(cPow [(cPow [x@P y]) z])
-         *	:	x (cMul {y z})
-         */		 {2, ReplaceParams , 2,P2(P(7),S(196))         , {2,P2(S(57),P(19))         , cPow        ,PositionalParams,0}},
-        /* 105:	(cPow [(cPow [x y@O]) z])
-         *	:	x (cMul {y z})
-         */		 {2, ReplaceParams , 2,P2(P(7),S(196))         , {2,P2(S(59),P(19))         , cPow        ,PositionalParams,0}},
-        /* 106:	(cPow [(cPow [x y@F]) z])
-         *	:	x (cMul {y z})
-         */		 {2, ReplaceParams , 2,P2(P(7),S(196))         , {2,P2(S(60),P(19))         , cPow        ,PositionalParams,0}},
-        /* 107:	(cPow [(cPow [x y])@P z])
-         *	:	(cAbs [x]) (cMul {y z})
-         */		 {2, ReplaceParams , 2,P2(S(0),S(196))         , {2,P2(S(61),P(19))         , cPow        ,PositionalParams,0}},
-        /* 108:	(cPow [z@D16 (cMul (cPow [(cLog [z]) -1]) (cLog [x]) <1>)@D16])
-         *	:	x (cMul  <1>)
-         */		 {2, ReplaceParams , 2,P2(P(7),S(229))         , {2,P2(P(18),S(253))        , cPow        ,PositionalParams,0}},
-        /* 109:	(cPow [%@D1 (cMul /LOG( % ) (cLog [x]) <1>)@D1])
-         *	:	x (cMul  <1>)
-         */		 {2, ReplaceParams , 2,P2(P(7),S(229))         , {2,P2(P(3),S(255))         , cPow        ,PositionalParams,0}},
-        /* 110:	(cSinh [(cMul -1 <1>)])
-         *	->	(cMul {-1 (cSinh [(cMul  <1>)])})
-         */		 {1, ProduceNewTree, 1,P1(S(184))              , {1,P1(S(231))              , cSinh       ,PositionalParams,0}},
-        /* 111:	(cSinh [(cAcosh [x])])
-         *	->	(cPow [(cAdd {(cPow [x 2]) -1}) 0.5])
-         */		 {1, ProduceNewTree, 1,P1(S(87))               , {1,P1(S(4))                , cSinh       ,PositionalParams,0}},
-        /* 112:	(cTan [(cMul -1 <1>)])
-         *	->	(cMul {-1 (cTan [(cMul  <1>)])})
-         */		 {1, ProduceNewTree, 1,P1(S(185))              , {1,P1(S(231))              , cTan        ,PositionalParams,0}},
-        /* 113:	(cTan [(cAtan [x])])
-         *	->	x
-         */		 {1, ProduceNewTree, 1,P1(P(7))                , {1,P1(S(7))                , cTan        ,PositionalParams,0}},
-        /* 114:	(cTanh [(cMul -1 <1>)])
-         *	->	(cMul {-1 (cTanh [(cMul  <1>)])})
-         */		 {1, ProduceNewTree, 1,P1(S(187))              , {1,P1(S(231))              , cTanh       ,PositionalParams,0}},
-        /* 115:	(cAdd (cLog [x]) (cLog [y]))
-         *	:	(cLog [(cMul {x y})])
-         */		 {2, ReplaceParams , 1,P1(S(37))               , {2,P2(S(33),S(34))         , cAdd        ,AnyParams       ,0}},
-        /* 116:	(cAdd (cCosh [x])@D4 (cSinh [x])@D4)
-         *	:	(cPow [2.71828182846 x])
-         */		 {2, ReplaceParams , 1,P1(S(45))               , {2,P2(S(16),S(110))        , cAdd        ,AnyParams       ,0}},
-        /* 117:	(cAdd (cMul {(cCosh [x]) -1})@D4 (cSinh [x])@D4)
-         *	:	(cMul {(cPow [0.367879441171 x]) -1})
-         */		 {2, ReplaceParams , 1,P1(S(203))              , {2,P2(S(202),S(110))       , cAdd        ,AnyParams       ,0}},
-        /* 118:	(cAdd (cPow [& x])@D6 (cMul {-1 (cPow [/& x])})@D6)
-         *	:	(cMul {(cSinh [(cMul {x LOG( & )})]) 2})
-         */		 {2, ReplaceParams , 1,P1(S(210))              , {2,P2(S(49),S(181))        , cAdd        ,AnyParams       ,0}},
-        /* 119:	(cAdd (cPow [& x])@D6 (cPow [/& x])@D6)
-         *	:	(cMul {(cCosh [(cMul {x LOG( & )})]) 2})
-         */		 {2, ReplaceParams , 1,P1(S(209))              , {2,P2(S(49),S(99))         , cAdd        ,AnyParams       ,0}},
-        /* 120:	(cAdd (cMul {-1 (cPow [& x])})@D6 (cPow [/& x])@D6)
-         *	:	(cMul {(cSinh [(cMul {x LOG( & )})]) -2})
-         */		 {2, ReplaceParams , 1,P1(S(208))              , {2,P2(S(178),S(99))        , cAdd        ,AnyParams       ,0}},
-        /* 121:	(cAdd (cMul {% (cPow [& x])})@D7 (cMul {-% (cPow [/& x])})@D7)
-         *	:	(cMul {(cSinh [(cMul {x LOG( & )})]) 2 %})
-         */		 {2, ReplaceParams , 1,P1(S(211))              , {2,P2(S(189),S(213))       , cAdd        ,AnyParams       ,0}},
-        /* 122:	(cAdd (cMul {% (cPow [& x])})@D7 (cMul {% (cPow [/& x])})@D7)
-         *	:	(cMul {(cCosh [(cMul {x LOG( & )})]) 2 %})
-         */		 {2, ReplaceParams , 1,P1(S(207))              , {2,P2(S(189),S(190))       , cAdd        ,AnyParams       ,0}},
-        /* 123:	(cAdd (cCosh [x])@D4 (cMul {(cSinh [x]) -1})@D4)
-         *	:	(cPow [0.367879441171 x])
-         */		 {2, ReplaceParams , 1,P1(S(44))               , {2,P2(S(16),S(205))        , cAdd        ,AnyParams       ,0}},
-        /* 124:	(cAdd (cSinh [x])@D4 (cMul {(cPow [2.71828182846 x]) -1})@D4)
-         *	:	(cMul {-1 (cCosh [x])})
-         */		 {2, ReplaceParams , 1,P1(S(177))              , {2,P2(S(110),S(204))       , cAdd        ,AnyParams       ,0}},
-        /* 125:	(cAdd (cCosh [x])@D4 (cMul {(cPow [2.71828182846 x]) -1})@D4)
-         *	:	(cMul {-1 (cSinh [x])})
-         */		 {2, ReplaceParams , 1,P1(S(183))              , {2,P2(S(16),S(204))        , cAdd        ,AnyParams       ,0}},
-        /* 126:	(cAdd (cMul {(cSinh [x]) -1})@D4 (cPow [2.71828182846 x])@D4)
-         *	:	(cCosh [x])
-         */		 {2, ReplaceParams , 1,P1(S(17))               , {2,P2(S(205),S(46))        , cAdd        ,AnyParams       ,0}},
-        /* 127:	(cAdd (cMul {(cCosh [x]) -1})@D4 (cPow [2.71828182846 x])@D4)
-         *	:	(cSinh [x])
-         */		 {2, ReplaceParams , 1,P1(S(111))              , {2,P2(S(202),S(46))        , cAdd        ,AnyParams       ,0}},
-        /* 128:	(cMul {%@D1 (cAdd {1 (cMul {(cLog [x]) /%})})@D1})
-         *	->	(cAdd {(cLog [x]) %})
-         */		 {2, ProduceNewTree, 1,P1(S(152))              , {2,P2(P(3),S(132))         , cMul        ,SelectedParams  ,0}},
-        /* 129:	(cMul (cPow [(cMul x <2>) -1])@D4 x@D4)
-         *	:	(cPow [(cMul  <2>) -1])
-         */		 {2, ReplaceParams , 1,P1(S(89))               , {2,P2(S(90),P(8))          , cMul        ,AnyParams       ,0}},
-        /* 130:	(cMul (cNot [x]) (cNotNot [y]))
-         *	:	(cAnd {(cNot [x]) y})
-         */		 {2, ReplaceParams , 1,P1(S(269))              , {2,P2(S(262),S(286))       , cMul        ,AnyParams       ,0}},
-        /* 131:	(cMul (cNotNot [x]) (cNotNot [y]))
-         *	:	(cAnd {x y})
-         */		 {2, ReplaceParams , 1,P1(S(265))              , {2,P2(S(285),S(286))       , cMul        ,AnyParams       ,0}},
-        /* 132:	(cMul (cNot [x]) (cNot [y]))
-         *	:	(cNot [(cOr {x y})])
-         */		 {2, ReplaceParams , 1,P1(S(264))              , {2,P2(S(262),S(263))       , cMul        ,AnyParams       ,0}},
-        /* 133:	(cMul (cPow [(cTanh [x]) -1])@D4 (cSinh [x])@D4)
-         *	:	(cCosh [x])
-         */		 {2, ReplaceParams , 1,P1(S(17))               , {2,P2(S(79),S(110))        , cMul        ,AnyParams       ,0}},
-        /* 134:	(cMul (cSinh [x])@D4 (cPow [(cCosh [x]) -1])@D4)
-         *	:	(cTanh [x])
-         */		 {2, ReplaceParams , 1,P1(S(121))              , {2,P2(S(110),S(73))        , cMul        ,AnyParams       ,0}},
-        /* 135:	(cMul (cTanh [x])@D4 (cPow [(cSinh [x]) -1])@D4)
-         *	:	(cPow [(cCosh [x]) -1])
-         */		 {2, ReplaceParams , 1,P1(S(74))               , {2,P2(S(122),S(76))        , cMul        ,AnyParams       ,0}},
-        /* 136:	(cMul (cPow [(cSinh [x]) -1])@D4 (cCosh [x])@D4)
-         *	:	(cPow [(cTanh [x]) -1])
-         */		 {2, ReplaceParams , 1,P1(S(80))               , {2,P2(S(76),S(16))         , cMul        ,AnyParams       ,0}},
-        /* 137:	(cMul (cTanh [x])@D4 (cCosh [x])@D4)
-         *	:	(cSinh [x])
-         */		 {2, ReplaceParams , 1,P1(S(111))              , {2,P2(S(122),S(16))        , cMul        ,AnyParams       ,0}},
-        /* 138:	(cMul (cPow [(cTan [x]) -1])@D4 (cSin [x])@D4)
-         *	:	(cCos [x])
-         */		 {2, ReplaceParams , 1,P1(S(9))                , {2,P2(S(77),S(103))        , cMul        ,AnyParams       ,0}},
-        /* 139:	(cMul (cSin [x])@D4 (cPow [(cCos [x]) -1])@D4)
-         *	:	(cTan [x])
-         */		 {2, ReplaceParams , 1,P1(S(116))              , {2,P2(S(103),S(71))        , cMul        ,AnyParams       ,0}},
-        /* 140:	(cMul (cTan [x])@D4 (cPow [(cSin [x]) -1])@D4)
-         *	:	(cPow [(cCos [x]) -1])
-         */		 {2, ReplaceParams , 1,P1(S(72))               , {2,P2(S(117),S(75))        , cMul        ,AnyParams       ,0}},
-        /* 141:	(cMul (cPow [(cSin [x]) -1])@D4 (cCos [x])@D4)
-         *	:	(cPow [(cTan [x]) -1])
-         */		 {2, ReplaceParams , 1,P1(S(78))               , {2,P2(S(75),S(10))         , cMul        ,AnyParams       ,0}},
-        /* 142:	(cMul (cTan [x])@D4 (cCos [x])@D4)
-         *	:	(cSin [x])
-         */		 {2, ReplaceParams , 1,P1(S(102))              , {2,P2(S(117),S(10))        , cMul        ,AnyParams       ,0}},
-        /* 143:	(cMul -1 (cSinh [(cMul % <1>)]))
-         *	:	(cSinh [(cMul -% <1>)])
-         */		 {2, ReplaceParams , 1,P1(S(115))              , {2,P2(N(2),S(114))         , cMul        ,AnyParams       ,0}},
-        /* 144:	(cMul -1 (cTanh [(cMul % <1>)]))
-         *	:	(cTanh [(cMul -% <1>)])
-         */		 {2, ReplaceParams , 1,P1(S(125))              , {2,P2(N(2),S(124))         , cMul        ,AnyParams       ,0}},
-        /* 145:	(cMul -1 (cSin [(cMul % <1>)]))
-         *	:	(cSin [(cMul -% <1>)])
-         */		 {2, ReplaceParams , 1,P1(S(109))              , {2,P2(N(2),S(108))         , cMul        ,AnyParams       ,0}},
-        /* 146:	(cMul -1 (cTan [(cMul % <1>)]))
-         *	:	(cTan [(cMul -% <1>)])
-         */		 {2, ReplaceParams , 1,P1(S(120))              , {2,P2(N(2),S(119))         , cMul        ,AnyParams       ,0}},
-        /* 147:	(cMul (cAdd {(cPow [0.135335283237 x]) -1})@D4 (cPow [(cAdd {(cPow [0.135335283237 x]) 1}) -1])@D4)
-         *	:	-1 (cTanh [x])
-         */		 {2, ReplaceParams , 2,P2(N(2),S(121))         , {2,P2(S(142),S(84))        , cMul        ,AnyParams       ,0}},
-        /* 148:	(cMul (cAdd {(cPow [7.38905609893 x]) -1})@D4 (cPow [(cAdd {(cPow [7.38905609893 x]) 1}) -1])@D4)
-         *	:	(cTanh [x])
-         */		 {2, ReplaceParams , 1,P1(S(121))              , {2,P2(S(144),S(85))        , cMul        ,AnyParams       ,0}},
-        /* 149:	(cMul (cAdd {(cPow [0.135335283237 x]) 1})@D4 (cPow [(cAdd {(cPow [0.135335283237 x]) -1}) -1])@D4)
-         *	:	(cPow [(cMul {-1 (cTanh [x])}) -1])
-         */		 {2, ReplaceParams , 1,P1(S(86))               , {2,P2(S(147),S(82))        , cMul        ,AnyParams       ,0}},
-        /* 150:	(cMul (cAdd {(cPow [7.38905609893 x]) 1})@D4 (cPow [(cAdd {(cPow [7.38905609893 x]) -1}) -1])@D4)
-         *	:	(cPow [(cTanh [x]) -1])
-         */		 {2, ReplaceParams , 1,P1(S(80))               , {2,P2(S(149),S(83))        , cMul        ,AnyParams       ,0}},
-        /* 151:	(cNot [(cMul {-1 x})])
-         *	:	x
-         */		 {1, ReplaceParams , 1,P1(P(7))                , {1,P1(S(173))              , cNot        ,PositionalParams,0}},
-        /* 152:	(cAnd (cEqual [x y])@D12 (cEqual [y z])@D24 (cEqual [x z])@D20)
-         *	:	(cEqual [x y]) (cEqual [y z])
-         */		 {3, ReplaceParams , 2,P2(S(258),S(261))       , {3,P3(S(257),S(260),S(259)), cAnd        ,AnyParams       ,0}},
-        /*********************/
-        /* 153:	(cPow [(cSin [x]) %@N])
-         *	:	(cCsc [x]) -%
-         */		 {2, ReplaceParams , 2,P2(S(20),S(126))        , {2,P2(S(102),P(0))         , cPow        ,PositionalParams,0}},
-        /* 154:	(cPow [(cCos [x]) %@N])
-         *	:	(cSec [x]) -%
-         */		 {2, ReplaceParams , 2,P2(S(101),S(126))       , {2,P2(S(9),P(0))           , cPow        ,PositionalParams,0}},
-        /* 155:	(cPow [(cTan [x]) %@N])
-         *	:	(cCot [x]) -%
-         */		 {2, ReplaceParams , 2,P2(S(19),S(126))        , {2,P2(S(116),P(0))         , cPow        ,PositionalParams,0}},
-        /* 156:	(cMul 57.2957795131 <1>)
-         *	->	(cDeg [(cMul  <1>)])
-         */		 {1, ProduceNewTree, 1,P1(S(287))              , {1,P1(N(13))               , cMul        ,AnyParams       ,1}},
-        /* 157:	(cMul 0.0174532925199 <1>)
-         *	->	(cRad [(cMul  <1>)])
-         */		 {1, ProduceNewTree, 1,P1(S(288))              , {1,P1(N(4))                , cMul        ,AnyParams       ,1}},
-        /* 158:	(cAnd x@L y)
-         *	:	(cMul {x y})
-         */		 {2, ReplaceParams , 1,P1(S(194))              , {2,P2(P(10),P(13))         , cAnd        ,AnyParams       ,0}},
-        /* 159:	(cOr x@L y@L)
-         *	:	(cAdd {x y})
-         */		 {2, ReplaceParams , 1,P1(S(134))              , {2,P2(P(10),P(17))         , cOr         ,AnyParams       ,0}},
-        /* 160:	(cOr x@L (cAdd  <1>)@P)
-         *	:	(cAdd x <1>)
-         */		 {2, ReplaceParams , 1,P1(S(169))              , {2,P2(P(10),S(163))        , cOr         ,AnyParams       ,0}},
-    };
+using
+iF2
+l71;nE
+iF2{i02
+plist_p[35]={{2,0,0x0}
+tL
+0,0x4}
+tL
+nB1,0x0}
+tL
+Sign_NoIdea,0x0}
+tL
+cZ1,0x0}
+,{3,Sign_NoIdea,0x0}
+,{3,0,0x0}
+,{3,cZ1,0x0}
+,{3,0,0x8}
+,{3,Value_OddInt,0x0}
+,{3,Value_NonInteger,0x0}
+,{3,lB2,0x0}
+,{3,nB1,0x0}
+,{0,Sign_Negative
+x13
+lR
+0,nB1
+x13
+lB2
+x13
+n41,c13
+0,eQ1|nB1
+x13
+cA1|n41,c13
+0,cA1
+x13
+Oneness_One
+x13
+cZ1|lR
+1,lB2|lR
+1,lR
+1,cA1|lR
+1,eQ1|lR
+1,nB1|lR
+6,0,0x0}
+,{4,0,0x0}
+,{4,lR
+4,0,0x16}
+,{4,eQ1,0x0}
+,{5,0,0x0}
+,{5,n41,0x0}
+,}
+;lO
+yI2
+plist_n_container{static
+const
+yL
+plist_n[19];}
+;lO
+const
+yL
+plist_n_container
+x5::plist_n[19]={{-2,0}
+,{-1,0}
+,{-0.5,0}
+,{0,0}
+,{fp_const_deg_to_rad
+eG1
+fp_const_einv
+eG1
+fp_const_log10inv
+eG1
+0.5,0}
+,{fp_const_log2
+eG1
+1,0}
+,{fp_const_log2inv
+x5(),0}
+tL
+0}
+,{fp_const_log10
+eG1
+fp_const_e
+eG1
+fp_const_rad_to_deg
+eG1-fp_const_pihalf
+c23{0,x91{fp_const_pihalf
+c23{fp_const_pi
+c23}
+;const
+xJ
+plist_s[448]={{{1,14,eT2
+14,cNeg,GroupFunction,0}
+,n41,c13{1,406,eT2
+407,eT2
+14,nY2
+24,nY2
+394,nY2
+395,nY2
+407,cInv,xO
+2,291071,cAdd
+lT3
+268324
+iB
+0x5
+y4
+268324,l6
+44
+iB
+0x4
+y4
+57388,l6
+134188,l6
+215084,l6
+257060,l6
+257068,l6
+268332,l6
+268332
+iB
+0x5
+y4
+134196,l6
+214068,l6
+271396,l6
+186412
+iB
+0x1
+y4
+271404,l6
+311340,l6
+220212,l6
+6144,l6
+29702,l6
+135168,l6
+171014,l6
+57358,l6
+58382,l6
+270357
+iB
+0x4
+y4
+58392,l6
+28701,l6
+33798,l6
+17564,l6
+56476,l6
+176297,l6
+45233,l6
+277682,l6
+276659,l6
+164061,l6
+165104,l6
+231651,l6
+234724,l6
+37115,l6
+45307,l6
+277772,l6
+14724,l6
+24964,l6
+176383,l6
+1321,l6
+401608,l6
+403848,cAdd,lQ
+0,0,xS
+0,0,cE1
+42,xS
+1,50,xS
+1,51,xS
+1,52,xS
+1,53,xS
+1,0,nA
+1
+eJ1
+0,nA
+2
+eJ1
+0,xS
+1,20,xS
+1,14,xS
+1,25,xS
+1,24,nA
+2}
+,0,0x0
+y4
+55320,cE1
+210,xS
+1,218,cE1
+231,nA
+1}
+,0,0x16}
+,{{1,320,nA
+1}
+,0,0x16}
+,{{0,0,nA
+1}
+,nB1,0x0
+y4
+45070,cAdd,xO
+2,36,c3
+6180,c3
+112676,c3
+273444,lJ
+0x6
+y4
+337956,lJ
+0x6
+y4
+322596,c3
+341028,c3
+363556,c3
+368676,c3
+369700,c3
+373796,c3
+378916,c3
+422948,c3
+426020,c3
+431140,c3
+434212,c3
+443428,c3
+451620,c3
+293936,l3
+3,60860416,c3
+6144,c3
+493568,c3
+14,c3
+70670,c3
+128014,c3
+271374,lJ
+0x1
+y4
+284672,l3
+3,44443648,c3
+29702,c3
+113688,c3
+112664,c3
+28701,c3
+33798,c3
+273422,lJ
+0x7
+y4
+337934,lJ
+0x7
+y4
+348160,l3
+3,64360477,c3
+404480,c3
+261154,c3
+289792,c3
+349190,c3
+290846,c3
+54,c3
+37106,c3
+37106,lJ
+0x4
+y4
+37108,lJ
+0x4
+y4
+37115,c3
+37132,c3
+14618,c3
+37229,lJ
+0x4}
+,{{3,14727534,c3
+59780,c3
+37285,lJ
+0x4
+y4
+36263,c3
+47472,l3
+3,14727591,c3
+337974,lJ
+0x7
+y4
+47531,c3
+101652,c3
+102677,c3
+253215,c3
+293202,c3
+295250,c3
+342354,c3
+47457,c3
+299074,c3
+366948,lJ
+eU2
+38115684,lJ
+x23
+420196,lJ
+x23
+6538,c3
+367000,lJ
+x23
+420248,lJ
+eU2
+38168932,lJ
+eU2
+38168984,lJ
+x23
+6609,c3
+6633,l3
+0,0,nU
+0,0,eR
+36
+yF3
+36,eR
+0,lL
+1
+eJ1
+0,lL
+2
+eJ1
+0
+yF3
+0,eR
+13
+yF3
+15
+yF3
+15,lL
+1}
+,0,c13{1,20
+yF3
+14
+yF3
+24,lL
+2}
+,0,0x0
+y4
+24590
+yF3
+54
+yF3
+54,lL
+2}
+,0,c13{1,256,lL
+1
+eJ1
+259,lL
+2
+eJ1
+269,eR
+272
+yF3
+273
+yF3
+274,eR
+290
+yF3
+320,eR
+342
+yF3
+446,lL
+2}
+,0,0x0
+y4
+397372,lL
+1}
+,0,0x1
+y4
+397632,lL
+1}
+,0,0x16}
+,{{1,388
+yF3
+394,nU
+2,59434,nZ2
+43022,nZ2
+24590,nZ2
+43032,nZ2
+40,lG,40,n2
+48,lG,48,n2
+356392,lG,213040,lG,356400,lG,357416,lG,357424,lG,47104,lG,14
+eV2
+6144,n2
+6158
+eV2
+16384,lG,18432,lG,15360,lG,14336,lG,26624,lG,27654,lG,24582,lG,14,lG,15,lG,29696,lG,29698,lG,24
+e21
+0x6
+y4
+24,lG,6168,lG,68608,lG,83968,lG,86040,lG,87040,lG,88064,lG,90112,lG,244736,lG,415744,lG,416768,lG,36870,lG,9216,lG,10240,lG,6146,lG,6144,lG,13317,lG,23558,lG,55302,lG,112654,lG,112669,lG,403456,lG,246790,lG,6158,lG,36929
+e21
+0x5
+y4
+36932,n2
+36936
+e21
+0x5
+y4
+37072,lG,37078,n2
+37959,n2
+43078,n2
+43079,n2
+37967,lG,43087,lG,43109,lG,43102,n2
+43110,lG,47214,lG,59650,lG,63746,lG,63749,lG,37220,n2
+37220,lG,37226
+e21
+0x5
+y4
+37227
+eV2
+37229,n2
+37229,lG,47460,n2
+47460,lG,14701,n2
+133485,lG,37231
+e21
+0x5
+y4
+37252,lG,37254,lG,37260,lG,37261,lG,37272,n2
+37285,n2
+37292,n2
+37292,lG,37301,lG,37301,n2
+37303,lG,59,lG,59
+e21
+0x6
+y4
+47512,n2
+47512,lG,24783,lG,244902,lG,246955,lG,6147,cPow,yC1}
+,nB1,0x0
+y4
+24590,cPow,xO
+2,59416,cPow,xO
+2,59426,cPow,xO
+2,60446,cPow,xO
+1,0,eA3
+6,eA3
+151,eA3
+0,cAcos
+eB3
+cAcosh
+eB3
+cAsin
+eB3
+cAsinh
+x4
+110,cAsinh
+eB3
+cAtan,i91
+cAtan2
+lT3
+291840,cAtan2
+eB3
+cAtanh
+eB3
+cCeil
+eX2
+207,cCeil
+eB3
+xX2
+0,cCos
+eX2
+6,xX2
+81,xX2
+83,xX2
+110,xX2
+173,xX2
+222,xX2
+0,cCosh
+eX2
+0,cCosh
+x4
+168,cCosh
+x4
+173,cCosh
+x4
+393,cCosh
+eB3
+cFloor
+eX2
+207,cFloor
+lT3
+296211,l63
+2,344339,l63
+2,344399,l63
+3,30414848,x01
+488658944,x01
+489691136,x01
+29393920,cIf
+xA1
+3,30414848,cIf
+xA1
+3,6769664,x01
+23545856,x01
+93415424,x01
+170036224,x01
+418791424,x01
+422989824,x01
+500660224,x01
+508007424,cIf
+x4
+110,cInt
+x4
+0
+xY2
+6
+xY2
+29
+xY2
+151
+xY2
+207
+xY2
+267
+xY2
+14,cLog,xO
+1,24,cLog,xO
+1,0,cLog10
+eB3
+cLog2,i91
+cMax
+lT3
+28701,cMax
+lT3
+33798,cMax
+eB3
+cMax,AnyParams,1}
+,0,lD2
+cMin
+lT3
+28701,cMin
+lT3
+33798,cMin
+eB3
+cMin,AnyParams,1}
+,0,0x4
+y4
+45070,cMin,xO
+2,24590,cMin,xO
+1,0,lC2
+0,cSin
+eX2
+6,lC2
+81,lC2
+83,lC2
+110,lC2
+133,lC2
+153,cSin,l7
+0x5}
+,{{1,207,lC2
+215,lC2
+219,cSin,l7
+c13{1,222,lC2
+0,cSinh
+eX2
+0,cSinh
+x4
+153,cSinh,l7
+0x5}
+,{{1,168,cSinh
+x4
+207,cSinh
+x4
+215,cSinh
+x4
+222,cSinh
+x4
+393,cSinh
+eB3
+xZ2
+0,cTan
+eX2
+74,cTan
+eX2
+75,xZ2
+153,xZ2
+207,xZ2
+219,xZ2
+215,xZ2
+222,xZ2
+0,x02
+0,cTanh
+eX2
+158,x02
+153,x02
+207,x02
+215,x02
+222,x02
+0,cTrunc
+lT3
+14360,cSub,xO
+2,14360,cDiv,xO
+2,403851,cDiv,xO
+2,6144,cEqual
+cJ2
+6144,cEqual
+lT3
+29696,cEqual,l7
+0x20
+y4
+29702,cEqual,l7
+0x24
+y4
+29702,cEqual
+lT3
+38912,cLess,l7
+0x4
+y4
+6,cLess,i91
+cLess
+cJ2
+38912,x12
+l7
+lD2
+x12
+l7
+x23
+6144,x12
+l0
+2,243919,x12
+l0
+2,38912,cGreater,l7
+lD2
+cGreater
+cJ2
+38912,cGreaterOrEq,l7
+lD2
+cGreaterOrEq
+cJ2
+243919,cGreaterOrEq
+eB3
+iA1
+6,iA1
+14,iA1
+29,iA1
+150,iA1
+476,iA1
+479,iA1
+480,iA1
+483,iA1
+486,iA1
+487,cNot,i91
+iB1
+28701,iB1
+33798,iB1
+385053,iB1
+388125,iB1
+6609,cAnd,lQ
+0,0,eX
+1}
+,0,0x0
+y4
+6144,n12
+28701,n12
+33798,n12
+385053,n12
+388125,n12
+6609,cOr,lQ
+1,0,e01
+6,e01
+81,e01
+119,e01
+150,e01
+152,e01
+207,cDeg
+x4
+207,cRad,i91
+cAbsAnd,lQ
+2,6144,cAbsOr,lQ
+1,0,lQ2
+eB3
+cAbsNotNot,l0
+3,30414848,xA3
+l7
+0x0}
+,}
+;}
+iF2
+l71{const
+Rule
+grammar_rules[250]={{ProduceNewTree,eF3
+0,{1,0,cAbs,l2
+352,{1,170,cAtan,l2
+345
+tL
+1326,eC3
+l2
+347
+tL
+309249,eC3
+l1
+213199
+tL
+217299,eC3
+l2
+142
+x22
+cCeil,l2
+419,{1,80,eY2
+413,{1,113,eY2
+414,{1,115,eY2
+140,{1,116,eY2
+361,{1,114,eY2
+0,{1,345,cCos,lG1
+0,{1,342,cCos,lG1
+207
+x22
+eY2
+303,{1,348,cCosh,lG1
+0,{1,342,cCosh,lG1
+207
+x22
+cCosh,l2
+138
+x22
+cFloor,l2
+387,{1,112,cFloor,l2
+205,{3,6330368
+lF1
+501,{3,30414850
+lF1
+481,{3,7378944
+lF1
+483,{3,7385088
+lF1
+206,{3,39852032
+lF1
+476,{3,39853056
+lF1
+489,{3,39890944
+lF1
+488,{3,46144512
+lF1
+465,{3,46176256
+lF1
+x33
+1057223
+lF1
+x33
+1057225
+lF1
+x43
+1057229
+lF1
+x43
+1057231
+lF1
+x43
+8390087
+lF1
+x43
+8390089
+lF1
+x33
+8390093
+lF1
+x33
+8390095
+lF1
+x63
+387287493
+lF1
+x63
+387287496
+lF1
+x63
+371574220
+lF1
+x63
+371574222,cIf,yC1
+cR
+3,30442950,{3,34633162
+lF1
+109,{1,216,eD3
+108,{1,230,eD3
+346,{1,107,eD3
+195,{1,196,cLog,lG1
+383
+yU2,cMax,x32
+0
+tL
+414721,cMax,x32
+384
+yU2,cMin,x32
+0
+tL
+410625,cMin,iD1
+371
+tL
+43071,lI2
+372
+tL
+43114,lI2
+373
+tL
+43101,lI2
+194
+tL
+24792,lI2
+193
+tL
+107534,lI2
+194
+tL
+23767,lI2
+191
+tL
+130079,lI2
+149
+tL
+131103,lI2
+192
+tL
+124942,i22
+29975,i22
+29976,i22
+29977
+eW2
+163158
+tL
+30033
+eW2
+403456
+tL
+397326
+eW2
+242688
+tL
+241678
+eW2
+211968
+tL
+240671
+eW2
+211968
+tL
+239633,i22
+33050
+eW2
+6144
+tL
+11606
+eW2
+6357
+tL
+11496,lI2
+144
+x22
+y02
+363,{1,80,y02
+140,{1,113,y02
+361,{1,115,y02
+143,{1,116,y02
+413,{1,114,y02
+0,{1,347,y02
+146
+x22
+cSinh,l2
+301,{1,346,cSinh,l2
+147
+x22
+eE3
+0,{1,350,eE3
+157,{1,351,eE3
+148
+x22
+cTanh,l2
+250,{1,300,nA
+1
+cQ
+249,{1,299,nA
+1
+cR
+1,248
+tL
+1322
+lK
+246
+tL
+1320
+lK
+381
+yU2
+lK
+391
+tL
+398724
+lK
+190
+tL
+230624
+lK
+189
+tL
+217312
+lK
+155
+tL
+228569
+lK
+154
+tL
+228371
+lK
+44
+tL
+321868
+lK
+315
+tL
+140332
+lK
+333
+tL
+139308
+lK
+411
+tL
+203977
+lK
+412
+tL
+208073
+lK
+359
+tL
+207045
+lK
+139
+tL
+207046
+lK
+360
+tL
+209093
+lK
+188
+tL
+138506
+lK
+185
+tL
+339210
+lK
+184
+tL
+339078
+lK
+186
+tL
+191652
+lK
+181
+tL
+169124
+lK
+244
+tL
+430444
+lK
+174
+tL
+430260
+lK
+145
+tL
+180588
+lK
+141
+tL
+180644
+lK
+242
+tL
+187756
+lK
+365
+tL
+251063
+lK
+421
+tL
+251060
+lK
+421
+tL
+179564
+lK
+365
+tL
+249252
+lK
+145
+tL
+249012,nA
+0
+cQ
+104
+tL
+78865,cMul,SelectedParams,0
+cQ
+495,{1,49,lL
+1
+cQ
+496,{1,39,lL
+1
+cR
+1,294
+tL
+1319
+lD
+382
+yU2
+lD
+473
+tL
+477649
+lD
+476
+tL
+502249
+lD
+481
+tL
+502225
+lD
+344
+tL
+351574
+lD
+97
+tL
+24702
+lD
+98
+tL
+24696
+lD
+96
+tL
+89341
+lD
+103
+tL
+80140
+lD
+95
+tL
+78092
+lD
+419
+tL
+427044
+lD
+426
+tL
+435236
+lD
+327
+tL
+373060
+lD
+421
+tL
+373174
+lD
+365
+tL
+430408
+lD
+356
+tL
+419141
+lD
+428
+tL
+315801
+lD
+309
+tL
+331181
+lD
+326
+tL
+365891
+lD
+408
+tL
+365997
+lD
+44
+tL
+439726
+lD
+434
+tL
+318882
+lD
+44
+tL
+443823
+lD
+436
+tL
+445476
+lD
+437
+tL
+319908
+lD
+313
+tL
+332214
+lD
+440
+tL
+326054
+lD
+432
+tL
+317855
+lD
+443
+tL
+452644
+lD
+439
+tL
+300096
+lD
+329
+tL
+298057
+lD
+396
+tL
+42372
+lD
+321
+tL
+48447
+lD
+397
+tL
+46468
+lD
+322
+tL
+44351
+lE2
+105486
+tL
+93452
+lE2
+97294
+tL
+94476
+lE2
+325045
+tL
+324004,lL
+0}
 }
-
-namespace FPoptimizer_Grammar
-{
-    const GrammarPack pack =
-    {
-        {
-            /* 0 */	{ &rlist[0], 68 },
-            /* 1 */	{ &rlist[68], 85 },
-            /* 2 */	{ &rlist[153], 8 },
-        }
-    };
+,{ReplaceParams,eF3
+0,{1,342,lL
+0}
 }
-#undef P
-#undef N
-#undef S
-#undef P1
-#undef P2
-#undef P3
-
-namespace FPoptimizer_Grammar
-{
-    ParamSpec ParamSpec_Extract(unsigned paramlist, unsigned index)
-    {
-        index = (paramlist >> (index * PARAM_INDEX_BITS)) % (1 << PARAM_INDEX_BITS);
-        const unsigned p_begin = 0;
-        const unsigned n_begin = p_begin + sizeof(plist.plist_p)/sizeof(*plist.plist_p);
-        const unsigned s_begin = n_begin + sizeof(plist.plist_n)/sizeof(*plist.plist_n);
-      /*const unsigned     end = s_begin + sizeof(plist.plist_s)/sizeof(*plist.plist_s);*/
-        if(index < s_begin)
-        {
-            if(index < n_begin)
-                return ParamSpec(ParamHolder,(const void*)&plist.plist_p[index-p_begin]);
-            else
-                return ParamSpec(NumConstant,(const void*)&plist.plist_n[index-n_begin]);
-        }
-        else
-            return ParamSpec(SubFunction,(const void*)&plist.plist_s[index-s_begin]);
-    }
+,{ReplaceParams,eF3
+54,{1,13
+lE2
+38912
+tL
+350246,x11
+tH
+x11
+x83
+24795,x11
+tI
+x11
+eS
+x11
+eV
+x11
+iC1
+225499,x11
+tJ
+x11
+eW
+x11
+i8
+x11
+38912
+tL
+350246,nC1
+tH
+nC1
+x83
+24795,nC1
+tI
+nC1
+eS
+nC1
+eV
+nC1
+iC1
+225499,nC1
+tJ
+nC1
+eW
+nC1
+i8
+cNEqual,l2
+499
+tL
+43008,y51
+x83
+24792,y51
+xB1
+y51
+tH
+y51
+tI
+y51
+eS
+y51
+eV
+y51
+iC1
+x93
+y51
+nQ1
+y51
+tJ
+y51
+eW
+y51
+i8
+cLess,l2
+493
+tL
+350222,cL
+x83
+24792,cL
+xB1
+cL
+tH
+cL
+tI
+cL
+eS
+cL
+eV
+cL
+iC1
+x93
+cL
+nQ1
+cL
+tJ
+cL
+eW
+cL
+i8
+x12
+l2
+469
+tL
+350222,eB
+x83
+24792,eB
+xB1
+eB
+tH
+eB
+tI
+eB
+eS
+eB
+eV
+eB
+iC1
+x93
+eB
+nQ1
+eB
+tJ
+eB
+eW
+eB
+i8
+cGreater,l2
+500
+tL
+43008,xV
+x83
+24792,xV
+xB1
+xV
+tH
+xV
+tI
+xV
+eS
+xV
+eV
+xV
+iC1
+x93
+xV
+nQ1
+xV
+tJ
+xV
+eW
+xV
+i8
+cGreaterOrEq,l2
+499,{1,2,cNot,l2
+494,{1,4,eX
+1
+cR
+1,497
+tL
+12290,eX
+l4
+385
+yU2,eX
+l4
+473
+tL
+477649,eX
+l4
+474
+tL
+389588,eX
+l4
+475
+tL
+384468,eX
+0
+cR
+2,463297,{3,472321472,eX
+l4
+498
+tL
+12290,tK
+491
+tL
+7172,tK
+386
+yU2,tK
+470
+tL
+477649,tK
+471
+tL
+389588,tK
+472
+tL
+384468,tK
+492
+tL
+132100,cOr,iD1
+500,{1,2,cNotNot,yC1}
 }
-
-#line 1 "fpoptimizer/fpoptimizer_optimize.cc"
-// line removed
-// line removed
-// line removed
-// line removed
-
+,{ProduceNewTree,eF3
+0,{1,0,cNotNot,l2
+464,{1,216,cAbsNotNot,iD1
+459,{1,215,cAbsNotNot,iD1
+374,{3,30415337,xA3
+l2
+500,{3,39890944,xA3
+l2
+499,{3,46176256,xA3
+yC1
+cR
+3,30442950,{3,34633162,xA3
+yC1}
+}
+,}
+;yI2
+grammar_optimize_abslogical_type{nM
+9
+eC
+grammar_optimize_abslogical_type
+grammar_optimize_abslogical={9,{20,179,215,227,229,235,242,246,249}
+}
+;}
+yI2
+grammar_optimize_ignore_if_sideeffects_type{nM
+51
+eC
+grammar_optimize_ignore_if_sideeffects_type
+grammar_optimize_ignore_if_sideeffects={51,{0,19,21,22,23,24,25,26,xD
+tB1
+86,lM1
+nG
+grammar_optimize_nonshortcut_logical_evaluation_type{nM
+48
+eC
+grammar_optimize_nonshortcut_logical_evaluation_type
+grammar_optimize_nonshortcut_logical_evaluation={48,{0,25,xD
+tB1
+86,lM1
+157,158,159,169,191,203,228,230,231,232,233,234,236,237,238,239,240,241,243,244,245,247,248}
+}
+;}
+yI2
+grammar_optimize_round1_type{nM
+109
+eC
+grammar_optimize_round1_type
+grammar_optimize_round1={109,{0,1,2,3,4,5,6,7,8,9,10,11,12,13,17,25,xD
+41,42,tB1
+52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,86,87,88,89,90,91,92,93,94,95,96,97,98,99,115,118,lM1
+123,124,125,126,127,128,129,154,155,nG
+grammar_optimize_round2_type{nM
+92
+eC
+grammar_optimize_round2_type
+grammar_optimize_round2={92,{0,14,15,16,25,xD
+43,44,tB1
+52,54,55,56,57,58,59,60,61,66,67,68,76,77,82,83,84,85,86,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,118,lM1
+123,126,127,128,130,154,155,156,nG
+grammar_optimize_round3_type{nM
+85
+eC
+grammar_optimize_round3_type
+grammar_optimize_round3={85,{78,79,80,81,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,160,161,162,163,164,165,166,167,168,170,171,172,173,174,175,176,177,178,180,181,182,183,184,185,186,187,188,189,190,192,193,194,195,196,197,198,199,200,201,202,204,205,206,207,208,209,210,211,212,213,214,216,217,218,219,220,221,222,223,224,225,226}
+}
+;}
+yI2
+grammar_optimize_round4_type{nM
+10
+eC
+grammar_optimize_round4_type
+grammar_optimize_round4={10,{18,49,50,51,116,117,150,151,152,153}
+}
+;}
+yI2
+grammar_optimize_shortcut_logical_evaluation_type{nM
+45
+eC
+grammar_optimize_shortcut_logical_evaluation_type
+grammar_optimize_shortcut_logical_evaluation={45,{0,25,xD
+tB1
+86,lM1
+157,158,159,169,191,203,230,231,232,233,234,237,238,239,240,243,244,245,247,248}
+}
+;}
+}
+iF2
+l71{lO
+yM2
+ParamSpec_Extract
+eS1
+paramlist
+yL2
+index){index=(paramlist>>(index*10))&1023;if(index>=54
+n92
+yM2(SubFunction
+cV2
+plist_s[index-54]);if(index>=35
+n92
+yM2(NumConstant
+cV2
+plist_n_container
+x5::plist_n[index-35])lC1
+yM2(ParamHolder
+cV2
+plist_p[index]);}
+}
+#ifdef FP_SUPPORT_OPTIMIZER
 #include <stdio.h>
-
 #include <algorithm>
 #include <map>
 #include <sstream>
-
-#include "fpconfig.hh"
-#include "fparser.hh"
-#include "fptypes.hh"
-
-#ifdef FP_SUPPORT_OPTIMIZER
-
-using namespace FUNCTIONPARSERTYPES;
-using namespace FPoptimizer_Grammar;
-using namespace FPoptimizer_CodeTree;
-using namespace FPoptimizer_Optimize;
-
-namespace
-{
-    /* I have heard that std::equal_range() is practically worthless
-     * due to the insane limitation that the two parameters for Comp() must
-     * be of the same type. Hence we must reinvent the wheel and implement
-     * our own here. This is practically identical to the one from
-     * GNU libstdc++, except rewritten. -Bisqwit
-     */
-    template<typename It, typename T, typename Comp>
-    std::pair<It, It>
-    MyEqualRange(It first, It last, const T& val, Comp comp)
-    {
-        size_t len = last-first;
-        while(len > 0)
-        {
-            size_t half = len/2;
-            It middle(first); middle += half;
-            if(comp(*middle, val))
-            {
-                first = middle;
-                ++first;
-                len = len - half - 1;
-            }
-            else if(comp(val, *middle))
-            {
-                len = half;
-            }
-            else
-            {
-                // The following implements this:
-                // // left = lower_bound(first, middle, val, comp);
-                It left(first);
-              {///
-                It& first2 = left;
-                It last2(middle);
-                size_t len2 = last2-first2;
-                while(len2 > 0)
-                {
-                    size_t half2 = len2 / 2;
-                    It middle2(first2); middle2 += half2;
-                    if(comp(*middle2, val))
-                    {
-                        first2 = middle2;
-                        ++first2;
-                        len2 = len2 - half2 - 1;
-                    }
-                    else
-                        len2 = half2;
-                }
-                // left = first2;  - not needed, already happens due to reference
-              }///
-                first += len;
-                // The following implements this:
-                // // right = upper_bound(++middle, first, val, comp);
-                It right(++middle);
-              {///
-                It& first2 = right;
-                It& last2 = first;
-                size_t len2 = last2-first2;
-                while(len2 > 0)
-                {
-                    size_t half2 = len2 / 2;
-                    It middle2(first2); middle2 += half2;
-                    if(comp(val, *middle2))
-                        len2 = half2;
-                    else
-                    {
-                        first2 = middle2;
-                        ++first2;
-                        len2 = len2 - half2 - 1;
-                    }
-                }
-                // right = first2;  - not needed, already happens due to reference
-              }///
-                return std::pair<It,It> (left,right);
-            }
-        }
-        return std::pair<It,It> (first,first);
-    }
-
-    /* A helper for std::equal_range */
-    struct OpcodeRuleCompare
-    {
-        bool operator() (const CodeTree& tree,
-                         const Rule& rule) const
-        {
-            /* If this function returns true, len=half.
-             */
-
-            if(tree.GetOpcode() != rule.match_tree.subfunc_opcode)
-                return tree.GetOpcode() < rule.match_tree.subfunc_opcode;
-
-            if(tree.GetParamCount() < rule.n_minimum_params)
-            {
-                // Tree has fewer params than required?
-                return true; // Failure
-            }
-            return false;
-        }
-        bool operator() (const Rule& rule,
-                         const CodeTree& tree) const
-        {
-            /* If this function returns true, rule will be excluded from the equal_range
-             */
-
-            if(rule.match_tree.subfunc_opcode != tree.GetOpcode())
-                return rule.match_tree.subfunc_opcode < tree.GetOpcode();
-
-            if(rule.n_minimum_params < tree.GetParamCount())
-            {
-                // Tree has more params than the pattern has?
-                switch(rule.match_tree.match_type)
-                {
-                    case PositionalParams:
-                    case SelectedParams:
-                        return true; // Failure
-                    case AnyParams:
-                        return false; // Not a failure
-                    case GroupFunction:
-                    default: ;
-                }
-            }
-            return false;
-        }
-    };
-
-    /* Test and apply a rule to a given CodeTree */
-    bool TestRuleAndApplyIfMatch(
-        const Rule& rule,
-        CodeTree& tree)
-    {
-        MatchInfo info;
-
-        MatchResultType found(false, MatchPositionSpecBaseP());
-
-        /*std::cout << "TESTING: ";
-        DumpMatch(rule, *tree, info, false);*/
-
-        for(;;)
-        {
-            found = TestParams(rule.match_tree, tree, found.specs, info, true);
-            if(found.found) break;
-            if(!&*found.specs)
-            {
-                // Did not match
-        #ifdef DEBUG_SUBSTITUTIONS
-                //DumpMatch(rule, tree, info, false);
-        #endif
-                return false;
-            }
-        }
-        // Matched
-    #ifdef DEBUG_SUBSTITUTIONS
-        DumpMatch(rule, tree, info, true);
-    #endif
-        SynthesizeRule(rule, tree, info);
-        return true;
-    }
+nE
+using
+iF2
+l71;using
+iF2
+FPoptimizer_CodeTree;using
+iF2
+FPoptimizer_Optimize;iF2{nL1
+It,lZ3
+T,lZ3
+Comp>e11
+MyEqualRange(It
+first,It
+last,const
+T&val,Comp
+comp){size_t
+len=last-first;while(len>0){size_t
+nI3
+len/2;It
+lU3(first);lU3+=half;if(comp(*lU3,val)){first=lU3;++first;len=len-half-1;}
+t41
+comp(val,*lU3)){len=half;}
+else{It
+left(first);{It&yV2=left;It
+last2(lU3)tW3
+len2=last2-yV2;while(len2>0){size_t
+half2=len2/2;It
+cF3(yV2);cF3+=half2;if(comp(*cF3,val)){yV2=cF3;++yV2;len2=len2-half2-1;}
+else
+len2=half2;}
 }
-
-namespace FPoptimizer_Grammar
-{
-    /* Apply the grammar to a given CodeTree */
-    bool ApplyGrammar(
-        const Grammar& grammar,
-        CodeTree& tree,
-        bool recurse)
-    {
-        if(tree.GetOptimizedUsing() == &grammar)
-        {
-#ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "Already optimized:  ";
-            DumpTree(tree);
-            std::cout << "\n" << std::flush;
-#endif
-            return false;
-        }
-
-        /* First optimize all children */
-        if(recurse)
-        {
-            bool changed = false;
-
-            for(size_t a=0; a<tree.GetParamCount(); ++a)
-                if(ApplyGrammar( grammar, tree.GetParam(a) ))
-                    changed = true;
-
-            if(changed)
-            {
-                // Give the parent node a rerun at optimization
-                tree.Mark_Incompletely_Hashed();
-                return true;
-            }
-        }
-
-        /* Figure out which rules _may_ match this tree */
-        typedef const Rule* ruleit;
-
-        std::pair<ruleit, ruleit> range
-            = MyEqualRange(grammar.rule_begin,
-                           grammar.rule_begin + grammar.rule_count,
-                           tree,
-                           OpcodeRuleCompare());
-
-#ifdef DEBUG_SUBSTITUTIONS
-        std::cout << "Input (Grammar #"
-                  << (&grammar - pack.glist)
-                  << ", " << FP_GetOpcodeName(tree.GetOpcode())
-                  << "[" << tree.GetParamCount()
-                  << "]" ", rules "
-                  << (range.first - pack.glist[0].rule_begin)
-                  << ".."
-                  << (range.second - pack.glist[0].rule_begin)
-                  << ": ";
-        DumpTree(tree);
-        std::cout << "\n" << std::flush;
-#endif
-
-        bool changed = false;
-
-        for(; range.first != range.second; ++range.first)
-        {
-            /* Check if this rule matches */
-            if(TestRuleAndApplyIfMatch(*range.first, tree))
-            {
-                changed = true;
-                break;
-            }
-        }
-
-        if(changed)
-        {
-#ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "Changed." << std::endl;
-            std::cout << "Output: ";
-            DumpTree(tree);
-            std::cout << "\n" << std::flush;
-#endif
-            // Give the parent node a rerun at optimization
-            tree.Mark_Incompletely_Hashed();
-            return true;
-        }
-
-        // No changes, consider the tree properly optimized.
-        tree.SetOptimizedUsing(&grammar);
-        return false;
-    }
+first+=len;It
+right(++lU3);{It&yV2=right;It&last2=first
+tW3
+len2=last2-yV2;while(len2>0){size_t
+half2=len2/2;It
+cF3(yV2);cF3+=half2;if(comp(val,*cF3))len2=half2;else{yV2=cF3;++yV2;len2=len2-half2-1;}
 }
-
+}
+lX3
+e11(left,right);}
+}
+lX3
+e11(first,first);}
+lO
+yI2
+OpcodeRuleCompare{tL2()yG
+yL2
+x42
+cE3{const
+Rule&rule=grammar_rules[x42]lC1
+xC1<rule
+nI2.subfunc_opcode;}
+tL2()eS1
+x42,cD2
+cE3{const
+Rule&rule=grammar_rules[x42]lC1
+rule
+nI2.subfunc_opcode<xC1;}
+}
+;nM3
+TestRuleAndApplyIfMatch
+yI
+cQ2
+tW&tree,bool
+c4{MatchInfo
+x5
+info;n21
+found(false,cV());if(rule.logical_context&&!c4{goto
+fail;}
+for(;;){
+#ifdef DEBUG_SUBSTITUTIONS
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_optimize_match.cc"
-#include "fpconfig.hh"
-#include "fparser.hh"
-#include "fptypes.hh"
-
+found=TestParams(rule
+nI2
+c63,found.specs,info,true);if(found.found)break;if(!&*found.specs){fail:;
+#ifdef DEBUG_SUBSTITUTIONS
+DumpMatch(rule
+c63,info,false);
+#endif
+xD1}
+#ifdef DEBUG_SUBSTITUTIONS
+DumpMatch(rule
+c63,info,true);
+#endif
+SynthesizeRule(rule
+c63,info)tQ1}
+iF2
+FPoptimizer_Optimize{nM3
+ApplyGrammar
+yI
+Grammar&eZ2,tW&tree,bool
+c4{if(tree.GetOptimizedUsing()==&eZ2){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Already optimized:  "
+;nX3(tree)iJ"\n"
+<<std::flush;
+#endif
+xD1
+if(true){bool
+changed
+e23
+cI3
+xC1
+tV2
+cNot:case
+cNotNot:case
+cAnd:case
+cOr:for
+cB1
+a=0;a
+x6
+true))lT2
+lB
+cIf:case
+cAbsIf:if(ApplyGrammar(eZ2,lR1
+0),x92
+cIf))lT2
+for
+cB1
+a=1;a
+x6
+c4)lT2
+break;default:for
+cB1
+a=0;a
+x6
+false))lT2}
+if(changed){tree.Mark_Incompletely_Hashed()tQ1}
+typedef
+const
+lW3
+char*l73;std::pair<l73,l73>range=MyEqualRange(eZ2.rule_list,eZ2.rule_list+eZ2.rule_count
+c63,OpcodeRuleCompare
+x5());if(range.eG3
+range
+eI2{
+#ifdef DEBUG_SUBSTITUTIONS
+yC<lW3
+char>rules;rules.nE3
+range
+cZ3-range.first);xY
+if(IsLogisticallyPlausibleParamsMatch(cF1
+nI2
+c63))rules
+yX*r);}
+range.first=&rules[0];range
+cZ3=&rules[rules
+e72)-1]+1;if(range.eG3
+range
+eI2{std::cout<<"Input ("
+<<FP_GetOpcodeName(xC1)<<")["
+<<tree
+iK<<"]"
+;if(c4
+std::cout<<"(Logical)"
+xQ2
+first=tC1,prev=tC1;const
+char*sep=", rules "
+;xY
+if(first==tC1)first=prev=*r;t41*r==prev+1)prev=*r;else{std::cout<<sep<<first;sep=","
+;if(prev!=first)std::cout<<'-'<<prev;first=prev=*r;}
+}
+if(eG3
+tC1){std::cout<<sep<<first;if(prev!=first)std::cout<<'-'<<prev;}
+std::cout<<": "
+;nX3(tree)iJ"\n"
+<<std::flush;}
+#endif
+bool
+changed
+e23
+xY
+#ifndef DEBUG_SUBSTITUTIONS
+if(!IsLogisticallyPlausibleParamsMatch(cF1
+nI2
+c63))xU1
+#endif
+if(TestRuleAndApplyIfMatch(cF1
+c63,c4){lT2
+xF3
+if(changed){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Changed."
+<<std::endl
+iJ"Output: "
+;nX3(tree)iJ"\n"
+<<std::flush;
+#endif
+tree.Mark_Incompletely_Hashed()tQ1}
+tree.SetOptimizedUsing(&eZ2)lC1
+false;}
+nD3
+ApplyGrammars(x3){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<t13"grammar_optimize_round1\n"
+;
+#endif
+n1
+grammar_optimize_round1
+c63
+x7
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<t13"grammar_optimize_round2\n"
+;
+#endif
+n1
+grammar_optimize_round2
+c63
+x7
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<t13"grammar_optimize_round3\n"
+;
+#endif
+n1
+grammar_optimize_round3
+c63
+x7
+#ifndef FP_ENABLE_SHORTCUT_LOGICAL_EVALUATION
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<t13"grammar_optimize_nonshortcut_logical_evaluation\n"
+;
+#endif
+n1
+grammar_optimize_nonshortcut_logical_evaluation
+c63
+x7
+#endif
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<t13"grammar_optimize_round4\n"
+;
+#endif
+n1
+grammar_optimize_round4
+c63
+x7
+#ifdef FP_ENABLE_SHORTCUT_LOGICAL_EVALUATION
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<t13"grammar_optimize_shortcut_logical_evaluation\n"
+;
+#endif
+n1
+grammar_optimize_shortcut_logical_evaluation
+c63
+x7
+#endif
+#ifdef FP_ENABLE_IGNORE_IF_SIDEEFFECTS
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<t13"grammar_optimize_ignore_if_sideeffects\n"
+;
+#endif
+n1
+grammar_optimize_ignore_if_sideeffects
+c63
+x7
+#endif
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<t13"grammar_optimize_abslogical\n"
+;
+#endif
+n1
+grammar_optimize_abslogical
+c63
+x7
+#undef C
+}
+}
+#endif
 #ifdef FP_SUPPORT_OPTIMIZER
-
 #include <algorithm>
 #include <assert.h>
+#include <cstring>
 #include <cmath>
-
 #include <memory> /* for auto_ptr */
-
-// line removed
-// line removed
-
-using namespace FUNCTIONPARSERTYPES;
-using namespace FPoptimizer_Grammar;
-using namespace FPoptimizer_CodeTree;
-using namespace FPoptimizer_Optimize;
-
-namespace
-{
-    /* Test the given constraints to a given CodeTree */
-    bool TestImmedConstraints(unsigned bitmask, const CodeTree& tree)
-    {
-        switch(bitmask & ValueMask)
-        {
-            case Value_AnyNum: case ValueMask: break;
-            case Value_EvenInt:
-                if(tree.GetEvennessInfo() != CodeTree::IsAlways)
-                    return false;
-                break;
-            case Value_OddInt:
-                if(tree.GetEvennessInfo() != CodeTree::IsNever)
-                    return false;
-                break;
-            case Value_IsInteger:
-                if(!tree.IsAlwaysInteger()) return false;
-                break;
-            case Value_NonInteger:
-                if(tree.IsAlwaysInteger()) return false;
-                break;
-            case Value_Logical:
-                if(!tree.IsLogicalValue()) return false;
-                break;
-        }
-        switch(bitmask & SignMask)
-        {
-            case Sign_AnySign: /*case SignMask:*/ break;
-            case Sign_Positive:
-                if(!tree.IsAlwaysSigned(true)) return false;
-                break;
-            case Sign_Negative:
-                if(!tree.IsAlwaysSigned(false)) return false;
-                break;
-            case Sign_NoIdea:
-                if(tree.IsAlwaysSigned(true)) return false;
-                if(tree.IsAlwaysSigned(false)) return false;
-                break;
-        }
-        switch(bitmask & OnenessMask)
-        {
-            case Oneness_Any: case OnenessMask: break;
-            case Oneness_One:
-                if(!tree.IsImmed()) return false;
-                if(!FloatEqual(fabs(tree.GetImmed()), 1.0)) return false;
-                break;
-            case Oneness_NotOne:
-                if(!tree.IsImmed()) return false;
-                if(FloatEqual(fabs(tree.GetImmed()), 1.0)) return false;
-                break;
-        }
-        switch(bitmask & ConstnessMask)
-        {
-            case Constness_Any: /*case ConstnessMask:*/ break;
-            case Constness_Const:
-                if(!tree.IsImmed()) return false;
-                break;
-        }
-        return true;
-    }
-
-    /* Test the list of parameters to a given CodeTree */
-    /* A helper function which simply checks whether the
-     * basic shape of the tree matches what we are expecting
-     * i.e. given number of numeric constants, etc.
-     */
-    bool IsLogisticallyPlausibleParamsMatch(
-        const ParamSpec_SubFunctionData& params,
-        const CodeTree& tree)
-    {
-        /* First, check if the tree has any chances of matching... */
-        /* Figure out what we need. */
-        struct Needs
-        {
-            int SubTrees; // This many subtrees
-            int Others;   // This many others (namedholder)
-            unsigned SubTreesDetail[VarBegin]; // This many subtrees of each opcode type
-
-            int Immeds;      // This many immeds
-
-            Needs(): SubTrees(0), Others(0), SubTreesDetail(), Immeds() { }
-        } NeedList;
-
-        // Figure out what we need
-        unsigned minimum_need = 0;
-        for(unsigned a = 0; a < params.param_count; ++a)
-        {
-            const ParamSpec& parampair = ParamSpec_Extract(params.param_list, a);
-            switch(parampair.first)
-            {
-                case SubFunction:
-                {
-                    const ParamSpec_SubFunction& param = *(const ParamSpec_SubFunction*) parampair.second;
-                    if(param.data.match_type == GroupFunction)
-                        NeedList.Immeds += 1;
-                    else
-                    {
-                        NeedList.SubTrees += 1;
-                        assert( param.data.subfunc_opcode < VarBegin );
-                        NeedList.SubTreesDetail[ param.data.subfunc_opcode ] += 1;
-                    }
-                    ++minimum_need;
-                    break;
-                }
-                case NumConstant:
-                case ParamHolder:
-                    NeedList.Others += 1;
-                    ++minimum_need;
-                    break;
-            }
-        }
-        if(tree.GetParamCount() < minimum_need)
-        {
-            // Impossible to satisfy
-            return false;
-        }
-
-        // Figure out what we have (note: we already assume that the opcode of the tree matches!)
-        for(size_t a=0; a<tree.GetParamCount(); ++a)
-        {
-            unsigned opcode = tree.GetParam(a).GetOpcode();
-            switch(opcode)
-            {
-                case cImmed:
-                    if(NeedList.Immeds > 0) NeedList.Immeds -= 1;
-                    else NeedList.Others -= 1;
-                    break;
-                case cVar:
-                case cFCall:
-                case cPCall:
-                    NeedList.Others -= 1;
-                    break;
-                default:
-                    assert( opcode < VarBegin );
-                    if(NeedList.SubTrees > 0
-                    && NeedList.SubTreesDetail[opcode] > 0)
-                    {
-                        NeedList.SubTrees -= 1;
-                        NeedList.SubTreesDetail[opcode] -= 1;
-                    }
-                    else NeedList.Others -= 1;
-            }
-        }
-
-        // Check whether all needs were satisfied
-        if(NeedList.Immeds > 0
-        || NeedList.SubTrees > 0
-        || NeedList.Others > 0)
-        {
-            // Something came short, impossible to satisfy.
-            return false;
-        }
-
-        if(params.match_type != AnyParams)
-        {
-            if(NeedList.Immeds < 0
-            || NeedList.SubTrees < 0
-            || NeedList.Others < 0/*
-            || params.count != tree.GetParamCount() - already checked*/)
-            {
-                // Something was too much.
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /* Construct CodeTree from a GroupFunction, hopefully evaluating to a constant value */
-    CodeTree CalculateGroupFunction(
-        const ParamSpec& parampair,
-        const MatchInfo& info)
-    {
-        using namespace std;
-
-        switch( parampair.first )
-        {
-            case NumConstant:
-            {
-                const ParamSpec_NumConstant& param = *(const ParamSpec_NumConstant*) parampair.second;
-                return CodeTree( param.constvalue ); // Note: calculates hash too.
-            }
-            case ParamHolder:
-            {
-                const ParamSpec_ParamHolder& param = *(const ParamSpec_ParamHolder*) parampair.second;
-                CodeTree result ( info.GetParamHolderValueIfFound( param.index ) );
-                if(result.IsDefined())
-                    return result;
-                break; // The immed is not defined
-            }
-            case SubFunction:
-            {
-                const ParamSpec_SubFunction& param = *(const ParamSpec_SubFunction*) parampair.second;
-                /* Synthesize a CodeTree which will take care of
-                 * constant-folding our expression. It will also
-                 * indicate whether the result is, in fact,
-                 * a constant at all. */
-                CodeTree result;
-                result.SetOpcode( param.data.subfunc_opcode );
-                for(unsigned a=0; a<param.data.param_count; ++a)
-                    result.AddParam(
-                            CalculateGroupFunction(
-                                ParamSpec_Extract(param.data.param_list, a), info)
-                                    );
-                result.Rehash();
-                return result;
-            }
-        }
-        // Issue an un-calculatable tree.
-        return CodeTree(999, CodeTree::VarTag());
-    }
+nE
+using
+iF2
+l71;using
+iF2
+FPoptimizer_CodeTree;using
+iF2
+FPoptimizer_Optimize;iF2{nM3
+TestImmedConstraints
+eS1
+bitmask,cD2){cI3
+bitmask&ValueMask
+tV2
+Value_AnyNum:case
+ValueMask:lB
+lB2:if(GetEvennessInfo(tree
+iM
+Value_OddInt:if(GetEvennessInfo(tree)l21
+eQ1:if(GetIntegerInfo(tree
+iM
+Value_NonInteger:if(GetIntegerInfo(tree)l21
+cZ1:if(!IsLogicalValue(tree))tM
+SignMask
+tV2
+Sign_AnySign:lB
+nB1:if(nE1
+iM
+Sign_Negative:if(nE1)l21
+Sign_NoIdea:if(nE1)!=Unknown)tM
+OnenessMask
+tV2
+Oneness_Any:case
+OnenessMask:lB
+Oneness_One:if(!iN
+if(!fp_equal(fp_abs(tree
+tN),e03
+xR1
+lB
+cA1:if(!iN
+e62
+fp_abs(tree
+tN),e03
+tM
+ConstnessMask
+tV2
+Constness_Any:lB
+n41:if(!iN
+break;}
+lX3
+true;}
+iD2
+lW3
+extent
+yL2
+nbits,lZ3
+yW2=lW3
+int>yI2
+nbitmap{private:static
+const
+lW3
+bits_in_char=8;static
+const
+lW3
+yX2=(xB3
+yW2)*bits_in_char)/nbits;yW2
+data[(extent+yX2-1)/yX2];cR3
+void
+inc
+eS1
+index,int
+by=1){data[pos(index)]+=by*yW2(1<<x52);i4
+void
+dec
+eS1
+index){inc(index,-1);}
+int
+get
+eS1
+index
+n71(data[pos(index)]>>x52)&mask()lG2
+pos(y71
+index/yX2
+lG2
+shift(y71
+nbits*(index%yX2)lG2
+mask(){lX3(1<<nbits)-1
+lG2
+mask(y71
+mask()<<x52;}
 }
-
-namespace FPoptimizer_Optimize
-{
-    /* Test the given parameter to a given CodeTree */
-    MatchResultType TestParam(
-        const ParamSpec& parampair,
-        const CodeTree& tree,
-        const MatchPositionSpecBaseP& start_at,
-        MatchInfo& info)
-    {
-        /* What kind of param are we expecting */
-        switch( parampair.first )
-        {
-            case NumConstant: /* A particular numeric value */
-            {
-                const ParamSpec_NumConstant& param = *(const ParamSpec_NumConstant*) parampair.second;
-                if(!tree.IsImmed()) return false;
-                return FloatEqual(tree.GetImmed(), param.constvalue);
-            }
-            case ParamHolder: /* Any arbitrary node */
-            {
-                const ParamSpec_ParamHolder& param = *(const ParamSpec_ParamHolder*) parampair.second;
-                if(!TestImmedConstraints(param.constraints, tree)) return false;
-                return info.SaveOrTestParamHolder(param.index, tree);
-            }
-            case SubFunction:
-            {
-                const ParamSpec_SubFunction& param = *(const ParamSpec_SubFunction*) parampair.second;
-                if(param.data.match_type == GroupFunction)
-                { /* A constant value acquired from this formula */
-                    if(!TestImmedConstraints(param.constraints, tree)) return false;
-                    /* Construct the formula */
-                    CodeTree  grammar_func = CalculateGroupFunction(parampair, info);
-                    /* Evaluate it and compare */
-                    return grammar_func.IsIdenticalTo(tree);
-                }
-                else /* A subtree conforming these specs */
-                {
-                    if(!&*start_at)
-                    {
-                        if(!TestImmedConstraints(param.constraints, tree)) return false;
-                        if(tree.GetOpcode() != param.data.subfunc_opcode) return false;
-                    }
-                    return TestParams(param.data,
-                                      tree, start_at, info, false);
-                }
-            }
-        }
-        return false;
-    }
-
-    struct PositionalParams_Rec
-    {
-        MatchPositionSpecBaseP start_at; /* child's start_at */
-        MatchInfo              info;     /* backup of "info" at start */
-
-        PositionalParams_Rec(): start_at(), info() { }
-    };
-    class MatchPositionSpec_PositionalParams
-        : public MatchPositionSpecBase,
-          public std::vector<PositionalParams_Rec>
-    {
-    public:
-        explicit MatchPositionSpec_PositionalParams(size_t n)
-            : MatchPositionSpecBase(),
-              std::vector<PositionalParams_Rec> (n)
-              { }
-    };
-
-    struct AnyWhere_Rec
-    {
-        MatchPositionSpecBaseP start_at; /* child's start_at */
-        AnyWhere_Rec() : start_at() { }
-    };
-    class MatchPositionSpec_AnyWhere
-        : public MatchPositionSpecBase,
-          public std::vector<AnyWhere_Rec>
-    {
-    public:
-        unsigned trypos;   /* which param index to try next */
-
-        explicit MatchPositionSpec_AnyWhere(size_t n)
-            : MatchPositionSpecBase(),
-              std::vector<AnyWhere_Rec> (n),
-              trypos(0)
-              { }
-    };
-
-    MatchResultType TestParam_AnyWhere(
-        const ParamSpec& parampair,
-        const CodeTree& tree,
-        const MatchPositionSpecBaseP& start_at,
-        MatchInfo&         info,
-        std::vector<bool>& used,
-        bool TopLevel)
-    {
-        FPOPT_autoptr<MatchPositionSpec_AnyWhere> position;
-        unsigned a;
-        if(&*start_at)
-        {
-            position = (MatchPositionSpec_AnyWhere*) &*start_at;
-            a = position->trypos;
-            goto retry_anywhere_2;
-        }
-        else
-        {
-            position = new MatchPositionSpec_AnyWhere(tree.GetParamCount());
-            a = 0;
-        }
-        for(; a < tree.GetParamCount(); ++a)
-        {
-            if(used[a]) continue;
-
-        retry_anywhere:
-          { MatchResultType r = TestParam(
-                parampair,
-                tree.GetParam(a),
-                (*position)[a].start_at,
-                info);
-
-            (*position)[a].start_at = r.specs;
-            if(r.found)
-            {
-                used[a]               = true; // matched
-                if(TopLevel) info.SaveMatchedParamIndex(a);
-
-                position->trypos = a; // in case of backtrack, try a again
-                return MatchResultType(true, &*position);
-            } }
-        retry_anywhere_2:
-            if(&*(*position)[a].start_at) // is there another try?
-            {
-                goto retry_anywhere;
-            }
-            // no, move on
-        }
-        return false;
-    }
-
-    struct AnyParams_Rec
-    {
-        MatchPositionSpecBaseP start_at; /* child's start_at */
-        MatchInfo              info;     /* backup of "info" at start */
-        std::vector<bool>      used;     /* which params are remaining */
-
-        explicit AnyParams_Rec(size_t nparams)
-            : start_at(), info(), used(nparams) { }
-    };
-    class MatchPositionSpec_AnyParams
-        : public MatchPositionSpecBase,
-          public std::vector<AnyParams_Rec>
-    {
-    public:
-        explicit MatchPositionSpec_AnyParams(size_t n, size_t m)
-            : MatchPositionSpecBase(),
-              std::vector<AnyParams_Rec> (n, AnyParams_Rec(m))
-              { }
-    };
-
-    /* Test the list of parameters to a given CodeTree */
-    MatchResultType TestParams(
-        const ParamSpec_SubFunctionData& model_tree,
-        const CodeTree& tree,
-        const MatchPositionSpecBaseP& start_at,
-        MatchInfo& info,
-        bool TopLevel)
-    {
-        /* When PositionalParams or SelectedParams, verify that
-         * the number of parameters is exactly as expected.
-         */
-        if(model_tree.match_type != AnyParams)
-        {
-            if(model_tree.param_count != tree.GetParamCount())
-                return false;
-        }
-
-        /* Verify that the tree basically conforms the shape we are expecting */
-        /* This test is not necessary; it may just save us some work. */
-        if(!IsLogisticallyPlausibleParamsMatch(model_tree, tree))
-        {
-            return false;
-        }
-
-        /* Verify each parameter that they are found in the tree as expected. */
-        switch(model_tree.match_type)
-        {
-            case PositionalParams:
-            {
-                /* Simple: Test all given parameters in succession. */
-                FPOPT_autoptr<MatchPositionSpec_PositionalParams> position;
-                unsigned a;
-                if(&*start_at)
-                {
-                    position = (MatchPositionSpec_PositionalParams*) &*start_at;
-                    a = model_tree.param_count - 1;
-                    goto retry_positionalparams_2;
-                }
-                else
-                {
-                    position = new MatchPositionSpec_PositionalParams(model_tree.param_count);
-                    a = 0;
-                }
-
-                for(; a < model_tree.param_count; ++a)
-                {
-                    (*position)[a].info = info;
-                retry_positionalparams:
-                  { MatchResultType r = TestParam(
-                        ParamSpec_Extract(model_tree.param_list, a),
-                        tree.GetParam(a),
-                        (*position)[a].start_at,
-                        info);
-
-                    (*position)[a].start_at = r.specs;
-                    if(r.found)
-                    {
-                        continue;
-                  } }
-                retry_positionalparams_2:
-                    // doesn't match
-                    if(&*(*position)[a].start_at) // is there another try?
-                    {
-                        info = (*position)[a].info;
-                        goto retry_positionalparams;
-                    }
-                    // no, backtrack
-                    if(a > 0)
-                    {
-                        --a;
-                        goto retry_positionalparams_2;
-                    }
-                    // cannot backtrack
-                    info = (*position)[0].info;
-                    return false;
-                }
-                if(TopLevel)
-                    for(unsigned a = 0; a < model_tree.param_count; ++a)
-                        info.SaveMatchedParamIndex(a);
-                return MatchResultType(true, &*position);
-            }
-            case SelectedParams:
-                // same as AnyParams, except that model_tree.count==tree.GetParamCount()
-                //                       and that there are no RestHolders
-            case AnyParams:
-            {
-                /* Ensure that all given parameters are found somewhere, in any order */
-
-                FPOPT_autoptr<MatchPositionSpec_AnyParams> position;
-                std::vector<bool> used( tree.GetParamCount() );
-                std::vector<unsigned> depcodes( model_tree.param_count );
-                std::vector<unsigned> test_order( model_tree.param_count );
-                for(unsigned a=0; a<model_tree.param_count; ++a)
-                {
-                    const ParamSpec parampair = ParamSpec_Extract(model_tree.param_list, a);
-                    depcodes[a] = ParamSpec_GetDepCode(parampair);
-                }
-                { unsigned b=0;
-                for(unsigned a=0; a<model_tree.param_count; ++a)
-                    if(depcodes[a] != 0)
-                        test_order[b++] = a;
-                for(unsigned a=0; a<model_tree.param_count; ++a)
-                    if(depcodes[a] == 0)
-                        test_order[b++] = a;
-                }
-
-                unsigned a;
-                if(&*start_at)
-                {
-                    position = (MatchPositionSpec_AnyParams*) &*start_at;
-                    a = model_tree.param_count - 1;
-                    goto retry_anyparams_2;
-                }
-                else
-                {
-                    position = new MatchPositionSpec_AnyParams(model_tree.param_count,
-                                                               tree.GetParamCount());
-                    a = 0;
-                    if(model_tree.param_count != 0)
-                    {
-                        (*position)[0].info   = info;
-                        (*position)[0].used   = used;
-                    }
-                }
-                // Match all but restholders
-                for(; a < model_tree.param_count; ++a)
-                {
-                    if(a > 0) // this test is not necessary, but it saves from doing
-                    {         // duplicate work, because [0] was already saved above.
-                        (*position)[a].info   = info;
-                        (*position)[a].used   = used;
-                    }
-                retry_anyparams:
-                  { MatchResultType r = TestParam_AnyWhere(
-                        ParamSpec_Extract(model_tree.param_list, test_order[a]),
-                        tree,
-                        (*position)[a].start_at,
-                        info,
-                        used,
-                        TopLevel);
-                    (*position)[a].start_at = r.specs;
-                    if(r.found)
-                    {
-                        continue;
-                  } }
-                retry_anyparams_2:
-                    // doesn't match
-                    if(&*(*position)[a].start_at) // is there another try?
-                    {
-                        info = (*position)[a].info;
-                        used = (*position)[a].used;
-                        goto retry_anyparams;
-                    }
-                    // no, backtrack
-                    if(a > 0)
-                    {
-                        --a;
-                        goto retry_anyparams_2;
-                    }
-                    // cannot backtrack
-                    info = (*position)[0].info;
-                    return false;
-                }
-                // Capture anything remaining in the restholder
-                if(model_tree.restholder_index != 0)
-                {
-                    for(unsigned b = 0; b < tree.GetParamCount(); ++b)
-                    {
-                        if(used[b]) continue; // Ignore subtrees that were already used
-                        // Save this tree to this restholder
-
-                        info.SaveRestHolderMatch(model_tree.restholder_index,
-                                                 tree.GetParam(b));
-                        used[b] = true;
-                        if(TopLevel) info.SaveMatchedParamIndex(b);
-                    }
-                }
-                return MatchResultType(true, &*position);
-            }
-            case GroupFunction: // never occurs
-                break;
-        }
-        return false; // doesn't match
-    }
+;yI2
+yU3{int
+SubTrees:8;int
+Others:8;int
+tD1:8;int
+c93:8;nbitmap<tZ2,2>SubTreesDetail;yU3(){std::memset(this,0,xB3*this));}
+yU3
+yI
+yU3&b){std::memcpy(this,&b,xB3
+b));}
+yU3&cL1=yI
+yU3&b){std::memcpy(this,&b,xB3
+b))lC1*this;}
 }
-
+;lO
+yU3
+CreateNeedList_uncached
+yI
+t7){yU3
+lD1;for(e31=0;a<params
+yH;++a){const
+yM2&n02=nV1
+params.param_list,a);x03
+lA2
+const
+xJ&eJ2
+xJ
+eK2
+yO
+GroupFunction)++eI3;else{++eN2;assert(param.data.subfunc_opcode<VarBegin);lD1.SubTreesDetail.inc
+t02
+cP);}
+++lD1.tD1;break;}
+case
+NumConstant:case
+ParamHolder:++eM2;++lD1.tD1;xF3
+lX3
+lD1;}
+lO
+yU3&CreateNeedList
+yI
+t7){typedef
+std::map<const
+iZ*,yU3>cG1;static
+cG1
+y81;cG1::nP3
+i=y81.nO2&params);if(i!=y81.c51&params
+n92
+i
+yQ2
+lC1
+y81.nN3,std::make_pair(&params,CreateNeedList_uncached
+x5(params)))yQ2;}
+lO
+tW
+c83
+yI
+yM2&n02,const
+y93){x03
+NumConstant:{const
+yL&eJ2
+yL*)n02
+cZ3
+lC1
+CodeTreeImmed
+t02
+iM2);}
+case
+l92
+i02&eJ2
+xI*)n02
+cZ3
+lC1
+info.GetParamHolderValueIfFound
+t02
+index);nB3
+const
+xJ&eJ2
+xJ
+eK2
+tW
+cQ3;cQ3
+y7
+nZ3
+cP);cQ3.tM1).reserve
+t02
+data
+yH);for(e31=0;a<nZ3
+data
+yH;++a){tW
+tmp(c83(nV1
+nZ3
+data.param_list,a),info));cQ3
+lE1
+tmp);}
+cQ3.Rehash()lC1
+yS3}
+lX3
+tW();}
+}
+iF2
+FPoptimizer_Optimize{nM3
+IsLogisticallyPlausibleParamsMatch
+yI
+t7,cD2){yU3
+lD1(CreateNeedList
+x5(params))tW3
+eH3=y6
+if(eH3<size_t(lD1.tD1)){xD1
+for
+n62
+eH3;++a){lW3
+opcode=lR1
+a)t83();cI3
+opcode
+tV2
+cImmed:if(eI3>0)--eI3;else--eM2;lB
+tZ2:case
+cFCall:case
+cPCall:--eM2;break;default:assert(opcode<VarBegin);if(eN2>0&&lD1.SubTreesDetail.get(opcode)>0){--eN2;lD1.SubTreesDetail.dec(opcode);}
+else--eM2;}
+}
+if(eI3>0||eN2>0||eM2>0){xD1
+if(params.match_type!=AnyParams
+xX3
+0||eN2<0||eM2<0){xD1}
+lX3
+true;}
+lO
+n21
+TestParam
+yI
+yM2&n02
+c73){x03
+NumConstant:{const
+yL&eJ2
+yL
+eK2
+if(!iN
+iQ
+imm=tree
+tN;switch
+t02
+modulo
+tV2
+Modulo_None:lB
+Modulo_Radians:imm=fp_mod(imm,yA
+imm<0)imm
+yT
+if(imm>fp_const_pi
+x5())imm-=fp_const_twopi
+x5(cH2
+lX3
+fp_equal(imm,nZ3
+iM2);}
+case
+l92
+i02&eJ2
+xI
+eK2
+if(!x2
+lX3
+info.SaveOrTestParamHolder
+t02
+index
+c63);nB3
+const
+xJ&eJ2
+xJ
+eK2
+yO
+GroupFunction
+xX3!x2
+tW
+xG1=c83(n02,info);
+#ifdef DEBUG_SUBSTITUTIONS
+DumpHashes(xG1)iJ*yI
+void**)&xG1
+tN
+iJ"\n"
+iJ*yI
+void**)&tree
+tN
+iJ"\n"
+;DumpHashes(tree)iJ"Comparing "
+;nX3(xG1)iJ" and "
+;nX3(tree)iJ": "
+iJ(xG1.IsIdenticalTo(tree)?"true"
+:"false"
+)iJ"\n"
+;
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_optimize_synth.cc"
-#include "fpconfig.hh"
-#include "fparser.hh"
-#include "fptypes.hh"
-
+lX3
+xG1.IsIdenticalTo(tree);}
+else{if(!&*start_at
+xX3!x2
+if(xC1!=nZ3
+cP)xD1
+lX3
+TestParams
+t02
+data
+c63,start_at,info,false);}
+}
+}
+xD1
+lO
+yI2
+iX
+lV2
+MatchInfo
+x5
+info;iX()i12,info(){}
+}
+;n53
+MatchPositionSpec_PositionalParams
+xF1
+iX
+x5>{cR3
+i32
+MatchPositionSpec_PositionalParams
+cB1
+n):xC3
+iX
+x5>(n){}
+}
+;yI2
+tE1
+lV2
+tE1()i12{}
+}
+;class
+yP
+xF1
+tE1>{cR3
+lW3
+trypos;i32
+yP
+cB1
+n):xC3
+tE1>(n),trypos(0){}
+}
+;lO
+n21
+TestParam_AnyWhere
+yI
+yM2&n02
+c73,xD3&used,bool
+yY2{xM<yP>xB;e51
+yP
+lJ2
+a=xB->trypos;goto
+retry_anywhere_2;}
+cF2
+yP(i42;a=0;}
+for(;a<y6++a
+xX3
+used[a])xU1
+retry_anywhere
+e13
+TestParam(n02,lR1
+a),tX,info);tX=r.l93
+used[a]=true
+lX1
+a);xB->trypos=a
+lC1
+n21(true,&*xB);}
+}
+retry_anywhere_2:y13
+goto
+retry_anywhere;}
+}
+xD1
+lO
+yI2
+xV1
+lV2
+MatchInfo
+x5
+info;xD3
+used;i32
+xV1
+cB1
+eH3)i12,info(),used(eH3){}
+}
+;n53
+MatchPositionSpec_AnyParams
+xF1
+xV1
+x5>{cR3
+i32
+MatchPositionSpec_AnyParams
+cB1
+n,size_t
+m):xC3
+xV1
+x5>(n,xV1
+x5(m)){}
+}
+;lO
+n21
+TestParams
+yI
+iZ&nO
+c73,bool
+yY2{if(nO.match_type!=AnyParams
+xX3
+nO
+yH!=i42
+xD1
+if(!IsLogisticallyPlausibleParamsMatch(nO
+c63)){xD1
+cI3
+nO.match_type
+tV2
+PositionalParams:{xM<cG>xB;e51
+cG
+lJ2
+a=nO
+yH-1;goto
+lN1;}
+cF2
+cG(nO
+yH);a=0;}
+for(;a
+cG2{(xE3
+t22
+retry_positionalparams
+e13
+TestParam(cS
+a),lR1
+a),tX,info);tX=r.l93
+xU1}
+}
+lN1:y13
+lS3
+a].info;goto
+retry_positionalparams;}
+if(a>0){--a;goto
+lN1;}
+lS3
+0].info
+lC1
+false;}
+if(yY2
+for(e31=0;a
+cG2
+info.SaveMatchedParamIndex(a)lC1
+n21(true,&*xB);}
+case
+SelectedParams:case
+AnyParams:{xM<t4>xB;xD3
+used(i42;yC<lW3>i52(nO
+yH);yC<lW3>x62(nO
+yH)e41{const
+yM2
+n02=cS
+a);i52[a]=ParamSpec_GetDepCode(n02);}
+{lW3
+b=0
+e41
+if(i52[a]!=0)x62[b++]=a
+e41
+if(i52[a]==0)x62[b++]=a;}
+e51
+t4
+lJ2
+if(nO
+yH==0){a=0;goto
+retry_anyparams_4;}
+a=nO
+yH-1;goto
+cH1;}
+cF2
+t4(nO
+yH,i42;a=0;if(nO
+yH!=0){(*xB)[0].t22(*xB)[0].used=used;}
+}
+for(;a
+cG2{if(a>0){(xE3
+t22(xE3
+used=used;}
+retry_anyparams
+e13
+TestParam_AnyWhere
+x5(cS
+x62[a])c63,tX,info,used,yY2;tX=r.l93
+xU1}
+}
+cH1:y13
+lS3
+a].info;used
+l83
+a].used;goto
+retry_anyparams;}
+cI1:if(a>0){--a;goto
+cH1;}
+lS3
+0].info
+lC1
+false;}
+retry_anyparams_4:if(nO.lY!=0
+xX3!TopLevel||!info.HasRestHolder(nO.lY)){yC<tW>y12;y12.nE3
+i42;for
+eS1
+b=0;b<y6++b
+xX3
+used[b])xU1
+y12
+yX
+lR1
+b));used[b]=true
+lX1
+b);}
+if(!info.SaveOrTestRestHolder(nO.lY,y12)){goto
+cI1;}
+}
+else{t01&y12=info.GetRestHolderValues(nO.lY)lJ1
+y12
+e22
+a){bool
+found
+e23
+for
+eS1
+b=0;b<y6++b
+xX3
+used[b])xU1
+if(y12[a].IsIdenticalTo(lR1
+b))){used[b]=true
+lX1
+b);found=true;xF3
+if(!found){goto
+cI1;}
+}
+}
+}
+lX3
+n21(true,nO
+yH?&*xB:0);}
+case
+GroupFunction:break;}
+xD1}
+#endif
 #ifdef FP_SUPPORT_OPTIMIZER
-
 #include <algorithm>
 #include <assert.h>
-
-// line removed
-
-namespace FPoptimizer_Optimize
-{
-    /* Synthesize the given grammatic parameter into the codetree */
-    void SynthesizeParam(
-        const ParamSpec& parampair,
-        CodeTree& tree,
-        MatchInfo& info,
-        bool inner = true)
-    {
-        switch( parampair.first )
-        {
-            case NumConstant:
-              { const ParamSpec_NumConstant& param = *(const ParamSpec_NumConstant*) parampair.second;
-                tree.SetImmed( param.constvalue );
-                if(inner) tree.Rehash(false);
-                break; }
-            case ParamHolder:
-              { const ParamSpec_ParamHolder& param = *(const ParamSpec_ParamHolder*) parampair.second;
-                tree.Become( info.GetParamHolderValue( param.index ) );
-                break; }
-            case SubFunction:
-              { const ParamSpec_SubFunction& param = *(const ParamSpec_SubFunction*) parampair.second;
-                tree.SetOpcode( param.data.subfunc_opcode );
-                for(unsigned a=0; a < param.data.param_count; ++a)
-                {
-                    CodeTree nparam;
-                    SynthesizeParam( ParamSpec_Extract(param.data.param_list, a), nparam, info, true );
-                    tree.AddParamMove(nparam);
-                }
-                if(param.data.restholder_index != 0)
-                {
-                    std::vector<CodeTree> trees
-                        ( info.GetRestHolderValues( param.data.restholder_index ) );
-                    tree.AddParamsMove(trees);
-                    // ^note: this fails if the same restholder is synth'd twice
-                    if(tree.GetParamCount() == 1)
-                    {
-                        /* Convert cMul <1> into <1> when <1> only contains one operand.
-                         * This is redundant code; it is also done in ConstantFolding(),
-                         * but it might be better for performance to do it here, too.
-                         */
-                        assert(tree.GetOpcode() == cAdd || tree.GetOpcode() == cMul
-                            || tree.GetOpcode() == cMin || tree.GetOpcode() == cMax
-                            || tree.GetOpcode() == cAnd || tree.GetOpcode() == cOr);
-                        tree.Become(tree.GetParam(0));
-                    }
-                }
-                if(inner)
-                    tree.Rehash();
-                break; }
-        }
-    }
-
-    void SynthesizeRule(
-        const Rule& rule,
-        CodeTree& tree,
-        MatchInfo& info)
-    {
-        switch(rule.ruletype)
-        {
-            case ProduceNewTree:
-            {
-                tree.DelParams();
-                SynthesizeParam( ParamSpec_Extract(rule.repl_param_list, 0), tree, info, false );
-                break;
-            }
-            case ReplaceParams:
-            default:
-            {
-                /* Delete the matched parameters from the source tree */
-                std::vector<unsigned> list = info.GetMatchedParamIndexes();
-                std::sort(list.begin(), list.end());
-                for(size_t a=list.size(); a-->0; )
-                    tree.DelParam( list[a] );
-
-                /* Synthesize the replacement params */
-                for(unsigned a=0; a < rule.repl_param_count; ++a)
-                {
-                    CodeTree nparam;
-                    SynthesizeParam( ParamSpec_Extract(rule.repl_param_list, a), nparam, info, true );
-                    tree.AddParamMove(nparam);
-                }
-                break;
-            }
-        }
-    }
+using
+iF2
+FPoptimizer_CodeTree;using
+iF2
+FPoptimizer_Optimize;iF2{lO
+tW
+y91
+yI
+yM2&n02,y93,bool
+inner=true){x03
+NumConstant:{const
+yL&eJ2
+yL*)n02
+cZ3
+lC1
+CodeTreeImmed
+t02
+iM2);}
+case
+l92
+i02&eJ2
+xI*)n02
+cZ3
+lC1
+info.GetParamHolderValue
+t02
+index);nB3
+const
+xJ&eJ2
+xJ
+eK2
+tW
+tree;tree
+y7
+nZ3
+cP);for(e31=0;a<nZ3
+data
+yH;++a){tW
+nparam=y91(nV1
+nZ3
+data.param_list,a
+tM3
+true)c7
+nparam);}
+if
+t02
+data.lY!=0){yC<tW>trees(info.GetRestHolderValues
+t02
+data.lY))lR3
+AddParamsMove(trees);if(tree
+iK==1){assert(tree t83()==cAdd t03()==cMul t03()==cMin t03()==cMax t03()==cAnd t03()==cOr t03()==cAbsAnd t03()==cAbsOr)lR3
+nQ3
+lR1
+0));}
+t41
+tree
+iK==0){cI3
+xC1
+tV2
+cAdd:case
+cOr
+e83=c61
+0));lB
+cMul:case
+cAnd
+e83=c61
+1));default:xF3}
+if(inner)tree.Rehash()lC1
+tree;}
 }
-
+lX3
+tW();}
+}
+iF2
+FPoptimizer_Optimize{nD3
+SynthesizeRule
+yI
+cQ2
+tW&tree,y93){cI3
+rule.ruletype
+tV2
+ProduceNewTree:{tree.nQ3
+y91(nV1
+rule.e61
+0
+tM3
+false)cH2
+case
+ReplaceParams:default:{yC<lW3>list=info.GetMatchedParamIndexes();std::sort(list.tT2
+list.end()e52
+list
+e72);a-->0;)tree.eI1
+list[a]);for(e31=0;a<rule.repl_param_count;++a){tW
+nparam=y91(nV1
+rule.e61
+a
+tM3
+true)c7
+nparam);}
+xF3}
+}
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_optimize_debug.cc"
-// line removed
-// line removed
-// line removed
-// line removed
-
-#include <sstream>
-
 #ifdef DEBUG_SUBSTITUTIONS
-using namespace FUNCTIONPARSERTYPES;
-using namespace FPoptimizer_Grammar;
-using namespace FPoptimizer_CodeTree;
-using namespace FPoptimizer_Optimize;
-
-namespace FPoptimizer_Grammar
-{
-    void DumpMatch(const Rule& rule,
-                   const CodeTree& tree,
-                   const MatchInfo& info,
-                   bool DidMatch,
-                   std::ostream& o)
-    {
-        static const char ParamHolderNames[][2] = {"%","&","x","y","z","a","b","c"};
-
-        o <<
-            "Found " << (DidMatch ? "match" : "mismatch") << ":\n"
-            "  Pattern    : ";
-        { ParamSpec tmp;
-          tmp.first = SubFunction;
-          ParamSpec_SubFunction tmp2;
-          tmp2.data = rule.match_tree;
-          tmp.second = (const void*) &tmp2;
-          DumpParam(tmp, o);
-        }
-        o << "\n"
-            "  Replacement: ";
-        DumpParams(rule.repl_param_list, rule.repl_param_count, o);
-        o << "\n";
-
-        o <<
-            "  Tree       : ";
-        DumpTree(tree, o);
-        o << "\n";
-        if(DidMatch) DumpHashes(tree, o);
-
-        for(std::map<unsigned, CodeTree>::const_iterator
-            i = info.paramholder_matches.begin();
-            i != info.paramholder_matches.end();
-            ++i)
-        {
-            o << "           " << ParamHolderNames[i->first] << " = ";
-            DumpTree(i->second, o);
-            o << "\n";
-        }
-
-        for(std::multimap<unsigned, CodeTree>::const_iterator
-            i = info.restholder_matches.begin();
-            i != info.restholder_matches.end();
-            ++i)
-        {
-            o << "         <" << i->first << "> = ";
-            DumpTree(i->second, o);
-            o << std::endl;
-        }
-        o << std::flush;
-    }
-
-    void DumpHashes(const CodeTree& tree,
-                    std::map<fphash_t, std::set<std::string> >& done,
-                    std::ostream& o)
-    {
-        for(size_t a=0; a<tree.GetParamCount(); ++a)
-            DumpHashes(tree.GetParam(a), done, o);
-
-        std::ostringstream buf;
-        DumpTree(tree, buf);
-        done[tree.GetHash()].insert(buf.str());
-    }
-    void DumpHashes(const CodeTree& tree, std::ostream& o)
-    {
-        std::map<fphash_t, std::set<std::string> > done;
-        DumpHashes(tree, done, o);
-
-        for(std::map<fphash_t, std::set<std::string> >::const_iterator
-            i = done.begin();
-            i != done.end();
-            ++i)
-        {
-            const std::set<std::string>& flist = i->second;
-            if(flist.size() != 1) o << "ERROR - HASH COLLISION?\n";
-            for(std::set<std::string>::const_iterator
-                j = flist.begin();
-                j != flist.end();
-                ++j)
-            {
-                o << '[' << std::hex << i->first.hash1
-                              << ',' << i->first.hash2
-                              << ']' << std::dec;
-                o << ": " << *j << "\n";
-            }
-        }
-    }
-    void DumpTree(const CodeTree& tree, std::ostream& o)
-    {
-        //o << "/*" << tree.Depth << "*/";
-        const char* sep2 = "";
-        /*
-        o << '[' << std::hex << tree.Hash.hash1
-                      << ',' << tree.Hash.hash2
-                      << ']' << std::dec;
-        */
-        switch(tree.GetOpcode())
-        {
-            case cImmed: o << tree.GetImmed(); return;
-            case cVar:   o << "Var" << (tree.GetVar() - VarBegin); return;
-            case cAdd: sep2 = " +"; break;
-            case cMul: sep2 = " *"; break;
-            case cAnd: sep2 = " &"; break;
-            case cOr: sep2 = " |"; break;
-            case cPow: sep2 = " ^"; break;
-            default:
-                o << FP_GetOpcodeName(tree.GetOpcode());
-                if(tree.GetOpcode() == cFCall || tree.GetOpcode() == cPCall)
-                    o << ':' << tree.GetFuncNo();
-        }
-        o << '(';
-        if(tree.GetParamCount() <= 1 && *sep2) o << (sep2+1) << ' ';
-        for(size_t a=0; a<tree.GetParamCount(); ++a)
-        {
-            if(a > 0) o << ' ';
-
-            DumpTree(tree.GetParam(a), o);
-
-            if(a+1 < tree.GetParamCount()) o << sep2;
-        }
-        o << ')';
-    }
-
-    void DumpTreeWithIndent(const CodeTree& tree, std::ostream& o, const std::string& indent)
-    {
-        o << '[' << std::hex << (void*)(&tree.GetParams())
-                 << std::dec
-                 << ',' << tree.GetRefCount()
-                 << ']';
-        o << indent << '_';
-
-        switch(tree.GetOpcode())
-        {
-            case cImmed: o << "cImmed " << tree.GetImmed(); o << '\n'; return;
-            case cVar:   o << "cVar " << (tree.GetVar() - VarBegin); o << '\n'; return;
-            default:
-                o << FP_GetOpcodeName(tree.GetOpcode());
-                if(tree.GetOpcode() == cFCall || tree.GetOpcode() == cPCall)
-                    o << ':' << tree.GetFuncNo();
-                o << '\n';
-        }
-        for(size_t a=0; a<tree.GetParamCount(); ++a)
-        {
-            std::string ind = indent;
-            for(size_t p=0; p < ind.size(); p+=2)
-                if(ind[p] == '\\')
-                    ind[p] = ' ';
-            ind += (a+1 < tree.GetParamCount()) ? " |" : " \\";
-            DumpTreeWithIndent(tree.GetParam(a), o, ind);
-        }
-        o << std::flush;
-    }
+#include <sstream>
+#include <cstring>
+nE
+using
+iF2
+l71;using
+iF2
+FPoptimizer_CodeTree;using
+iF2
+FPoptimizer_Optimize;iF2
+l71{nD3
+DumpMatch
+yI
+cQ2
+cD2,const
+y93,bool
+DidMatch,std::ostream&o){DumpMatch(rule
+c63,info,DidMatch?tG3"match"
+:tG3"mismatch"
+,o);}
+nD3
+DumpMatch
+yI
+cQ2
+cD2,const
+y93,const
+char*eJ3,std::ostream&o){static
+const
+char
+ParamHolderNames[][2]={"%"
+,"&"
+,"x"
+,"y"
+,"z"
+,"a"
+,"b"
+,"c"
+}
+;o<<eJ3<<" (rule "
+<<(&rule-grammar_rules)<<")"
+<<":\n  Pattern    : "
+;{yM2
+tmp;tmp.first=SubFunction;xJ
+tmp2;tmp2.data=rule
+nI2;tmp
+cZ3=yI
+void*)&tmp2;DumpParam
+x5(tmp,o);}
+o<<"\n  Replacement: "
+;DumpParams
+x5(rule.e61
+rule.repl_param_count
+cR2
+o<<"  Tree       : "
+;nX3(tree
+cR2
+if(!std::strcmp(eJ3,tG3"match"
+))DumpHashes(tree,o)lJ1
+tN3
+e22
+a
+xX3!tN3[a].IsDefined())xU1
+o<<"           "
+<<ParamHolderNames[a]<<" = "
+;nX3(tN3[a]cR2}
+c91
+info.lS
+e22
+b
+xX3!cK2
+first)continue
+lJ1
+cK2
+second
+e22
+a){o<<"         <"
+<<b<<"> = "
+;nX3(cK2
+second[a],o);o<<std::endl;}
+}
+o<<std::flush;}
 }
 #endif
-
-
-#line 1 "fpoptimizer/fpoptimizer_main.cc"
-#include "fpconfig.hh"
-#include "fparser.hh"
-#include "fptypes.hh"
-
-// line removed
-// line removed
-
-using namespace FUNCTIONPARSERTYPES;
-
+#include <list>
+#include <algorithm>
 #ifdef FP_SUPPORT_OPTIMIZER
-using namespace FPoptimizer_CodeTree;
-using namespace FPoptimizer_Grammar;
-
-void FunctionParser::Optimize()
-{
-    CopyOnWrite();
-
-    //PrintByteCode(std::cout);
-
-    CodeTree tree;
-    tree.GenerateFrom(data->ByteCode, data->Immed, *data);
-
-    while(ApplyGrammar(pack.glist[0], tree)) // intermediate
-        { //std::cout << "Rerunning 1\n";
-            FixIncompleteHashes(tree);
-        }
-
-    while(ApplyGrammar(pack.glist[1], tree)) // final1
-        { //std::cout << "Rerunning 2\n";
-            FixIncompleteHashes(tree);
-        }
-
-    while(ApplyGrammar(pack.glist[2], tree)) // final2
-        { //std::cout << "Rerunning 3\n";
-            FixIncompleteHashes(tree);
-        }
-
-    std::vector<unsigned> byteCode;
-    std::vector<double> immed;
-    size_t stacktop_max = 0;
-    tree.SynthesizeByteCode(byteCode, immed, stacktop_max);
-
-    /*std::cout << std::flush;
-    std::cerr << std::flush;
-    fprintf(stderr, "Estimated stacktop %u\n", (unsigned)stacktop_max);
-    fflush(stderr);*/
-
-    if(data->StackSize != stacktop_max)
-    {
-        data->StackSize = stacktop_max; // note: gcc warning is meaningful
-        data->Stack.resize(stacktop_max);
-    }
-
-    data->ByteCode.swap(byteCode);
-    data->Immed.swap(immed);
-
-    //PrintByteCode(std::cout);
+nE
+iF2{nM3
+MarkIncompletes(x3
+xX3
+tree.Is_Incompletely_Hashed()cA2
+bool
+tF1=false
+lJ1
+y6++a)tF1|=MarkIncompletes(lR1
+a));if(tF1)tree.Mark_Incompletely_Hashed()lC1
+tF1;}
+nD3
+FixIncompletes(x3
+xX3
+tree.Is_Incompletely_Hashed()){for
+n62
+y6++a)FixIncompletes(lR1
+a));tree
+lL1}
 }
-
+}
+iF2
+FPoptimizer_CodeTree{lA
+Sort(){data->Sort();}
+lA
+Rehash(bool
+constantfolding
+xX3
+constantfolding)ConstantFolding(*this);else
+Sort();data->Recalculate_Hash_NoRecursion();}
+nD3
+nA2
+x5::Recalculate_Hash_NoRecursion(){nC2
+xW1(eY
+Opcode)<<56,Opcode*t43(0x1131462E270012B));Depth=1;cI3
+Opcode
+tV2
+cImmed
+y22=0;
+#if 0
+long
+double
+value=Value;lY1=crc32::calc(yI
+lW3
+char*)&value,xB3
+value));key^=(key<<24);
+#elif 0
+union{yI2{lW3
+char
+filler1[16];iQ
+v
+xQ2
+char
+filler2[16];}
+buf2;yI2{lW3
+char
+filler3[xB3
+iQ)+16-xB3
+nY1)];lY1;}
+buf1;}
+data;memset(&data,0,xB3
+data));data.buf2.v=Value;lY1=data.buf1.key;
+#else
+int
+tK2;iQ
+iT1=std::frexp(Value,&tB2
+lY1=eS1
+nG2+0x8000)&0xFFFF);if(iT1<0){iT1=-iT1;key=key^0xFFFF;}
+else
+key+=0x10000;iT1-=iQ(0.5);key<<=39;key|=eY(iT1+iT1)*iQ(1u<<31))<<8;
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_codetree_to_bytecode.cc"
+xW1.hash1|=key;nY1
+crc=(key>>10)|(key<<(64-10))n72((~eY
+crc))*3)^1234567;break;}
+case
+tZ2
+y22|=eY
+yZ1<<48
+n72((eY
+yZ1)*11)^t43(0x3A83A83A83A83A0);break;}
+case
+cFCall:case
+cPCall
+y22|=eY
+yZ1<<48
+n72((~eY
+yZ1)*7)^3456789;}
+default:{size_t
+e71=0
+lJ1
+yV3
+e22
+a
+xX3
+yV3[a].nX2>e71)e71=yV3[a].nX2;xW1.hash1+=((yV3[a].t32
+hash1*(a+1))>>12)n72
+yV3[a].t32
+hash1
+n72(3)*t43(0x9ABCD801357);xW1.hash2*=t43(0xECADB912345)n72(~yV3[a].t32
+hash2)^4567890;}
+Depth+=e71;}
+}
+if(Hash!=xW1){Hash=xW1;tP1=0;}
+}
+lA
+FixIncompleteHashes(){MarkIncompletes(*this);FixIncompletes(*this);}
+}
+#endif
 #include <cmath>
 #include <list>
 #include <cassert>
-
-// line removed
-#include "fptypes.hh"
-// line removed
-// line removed
-// line removed
-
 #ifdef FP_SUPPORT_OPTIMIZER
-
-using namespace FUNCTIONPARSERTYPES;
-//using namespace FPoptimizer_Grammar;
-
-#ifndef FP_GENERATING_POWI_TABLE
-static const unsigned MAX_POWI_BYTECODE_LENGTH = 15;
-#else
-static const unsigned MAX_POWI_BYTECODE_LENGTH = 999;
+nE
+iF2{using
+iF2
+FPoptimizer_CodeTree;nM3
+xH1
+yG,long
+count,const
+FPoptimizer_ByteCode::SequenceOpCode
+x5&eN,FPoptimizer_ByteCode::iZ1
+x5&synth,size_t
+max_bytecode_grow_length);static
+const
+yI2
+SinCosTanDataType{OPCODE
+whichopcode;OPCODE
+inverse_opcode;enum{nominator,denominator,inverse_nominator,inverse_denominator}
+;OPCODE
+codes[4];}
+SinCosTanData[12]={{cTan,cCot,{cSin,cCos,cCsc,cSec}
+}
+,{cCot,cCot,{cCos,cSin,cSec,cCsc}
+}
+,{cCos,cSec,{cSin,cTan,cCsc,cCot}
+}
+,{cSec,cCos,{cTan,cSin,cCot,cCsc}
+}
+,{cSin,cCsc,{cCos,cCot,cSec,cTan}
+}
+,{cCsc,cSin,{cCot,cCos,cTan,cSec}
+}
+,{y42{cSinh,cCosh,y52,{cSinh,cNop,{y42
+cNop,cCosh}
+}
+,{cCosh,cNop,{cSinh,y42
+cNop}
+}
+,{cNop,cTanh,{cCosh,cSinh,y52,{cNop,cSinh,{cNop,cTanh,cCosh,cNop}
+}
+,{cNop,cCosh,{cTanh,cSinh,y52}
+;}
+iF2
+FPoptimizer_CodeTree{lA
+SynthesizeByteCode(yC<lW3>&nR,yC
+x5&Immed,size_t&stacktop_max){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Making bytecode for:\n"
+;iV
 #endif
-static const unsigned MAX_MULI_BYTECODE_LENGTH = 3;
-
-namespace
-{
-    using namespace FPoptimizer_CodeTree;
-
-    bool AssembleSequence(
-                  const CodeTree& tree, long count,
-                  const FPoptimizer_ByteCode::SequenceOpCode& sequencing,
-                  FPoptimizer_ByteCode::ByteCodeSynth& synth,
-                  size_t max_bytecode_grow_length);
-}
-
-namespace
-{
-    typedef
-        std::multimap<fphash_t,  std::pair<size_t, CodeTree> >
-        TreeCountType;
-    typedef
-        std::multimap<fphash_t, CodeTree>
-        DoneTreesType;
-
-    void FindTreeCounts(TreeCountType& TreeCounts, const CodeTree& tree)
-    {
-        TreeCountType::iterator i = TreeCounts.lower_bound(tree.GetHash());
-        for(; i != TreeCounts.end() && i->first == tree.GetHash(); ++i)
-        {
-            if(tree.IsIdenticalTo( i->second.second ) )
-            {
-                i->second.first += 1;
-                goto found;
-        }   }
-        TreeCounts.insert(i, std::make_pair(tree.GetHash(), std::make_pair(size_t(1), tree)));
-    found:
-        for(size_t a=0; a<tree.GetParamCount(); ++a)
-            FindTreeCounts(TreeCounts, tree.GetParam(a));
-    }
-
-    void RememberRecursivelyHashList(DoneTreesType& hashlist,
-                                     const CodeTree& tree)
-    {
-        hashlist.insert( std::make_pair(tree.GetHash(), tree) );
-        for(size_t a=0; a<tree.GetParamCount(); ++a)
-            RememberRecursivelyHashList(hashlist, tree.GetParam(a));
-    }
-
-    #ifdef DEBUG_SUBSTITUTIONS
-    CodeTree* root;
-    #endif
-
-    bool IsOptimizableUsingPowi(long immed, long penalty = 0)
-    {
-        FPoptimizer_ByteCode::ByteCodeSynth synth;
-        return AssembleSequence(CodeTree(0, CodeTree::VarTag()),
-                                immed,
-                                FPoptimizer_ByteCode::MulSequence,
-                                synth,
-                                MAX_POWI_BYTECODE_LENGTH - penalty);
-    }
-
-    void ChangeIntoSqrtChain(CodeTree& tree, long sqrt_chain)
-    {
-        long abs_sqrt_chain = sqrt_chain < 0 ? -sqrt_chain : sqrt_chain;
-        while(abs_sqrt_chain > 2)
-        {
-            CodeTree tmp;
-            tmp.SetOpcode(cSqrt);
-            tmp.AddParamMove(tree.GetParam(0));
-            tmp.Rehash();
-            tree.SetParamMove(0, tmp);
-            abs_sqrt_chain /= 2;
-        }
-        tree.DelParam(1);
-        tree.SetOpcode(sqrt_chain < 0 ? cRSqrt : cSqrt);
-    }
-
-    bool RecreateInversionsAndNegations(CodeTree& tree)
-    {
-        bool changed = false;
-
-        for(size_t a=0; a<tree.GetParamCount(); ++a)
-            if(RecreateInversionsAndNegations( tree.GetParam(a) ))
-                changed = true;
-
-        if(changed)
-        {
-        exit_changed:
-            tree.Mark_Incompletely_Hashed();
-            return true;
-        }
-
-        switch(tree.GetOpcode()) // Recreate inversions and negations
-        {
-            case cMul:
-            {
-                std::vector<CodeTree> div_params;
-
-                for(size_t a = tree.GetParamCount(); a-- > 0; )
-                {
-                    const CodeTree& powgroup = tree.GetParam(a);
-                    if(powgroup.GetOpcode() == cPow
-                    && powgroup.GetParam(1).IsImmed())
-                    {
-                        const CodeTree& exp_param = powgroup.GetParam(1);
-                        double exponent = exp_param.GetImmed();
-                        if(FloatEqual(exponent, -1.0))
-                        {
-                            tree.CopyOnWrite();
-                            div_params.push_back(tree.GetParam(a).GetParam(0));
-                            tree.DelParam(a); // delete the pow group
-                        }
-                        else if(exponent < 0 && IsIntegerConst(exponent))
-                        {
-                            CodeTree edited_powgroup;
-                            edited_powgroup.SetOpcode(cPow);
-                            edited_powgroup.AddParam(powgroup.GetParam(0));
-                            edited_powgroup.AddParam(CodeTree(-exponent));
-                            edited_powgroup.Rehash();
-                            div_params.push_back(edited_powgroup);
-                            tree.CopyOnWrite();
-                            tree.DelParam(a); // delete the pow group
-                        }
-                    }
-                }
-                if(!div_params.empty())
-                {
-                    changed = true;
-
-                    CodeTree divgroup;
-                    divgroup.SetOpcode(cMul);
-                    divgroup.SetParamsMove(div_params);
-                    divgroup.Rehash(); // will reduce to div_params[0] if only one item
-                    CodeTree mulgroup;
-                    mulgroup.SetOpcode(cMul);
-                    mulgroup.SetParamsMove(tree.GetParams());
-                    mulgroup.Rehash(); // will reduce to 1.0 if none remained in this cMul
-                    if(mulgroup.IsImmed() && FloatEqual(mulgroup.GetImmed(), 1.0))
-                    {
-                        tree.SetOpcode(cInv);
-                        tree.AddParamMove(divgroup);
-                    }
-                    else
-                    {
-                        if(mulgroup.GetDepth() >= divgroup.GetDepth())
-                        {
-                            tree.SetOpcode(cDiv);
-                            tree.AddParamMove(mulgroup);
-                            tree.AddParamMove(divgroup);
-                        }
-                        else
-                        {
-                            tree.SetOpcode(cRDiv);
-                            tree.AddParamMove(divgroup);
-                            tree.AddParamMove(mulgroup);
-                        }
-                    }
-                }
-                break;
-            }
-            case cAdd:
-            {
-                std::vector<CodeTree> sub_params;
-
-                for(size_t a = tree.GetParamCount(); a-- > 0; )
-                    if(tree.GetParam(a).GetOpcode() == cMul)
-                    {
-                        bool is_signed = false; // if the mul group has a -1 constant...
-
-                        CodeTree mulgroup = tree.GetParam(a);
-
-                        for(size_t b=mulgroup.GetParamCount(); b-- > 0; )
-                            if(mulgroup.GetParam(b).IsImmed()
-                            && FloatEqual(mulgroup.GetParam(b).GetImmed(), -1.0))
-                            {
-                                mulgroup.CopyOnWrite();
-                                mulgroup.DelParam(b);
-                                is_signed = !is_signed;
-                            }
-                        if(is_signed)
-                        {
-                            mulgroup.Rehash();
-                            sub_params.push_back(mulgroup);
-                            tree.CopyOnWrite();
-                            tree.DelParam(a);
-                        }
-                    }
-                if(!sub_params.empty())
-                {
-                    CodeTree subgroup;
-                    subgroup.SetOpcode(cAdd);
-                    subgroup.SetParamsMove(sub_params);
-                    subgroup.Rehash(); // will reduce to sub_params[0] if only one item
-                    CodeTree addgroup;
-                    addgroup.SetOpcode(cAdd);
-                    addgroup.SetParamsMove(tree.GetParams());
-                    addgroup.Rehash(); // will reduce to 0.0 if none remained in this cAdd
-                    if(addgroup.IsImmed() && FloatEqual(addgroup.GetImmed(), 0.0))
-                    {
-                        tree.SetOpcode(cNeg);
-                        tree.AddParamMove(subgroup);
-                    }
-                    else
-                    {
-                        if(addgroup.GetDepth() == 1)
-                        {
-                            /* 5 - (x+y+z) is best expressed as rsub(x+y+z, 5);
-                             * this has lowest stack usage.
-                             * This is identified by addgroup having just one member.
-                             */
-                            tree.SetOpcode(cRSub);
-                            tree.AddParamMove(subgroup);
-                            tree.AddParamMove(addgroup);
-                        }
-                        else if(subgroup.GetOpcode() == cAdd)
-                        {
-                            /* a+b-(x+y+z) is expressed as a+b-x-y-z.
-                             * Making a long chain of cSubs is okay, because the
-                             * cost of cSub is the same as the cost of cAdd.
-                             * Thus we get the lowest stack usage.
-                             * This approach cannot be used for cDiv.
-                             */
-                            tree.SetOpcode(cSub);
-                            tree.AddParamMove(addgroup);
-                            tree.AddParamMove(subgroup.GetParam(0));
-                            for(size_t a=1; a<subgroup.GetParamCount(); ++a)
-                            {
-                                CodeTree innersub;
-                                innersub.SetOpcode(cSub);
-                                innersub.SetParamsMove(tree.GetParams());
-                                innersub.Rehash(false);
-                                //tree.DelParams();
-                                tree.AddParamMove(innersub);
-                                tree.AddParamMove(subgroup.GetParam(a));
-                            }
-                        }
-                        else
-                        {
-                            tree.SetOpcode(cSub);
-                            tree.AddParamMove(addgroup);
-                            tree.AddParamMove(subgroup);
-                        }
-                    }
-                }
-                break;
-            }
-            case cPow:
-            {
-                const CodeTree& p0 = tree.GetParam(0);
-                const CodeTree& p1 = tree.GetParam(1);
-                if(p1.IsImmed())
-                {
-                    if(p1.GetImmed() != 0.0 && !p1.IsLongIntegerImmed())
-                    {
-                        double inverse_exponent = 1.0 / p1.GetImmed();
-                        if(inverse_exponent >= -16.0 && inverse_exponent <= 16.0
-                        && IsIntegerConst(inverse_exponent))
-                        {
-                            long sqrt_chain = (long) inverse_exponent;
-                            long abs_sqrt_chain = sqrt_chain < 0 ? -sqrt_chain : sqrt_chain;
-                            if((abs_sqrt_chain & (abs_sqrt_chain-1)) == 0) // 2, 4, 8 or 16
-                            {
-                                ChangeIntoSqrtChain(tree, sqrt_chain);
-                                changed = true;
-                                break;
-                            }
-                        }
-                    }
-                    if(!p1.IsLongIntegerImmed())
-                    {
-                        // x^1.5 is sqrt(x^3)
-                        for(int sqrt_count=1; sqrt_count<=4; ++sqrt_count)
-                        {
-                            double with_sqrt_exponent = p1.GetImmed() * (1 << sqrt_count);
-                            if(IsIntegerConst(with_sqrt_exponent))
-                            {
-                                long int_sqrt_exponent = (long)with_sqrt_exponent;
-                                if(int_sqrt_exponent < 0)
-                                    int_sqrt_exponent = -int_sqrt_exponent;
-                                if(IsOptimizableUsingPowi(int_sqrt_exponent, sqrt_count))
-                                {
-                                    long sqrt_chain = 1 << sqrt_count;
-                                    if(with_sqrt_exponent < 0) sqrt_chain = -sqrt_chain;
-
-                                    CodeTree tmp;
-                                    tmp.AddParamMove(tree.GetParam(0));
-                                    tmp.AddParam(CodeTree());
-                                    ChangeIntoSqrtChain(tmp, sqrt_chain);
-                                    tmp.Rehash();
-                                    tree.SetParamMove(0, tmp);
-                                    tree.SetParam(1, CodeTree(p1.GetImmed() * (double)sqrt_chain));
-                                    changed = true;
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-                if(!p1.IsLongIntegerImmed()
-                || !IsOptimizableUsingPowi(p1.GetLongIntegerImmed()))
-                {
-                    if(p0.IsImmed() && p0.GetImmed() > 0.0)
-                    {
-                        // Convert into cExp or Exp2.
-                        //    x^y = exp(log(x) * y) =
-                        //    Can only be done when x is positive, though.
-                        double mulvalue = std::log( p0.GetImmed() );
-                        if(mulvalue == 1.0)
-                        {
-                            // exp(1)^x becomes exp(x)
-                            tree.DelParam(0);
-                        }
-                        else
-                        {
-                            // exp(4)^x becomes exp(4*x)
-                            CodeTree exponent;
-                            exponent.SetOpcode(cMul);
-                            exponent.AddParam( CodeTree( mulvalue ) );
-                            exponent.AddParam(p1);
-                            exponent.Rehash();
-                            tree.SetParamMove(0, exponent);
-                            tree.DelParam(1);
-                        }
-                        tree.SetOpcode(cExp);
-                        changed = true;
-                    }
-                    else if(p1.IsImmed() && !p1.IsLongIntegerImmed())
-                    {
-                        // x^y can be safely converted into exp(y * log(x))
-                        // when y is _not_ integer, because we know that x >= 0.
-                        // Otherwise either expression will give a NaN or inf.
-                        CodeTree log;
-                        log.SetOpcode(cLog);
-                        log.AddParam(p0);
-                        log.Rehash();
-                        CodeTree exponent;
-                        exponent.SetOpcode(cMul);
-                        exponent.AddParam(p1);
-                        exponent.AddParamMove(log);
-                        exponent.Rehash();
-                        tree.SetOpcode(cExp);
-                        tree.SetParamMove(0, exponent);
-                        tree.DelParam(1);
-                        changed = true;
-                    }
-                }
-                break;
-            }
-
-            default: break;
-        }
-
-        if(changed)
-            goto exit_changed;
-
-        return changed;
-    }
-}
-
-namespace FPoptimizer_CodeTree
-{
-    void CodeTree::SynthesizeByteCode(
-        std::vector<unsigned>& ByteCode,
-        std::vector<double>&   Immed,
-        size_t& stacktop_max)
-    {
-    #ifdef DEBUG_SUBSTITUTIONS
-        std::cout << "Making bytecode for:\n";
-        FPoptimizer_Grammar::DumpTreeWithIndent(*this); root=this;
-    #endif
-        while(RecreateInversionsAndNegations(*this))
-        {
-        #ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "One change issued, produced:\n";
-            FPoptimizer_Grammar::DumpTreeWithIndent(*root);
-        #endif
-            FixIncompleteHashes(*this);
-        }
-    #ifdef DEBUG_SUBSTITUTIONS
-        std::cout << "After recreating inv/neg:  "; FPoptimizer_Grammar::DumpTree(*this); std::cout << "\n";
-    #endif
-
-        FPoptimizer_ByteCode::ByteCodeSynth synth;
-
-      { // begin scope for TreeCounts, AlreadyDoneTrees
-        /* Find common subtrees */
-        TreeCountType TreeCounts;
-        FindTreeCounts(TreeCounts, *this);
-
-        /* Synthesize some of the most common ones */
-        DoneTreesType AlreadyDoneTrees;
-    FindMore: ;
-        size_t best_score = 0;
-        TreeCountType::const_iterator synth_it;
-        for(TreeCountType::const_iterator
-            i = TreeCounts.begin();
-            i != TreeCounts.end();
-            ++i)
-        {
-            const fphash_t& hash = i->first;
-            size_t         score = i->second.first;
-            const CodeTree& tree = i->second.second;
-            // It must always occur at least twice
-            if(score < 2) continue;
-            // And it must not be a simple expression
-            if(tree.GetDepth() < 2) CandSkip: continue;
-            // And it must not yet have been synthesized
-            DoneTreesType::const_iterator j = AlreadyDoneTrees.lower_bound(hash);
-            for(; j != AlreadyDoneTrees.end() && j->first == hash; ++j)
-            {
-                if(j->second.IsIdenticalTo(tree))
-                    goto CandSkip;
-            }
-            // Is a candidate.
-            score *= tree.GetDepth();
-            if(score > best_score)
-                { best_score = score; synth_it = i; }
-        }
-        if(best_score > 0)
-        {
-    #ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "Found Common Subexpression:"; FPoptimizer_Grammar::DumpTree(synth_it->second.second); std::cout << "\n";
-    #endif
-            /* Synthesize the selected tree */
-            synth_it->second.second.SynthesizeByteCode(synth);
-            /* Add the tree and all its children to the AlreadyDoneTrees list,
-             * to prevent it from being re-synthesized
-             */
-            RememberRecursivelyHashList(AlreadyDoneTrees, synth_it->second.second);
-            goto FindMore;
-        }
-      } // end scope for TreeCounts, AlreadyDoneTrees
-
-    #ifdef DEBUG_SUBSTITUTIONS
-        std::cout << "Actually synthesizing:\n";
-        FPoptimizer_Grammar::DumpTreeWithIndent(*this);
-    #endif
-        /* Then synthesize the actual expression */
-        SynthesizeByteCode(synth);
-      #if 0
-        /* Ensure that the expression result is
-         * the only thing that remains in the stack
-         */
-        /* Removed: Fparser does not seem to care! */
-        /* Seems that it is not required even when cEval is supported. */
-        if(synth.GetStackTop() > 1)
-            synth.DoPopNMov(0, synth.GetStackTop()-1);
-      #endif
-        synth.Pull(ByteCode, Immed, stacktop_max);
-    }
-
-    void CodeTree::SynthesizeByteCode(FPoptimizer_ByteCode::ByteCodeSynth& synth) const
-    {
-        // If the synth can already locate our operand in the stack,
-        // never mind synthesizing it again, just dup it.
-        if(synth.FindAndDup(*this))
-        {
-            return;
-        }
-
-        switch(GetOpcode())
-        {
-            case cVar:
-                synth.PushVar(GetVar());
-                break;
-            case cImmed:
-                synth.PushImmed(GetImmed());
-                break;
-            case cAdd:
-            case cMul:
-            case cMin:
-            case cMax:
-            case cAnd:
-            case cOr:
-            {
-                if(GetOpcode() == cMul) // Special treatment for cMul sequences
-                {
-                    // If the paramlist contains an Immed, and that Immed
-                    // fits in a long-integer, try to synthesize it
-                    // as add-sequences instead.
-                    for(size_t a=0; a<GetParamCount(); ++a)
-                    {
-                        if(GetParam(a).IsLongIntegerImmed())
-                        {
-                            long value = GetParam(a).GetLongIntegerImmed();
-
-                            CodeTree tmp(*this, CodeTree::CloneTag());
-                            tmp.DelParam(a);
-                            tmp.Rehash();
-                            bool success = AssembleSequence(
-                                tmp, value, FPoptimizer_ByteCode::AddSequence,
-                                synth,
-                                MAX_MULI_BYTECODE_LENGTH);
-
-                            if(success)
-                            {
-                                // this tree was treated just fine
-                                synth.StackTopIs(*this);
-                                return;
-                            }
-                        }
-                    }
-                }
-
-                int n_stacked = 0;
-                for(size_t a=0; a<GetParamCount(); ++a)
-                {
-                    GetParam(a).SynthesizeByteCode(synth);
-                    ++n_stacked;
-
-                    if(n_stacked > 1)
-                    {
-                        // Cumulate at the earliest opportunity.
-                        synth.AddOperation(GetOpcode(), 2); // stack state: -2+1 = -1
-                        n_stacked = n_stacked - 2 + 1;
-                    }
-                }
-                if(n_stacked == 0)
-                {
-                    // Uh, we got an empty cAdd/cMul/whatever...
-                    // Synthesize a default value.
-                    // This should never happen.
-                    switch(GetOpcode())
-                    {
-                        case cAdd:
-                        case cOr:
-                            synth.PushImmed(0);
-                            break;
-                        case cMul:
-                        case cAnd:
-                            synth.PushImmed(1);
-                            break;
-                        case cMin:
-                        case cMax:
-                            //synth.PushImmed(NaN);
-                            synth.PushImmed(0);
-                            break;
-                        default:
-                            break;
-                    }
-                    ++n_stacked;
-                }
-                assert(n_stacked == 1);
-                break;
-            }
-            case cPow:
-            {
-                const CodeTree& p0 = GetParam(0);
-                const CodeTree& p1 = GetParam(1);
-
-                if(!p1.IsLongIntegerImmed()
-                || !AssembleSequence( /* Optimize integer exponents */
-                        p0, p1.GetLongIntegerImmed(),
-                        FPoptimizer_ByteCode::MulSequence,
-                        synth,
-                        MAX_POWI_BYTECODE_LENGTH)
-                  )
-                {
-                    p0.SynthesizeByteCode(synth);
-                    p1.SynthesizeByteCode(synth);
-                    synth.AddOperation(GetOpcode(), 2); // Create a vanilla cPow.
-                }
-                break;
-            }
-            case cIf:
-            {
-                size_t ofs;
-                // If the parameter amount is != 3, we're screwed.
-                GetParam(0).SynthesizeByteCode(synth); // expression
-                synth.SynthIfStep1(ofs);
-                GetParam(1).SynthesizeByteCode(synth); // true branch
-                synth.SynthIfStep2(ofs);
-                GetParam(2).SynthesizeByteCode(synth); // false branch
-                synth.SynthIfStep3(ofs);
-                break;
-            }
-            case cFCall:
-            case cPCall:
-            {
-                // If the parameter count is invalid, we're screwed.
-                for(size_t a=0; a<GetParamCount(); ++a)
-                    GetParam(a).SynthesizeByteCode(synth);
-                synth.AddOperation(GetOpcode(), (unsigned) GetParamCount());
-                synth.AddOperation(GetFuncNo(), 0, 0);
-                break;
-            }
-            default:
-            {
-                // If the parameter count is invalid, we're screwed.
-                for(size_t a=0; a<GetParamCount(); ++a)
-                    GetParam(a).SynthesizeByteCode(synth);
-                synth.AddOperation(GetOpcode(), (unsigned) GetParamCount());
-                break;
-            }
-        }
-        synth.StackTopIs(*this);
-    }
-}
-
-namespace
-{
-    bool AssembleSequence(
-        const CodeTree& tree, long count,
-        const FPoptimizer_ByteCode::SequenceOpCode& sequencing,
-        FPoptimizer_ByteCode::ByteCodeSynth& synth,
-        size_t max_bytecode_grow_length)
-    {
-        if(count != 0)
-        {
-            FPoptimizer_ByteCode::ByteCodeSynth backup = synth;
-
-            tree.SynthesizeByteCode(synth);
-
-            // Ignore the size generated by subtree
-            size_t bytecodesize_backup = synth.GetByteCodeSize();
-
-            FPoptimizer_ByteCode::AssembleSequence(count, sequencing, synth);
-
-            size_t bytecode_grow_amount = synth.GetByteCodeSize() - bytecodesize_backup;
-            if(bytecode_grow_amount > max_bytecode_grow_length)
-            {
-                synth = backup;
-                return false;
-            }
-            return true;
-        }
-        else
-        {
-            FPoptimizer_ByteCode::AssembleSequence(count, sequencing, synth);
-            return true;
-        }
-    }
-}
-
+while(RecreateInversionsAndNegations()){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"One change issued, produced:\n"
+;iV
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_bytecode_to_codetree.cc"
+FixIncompleteHashes();}
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Actually synthesizing, after recreating inv/neg:\n"
+;iV
+#endif
+FPoptimizer_ByteCode::iZ1
+x5
+synth;SynthesizeByteCode(synth,false);iP
+Pull(nR,Immed,stacktop_max);}
+lA
+SynthesizeByteCode(FPoptimizer_ByteCode::iZ1
+x5&synth,bool
+MustPopTemps
+cE3{cJ1*this)){tC
+for
+n62
+12;++a){const
+SinCosTanDataType&data=SinCosTanData[a];if(data.whichopcode!=cNop
+xX3
+lK2
+data.whichopcode)xU1
+tY
+lA3;lA3.lT1
+lA3
+xI3
+inverse_opcode);lA3.lL2;cJ1
+lA3)){iP
+l31
+else{if(lK2
+cInv)xU1
+if(GetParam(0).lK2
+data.inverse_opcode)xU1
+cJ1
+GetParam(0))){iP
+l31
+size_t
+found[4];c91
+4;++b){tY
+tree;if(data.eK3]==cNop){tree
+y7
+cInv);tY
+lB3;lB3.lT1
+lB3
+xI3
+eK3^2]);lB3.lL2
+c7
+lB3);}
+else{tree.lT1
+tree
+xI3
+eK3]);}
+tree.lL2;found[b]=iP
+cT3(tree);}
+if(found[data.x72!=tA
+tG1
+y5
+x72);l41
+tG1
+yT1
+cDiv
+nF1
+x72!=tA
+iY
+y5
+x72);l41
+iY
+yT1
+cMul
+nF1
+lZ1!=tA
+iY
+y5
+lZ1);l41
+iY
+yT1
+cRDiv
+nF1
+lZ1!=tA
+tG1
+y5
+lZ1);l41
+tG1
+yT1
+cMul,2,1);iP
+l31
+size_t
+n_subexpressions_synthesized=SynthCommonSubExpressions(synth);cI3
+GetOpcode()tV2
+tZ2:iP
+PushVar(GetVar());lB
+cImmed
+lM2
+GetImmed());lB
+cAdd:case
+cMul:case
+cMin:case
+cMax:case
+cAnd:case
+cOr:case
+cAbsAnd:case
+cAbsOr:{if(GetOpcode()==cMul){bool
+xJ3
+e23
+yR
+tP
+yK1&&isLongInteger(tP
+tN)){yD1=makeLongInteger(tP
+tN);tY
+tmp(*this,lZ3
+tY::CloneTag());tmp.eI1
+a);tmp
+lL1
+if(xH1(tmp,value,FPoptimizer_ByteCode::eL1
+x5::AddSequence,synth,MAX_MULI_BYTECODE_LENGTH)){xJ3=true;xF3}
+if(xJ3)break;}
+int
+xX1=0;xD3
+done(GetParamCount(),false);tY
+i9;i9
+y7
+e7
+for(;;){bool
+found
+e23
+yR
+done[a])xU1
+if(iP
+IsStackTop(tP)){found=true;done[a]=true;tP.n9
+i9
+iO
+tP);if(++xX1>1){iP
+c1
+2);i9.lL2;iP
+y62
+i9);xX1=xX1-2+1;}
+}
+}
+if(!found)break;}
+yR
+done[a])xU1
+tP.n9
+i9
+iO
+tP);if(++xX1>1){iP
+c1
+2);i9.lL2;iP
+y62
+i9);xX1=xX1-2+1;}
+}
+if(xX1==0){cI3
+GetOpcode()tV2
+cAdd:case
+cOr:case
+cAbsOr
+lM2
+0);lB
+cMul:case
+cAnd:case
+cAbsAnd
+lM2
+1);lB
+cMin:case
+cMax
+lM2
+0);break;default:break;}
+++xX1;}
+assert(n_stacked==1);break;}
+case
+cPow:{const
+tY&p0
+xH3
+0);const
+tY&p1
+xH3
+1);if(!p1
+yK1||!isLongInteger(p1
+tN)||!xH1(p0,makeLongInteger(p1
+tN),FPoptimizer_ByteCode::eL1
+x5::MulSequence,synth,MAX_POWI_BYTECODE_LENGTH)){p0.n9
+p1.n9
+iP
+c1
+2);eL2
+cIf:case
+cAbsIf:{lZ3
+FPoptimizer_ByteCode::iZ1
+x5::IfData
+xN2;GetParam(0).n9
+iP
+SynthIfStep1(xN2,e7
+GetParam(1).n9
+iP
+SynthIfStep2(xN2);GetParam(2).n9
+iP
+SynthIfStep3(xN2
+cH2
+case
+cFCall:case
+cPCall:{for
+n62
+GetParamCount();++a)tP.n9
+iP
+c1
+eS1)GetParamCount()yT1
+yE|GetFuncNo(),0,0
+cH2
+default:{for
+n62
+GetParamCount();++a)tP.n9
+iP
+c1
+eS1)GetParamCount()cH2}
+iP
+y62*this);if(MustPopTemps&&n_subexpressions_synthesized>0){size_t
+top=iP
+GetStackTop();iP
+DoPopNMov(top-1-n_subexpressions_synthesized,top-1);}
+}
+}
+iF2{nM3
+xH1
+yG,long
+count,const
+FPoptimizer_ByteCode::SequenceOpCode
+x5&eN,FPoptimizer_ByteCode::iZ1
+x5&synth,size_t
+max_bytecode_grow_length
+xX3
+count!=0){FPoptimizer_ByteCode::iZ1
+x5
+backup=synth
+lR3
+n9
+size_t
+bytecodesize_backup=iP
+GetByteCodeSize();FPoptimizer_ByteCode::xH1
+yX3
+xT2
+size_t
+bytecode_grow_amount=iP
+GetByteCodeSize()-bytecodesize_backup;if(bytecode_grow_amount>max_bytecode_grow_length){synth=backup
+lC1
+false;}
+lX3
+true;}
+else{FPoptimizer_ByteCode::xH1
+yX3,eN,synth)tQ1}
+}
+#endif
 #include <cmath>
 #include <cassert>
-
-// line removed
-// line removed
-// line removed
-// line removed
-#include "fptypes.hh"
-
-// line removed
-#include "fparser.hh"
-
-
 #ifdef FP_SUPPORT_OPTIMIZER
-
-using namespace FUNCTIONPARSERTYPES;
-//using namespace FPoptimizer_Grammar;
-
-namespace
-{
-    typedef std::vector<double> FactorStack;
-
-    const struct PowiMuliType
-    {
-        unsigned opcode_square;
-        unsigned opcode_cumulate;
-        unsigned opcode_invert;
-        unsigned opcode_half;
-        unsigned opcode_invhalf;
-    } iseq_powi = {cSqr,cMul,cInv,cSqrt,cRSqrt},
-      iseq_muli = {~unsigned(0), cAdd,cNeg, ~unsigned(0),~unsigned(0) };
-
-    double ParsePowiMuli(
-        const PowiMuliType& opcodes,
-        const std::vector<unsigned>& ByteCode, size_t& IP,
-        size_t limit,
-        size_t factor_stack_base,
-        FactorStack& stack)
-    {
-        double result = 1;
-        while(IP < limit)
-        {
-            if(ByteCode[IP] == opcodes.opcode_square)
-            {
-                if(!IsIntegerConst(result)) break;
-                result *= 2;
-                ++IP;
-                continue;
-            }
-            if(ByteCode[IP] == opcodes.opcode_invert)
-            {
-                result = -result;
-                ++IP;
-                continue;
-            }
-            if(ByteCode[IP] == opcodes.opcode_half)
-            {
-                if(IsIntegerConst(result) && result > 0 && ((long)result) % 2 == 0)
-                    break;
-                result *= 0.5;
-                ++IP;
-                continue;
-            }
-            if(ByteCode[IP] == opcodes.opcode_invhalf)
-            {
-                if(IsIntegerConst(result) && result > 0 && ((long)result) % 2 == 0)
-                    break;
-                result *= -0.5;
-                ++IP;
-                continue;
-            }
-
-            size_t dup_fetch_pos = IP;
-            double lhs = 1.0;
-
-            if(ByteCode[IP] == cFetch)
-            {
-                unsigned index = ByteCode[++IP];
-                if(index < factor_stack_base
-                || size_t(index-factor_stack_base) >= stack.size())
-                {
-                    // It wasn't a powi-fetch after all
-                    IP = dup_fetch_pos;
-                    break;
-                }
-                lhs = stack[index - factor_stack_base];
-                // Note: ^This assumes that cFetch of recentmost
-                //        is always converted into cDup.
-                goto dup_or_fetch;
-            }
-            if(ByteCode[IP] == cDup)
-            {
-                lhs = result;
-                goto dup_or_fetch;
-
-            dup_or_fetch:
-                stack.push_back(result);
-                ++IP;
-                double subexponent = ParsePowiMuli
-                    (opcodes,
-                     ByteCode, IP, limit,
-                     factor_stack_base, stack);
-                if(IP >= limit || ByteCode[IP] != opcodes.opcode_cumulate)
-                {
-                    // It wasn't a powi-dup after all
-                    IP = dup_fetch_pos;
-                    break;
-                }
-                ++IP; // skip opcode_cumulate
-                stack.pop_back();
-                result += lhs*subexponent;
-                continue;
-            }
-            break;
-        }
-        return result;
-    }
-
-    double ParsePowiSequence(const std::vector<unsigned>& ByteCode, size_t& IP,
-                           size_t limit,
-                           size_t factor_stack_base)
-    {
-        FactorStack stack;
-        stack.push_back(1.0);
-        return ParsePowiMuli(iseq_powi, ByteCode, IP, limit, factor_stack_base, stack);
-    }
-
-    double ParseMuliSequence(const std::vector<unsigned>& ByteCode, size_t& IP,
-                           size_t limit,
-                           size_t factor_stack_base)
-    {
-        FactorStack stack;
-        stack.push_back(1.0);
-        return ParsePowiMuli(iseq_muli, ByteCode, IP, limit, factor_stack_base, stack);
-    }
+nE
+iF2{using
+iF2
+FPoptimizer_CodeTree;
+#define FactorStack yC
+const
+yI2
+PowiMuliType{lW3
+opcode_square
+xQ2
+opcode_cumulate
+xQ2
+opcode_invert
+xQ2
+opcode_half
+xQ2
+opcode_invhalf;}
+iseq_powi={cSqr,cMul,cInv,cSqrt,cRSqrt}
+,iseq_muli={tC1,cAdd,cNeg,tC1,tC1}
+;lO
+iQ
+e81
+yI
+PowiMuliType&xK3,const
+yC
+n82,iE1&stack){iQ
+cL3
+1);while(IP<limit
+xX3
+xL3
+xK3.opcode_square
+xX3!eP2
+cM3
+2;cY
+opcode_invert){lN3-cQ3;cY
+opcode_half
+xX3
+cQ3>iQ(0)&&isEvenInteger(cM3
+iQ(0.5);cY
+opcode_invhalf
+xX3
+cQ3>iQ(0)&&isEvenInteger(cM3
+iQ(-0.5);++IP;xU1}
+size_t
+lO2=IP;iQ
+lhs(1);if(xL3
+cFetch){lW3
+index=yE3;if(index<xZ||size_t(index-xZ)>=xS3){IP=lO2;break;}
+lhs=stack[index-xZ];goto
+x82;}
+if(xL3
+cDup){lhs=cQ3;goto
+x82;x82:xQ3
+cQ3);++IP;iQ
+subexponent=e81(xK3
+lU1
+if(IP>=limit||nR[IP]!=xK3.opcode_cumulate){IP=lO2;break;}
+++IP;stack.pop_back();cQ3+=lhs*subexponent;xU1}
+break;}
+lX3
+yS3
+lO
+iQ
+ParsePowiSequence
+yI
+yC
+n82){iE1
+stack;xQ3
+iQ(1))lC1
+e81(iseq_powi
+lU1}
+lO
+iQ
+ParseMuliSequence
+yI
+yC
+n82){iE1
+stack;xQ3
+iQ(1))lC1
+e81(iseq_muli
+lU1}
+n53
+CodeTreeParserData{cR3
+i32
+CodeTreeParserData(bool
+k_powi):stack(),clones(),keep_powi(k_powi){}
+void
+Eat
+cB1
+eH3,OPCODE
+opcode){tW
+xK;xK
+y7
+opcode);yC<tW>params=Pop(eH3
+yR1
+params);if(!keep_powi)cI3
+opcode
+tV2
+cTanh:{tW
+sinh,cosh;sinh
+y7
+cSinh);sinh
+iO
+xK
+xM3
+sinh
+lL1
+cosh
+y7
+cCosh);cosh
+lE1
+xK
+xM3
+cosh
+tW2
+pow;pow
+y7
+cPow);pow
+lE1
+cosh);pow
+yV
+iQ(-1)));pow
+lL1
+xK
+y03
+xK.n91
+0,sinh);xK
+lE1
+pow
+cH2
+case
+cTan:{tW
+sin,cos;sin
+y7
+cSin);sin
+iO
+xK
+xM3
+sin
+lL1
+cos
+y7
+cCos);cos
+lE1
+xK
+xM3
+cos
+tW2
+pow;pow
+y7
+cPow);pow
+lE1
+cos);pow
+yV
+iQ(-1)));pow
+lL1
+xK
+y03
+xK.n91
+0,sin);xK
+lE1
+pow
+cH2
+case
+cPow:{tM2&p0=xK
+lN
+0);tM2&p1=xK
+lN
+1);if(p1
+nD
+cAdd){yC<tW>lY3(p1
+iK)lJ1
+p1
+iK;++a){tW
+pow;pow
+y7
+cPow);pow
+iO
+p0);pow
+iO
+p1
+lF3
+pow
+lL1
+lY3[a].swap(pow);}
+xK
+y7
+cMul
+yR1
+lY3);}
+break;}
+default:break;}
+xK.Rehash(!keep_powi);tH1,false);
+#ifdef DEBUG_SUBSTITUTIONS
+eT1<<eH3<<", "
+<<FP_GetOpcodeName(opcode)<<"->"
+<<FP_GetOpcodeName(xK
+t83())<<": "
+t93
+xK)iL
+xK);
+#endif
+xQ3
+xK)iH2
+EatFunc
+cB1
+eH3,OPCODE
+opcode
+yL2
+funcno){tW
+xK=CodeTreeFuncOp
+x5(opcode,funcno);yC<tW>params=Pop(eH3
+yR1
+params);xK.lL2;
+#ifdef DEBUG_SUBSTITUTIONS
+eT1<<eH3<<", "
+t93
+xK)iL
+xK);
+#endif
+tH1);xQ3
+xK)iH2
+AddConst
+eO2){tW
+xK=CodeTreeImmed
+cC3);tH1);Push(xK)iH2
+AddVar
+eS1
+varno){tW
+xK=CodeTreeVar
+x5(varno);tH1);Push(xK)iH2
+SwapLastTwoInStack(){xR3
+1].swap(xR3
+2])iH2
+Dup(){Fetch(xS3-1)iH2
+Fetch
+cB1
+which){Push(stack[which]);}
+nL1
+T>void
+Push(T
+tree){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<t93
+tree)iL
+tree);
+#endif
+xQ3
+tree)iH2
+PopNMov
+cB1
+target,size_t
+source){stack[target]=stack[source];stack
+n93
+target+1);}
+tW
+PullResult(){clones.clear();tW
+cL3
+stack.back());stack
+n93
+xS3-1)lC1
+yS3
+yC<tW>Pop
+cB1
+n_pop){yC<tW>cL3
+n_pop);eR1
+0;n<n_pop;++n)cP3.swap(xR3
+n_pop+n]);
+#ifdef DEBUG_SUBSTITUTIONS
+eR1
+n_pop;n-->0;){eT1;nX3(cP3)iL
+cP3);}
+#endif
+stack
+n93
+xS3-n_pop)lC1
+yS3
+size_t
+GetStackTop(n71
+xS3;}
+private:void
+FindClone(tW&,bool=true){tC
+private:yC<tW>stack;std::multimap<nC2,tW>clones;bool
+keep_powi;private:CodeTreeParserData
+yI
+CodeTreeParserData&);CodeTreeParserData&cL1=yI
+CodeTreeParserData&);}
+;lO
+yI2
+IfInfo{tW
+yZ2;tW
+thenbranch
+tW3
+endif_location;IfInfo():yZ2(),thenbranch(),endif_location(){}
 }
-
-namespace FPoptimizer_CodeTree
-{
-    class CodeTreeParserData
-    {
-    public:
-        CodeTreeParserData() : stack() { }
-
-        void Eat(size_t nparams, OPCODE opcode)
-        {
-            CodeTree newnode;
-            newnode.SetOpcode(opcode);
-            size_t stackhead = stack.size() - nparams;
-            for(size_t a=0; a<nparams; ++a)
-                newnode.AddParamMove( stack[stackhead + a] );
-
-            switch(opcode)
-            {
-                //        asinh: log(x + sqrt(x*x + 1))
-                //cAsinh [x] -> cLog (cAdd x (cPow (cAdd (cPow x 2) 1) 0.5))
-                // Note: ^ Replacement function refers to x twice
-
-                //        acosh: log(x + sqrt(x*x - 1))
-                //cAcosh [x] -> cLog (cAdd x (cPow (cAdd (cPow x 2) -1) 0.5))
-
-                //        atanh: log( (1+x) / (1-x)) / 2
-                //cAtanh [x] -> cMul (cLog (cMul (cAdd 1 x) (cPow (cAdd 1 (cMul -1 x)) -1))) 0.5
-
-                //     The hyperbolic functions themselves are:
-                //        sinh: (exp(x)-exp(-x)) / 2  = exp(-x) * (exp(2*x)-1) / 2
-                //cSinh [x] -> cMul 0.5 (cPow [CONSTANT_EI x]) (cAdd [-1 (cPow [CONSTANT_2E x])])
-
-                //        cosh: (exp(x)+exp(-x)) / 2  = exp(-x) * (exp(2*x)+1) / 2
-                //        cosh(-x) = cosh(x)
-                //cCosh [x] -> cMul 0.5 (cPow [CONSTANT_EI x]) (cAdd [ 1 (cPow [CONSTANT_2E x])])
-
-                //        tanh: sinh/cosh = (exp(2*x)-1) / (exp(2*x)+1)
-                //cTanh [x] -> (cMul (cAdd {(cPow [CONSTANT_2E x]) -1}) (cPow [(cAdd {(cPow [CONSTANT_2E x]) 1}) -1]))
-                case cTanh:
-                {
-                    CodeTree sinh, cosh;
-                    sinh.SetOpcode(cSinh); sinh.AddParam(newnode.GetParam(0)); sinh.Rehash();
-                    cosh.SetOpcode(cCosh); cosh.AddParamMove(newnode.GetParam(0)); cosh.Rehash();
-                    CodeTree pow;
-                    pow.SetOpcode(cPow);
-                    pow.AddParamMove(cosh);
-                    pow.AddParam(CodeTree(-1.0));
-                    pow.Rehash();
-                    newnode.SetOpcode(cMul);
-                    newnode.SetParamMove(0, sinh);
-                    newnode.AddParamMove(pow);
-                    break;
-                }
-
-                //        tan: sin/cos
-                //cTan [x] -> (cMul (cSin [x]) (cPow [(cCos [x]) -1]))
-                case cTan:
-                {
-                    CodeTree sin, cos;
-                    sin.SetOpcode(cSin); sin.AddParam(newnode.GetParam(0)); sin.Rehash();
-                    cos.SetOpcode(cCos); cos.AddParamMove(newnode.GetParam(0)); cos.Rehash();
-                    CodeTree pow;
-                    pow.SetOpcode(cPow);
-                    pow.AddParamMove(cos);
-                    pow.AddParam(CodeTree(-1.0));
-                    pow.Rehash();
-                    newnode.SetOpcode(cMul);
-                    newnode.SetParamMove(0, sin);
-                    newnode.AddParamMove(pow);
-                    break;
-                }
-
-                case cPow:
-                {
-                    const CodeTree& p0 = newnode.GetParam(0);
-                    const CodeTree& p1 = newnode.GetParam(1);
-                    if(p1.GetOpcode() == cAdd)
-                    {
-                        // convert x^(a + b) into x^a * x^b just so that
-                        // some optimizations can be run on it.
-                        // For instance, exp(log(x)*-61.1 + log(z)*-59.1)
-                        // won't be changed into exp(log(x*z)*-61.1)*z^2
-                        // unless we do this.
-                        std::vector<CodeTree> mulgroup(p1.GetParamCount());
-                        for(size_t a=0; a<p1.GetParamCount(); ++a)
-                        {
-                            CodeTree pow;
-                            pow.SetOpcode(cPow);
-                            pow.AddParam(p0);
-                            pow.AddParam(p1.GetParam(a));
-                            pow.Rehash();
-                            mulgroup[a].swap(pow);
-                        }
-                        newnode.SetOpcode(cMul);
-                        newnode.SetParamsMove(mulgroup);
-                    }
-                    break;
-                }
-
-                // Should we change sin(x) into cos(pi/2-x)
-                //               or cos(x) into sin(pi/2-x)?
-                //                        note: cos(x-pi/2) = cos(pi/2-x) = sin(x)
-                //                        note: sin(x-pi/2) = -sin(pi/2-x) = -cos(x)
-                default: break;
-            }
-
-            newnode.Rehash();
-        /*
-            using namespace FPoptimizer_Grammar;
-            bool recurse = false;
-            while(ApplyGrammar(pack.glist[0], newnode, recurse)) // intermediate
-            { //std::cout << "Rerunning 1\n";
-                FixIncompleteHashes(newnode);
-                recurse = true;
-            }
-        */
-            FindClone(newnode, false);
-        #ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "POP " << nparams << ", " << FP_GetOpcodeName(opcode)
-                      << "->" << FP_GetOpcodeName(newnode.GetOpcode())
-                      << ": PUSH ";
-            FPoptimizer_Grammar::DumpTree(newnode);
-            std::cout <<std::endl;
-        #endif
-            stack.resize(stackhead+1);
-            stack.back().swap(newnode);
-        }
-
-        void EatFunc(size_t nparams, OPCODE opcode, unsigned funcno)
-        {
-            CodeTree newnode;
-            newnode.SetFuncOpcode(opcode, funcno);
-            size_t stackhead = stack.size() - nparams;
-            for(size_t a=0; a<nparams; ++a)
-                newnode.AddParamMove( stack[stackhead + a] );
-            newnode.Rehash(false);
-        #ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "POP " << nparams << ", PUSH ";
-            FPoptimizer_Grammar::DumpTree(newnode);
-            std::cout << std::endl;
-        #endif
-            FindClone(newnode);
-            stack.resize(stackhead+1);
-            stack.back().swap(newnode);
-        }
-
-        void AddConst(double value)
-        {
-            CodeTree newnode(value);
-            FindClone(newnode);
-            Push(newnode);
-        }
-
-        void AddVar(unsigned varno)
-        {
-            CodeTree newnode(varno, CodeTree::VarTag());
-            FindClone(newnode);
-            Push(newnode);
-        }
-
-        void SwapLastTwoInStack()
-        {
-            stack[stack.size()-1].swap( stack[stack.size()-2] );
-        }
-
-        void Dup()
-        {
-            Fetch(stack.size()-1);
-        }
-
-        void Fetch(size_t which)
-        {
-            Push(stack[which]);
-        }
-
-        template<typename T>
-        void Push(T tree)
-        {
-        #ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "PUSH ";
-            FPoptimizer_Grammar::DumpTree(tree);
-            std::cout << std::endl;
-        #endif
-            stack.push_back(tree);
-        }
-
-        void PopNMov(size_t target, size_t source)
-        {
-            stack[target] = stack[source];
-            stack.resize(target+1);
-        }
-
-        CodeTree PullResult()
-        {
-            clones.clear();
-            CodeTree result(stack.back());
-            stack.resize(stack.size()-1);
-            return result;
-        }
-
-        size_t GetStackTop() const { return stack.size(); }
-    private:
-        void FindClone(CodeTree& tree, bool recurse = true)
-        {
-            std::multimap<fphash_t, CodeTree>::const_iterator
-                i = clones.lower_bound(tree.GetHash());
-            for(; i != clones.end() && i->first == tree.GetHash(); ++i)
-            {
-                if(i->second.IsIdenticalTo(tree))
-                    tree.Become(i->second);
-            }
-            if(recurse)
-                for(size_t a=0; a<tree.GetParamCount(); ++a)
-                    FindClone(tree.GetParam(a));
-            clones.insert(std::make_pair(tree.GetHash(), tree));
-        }
-    private:
-        std::vector<CodeTree> stack;
-        std::multimap<fphash_t, CodeTree> clones;
-
-    private:
-        CodeTreeParserData(const CodeTreeParserData&);
-        CodeTreeParserData& operator=(const CodeTreeParserData&);
-    };
-
-    struct IfInfo
-    {
-        CodeTree condition;
-        CodeTree thenbranch;
-        size_t endif_location;
-    };
-
-    void CodeTree::GenerateFrom(
-        const std::vector<unsigned>& ByteCode,
-        const std::vector<double>& Immed,
-        const FunctionParser::Data& fpdata)
-    {
-        CodeTreeParserData sim;
-        std::vector<IfInfo> if_stack;
-
-        for(size_t IP=0, DP=0; ; ++IP)
-        {
-        after_powi:
-            while(!if_stack.empty() && if_stack.back().endif_location == IP)
-            {
-                // The "else" of an "if" ends here
-                CodeTree elsebranch = sim.PullResult();
-                sim.Push(if_stack.back().condition);
-                sim.Push(if_stack.back().thenbranch);
-                sim.Push(elsebranch);
-                sim.Eat(3, cIf);
-                if_stack.pop_back();
-            }
-            if(IP >= ByteCode.size()) break;
-
-            unsigned opcode = ByteCode[IP];
-            if(opcode == cSqr || opcode == cDup
-            || opcode == cInv || opcode == cNeg
-            || opcode == cSqrt || opcode == cRSqrt
-            || opcode == cFetch)
-            {
-                // Parse a powi sequence
-                //size_t was_ip = IP;
-                double exponent = ParsePowiSequence(
-                    ByteCode, IP, if_stack.empty() ? ByteCode.size() : if_stack.back().endif_location,
-                    sim.GetStackTop()-1);
-                if(exponent != 1.0)
-                {
-                    //std::cout << "Found exponent at " << was_ip << ": " << exponent << "\n";
-                    sim.AddConst(exponent);
-                    sim.Eat(2, cPow);
-                    goto after_powi;
-                }
-                if(opcode == cDup
-                || opcode == cFetch
-                || opcode == cNeg)
-                {
-                    double factor = ParseMuliSequence(
-                        ByteCode, IP, if_stack.empty() ? ByteCode.size() : if_stack.back().endif_location,
-                        sim.GetStackTop()-1);
-                    if(factor != 1.0)
-                    {
-                        //std::cout << "Found factor at " << was_ip << ": " << factor << "\n";
-                        sim.AddConst(factor);
-                        sim.Eat(2, cMul);
-                        goto after_powi;
-                    }
-                }
-            }
-            if(OPCODE(opcode) >= VarBegin)
-            {
-                sim.AddVar(opcode);
-            }
-            else
-            {
-                switch( OPCODE(opcode) )
-                {
-                    // Specials
-                    case cIf:
-                    {
-                        if_stack.resize(if_stack.size() + 1);
-                        CodeTree res( sim.PullResult() );
-                        if_stack.back().condition.swap( res );
-                        if_stack.back().endif_location = ByteCode.size();
-                        IP += 2; // dp,sp for elsebranch are irrelevant.
-                        continue;
-                    }
-                    case cJump:
-                    {
-                        CodeTree res( sim.PullResult() );
-                        if_stack.back().thenbranch.swap( res );
-                        if_stack.back().endif_location = ByteCode[IP+1]+1;
-                        IP += 2;
-                        continue;
-                    }
-                    case cImmed:
-                        sim.AddConst(Immed[DP++]);
-                        break;
-                    case cDup:
-                        sim.Dup();
-                        break;
-                    case cNop:
-                        break;
-                    case cFCall:
-                    {
-                        unsigned funcno = ByteCode[++IP];
-                        unsigned params = fpdata.FuncPtrs[funcno].params;
-                        sim.EatFunc(params, OPCODE(opcode), funcno);
-                        break;
-                    }
-                    case cPCall:
-                    {
-                        unsigned funcno = ByteCode[++IP];
-                        unsigned params = fpdata.FuncParsers[funcno].params;
-                        sim.EatFunc(params, OPCODE(opcode), funcno);
-                        break;
-                    }
-                    // Unary operators requiring special attention
-                    /*case cInv:  // already handled by powi_opt
-                        sim.AddConst(-1);
-                        sim.Eat(2, cPow); // 1/x is x^-1
-                        break; */
-                    /*case cNeg: // already handled by powi_opt
-                        sim.AddConst(-1);
-                        sim.Eat(2, cMul); // -x is x*-1
-                        break;*/
-                    /*case cSqr: // already handled by powi_opt
-                        sim.AddConst(2.0);
-                        sim.Eat(2, cPow);
-                        break;*/
-                    // Unary functions requiring special attention
-                    /*case cSqrt: // already handled by powi_opt
-                        sim.AddConst(0.5);
-                        sim.Eat(2, cPow);
-                        break;*/
-                    /*case cRSqrt: // already handled by powi_opt
-                        sim.AddConst(-0.5);
-                        sim.Eat(2, cPow);
-                        break; */
-                    case cDeg:
-                        sim.AddConst(CONSTANT_DR);
-                        sim.Eat(2, cMul);
-                        break;
-                    case cRad:
-                        sim.AddConst(CONSTANT_RD);
-                        sim.Eat(2, cMul);
-                        break;
-                    case cExp:
-                        sim.AddConst(CONSTANT_E);
-                        sim.SwapLastTwoInStack();
-                        sim.Eat(2, cPow);
-                        break;
-                    case cExp2: // from fpoptimizer
-                        sim.AddConst(2.0);
-                        sim.SwapLastTwoInStack();
-                        sim.Eat(2, cPow);
-                        break;
-                    case cCot:
-                        sim.Eat(1, cTan);
-                        sim.AddConst(-1);
-                        sim.Eat(2, cPow);
-                        break;
-                    case cCsc:
-                        sim.Eat(1, cSin);
-                        sim.AddConst(-1);
-                        sim.Eat(2, cPow);
-                        break;
-                    case cSec:
-                        sim.Eat(1, cCos);
-                        sim.AddConst(-1);
-                        sim.Eat(2, cPow);
-                        break;
-                    case cLog10:
-                        sim.Eat(1, cLog);
-                        sim.AddConst(CONSTANT_L10I);
-                        sim.Eat(2, cMul);
-                        break;
-                    case cLog2:
-                        sim.Eat(1, cLog);
-                        sim.AddConst(CONSTANT_L2I);
-                        sim.Eat(2, cMul);
-                        break;
-                    //case cLog:
-                    //    sim.Eat(1, cLog2);
-                    //    sim.AddConst(CONSTANT_L2);
-                    //    sim.Eat(2, cMul);
-                    //    break;
-                    // Binary operators requiring special attention
-                    case cSub:
-                        sim.AddConst(-1);
-                        sim.Eat(2, cMul); // -x is x*-1
-                        sim.Eat(2, cAdd); // Minus is negative adding
-                        break;
-                    case cRSub: // from fpoptimizer
-                        sim.SwapLastTwoInStack();
-                        sim.AddConst(-1);
-                        sim.Eat(2, cMul); // -x is x*-1
-                        sim.Eat(2, cAdd);
-                        break;
-                    case cDiv:
-                        sim.AddConst(-1);
-                        sim.Eat(2, cPow); // 1/x is x^-1
-                        sim.Eat(2, cMul); // Divide is inverse multiply
-                        break;
-                    case cRDiv: // from fpoptimizer
-                        sim.SwapLastTwoInStack();
-                        sim.AddConst(-1);
-                        sim.Eat(2, cPow); // 1/x is x^-1
-                        sim.Eat(2, cMul); // Divide is inverse multiply
-                        break;
-                    case cRPow:
-                        sim.SwapLastTwoInStack();
-                        sim.Eat(2, cPow);
-                        break;
-                    // Binary operators not requiring special attention
-                    case cAdd: case cMul:
-                    case cMod: case cPow:
-                    case cEqual: case cLess: case cGreater:
-                    case cNEqual: case cLessOrEq: case cGreaterOrEq:
-                    case cAnd: case cOr:
-                        sim.Eat(2, OPCODE(opcode));
-                        break;
-                    // Unary operators not requiring special attention
-                    case cNot:
-                    case cNotNot: // from fpoptimizer
-                        sim.Eat(1, OPCODE(opcode));
-                        break;
-                    // Special opcodes generated by fpoptimizer itself
-                    case cFetch:
-                        sim.Fetch(ByteCode[++IP]);
-                        break;
-                    case cPopNMov:
-                    {
-                        unsigned stackOffs_target = ByteCode[++IP];
-                        unsigned stackOffs_source = ByteCode[++IP];
-                        sim.PopNMov(stackOffs_target, stackOffs_source);
-                        break;
-                    }
-                    // Note: cVar should never be encountered in bytecode.
-                    // Other functions
+;}
+iF2
+FPoptimizer_CodeTree{lA
+GenerateFrom
+yI
+yC<lW3>&nR,const
+yC
+x5&Immed,const
+lZ3
+FunctionParserBase
+x5::Data&cA3,bool
+keep_powi){yC<tW>n22;n22.nE3
+cA3.numVariables);eR1
+0;n<cA3.numVariables;++n){n22
+yX
+CodeTreeVar
+x5(n+tZ2));}
+GenerateFrom(nR,Immed,cA3,n22,keep_powi);}
+lA
+GenerateFrom
+yI
+yC<lW3>&nR,const
+yC
+x5&Immed,const
+lZ3
+FunctionParserBase
+x5::Data&cA3,const
+nE2
+n22,bool
+keep_powi){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"ENTERS GenerateFrom()\n"
+;
+#endif
+CodeTreeParserData
+x5
+sim(keep_powi);yC<IfInfo
+x5>eJ;for
+cB1
+IP=0,DP=0;;++IP){t42:while(!eJ
+xT3&&(eJ.e8==IP||(IP<nR
+e72)&&xL3
+cJump&&eJ
+yU1.IsDefined()))){tY
+elsebranch=sim
+lP2
+t52
+eJ.back().yZ2)t52
+eJ
+yU1)t52
+elsebranch);n6
+3,cIf);eJ.pop_back();}
+if(IP>=nR
+e72))break
+xQ2
+opcode=nR[IP];if((opcode==cSqr||opcode==cDup||opcode==cInv||opcode==cNeg||opcode==cSqrt||opcode==cRSqrt||opcode==cFetch)){size_t
+was_ip=IP;iQ
+tK2=ParsePowiSequence
+x5(nR,IP,eJ
+xT3?nR
+e72):eJ.e8,sim.nP
+1);if
+nG2!=1.0){n3
+tK2)iW1
+goto
+t42;}
+if(opcode==cDup||opcode==cFetch||opcode==cNeg){iQ
+xO2=ParseMuliSequence
+x5(nR,IP,eJ
+xT3?nR
+e72):eJ.e8,sim.nP
+1);if
+lY2!=1.0){n3
+xO2);n6
+2
+eL3
+goto
+t42;}
+}
+IP=was_ip;}
+if(iG1>=tZ2){sim.Push(n22[opcode-tZ2]);}
+else{cI3
+iG1
+tV2
+cIf:case
+cAbsIf:{eJ
+n93
+eJ
+e72)+1);tY
+res(sim
+lP2);eJ.back().yZ2.swap(res);eJ.e8=nR
+e72);IP+=2;xU1}
+case
+cJump:{tY
+res(sim
+lP2);eJ
+yU1.swap(res);eJ.e8=nR[IP+1]+1;IP+=2;xU1}
+case
+cImmed:n3
+Immed[DP++]);lB
+cDup:sim.Dup();lB
+cNop:lB
+cFCall:{lW3
+funcno=yE3;assert(funcno<fpdata.FuncPtrs.size())xQ2
+params=cA3.FuncPtrs[funcno].params;sim.EatFunc(params,iG1,funcno
+cH2
+case
+cPCall:{lW3
+funcno=yE3;assert(funcno<fpdata.tB3.size());const
+FunctionParserBase
+x5&p=*cA3.tB3[funcno].parserPtr
+xQ2
+params=cA3.tB3[funcno].params;yC<tY>paramlist=sim.Pop(params);tY
+t62;t62.GenerateFrom(p.data->nR,p.data->Immed,*p.data,paramlist)t52
+t62
+cH2
+case
+cInv:n3
+1
+nH2
+cDiv);lB
+cNeg:xU3
+cNeg);break;n3
+0
+nH2
+cSub);lB
+cSqr:n3
+2)iW1
+lB
+cSqrt:n3
+yL1
+cRSqrt:n3-yL1
+cCbrt:n3
+lU
+3))iW1
+lB
+cDeg:n3
+fp_const_rad_to_deg
+x5
+yS1
+cRad:n3
+fp_const_deg_to_rad
+x5
+yS1
+cExp:xY1
+goto
+xW3;n3
+fp_const_e
+x5()nH2
+cPow);lB
+cExp2:xY1
+goto
+xW3;n3
+2.0
+nH2
+cPow);lB
+cCot:xU3
+cTan);if
+yS
+cCsc:xU3
+cSin);if
+yS
+cSec:xU3
+cCos);if
+yS
+cInt:
+#ifndef __x86_64
+xY1{xU3
+cInt
+cH2
+#endif
+n3
+0.5);xV3
+xU3
+cFloor);lB
+cLog10:xU3
+yA3
+fp_const_log10inv
+x5
+yS1
+cLog2:xU3
+yA3
+fp_const_log2inv
+x5
+yS1
+yQ3:tK3
+xU3
+yA3
+fp_const_log2inv
+x5());n6
+3
+eL3
+lB
+cHypot:n3
+2)iW1
+tK3
+n3
+2)iW1
+xV3
+n3
+yL1
+cSinCos:sim.Dup();xU3
+cSin);tK3
+xU3
+cCos);lB
+cRSub:tK3
+case
+cSub:xY1{n6
+2,cSub
+cH2
+n3-1);n6
+2
+eL3
+xV3
+lB
+cRDiv:tK3
+case
+cDiv:xY1{n6
+2,cDiv
+cH2
+n3-1)iW1
+n6
+2
+eL3
+lB
+cAdd:case
+cMul:case
+cMod:case
+cPow:case
+cEqual:case
+cLess:case
+cGreater:case
+cNEqual:case
+cLessOrEq:case
+cGreaterOrEq:case
+cAnd:case
+cOr:case
+cAbsAnd:case
+cAbsOr:n6
+2,xI1
+lB
+cNot:case
+cNotNot:case
+lQ2:case
+cAbsNotNot:xU3
+xI1
+lB
+cFetch:sim.Fetch(yE3);lB
+cPopNMov:{lW3
+stackOffs_target=yE3
+xQ2
+stackOffs_source=yE3;sim.PopNMov(stackOffs_target,stackOffs_source
+cH2
 #ifndef FP_DISABLE_EVAL
-                    case cEval:
-                    {
-                        size_t paramcount = fpdata.variableRefs.size();
-                        sim.Eat(paramcount, OPCODE(opcode));
-                        break;
-                    }
+case
+cEval:{size_t
+paramcount=cA3.numVariables;n6
+paramcount,xI1
+break;}
 #endif
-                    default:
-                        unsigned funcno = opcode-cAbs;
-                        assert(funcno < FUNC_AMOUNT);
-                        const FuncDefinition& func = Functions[funcno];
-                        sim.Eat(func.params, OPCODE(opcode));
-                        break;
-                }
-            }
-        }
-        Become(sim.PullResult());
-    #ifdef DEBUG_SUBSTITUTIONS
-        std::cout << "Produced tree:\n";
-        FPoptimizer_Grammar::DumpTreeWithIndent(*this);
-    #endif
-    }
+default:xW3:xQ2
+funcno=opcode-cAbs;assert(funcno<FUNC_AMOUNT);const
+FuncDefinition&func=Functions[funcno];n6
+func.params,xI1
+xF3}
+nQ3
+sim
+lP2);
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Produced tree:\n"
+;iV
+#endif
 }
-
+}
 #endif
-
-#line 1 "fpoptimizer/fpoptimizer_constantfolding.cc"
-// line removed
-// line removed
-// line removed
-
-#include <cmath> /* for CalculateResultBoundaries() */
 #include <algorithm>
-
-#include "fpconfig.hh"
-#include "fparser.hh"
-#include "fptypes.hh"
-
 #ifdef FP_SUPPORT_OPTIMIZER
-
-using namespace FUNCTIONPARSERTYPES;
-using namespace FPoptimizer_CodeTree;
-
+#include <assert.h>
 #define FP_MUL_COMBINE_EXPONENTS
-
-#ifdef _MSC_VER
-#include <float.h>
-#define isinf(x) (!_finite(x))
+iF2{nE
+using
+iF2
+FPoptimizer_CodeTree;lO
+static
+void
+AdoptChildrenWithSameOpcode(eH2
+#ifdef DEBUG_SUBSTITUTIONS
+bool
+iU1
+e23
 #endif
-
-namespace
-{
-    struct ComparisonSet /* For optimizing And, Or */
-    {
-        static const int Lt_Mask = 0x1; // 1=less
-        static const int Eq_Mask = 0x2; // 2=equal
-        static const int Le_Mask = 0x3; // 1+2 = Less or Equal
-        static const int Gt_Mask = 0x4; // 4=greater
-        static const int Ne_Mask = 0x5; // 4+1 = Greater or Less, i.e. Not equal
-        static const int Ge_Mask = 0x6; // 4+2 = Greater or Equal
-        static int Swap_Mask(int m) { return (m&Eq_Mask)
-                                  | ((m&Lt_Mask) ? Gt_Mask : 0)
-                                  | ((m&Gt_Mask) ? Lt_Mask : 0); }
-        struct Comparison
-        {
-            CodeTree a;
-            CodeTree b;
-            int relationship;
-        };
-        std::vector<Comparison> relationships;
-        struct Item
-        {
-            CodeTree value;
-            bool negated;
-        };
-        std::vector<Item> plain_set;
-
-        enum RelationshipResult
-        {
-            Ok,
-            BecomeZero,
-            BecomeOne,
-            Suboptimal
-        };
-
-        RelationshipResult AddItem(const CodeTree& a, bool negated, bool is_or)
-        {
-            for(size_t c=0; c<plain_set.size(); ++c)
-                if(plain_set[c].value.IsIdenticalTo(a))
-                {
-                    if(negated != plain_set[c].negated)
-                        return is_or ? BecomeOne : BecomeZero;
-                    return Suboptimal;
-                }
-            Item pole;
-            pole.value   = a;
-            pole.negated = negated;
-            plain_set.push_back(pole);
-            return Ok;
-        }
-
-        RelationshipResult AddRelationship(CodeTree a, CodeTree b, int reltype, bool is_or)
-        {
-            if(is_or)
-            {
-                if(reltype == 7) return BecomeOne;
-            }
-            else
-            {
-                if(reltype == 0) return BecomeZero;
-            }
-
-            if(!(a.GetHash() < b.GetHash()))
-            {
-                a.swap(b);
-                reltype = Swap_Mask(reltype);
-            }
-
-            for(size_t c=0; c<relationships.size(); ++c)
-            {
-                if(relationships[c].a.IsIdenticalTo(a)
-                && relationships[c].b.IsIdenticalTo(b))
-                {
-                    if(is_or)
-                    {
-                        int newrel = relationships[c].relationship | reltype;
-                        if(newrel == 7) return BecomeOne;
-                        relationships[c].relationship = newrel;
-                    }
-                    else
-                    {
-                        int newrel = relationships[c].relationship & reltype;
-                        if(newrel == 0) return BecomeZero;
-                        relationships[c].relationship = newrel;
-                    }
-                    return Suboptimal;
-                }
-            }
-            Comparison comp;
-            comp.a = a;
-            comp.b = b;
-            comp.relationship = reltype;
-            relationships.push_back(comp);
-            return Ok;
-        }
-
-        RelationshipResult AddAndRelationship(CodeTree a, CodeTree b, int reltype)
-        {
-            return AddRelationship(a, b, reltype, false);
-        }
-
-        RelationshipResult AddOrRelationship(CodeTree a, CodeTree b, int reltype)
-        {
-            return AddRelationship(a, b, reltype, true);
-        }
-    };
-
-    struct CollectionSet /* For optimizing Add,  Mul */
-    {
-        struct Collection
-        {
-            CodeTree value;
-            CodeTree factor;
-            bool factor_needs_rehashing;
-
-            Collection() : value(),factor(), factor_needs_rehashing(false) { }
-            Collection(const CodeTree& v, const CodeTree& f)
-                : value(v), factor(f), factor_needs_rehashing(false) { }
-        };
-        std::multimap<fphash_t, Collection> collections;
-
-        enum CollectionResult
-        {
-            Ok,
-            Suboptimal
-        };
-
-        typedef std::multimap<fphash_t, Collection>::iterator PositionType;
-
-        PositionType FindIdenticalValueTo(const CodeTree& value)
-        {
-            fphash_t hash = value.GetHash();
-            for(PositionType
-                i = collections.lower_bound(hash);
-                i != collections.end() && i->first == hash;
-                ++i)
-            {
-                if(value.IsIdenticalTo(i->second.value))
-                    return i;
-            }
-            return collections.end();
-        }
-        bool Found(const PositionType& b) { return b != collections.end(); }
-
-        CollectionResult AddCollectionTo(const CodeTree& factor,
-                                         const PositionType& into_which)
-        {
-            Collection& c = into_which->second;
-            if(c.factor_needs_rehashing)
-                c.factor.AddParam(factor);
-            else
-            {
-                CodeTree add;
-                add.SetOpcode(cAdd);
-                add.AddParamMove(c.factor);
-                add.AddParam(factor);
-                c.factor.swap(add);
-                c.factor_needs_rehashing = true;
-            }
-            return Suboptimal;
-        }
-
-        CollectionResult AddCollection(const CodeTree& value, const CodeTree& factor)
-        {
-            const fphash_t hash = value.GetHash();
-            PositionType i = collections.lower_bound(hash);
-            for(; i != collections.end() && i->first == hash; ++i)
-            {
-                if(i->second.value.IsIdenticalTo(value))
-                    return AddCollectionTo(factor, i);
-            }
-            collections.insert(
-                i,
-                std::make_pair( hash, Collection(value, factor) ) );
-            return Ok;
-        }
-
-        CollectionResult AddCollection(const CodeTree& a)
-        {
-            return AddCollection(a, CodeTree(1.0) );
-        }
-    };
-
-    struct Select2ndRev
-    {
-        template<typename T>
-        inline bool operator() (const T& a, const T& b) const
-        {
-            return a.second > b.second;
-        }
-    };
-    struct Select1st
-    {
-        template<typename T1, typename T2>
-        inline bool operator() (const std::pair<T1,T2>& a,
-                                const std::pair<T1,T2>& b) const
-        {
-            return a.first < b.first;
-        }
-
-        template<typename T1, typename T2>
-        inline bool operator() (const std::pair<T1,T2>& a, T1 b) const
-        {
-            return a.first < b;
-        }
-
-        template<typename T1, typename T2>
-        inline bool operator() (T1 a, const std::pair<T1,T2>& b) const
-        {
-            return a < b.first;
-        }
-    };
-
-    bool IsEvenIntegerConst(double v)
-    {
-        return IsIntegerConst(v) && ((long)v % 2) == 0;
-    }
-
-    struct ConstantExponentCollection
-    {
-        typedef std::pair<double, std::vector<CodeTree> > ExponentInfo;
-        std::vector<ExponentInfo> data;
-
-        void MoveToSet_Unique(double exponent, std::vector<CodeTree>& source_set)
-        {
-            data.push_back( std::pair<double, std::vector<CodeTree> >
-                            (exponent, std::vector<CodeTree>() ) );
-            data.back().second.swap(source_set);
-        }
-        void MoveToSet_NonUnique(double exponent, std::vector<CodeTree>& source_set)
-        {
-            std::vector<ExponentInfo>::iterator i
-                = std::lower_bound(data.begin(), data.end(), exponent, Select1st());
-            if(i != data.end() && i->first == exponent)
-            {
-                i->second.insert(i->second.end(), source_set.begin(), source_set.end());
-            }
-            else
-            {
-                //MoveToSet_Unique(exponent, source_set);
-                data.insert(i,  std::pair<double, std::vector<CodeTree> >
-                                (exponent, source_set) );
-            }
-        }
-
-        bool Optimize()
-        {
-            /* TODO: Group them such that:
-             *
-             *      x^3 *         z^2 becomes (x*z)^2 * x^1
-             *      x^3 * y^2.5 * z^2 becomes (x*z*y)^2 * y^0.5 * x^1
-             *                    rather than (x*y*z)^2 * (x*y)^0.5 * x^0.5
-             *
-             *      x^4.5 * z^2.5     becomes (z * x)^2.5 * x^2
-             *                        becomes (x*z*x)^2 * (z*x)^0.5
-             *                        becomes (z*x*x*z*x)^0.5 * (z*x*x)^1.5 -- buzz, bad.
-             *
-             */
-            bool changed = false;
-            std::sort( data.begin(), data.end(), Select1st() );
-        redo:
-            /* Supposed algorithm:
-             * For the smallest pair of data[] where the difference
-             * between the two is a "neat value" (x*16 is positive integer),
-             * do the combining as indicated above.
-             */
-            /*
-             * NOTE: Hanged in Testbed test P44, looping the following
-             *       (Var0 ^ 0.75) * ((1.5 * Var0) ^ 1.0)
-             *     = (Var0 ^ 1.75) *  (1.5         ^ 1.0)
-             *       Fixed by limiting to cases where (exp_a != 1.0).
-             *
-             * NOTE: Converting (x*z)^0.5 * x^16.5
-             *              into x^17 * z^0.5
-             *       is handled by code within CollectMulGroup().
-             *       However, bacause it is prone for infinite looping,
-             *       the use of "IsIdenticalTo(before)" is added at the
-             *       end of ConstantFolding_MulGrouping().
-             *
-             *       This algorithm could make it into (x*z*x)^0.5 * x^16,
-             *       but this is wrong, for it falsely includes x^evenint.. twice.
-             */
-            for(size_t a=0; a<data.size(); ++a)
-            {
-                double exp_a = data[a].first;
-                if(FloatEqual(exp_a, 1.0)) continue;
-                for(size_t b=a+1; b<data.size(); ++b)
-                {
-                    double exp_b = data[b].first;
-                    double exp_diff = exp_b - exp_a;
-                    if(exp_diff >= fabs(exp_a)) break;
-                    double exp_diff_still_probable_integer = exp_diff * 16.0;
-                    if(IsIntegerConst(exp_diff_still_probable_integer)
-                    && !(IsIntegerConst(exp_b) && !IsIntegerConst(exp_diff))
-                      )
-                    {
-                        /* When input is x^3 * z^2,
-                         * exp_a = 2
-                         * a_set = z
-                         * exp_b = 3
-                         * b_set = x
-                         * exp_diff = 3-2 = 1
-                         */
-                        std::vector<CodeTree>& a_set = data[a].second;
-                        std::vector<CodeTree>& b_set = data[b].second;
-          #ifdef DEBUG_SUBSTITUTIONS
-                        std::cout << "Before ConstantExponentCollection iteration:\n";
-                        Dump(std::cout);
-          #endif
-                        if(IsIntegerConst(exp_b)
-                        && IsEvenIntegerConst(exp_b)
-                        //&& !IsEvenIntegerConst(exp_diff)
-                        && !IsEvenIntegerConst(exp_diff+exp_a))
-                        {
-                            CodeTree tmp2;
-                            tmp2.SetOpcode(cMul);
-                            tmp2.SetParamsMove(b_set);
-                            tmp2.Rehash();
-                            CodeTree tmp;
-                            tmp.SetOpcode(cAbs);
-                            tmp.AddParamMove(tmp2);
-                            tmp.Rehash();
-                            b_set.resize(1);
-                            b_set[0].swap(tmp);
-                        }
-
-                        a_set.insert(a_set.end(), b_set.begin(), b_set.end());
-
-                        std::vector<CodeTree> b_copy = b_set;
-                        data.erase(data.begin() + b);
-                        MoveToSet_NonUnique(exp_diff, b_copy);
-                        changed = true;
-
-          #ifdef DEBUG_SUBSTITUTIONS
-                        std::cout << "After ConstantExponentCollection iteration:\n";
-                        Dump(std::cout);
-          #endif
-                        goto redo;
-                    }
-                }
-            }
-            return changed;
-        }
-
-    #ifdef DEBUG_SUBSTITUTIONS
-        void Dump(std::ostream& out)
-        {
-            for(size_t a=0; a<data.size(); ++a)
-            {
-                out.precision(12);
-                out << data[a].first << ": ";
-                for(size_t b=0; b<data[a].second.size(); ++b)
-                {
-                    if(b > 0) out << '*';
-                    FPoptimizer_Grammar::DumpTree(data[a].second[b], out);
-                }
-                out << std::endl;
-            }
-        }
-    #endif
-
-    };
+e92
+if(lR1
+a)nD
+xC1){
+#ifdef DEBUG_SUBSTITUTIONS
+if(!iU1){std::cout<<"Before assimilation: "
+c8
+iU1=true;}
+#endif
+tree.AddParamsMove(lR1
+a).GetUniqueRef().tM1),a);}
+#ifdef DEBUG_SUBSTITUTIONS
+if(iU1){std::cout<<"After assimilation:   "
+c8}
+#endif
 }
-
-namespace FPoptimizer_CodeTree
-{
-    void CodeTree::ConstantFolding_FromLogicalParent()
-    {
-    redo:;
-        switch(GetOpcode())
-        {
-            case cNotNot:
-            //ReplaceTreeWithParam0:
-                Become(GetParam(0));
-                goto redo;
-            case cIf:
-                CopyOnWrite();
-                while(GetParam(1).GetOpcode() == cNotNot)
-                    SetParamMove(1, GetParam(1).GetUniqueRef().GetParam(0));
-                GetParam(1).ConstantFolding_FromLogicalParent();
-
-                while(GetParam(2).GetOpcode() == cNotNot)
-                    SetParamMove(2, GetParam(2).GetUniqueRef().GetParam(0));
-                GetParam(2).ConstantFolding_FromLogicalParent();
-
-                Rehash();
-                break;
-            default: break;
-        }
-    }
-
-    bool CodeTree::ConstantFolding_LogicCommon(bool is_or)
-    {
-        bool should_regenerate = false;
-        ComparisonSet comp;
-        for(size_t a=0; a<GetParamCount(); ++a)
-        {
-            ComparisonSet::RelationshipResult change = ComparisonSet::Ok;
-            const CodeTree& atree = GetParam(a);
-            switch(atree.GetOpcode())
-            {
-                case cEqual:
-                    change = comp.AddRelationship(atree.GetParam(0), atree.GetParam(1), ComparisonSet::Eq_Mask, is_or);
-                    break;
-                case cNEqual:
-                    change = comp.AddRelationship(atree.GetParam(0), atree.GetParam(1), ComparisonSet::Ne_Mask, is_or);
-                    break;
-                case cLess:
-                    change = comp.AddRelationship(atree.GetParam(0), atree.GetParam(1), ComparisonSet::Lt_Mask, is_or);
-                    break;
-                case cLessOrEq:
-                    change = comp.AddRelationship(atree.GetParam(0), atree.GetParam(1), ComparisonSet::Le_Mask, is_or);
-                    break;
-                case cGreater:
-                    change = comp.AddRelationship(atree.GetParam(0), atree.GetParam(1), ComparisonSet::Gt_Mask, is_or);
-                    break;
-                case cGreaterOrEq:
-                    change = comp.AddRelationship(atree.GetParam(0), atree.GetParam(1), ComparisonSet::Ge_Mask, is_or);
-                    break;
-                case cNot:
-                    change = comp.AddItem(atree.GetParam(0), true, is_or);
-                    break;
-                default:
-                    change = comp.AddItem(atree, false, is_or);
-            }
-            switch(change)
-            {
-            ReplaceTreeWithZero:
-                    data = new CodeTreeData(0.0);
-                    return true;
-            ReplaceTreeWithOne:
-                    data = new CodeTreeData(1.0);
-                    return true;
-                case ComparisonSet::Ok: // ok
-                    break;
-                case ComparisonSet::BecomeZero: // whole set was invalidated
-                    goto ReplaceTreeWithZero;
-                case ComparisonSet::BecomeOne: // whole set was validated
-                    goto ReplaceTreeWithOne;
-                case ComparisonSet::Suboptimal: // something was changed
-                    should_regenerate = true;
-                    break;
-            }
-        }
-        if(should_regenerate)
-        {
-          #ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "Before ConstantFolding_LogicCommon: "; FPoptimizer_Grammar::DumpTree(*this);
-            std::cout << "\n";
-          #endif
-            DelParams();
-            for(size_t a=0; a<comp.plain_set.size(); ++a)
-            {
-                if(comp.plain_set[a].negated)
-                {
-                    CodeTree r;
-                    r.SetOpcode(cNot);
-                    r.AddParamMove(comp.plain_set[a].value);
-                    r.Rehash();
-                    AddParamMove(r);
-                }
-                else
-                    AddParamMove(comp.plain_set[a].value);
-            }
-            for(size_t a=0; a<comp.relationships.size(); ++a)
-            {
-                CodeTree r;
-                r.SetOpcode(cAtan2);
-                switch(comp.relationships[a].relationship)
-                {
-                    case ComparisonSet::Lt_Mask: r.SetOpcode( cLess ); break;
-                    case ComparisonSet::Eq_Mask: r.SetOpcode( cEqual ); break;
-                    case ComparisonSet::Gt_Mask: r.SetOpcode( cGreater ); break;
-                    case ComparisonSet::Le_Mask: r.SetOpcode( cLessOrEq ); break;
-                    case ComparisonSet::Ne_Mask: r.SetOpcode( cNEqual ); break;
-                    case ComparisonSet::Ge_Mask: r.SetOpcode( cGreaterOrEq ); break;
-                }
-                r.AddParamMove(comp.relationships[a].a);
-                r.AddParamMove(comp.relationships[a].b);
-                r.Rehash();
-                AddParamMove(r);
-            }
-          #ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "After ConstantFolding_LogicCommon: "; FPoptimizer_Grammar::DumpTree(*this);
-            std::cout << "\n";
-          #endif
-            return true;
-        }
-        /*
-        Note: One thing this does not yet do, is to detect chains
-              such as x=y & y=z & x=z, which could be optimized
-              to x=y & x=z.
-        */
-        return false;
-    }
-
-    bool CodeTree::ConstantFolding_AndLogic()
-    {
-        return ConstantFolding_LogicCommon(false);
-    }
-    bool CodeTree::ConstantFolding_OrLogic()
-    {
-        return ConstantFolding_LogicCommon(true);
-    }
-
-    static CodeTree CollectMulGroup_Item(
-        CodeTree& value,
-        bool& has_highlevel_opcodes)
-    {
-        switch(value.GetOpcode())
-        {
-            case cPow:
-            {
-                CodeTree exponent = value.GetParam(1);
-                value.Become( value.GetParam(0) );
-                return exponent;
-            }
-            case cSqrt:
-                value.Become( value.GetParam(0) );
-                has_highlevel_opcodes = true;
-                return CodeTree(0.5);
-            case cRSqrt:
-                value.Become( value.GetParam(0) );
-                has_highlevel_opcodes = true;
-                return CodeTree(-0.5);
-            case cInv:
-                value.Become( value.GetParam(0) );
-                has_highlevel_opcodes = true;
-                return CodeTree(-1.0);
-            default: break;
-        }
-        return CodeTree(1.0);
-    }
-
-    static void CollectMulGroup(
-        CollectionSet& mul, const CodeTree& tree, const CodeTree& factor,
-        bool& should_regenerate,
-        bool& has_highlevel_opcodes
-    )
-    {
-        for(size_t a=0; a<tree.GetParamCount(); ++a)
-        {
-            CodeTree value(tree.GetParam(a));
-
-            CodeTree exponent ( CollectMulGroup_Item(value, has_highlevel_opcodes) );
-
-            if(!factor.IsImmed() || factor.GetImmed() != 1.0)
-            {
-                CodeTree new_exp;
-                new_exp.SetOpcode(cMul);
-                new_exp.AddParam( exponent );
-                new_exp.AddParam( factor );
-                new_exp.Rehash();
-                exponent.swap( new_exp );
-            }
-        #if 0 /* FIXME: This does not work */
-            if(value.GetOpcode() == cMul)
-            {
-                if(1)
-                {
-                    // Avoid erroneously converting
-                    //          (x*z)^0.5 * z^2
-                    // into     x^0.5 * z^2.5
-                    // It should be x^0.5 * abs(z)^2.5, but this is not a good conversion.
-                    bool exponent_is_even = exponent.IsImmed() && IsEvenIntegerConst(exponent.GetImmed());
-
-                    for(size_t b=0; b<value.GetParamCount(); ++b)
-                    {
-                        bool tmp=false;
-                        CodeTree val(value.GetParam(b));
-                        CodeTree exp(CollectMulGroup_Item(val, tmp));
-                        if(exponent_is_even
-                        || (exp.IsImmed() && IsEvenIntegerConst(exp.GetImmed())))
-                        {
-                            CodeTree new_exp;
-                            new_exp.SetOpcode(cMul);
-                            new_exp.AddParam(exponent);
-                            new_exp.AddParamMove(exp);
-                            new_exp.ConstantFolding();
-                            if(!new_exp.IsImmed() || !IsEvenIntegerConst(new_exp.GetImmed()))
-                            {
-                                goto cannot_adopt_mul;
-                            }
-                        }
-                    }
-                }
-                CollectMulGroup(mul, value, exponent,
-                                should_regenerate,
-                                has_highlevel_opcodes);
-            }
-            else cannot_adopt_mul:
-        #endif
-            {
-                if(mul.AddCollection(value, exponent) == CollectionSet::Suboptimal)
-                    should_regenerate = true;
-            }
-        }
-    }
-
-    bool CodeTree::ConstantFolding_MulGrouping()
-    {
-        bool has_highlevel_opcodes = false;
-        bool should_regenerate = false;
-        CollectionSet mul;
-
-        CollectMulGroup(mul, *this, CodeTree(1.0),
-                        should_regenerate,
-                        has_highlevel_opcodes);
-
-        typedef std::pair<CodeTree/*exponent*/,
-                          std::vector<CodeTree>/*base value (mul group)*/
-                         > exponent_list;
-        typedef std::multimap<fphash_t,/*exponent hash*/
-                              exponent_list> exponent_map;
-        exponent_map by_exponent;
-
-        for(CollectionSet::PositionType
-            j = mul.collections.begin();
-            j != mul.collections.end();
-            ++j)
-        {
-            CodeTree& value = j->second.value;
-            CodeTree& exponent = j->second.factor;
-            if(j->second.factor_needs_rehashing) exponent.Rehash();
-            const fphash_t exponent_hash = exponent.GetHash();
-
-            exponent_map::iterator i = by_exponent.lower_bound(exponent_hash);
-            for(; i != by_exponent.end() && i->first == exponent_hash; ++i)
-                if(i->second.first.IsIdenticalTo(exponent))
-                {
-                    if(!exponent.IsImmed() || !FloatEqual(exponent.GetImmed(), 1.0))
-                        should_regenerate = true;
-                    i->second.second.push_back(value);
-                    goto skip_b;
-                }
-            by_exponent.insert(i, std::make_pair(exponent_hash,
-                std::make_pair(exponent,
-                               std::vector<CodeTree> (size_t(1), value)
-                              )));
-        skip_b:;
-        }
-
-    #ifdef FP_MUL_COMBINE_EXPONENTS
-        ConstantExponentCollection by_float_exponent;
-        for(exponent_map::iterator
-            j,i = by_exponent.begin();
-            i != by_exponent.end();
-            i=j)
-        {
-            j=i; ++j;
-            exponent_list& list = i->second;
-            if(list.first.IsImmed())
-            {
-                double exponent = list.first.GetImmed();
-                if(!(exponent == 0.0))
-                    by_float_exponent.MoveToSet_Unique(exponent, list.second);
-                by_exponent.erase(i);
-            }
-        }
-        if(by_float_exponent.Optimize())
-            should_regenerate = true;
-    #endif
-
-        if(should_regenerate)
-        {
-            CodeTree before = *this;
-            before.CopyOnWrite();
-
-          #ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "Before ConstantFolding_MulGrouping: "; FPoptimizer_Grammar::DumpTree(before);
-            std::cout << "\n";
-          #endif
-            DelParams();
-
-            /* Group by exponents */
-            /* First handle non-constant exponents */
-            for(exponent_map::iterator
-                i = by_exponent.begin();
-                i != by_exponent.end();
-                ++i)
-            {
-                exponent_list& list = i->second;
-        #ifndef FP_MUL_COMBINE_EXPONENTS
-                if(list.first.IsImmed())
-                {
-                    double exponent = list.first.GetImmed();
-                    if(exponent == 0.0) continue;
-                    if(FloatEqual(exponent, 1.0))
-                    {
-                        AddParamsMove(list.second);
-                        continue;
-                    }
-                }
-        #endif
-                CodeTree mul;
-                mul.SetOpcode(cMul);
-                mul.SetParamsMove( list.second);
-                mul.Rehash();
-
-                if(has_highlevel_opcodes && list.first.IsImmed())
-                {
-                    if(list.first.GetImmed() == 0.5)
-                    {
-                        CodeTree sqrt;
-                        sqrt.SetOpcode(cSqrt);
-                        sqrt.AddParamMove(mul);
-                        sqrt.Rehash();
-                        AddParamMove(sqrt);
-                        continue;
-                    }
-                    if(list.first.GetImmed() == -0.5)
-                    {
-                        CodeTree rsqrt;
-                        rsqrt.SetOpcode(cRSqrt);
-                        rsqrt.AddParamMove(mul);
-                        rsqrt.Rehash();
-                        AddParamMove(rsqrt);
-                        continue;
-                    }
-                    if(list.first.GetImmed() == -1.0)
-                    {
-                        CodeTree inv;
-                        inv.SetOpcode(cInv);
-                        inv.AddParamMove(mul);
-                        inv.Rehash();
-                        AddParamMove(inv);
-                        continue;
-                    }
-                }
-                CodeTree pow;
-                pow.SetOpcode(cPow);
-                pow.AddParamMove(mul);
-                pow.AddParamMove( list.first );
-                pow.Rehash();
-                AddParamMove(pow);
-            }
-        #ifdef FP_MUL_COMBINE_EXPONENTS
-            by_exponent.clear();
-            /* Then handle constant exponents */
-            for(size_t a=0; a<by_float_exponent.data.size(); ++a)
-            {
-                double exponent = by_float_exponent.data[a].first;
-                if(FloatEqual(exponent, 1.0))
-                {
-                    AddParamsMove(by_float_exponent.data[a].second);
-                    continue;
-                }
-                CodeTree mul;
-                mul.SetOpcode(cMul);
-                mul.SetParamsMove( by_float_exponent.data[a].second );
-                mul.Rehash();
-                CodeTree pow;
-                pow.SetOpcode(cPow);
-                pow.AddParamMove(mul);
-                pow.AddParam( CodeTree( exponent ) );
-                pow.Rehash();
-                AddParamMove(pow);
-            }
-        #endif
-          #ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "After ConstantFolding_MulGrouping: "; FPoptimizer_Grammar::DumpTree(*this);
-            std::cout << "\n";
-          #endif
-            // return true;
-            return !IsIdenticalTo(before); // avoids infinite looping
-        }
-        return false;
-    }
-
-    bool CodeTree::ConstantFolding_AddGrouping()
-    {
-        bool should_regenerate = false;
-        CollectionSet add;
-        for(size_t a=0; a<GetParamCount(); ++a)
-        {
-            if(GetParam(a).GetOpcode() == cMul) continue;
-            if(add.AddCollection(GetParam(a)) == CollectionSet::Suboptimal)
-                should_regenerate = true;
-            // This catches x + x and x - x
-        }
-        std::vector<bool> remaining ( GetParamCount() );
-        size_t has_mulgroups_remaining = 0;
-        for(size_t a=0; a<GetParamCount(); ++a)
-        {
-            const CodeTree& mulgroup = GetParam(a);
-            if(mulgroup.GetOpcode() == cMul)
-            {
-                // This catches x + y*x*z, producing x*(1 + y*z)
-                //
-                // However we avoid changing 7 + 7*x into 7*(x+1),
-                // because it may lead us into producing code such
-                // as 20*x + 50*(x+1) + 10, which would be much
-                // better expressed as 70*x + 60, and converting
-                // back to that format would be needlessly hairy.
-                for(size_t b=0; b<mulgroup.GetParamCount(); ++b)
-                {
-                    if(mulgroup.GetParam(b).IsImmed()) continue;
-                    CollectionSet::PositionType c
-                        = add.FindIdenticalValueTo(mulgroup.GetParam(b));
-                    if(add.Found(c))
-                    {
-                        CodeTree tmp(mulgroup, CodeTree::CloneTag());
-                        tmp.DelParam(b);
-                        tmp.Rehash();
-                        add.AddCollectionTo(tmp, c);
-                        should_regenerate = true;
-                        goto done_a;
-                    }
-                }
-                remaining[a]  = true;
-                has_mulgroups_remaining += 1;
-            done_a:;
-            }
-        }
-
-        if(has_mulgroups_remaining > 0)
-        {
-            if(has_mulgroups_remaining > 1) // is it possible to find a duplicate?
-            {
-                std::vector< std::pair<CodeTree, size_t> > occurance_counts;
-                std::multimap<fphash_t, size_t> occurance_pos;
-                bool found_dup = false;
-                for(size_t a=0; a<GetParamCount(); ++a)
-                    if(remaining[a])
-                    {
-                        // This catches x*a + x*b, producing x*(a+b)
-                        for(size_t b=0; b<GetParam(a).GetParamCount(); ++b)
-                        {
-                            const CodeTree& p = GetParam(a).GetParam(b);
-                            const fphash_t   p_hash = p.GetHash();
-                            for(std::multimap<fphash_t, size_t>::const_iterator
-                                i = occurance_pos.lower_bound(p_hash);
-                                i != occurance_pos.end() && i->first == p_hash;
-                                ++i)
-                            {
-                                if(occurance_counts[i->second].first.IsIdenticalTo(p))
-                                {
-                                    occurance_counts[i->second].second += 1;
-                                    found_dup = true;
-                                    goto found_mulgroup_item_dup;
-                                }
-                            }
-                            occurance_counts.push_back(std::make_pair(p, size_t(1)));
-                            occurance_pos.insert(std::make_pair(p_hash, occurance_counts.size()-1));
-                        found_mulgroup_item_dup:;
-                        }
-                    }
-                if(found_dup)
-                {
-                    // Find the "x" to group by
-                    CodeTree group_by; { size_t max = 0;
-                    for(size_t p=0; p<occurance_counts.size(); ++p)
-                        if(occurance_counts[p].second <= 1)
-                            occurance_counts[p].second = 0;
-                        else
-                        {
-                            occurance_counts[p].second *= occurance_counts[p].first.GetDepth();
-                            if(occurance_counts[p].second > max)
-                                { group_by = occurance_counts[p].first; max = occurance_counts[p].second; }
-                        } }
-                    // Collect the items for adding in the group (a+b)
-                    CodeTree group_add;
-                    group_add.SetOpcode(cAdd);
-
-        #ifdef DEBUG_SUBSTITUTIONS
-                    std::cout << "Duplicate across some trees: ";
-                    FPoptimizer_Grammar::DumpTree(group_by);
-                    std::cout << " in ";
-                    FPoptimizer_Grammar::DumpTree(*this);
-                    std::cout << "\n";
-        #endif
-                    for(size_t a=0; a<GetParamCount(); ++a)
-                        if(remaining[a])
-                            for(size_t b=0; b<GetParam(a).GetParamCount(); ++b)
-                                if(group_by.IsIdenticalTo(GetParam(a).GetParam(b)))
-                                {
-                                    CodeTree tmp(GetParam(a), CodeTree::CloneTag());
-                                    tmp.DelParam(b);
-                                    tmp.Rehash();
-                                    group_add.AddParamMove(tmp);
-                                    remaining[a] = false;
-                                    break;
-                                }
-                    group_add.Rehash();
-                    CodeTree group;
-                    group.SetOpcode(cMul);
-                    group.AddParamMove(group_by);
-                    group.AddParamMove(group_add);
-                    group.Rehash();
-                    add.AddCollection(group);
-                    should_regenerate = true;
-                }
-            }
-
-            // all remaining mul-groups.
-            for(size_t a=0; a<GetParamCount(); ++a)
-                if(remaining[a])
-                {
-                    if(add.AddCollection(GetParam(a)) == CollectionSet::Suboptimal)
-                        should_regenerate = true;
-                }
-        }
-
-        if(should_regenerate)
-        {
-          #ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "Before ConstantFolding_AddGrouping: "; FPoptimizer_Grammar::DumpTree(*this);
-            std::cout << "\n";
-          #endif
-            DelParams();
-
-            for(CollectionSet::PositionType
-                j = add.collections.begin();
-                j != add.collections.end();
-                ++j)
-            {
-                CodeTree& value = j->second.value;
-                CodeTree& coeff = j->second.factor;
-                if(j->second.factor_needs_rehashing) coeff.Rehash();
-
-                if(coeff.IsImmed())
-                {
-                    if(coeff.GetImmed() == 0.0)
-                        continue;
-                    if(FloatEqual(coeff.GetImmed(), 1.0))
-                    {
-                        AddParamMove(value);
-                        continue;
-                    }
-                }
-                CodeTree mul;
-                mul.SetOpcode(cMul);
-                mul.AddParamMove(value);
-                mul.AddParamMove(coeff);
-                mul.Rehash();
-                AddParamMove(mul);
-            }
-          #ifdef DEBUG_SUBSTITUTIONS
-            std::cout << "After ConstantFolding_AddGrouping: "; FPoptimizer_Grammar::DumpTree(*this);
-            std::cout << "\n";
-          #endif
-            return true;
-        }
-        return false;
-    }
-
-    bool CodeTree::ConstantFolding_Assimilate()
-    {
-        /* If the list contains another list of the same kind, assimilate it */
-        bool assimilated = false;
-        for(size_t a=GetParamCount(); a-- > 0; )
-            if(GetParam(a).GetOpcode() == GetOpcode())
-            {
-              #ifdef DEBUG_SUBSTITUTIONS
-                if(!assimilated)
-                {
-                    std::cout << "Before assimilation: "; FPoptimizer_Grammar::DumpTree(*this);
-                    std::cout << "\n";
-                    assimilated = true;
-                }
-              #endif
-                // Assimilate its children and remove it
-                AddParamsMove(GetParam(a).GetUniqueRef().GetParams(), a);
-            }
-      #ifdef DEBUG_SUBSTITUTIONS
-        if(assimilated)
-        {
-            std::cout << "After assimilation:   "; FPoptimizer_Grammar::DumpTree(*this);
-            std::cout << "\n";
-        }
-      #endif
-        return assimilated;
-    }
-
-    void CodeTree::ConstantFolding()
-    {
-    #ifdef DEBUG_SUBSTITUTIONS
-        std::cout << "Runs ConstantFolding for: "; FPoptimizer_Grammar::DumpTree(*this);
-        std::cout << "\n";
-    #endif
-        using namespace std;
-    redo:;
-
-        // Insert here any hardcoded constant-folding optimizations
-        // that you want to be done whenever a new subtree is generated.
-        /* Not recursive. */
-
-        double const_value = 1.0;
-        size_t which_param = 0;
-
-        if(GetOpcode() != cImmed)
-        {
-            MinMaxTree p = CalculateResultBoundaries();
-            if(p.has_min && p.has_max && p.min == p.max)
-            {
-                // Replace us with this immed
-                const_value = p.min;
-                goto ReplaceTreeWithConstValue;
-            }
-        }
-
-        /* Constant folding */
-        switch(GetOpcode())
-        {
-            case cImmed:
-                break; // nothing to do
-            case cVar:
-                break; // nothing to do
-
-            ReplaceTreeWithOne:
-                const_value = 1.0;
-                goto ReplaceTreeWithConstValue;
-            ReplaceTreeWithZero:
-                const_value = 0.0;
-            ReplaceTreeWithConstValue:
-              #ifdef DEBUG_SUBSTITUTIONS
-                std::cout << "Replacing "; FPoptimizer_Grammar::DumpTree(*this);
-                std::cout << " with const value " << const_value << "\n";
-              #endif
-                data = new CodeTreeData(const_value);
-                break;
-            ReplaceTreeWithParam0:
-                which_param = 0;
-            ReplaceTreeWithParam:
-              #ifdef DEBUG_SUBSTITUTIONS
-                std::cout << "Before replace: "; FPoptimizer_Grammar::DumpTree(*this);
-                std::cout << "\n";
-              #endif
-                Become(GetParam(which_param));
-              #ifdef DEBUG_SUBSTITUTIONS
-                std::cout << "After replace: "; FPoptimizer_Grammar::DumpTree(*this);
-                std::cout << "\n";
-              #endif
-                goto redo;
-
-            case cAnd:
-            {
-                for(size_t a=0; a<GetParamCount(); ++a)
-                    GetParam(a).ConstantFolding_FromLogicalParent();
-                ConstantFolding_Assimilate();
-                // If the and-list contains an expression that evaluates to approx. zero,
-                // the whole list evaluates to zero.
-                // If all expressions within the and-list evaluate to approx. nonzero,
-                // the whole list evaluates to one.
-                bool all_values_are_nonzero = true;
-                for(size_t a=0; a<GetParamCount(); ++a)
-                {
-                    MinMaxTree p = GetParam(a).CalculateResultBoundaries();
-                    if(p.has_min && p.has_max
-                    && p.min > -0.5 && p.max < 0.5) // -0.5 < x < 0.5 = zero
-                    {
-                        goto ReplaceTreeWithZero;
-                    }
-                    else if( (p.has_max && p.max <= -0.5)
-                          || (p.has_min && p.min >= 0.5)) // |x| >= 0.5  = nonzero
-                    {
-                    }
-                    else
-                        all_values_are_nonzero = false;
-                }
-                if(all_values_are_nonzero) goto ReplaceTreeWithOne;
-                switch(GetParamCount())
-                {
-                    case 0: goto ReplaceTreeWithZero;
-                    case 1: SetOpcode(cNotNot); goto redo; // Replace self with the single operand
-                    default: if(ConstantFolding_AndLogic()) goto redo;
-                }
-                break;
-            }
-            case cOr:
-            {
-                for(size_t a=0; a<GetParamCount(); ++a)
-                    GetParam(a).ConstantFolding_FromLogicalParent();
-                ConstantFolding_Assimilate();
-                // If the or-list contains an expression that evaluates to approx. nonzero,
-                // the whole list evaluates to one.
-                // If all expressions within the and-list evaluate to approx. zero,
-                // the whole list evaluates to zero.
-                bool all_values_are_zero = true;
-                for(size_t a=0; a<GetParamCount(); ++a)
-                {
-                    MinMaxTree p = GetParam(a).CalculateResultBoundaries();
-                    if(p.has_min && p.has_max
-                    && p.min > -0.5 && p.max < 0.5) // -0.5 < x < 0.5 = zero
-                    {
-                    }
-                    else if( (p.has_max && p.max <= -0.5)
-                          || (p.has_min && p.min >= 0.5)) // |x| >= 0.5  = nonzero
-                    {
-                        goto ReplaceTreeWithOne;
-                    }
-                    else
-                        all_values_are_zero = false;
-                }
-                if(all_values_are_zero) goto ReplaceTreeWithZero;
-                switch(GetParamCount())
-                {
-                    case 0: goto ReplaceTreeWithOne;
-                    case 1: SetOpcode(cNotNot); goto redo; // Replace self with the single operand
-                    default: if(ConstantFolding_OrLogic()) goto redo;
-                }
-                break;
-            }
-            case cNot:
-            {
-                GetParam(0).ConstantFolding_FromLogicalParent();
-                switch(GetParam(0).GetOpcode())
-                {
-                    case cEqual:       SetOpcode(cNEqual); goto cNot_moveparam;
-                    case cNEqual:      SetOpcode(cEqual); goto cNot_moveparam;
-                    case cLess:        SetOpcode(cGreaterOrEq); goto cNot_moveparam;
-                    case cGreater:     SetOpcode(cLessOrEq); goto cNot_moveparam;
-                    case cLessOrEq:    SetOpcode(cGreater); goto cNot_moveparam;
-                    case cGreaterOrEq: SetOpcode(cLess); goto cNot_moveparam;
-                    //cNotNot already handled by ConstantFolding_FromLogicalParent()
-                    case cNot:         SetOpcode(cNotNot); goto cNot_moveparam;
-                         { cNot_moveparam:;
-                               SetParamsMove(GetParam(0).GetUniqueRef().GetParams()); goto redo; }
-                    default: break;
-                }
-
-                // If the sub-expression evaluates to approx. zero, yield one.
-                // If the sub-expression evaluates to approx. nonzero, yield zero.
-                MinMaxTree p = GetParam(0).CalculateResultBoundaries();
-                if(p.has_min && p.has_max
-                && p.min > -0.5 && p.max < 0.5) // -0.5 < x < 0.5 = zero
-                {
-                    goto ReplaceTreeWithOne;
-                }
-                else if( (p.has_max && p.max <= -0.5)
-                      || (p.has_min && p.min >= 0.5)) // |x| >= 0.5  = nonzero
-                    goto ReplaceTreeWithZero;
-                break;
-            }
-            case cNotNot:
-            {
-                // The function of cNotNot is to protect a logical value from
-                // changing. If the parameter is already a logical value,
-                // then the cNotNot opcode is redundant.
-                if(GetParam(0).IsLogicalValue())
-                    goto ReplaceTreeWithParam0;
-
-                // If the sub-expression evaluates to approx. zero, yield zero.
-                // If the sub-expression evaluates to approx. nonzero, yield one.
-                MinMaxTree p = GetParam(0).CalculateResultBoundaries();
-                if(p.has_min && p.has_max
-                && p.min > -0.5 && p.max < 0.5) // -0.5 < x < 0.5 = zero
-                {
-                    goto ReplaceTreeWithZero;
-                }
-                else if( (p.has_max && p.max <= -0.5)
-                      || (p.has_min && p.min >= 0.5)) // |x| >= 0.5  = nonzero
-                    goto ReplaceTreeWithOne;
-                break;
-            }
-            case cIf:
-            {
-                GetParam(0).ConstantFolding_FromLogicalParent();
-                // If the If() condition begins with a cNot,
-                // remove the cNot and swap the branches.
-                while(GetParam(0).GetOpcode() == cNot)
-                {
-                    GetParam(0).Become( GetParam(0).GetParam(0) );
-                    GetParam(1).swap(GetParam(2));
-                }
-
-                // If the sub-expression evaluates to approx. zero, yield param3.
-                // If the sub-expression evaluates to approx. nonzero, yield param2.
-                MinMaxTree p = GetParam(0).CalculateResultBoundaries();
-                if(p.has_min && p.has_max
-                && p.min > -0.5 && p.max < 0.5) // -0.5 < x < 0.5 = zero
-                {
-                    which_param = 2;
-                    goto ReplaceTreeWithParam;
-                }
-                else if( (p.has_max && p.max <= -0.5)
-                      || (p.has_min && p.min >= 0.5)) // |x| >= 0.5  = nonzero
-                {
-                    which_param = 1;
-                    goto ReplaceTreeWithParam;
-                }
-                break;
-            }
-            case cMul:
-            {
-            NowWeAreMulGroup: ;
-                ConstantFolding_Assimilate();
-                // If one sub-expression evalutes to exact zero, yield zero.
-                double immed_product = 1.0;
-                size_t n_immeds = 0; bool needs_resynth=false;
-                for(size_t a=0; a<GetParamCount(); ++a)
-                {
-                    if(!GetParam(a).IsImmed()) continue;
-                    // ^ Only check constant values
-                    double immed = GetParam(a).GetImmed();
-                    if(immed == 0.0) goto ReplaceTreeWithZero;
-                    immed_product *= immed; ++n_immeds;
-                }
-                // Merge immeds.
-                if(n_immeds > 1 || (n_immeds == 1 && FloatEqual(immed_product, 1.0)))
-                    needs_resynth = true;
-                if(needs_resynth)
-                {
-                    // delete immeds and add new ones
-                #ifdef DEBUG_SUBSTITUTIONS
-                    std::cout << "cMul: Will add new immed " << immed_product << "\n";
-                #endif
-                    for(size_t a=GetParamCount(); a-->0; )
-                        if(GetParam(a).IsImmed())
-                        {
-                        #ifdef DEBUG_SUBSTITUTIONS
-                            std::cout << " - For that, deleting immed " << GetParam(a).GetImmed();
-                            std::cout << "\n";
-                        #endif
-                            DelParam(a);
-                        }
-                    if(!FloatEqual(immed_product, 1.0))
-                        AddParam( CodeTree(immed_product) );
-                }
-                switch(GetParamCount())
-                {
-                    case 0: goto ReplaceTreeWithOne;
-                    case 1: goto ReplaceTreeWithParam0; // Replace self with the single operand
-                    default: if(ConstantFolding_MulGrouping()) goto redo;
-                }
-                break;
-            }
-            case cAdd:
-            {
-                ConstantFolding_Assimilate();
-                double immed_sum = 0.0;
-                size_t n_immeds = 0; bool needs_resynth=false;
-                for(size_t a=0; a<GetParamCount(); ++a)
-                {
-                    if(!GetParam(a).IsImmed()) continue;
-                    // ^ Only check constant values
-                    double immed = GetParam(a).GetImmed();
-                    immed_sum += immed; ++n_immeds;
-                }
-                // Merge immeds.
-                if(n_immeds > 1 || (n_immeds == 1 && immed_sum == 0.0))
-                    needs_resynth = true;
-                if(needs_resynth)
-                {
-                    // delete immeds and add new ones
-                #ifdef DEBUG_SUBSTITUTIONS
-                    std::cout << "cAdd: Will add new immed " << immed_sum << "\n";
-                    std::cout << "In: "; FPoptimizer_Grammar::DumpTree(*this);
-                    std::cout << "\n";
-                #endif
-                    for(size_t a=GetParamCount(); a-->0; )
-                        if(GetParam(a).IsImmed())
-                        {
-                        #ifdef DEBUG_SUBSTITUTIONS
-                            std::cout << " - For that, deleting immed " << GetParam(a).GetImmed();
-                            std::cout << "\n";
-                        #endif
-                            DelParam(a);
-                        }
-                    if(!(immed_sum == 0.0))
-                        AddParam( CodeTree(immed_sum) );
-                }
-                switch(GetParamCount())
-                {
-                    case 0: goto ReplaceTreeWithZero;
-                    case 1: goto ReplaceTreeWithParam0; // Replace self with the single operand
-                    default: if(ConstantFolding_AddGrouping()) goto redo;
-                }
-                break;
-            }
-            case cMin:
-            {
-                ConstantFolding_Assimilate();
-                /* Goal: If there is any pair of two operands, where
-                 * their ranges form a disconnected set, i.e. as below:
-                 *     xxxxx
-                 *            yyyyyy
-                 * Then remove the larger one.
-                 *
-                 * Algorithm: 1. figure out the smallest maximum of all operands.
-                 *            2. eliminate all operands where their minimum is
-                 *               larger than the selected maximum.
-                 */
-                MinMaxTree smallest_maximum;
-                for(size_t a=0; a<GetParamCount(); ++a)
-                {
-                    MinMaxTree p = GetParam(a).CalculateResultBoundaries();
-                    if(p.has_max && (!smallest_maximum.has_max || p.max < smallest_maximum.max))
-                    {
-                        smallest_maximum.max = p.max;
-                        smallest_maximum.has_max = true;
-                }   }
-                if(smallest_maximum.has_max)
-                    for(size_t a=GetParamCount(); a-- > 0; )
-                    {
-                        MinMaxTree p = GetParam(a).CalculateResultBoundaries();
-                        if(p.has_min && p.min > smallest_maximum.max)
-                            DelParam(a);
-                    }
-                //fprintf(stderr, "Remains: %u\n", (unsigned)GetParamCount());
-                if(GetParamCount() == 1)
-                {
-                    // Replace self with the single operand
-                    goto ReplaceTreeWithParam0;
-                }
-                break;
-            }
-            case cMax:
-            {
-                ConstantFolding_Assimilate();
-                /* Goal: If there is any pair of two operands, where
-                 * their ranges form a disconnected set, i.e. as below:
-                 *     xxxxx
-                 *            yyyyyy
-                 * Then remove the smaller one.
-                 *
-                 * Algorithm: 1. figure out the biggest minimum of all operands.
-                 *            2. eliminate all operands where their maximum is
-                 *               smaller than the selected minimum.
-                 */
-                MinMaxTree biggest_minimum;
-                for(size_t a=0; a<GetParamCount(); ++a)
-                {
-                    MinMaxTree p = GetParam(a).CalculateResultBoundaries();
-                    if(p.has_min && (!biggest_minimum.has_min || p.min > biggest_minimum.min))
-                    {
-                        biggest_minimum.min = p.min;
-                        biggest_minimum.has_min = true;
-                }   }
-                if(biggest_minimum.has_min)
-                {
-                    //fprintf(stderr, "Removing all where max < %g\n", biggest_minimum.min);
-                    for(size_t a=GetParamCount(); a-- > 0; )
-                    {
-                        MinMaxTree p = GetParam(a).CalculateResultBoundaries();
-                        if(p.has_max && p.max < biggest_minimum.min)
-                        {
-                            //fprintf(stderr, "Removing %g\n", p.max);
-                            DelParam(a);
-                        }
-                    }
-                }
-                //fprintf(stderr, "Remains: %u\n", (unsigned)GetParamCount());
-                if(GetParamCount() == 1)
-                {
-                    // Replace self with the single operand
-                    goto ReplaceTreeWithParam0;
-                }
-                break;
-            }
-
-            case cEqual:
-            {
-                if(GetParam(0).IsIdenticalTo(GetParam(1))) goto ReplaceTreeWithOne;
-                /* If we know the two operands' ranges don't overlap, we get zero.
-                 * The opposite is more complex and is done in .dat code.
-                 */
-                MinMaxTree p0 = GetParam(0).CalculateResultBoundaries();
-                MinMaxTree p1 = GetParam(1).CalculateResultBoundaries();
-                if((p0.has_max && p1.has_min && p1.min > p0.max)
-                || (p1.has_max && p0.has_min && p0.min > p1.max))
-                    goto ReplaceTreeWithZero;
-                break;
-            }
-
-            case cNEqual:
-            {
-                if(GetParam(0).IsIdenticalTo(GetParam(1))) goto ReplaceTreeWithZero;
-                /* If we know the two operands' ranges don't overlap, we get one.
-                 * The opposite is more complex and is done in .dat code.
-                 */
-                MinMaxTree p0 = GetParam(0).CalculateResultBoundaries();
-                MinMaxTree p1 = GetParam(1).CalculateResultBoundaries();
-                if((p0.has_max && p1.has_min && p1.min > p0.max)
-                || (p1.has_max && p0.has_min && p0.min > p1.max))
-                    goto ReplaceTreeWithOne;
-                break;
-            }
-
-            case cLess:
-            {
-                if(GetParam(0).IsIdenticalTo(GetParam(1))) goto ReplaceTreeWithZero;
-                MinMaxTree p0 = GetParam(0).CalculateResultBoundaries();
-                MinMaxTree p1 = GetParam(1).CalculateResultBoundaries();
-                if(p0.has_max && p1.has_min && p0.max < p1.min)
-                    goto ReplaceTreeWithOne; // We know p0 < p1
-                if(p1.has_max && p0.has_min && p1.max <= p0.min)
-                    goto ReplaceTreeWithZero; // We know p1 >= p0
-                break;
-            }
-
-            case cLessOrEq:
-            {
-                if(GetParam(0).IsIdenticalTo(GetParam(1))) goto ReplaceTreeWithOne;
-                MinMaxTree p0 = GetParam(0).CalculateResultBoundaries();
-                MinMaxTree p1 = GetParam(1).CalculateResultBoundaries();
-                if(p0.has_max && p1.has_min && p0.max <= p1.min)
-                    goto ReplaceTreeWithOne; // We know p0 <= p1
-                if(p1.has_max && p0.has_min && p1.max < p0.min)
-                    goto ReplaceTreeWithZero; // We know p1 > p0
-                break;
-            }
-
-            case cGreater:
-            {
-                if(GetParam(0).IsIdenticalTo(GetParam(1))) goto ReplaceTreeWithZero;
-                // Note: Eq case not handled
-                MinMaxTree p0 = GetParam(0).CalculateResultBoundaries();
-                MinMaxTree p1 = GetParam(1).CalculateResultBoundaries();
-                if(p0.has_max && p1.has_min && p0.max <= p1.min)
-                    goto ReplaceTreeWithZero; // We know p0 <= p1
-                if(p1.has_max && p0.has_min && p1.max < p0.min)
-                    goto ReplaceTreeWithOne; // We know p1 > p0
-                break;
-            }
-
-            case cGreaterOrEq:
-            {
-                if(GetParam(0).IsIdenticalTo(GetParam(1))) goto ReplaceTreeWithOne;
-                // Note: Eq case not handled
-                MinMaxTree p0 = GetParam(0).CalculateResultBoundaries();
-                MinMaxTree p1 = GetParam(1).CalculateResultBoundaries();
-                if(p0.has_max && p1.has_min && p0.max < p1.min)
-                    goto ReplaceTreeWithZero; // We know p0 < p1
-                if(p1.has_max && p0.has_min && p1.max <= p0.min)
-                    goto ReplaceTreeWithOne; // We know p1 >= p0
-                break;
-            }
-
-            case cAbs:
-            {
-                /* If we know the operand is always positive, cAbs is redundant.
-                 * If we know the operand is always negative, use actual negation.
-                 */
-                MinMaxTree p0 = GetParam(0).CalculateResultBoundaries();
-                if(p0.has_min && p0.min >= 0.0)
-                    goto ReplaceTreeWithParam0;
-                if(p0.has_max && p0.max <= NEGATIVE_MAXIMUM)
-                {
-                    /* abs(negative) = negative*-1 */
-                    SetOpcode(cMul);
-                    AddParam( CodeTree(-1.0) );
-                    /* The caller of ConstantFolding() will do Sort() and Rehash() next.
-                     * Thus, no need to do it here. */
-                    /* We were changed into a cMul group. Do cMul folding. */
-                    goto NowWeAreMulGroup;
-                }
-                /* If the operand is a cMul group, find elements
-                 * that are always positive and always negative,
-                 * and move them out, e.g. abs(p*n*x*y) = p*(-n)*abs(x*y)
-                 */
-                if(GetParam(0).GetOpcode() == cMul)
-                {
-                    const CodeTree& p = GetParam(0);
-                    std::vector<CodeTree> pos_set;
-                    std::vector<CodeTree> neg_set;
-                    for(size_t a=0; a<p.GetParamCount(); ++a)
-                    {
-                        p0 = p.GetParam(a).CalculateResultBoundaries();
-                        if(p0.has_min && p0.min >= 0.0)
-                            { pos_set.push_back(p.GetParam(a)); }
-                        if(p0.has_max && p0.max <= NEGATIVE_MAXIMUM)
-                            { neg_set.push_back(p.GetParam(a)); }
-                    }
-                #ifdef DEBUG_SUBSTITUTIONS
-                    std::cout << "Abs: mul group has " << pos_set.size()
-                              << " pos, " << neg_set.size() << "neg\n";
-                #endif
-                    if(!pos_set.empty() || !neg_set.empty())
-                    {
-                #ifdef DEBUG_SUBSTITUTIONS
-                        std::cout << "AbsReplace-Before: ";
-                        FPoptimizer_Grammar::DumpTree(*this);
-                        std::cout << "\n" << std::flush;
-                        FPoptimizer_Grammar::DumpHashes(*this, std::cout);
-                #endif
-                        CodeTree pclone;
-                        pclone.SetOpcode(cMul);
-                        for(size_t a=0; a<p.GetParamCount(); ++a)
-                        {
-                            p0 = p.GetParam(a).CalculateResultBoundaries();
-                            if((p0.has_min && p0.min >= 0.0)
-                            || (p0.has_max && p0.max <= NEGATIVE_MAXIMUM))
-                                {/*pclone.DelParam(a);*/}
-                            else
-                                pclone.AddParam( p.GetParam(a) );
-                            /* Here, p*n*x*y -> x*y.
-                             * p is saved in pos_set[]
-                             * n is saved in neg_set[]
-                             */
-                        }
-                        pclone.Rehash();
-                        CodeTree abs_mul;
-                        abs_mul.SetOpcode(cAbs);
-                        abs_mul.AddParamMove(pclone);
-                        abs_mul.Rehash();
-                        CodeTree mulgroup;
-                        mulgroup.SetOpcode(cMul);
-                        mulgroup.AddParamMove(abs_mul); // cAbs[whatever remains in p]
-                        mulgroup.AddParamsMove(pos_set);
-                        /* Now:
-                         * mulgroup  = p * Abs(x*y)
-                         */
-                        if(!neg_set.empty())
-                        {
-                            if(neg_set.size() % 2)
-                                mulgroup.AddParam( CodeTree(-1.0) );
-                            mulgroup.AddParamsMove(neg_set);
-                            /* Now:
-                             * mulgroup = p * n * -1 * Abs(x*y)
-                             */
-                        }
-                        Become(mulgroup);
-                #ifdef DEBUG_SUBSTITUTIONS
-                        std::cout << "AbsReplace-After: ";
-                        FPoptimizer_Grammar::DumpTree(*this, std::cout);
-                        std::cout << "\n" << std::flush;
-                        FPoptimizer_Grammar::DumpHashes(*this, std::cout);
-                #endif
-                        /* We were changed into a cMul group. Do cMul folding. */
-                        goto NowWeAreMulGroup;
-                    }
-                }
-                break;
-            }
-
-            #define HANDLE_UNARY_CONST_FUNC(funcname) \
-                if(GetParam(0).IsImmed()) \
-                    { const_value = funcname(GetParam(0).GetImmed()); \
-                      goto ReplaceTreeWithConstValue; }
-
-            case cLog:   HANDLE_UNARY_CONST_FUNC(log); break;
-            case cAcosh: HANDLE_UNARY_CONST_FUNC(fp_acosh); break;
-            case cAsinh: HANDLE_UNARY_CONST_FUNC(fp_asinh); break;
-            case cAtanh: HANDLE_UNARY_CONST_FUNC(fp_atanh); break;
-            case cAcos: HANDLE_UNARY_CONST_FUNC(acos); break;
-            case cAsin: HANDLE_UNARY_CONST_FUNC(asin); break;
-            case cAtan: HANDLE_UNARY_CONST_FUNC(atan); break;
-            case cCosh: HANDLE_UNARY_CONST_FUNC(cosh); break;
-            case cSinh: HANDLE_UNARY_CONST_FUNC(sinh); break;
-            case cTanh: HANDLE_UNARY_CONST_FUNC(tanh); break;
-            case cSin: HANDLE_UNARY_CONST_FUNC(sin); break;
-            case cCos: HANDLE_UNARY_CONST_FUNC(cos); break;
-            case cTan: HANDLE_UNARY_CONST_FUNC(tan); break;
-            case cCeil: HANDLE_UNARY_CONST_FUNC(ceil); break;
-            case cFloor: HANDLE_UNARY_CONST_FUNC(floor); break;
-            case cSqrt: HANDLE_UNARY_CONST_FUNC(sqrt); break; // converted into cPow x 0.5
-            case cExp: HANDLE_UNARY_CONST_FUNC(exp); break; // convered into cPow CONSTANT_E x
-            case cInt:
-                if(GetParam(0).IsImmed())
-                    { const_value = floor(GetParam(0).GetImmed() + 0.5);
-                      goto ReplaceTreeWithConstValue; }
-                break;
-            case cLog2:
-                if(GetParam(0).IsImmed())
-                    { const_value = log(GetParam(0).GetImmed()) * CONSTANT_L2I;
-                      goto ReplaceTreeWithConstValue; }
-                break;
-            case cLog10:
-                if(GetParam(0).IsImmed())
-                    { const_value = log(GetParam(0).GetImmed()) * CONSTANT_L10I;
-                      goto ReplaceTreeWithConstValue; }
-                break;
-
-            case cAtan2:
-            {
-                /* Range based optimizations for (y,x):
-                 * If y is +0 and x <= -0, +pi is returned
-                 * If y is -0 and x <= -0, -pi is returned (assumed never happening)
-                 * If y is +0 and x >= +0, +0 is returned
-                 * If y is -0 and x >= +0, -0 is returned  (assumed never happening)
-                 * If x is +-0 and y < 0, -pi/2 is returned
-                 * If x is +-0 and y > 0, +pi/2 is returned
-                 * Otherwise, perform constant folding when available
-                 * If we know x <> 0, convert into atan(y / x)
-                 *   TODO: Figure out whether the above step is wise
-                 *         It allows e.g. atan2(6*x, 3*y) -> atan(2*x/y)
-                 *         when we know y != 0
-                 */
-                MinMaxTree p0 = GetParam(0).CalculateResultBoundaries();
-                MinMaxTree p1 = GetParam(1).CalculateResultBoundaries();
-                if(p0.has_min && p0.has_max && p0.min == 0.0)
-                {
-                    if(p1.has_max && p1.max < 0)
-                        { const_value = CONSTANT_PI; goto ReplaceTreeWithConstValue; }
-                    if(p1.has_max && p1.max >= 0.0)
-                        { const_value = p0.min; goto ReplaceTreeWithConstValue; }
-                }
-                if(p1.has_min && p1.has_max && p1.min == 0.0)
-                {
-                    if(p0.has_max && p0.max < 0)
-                        { const_value = -CONSTANT_PIHALF; goto ReplaceTreeWithConstValue; }
-                    if(p0.has_min && p0.min > 0)
-                        { const_value =  CONSTANT_PIHALF; goto ReplaceTreeWithConstValue; }
-                }
-                if(GetParam(0).IsImmed()
-                && GetParam(1).IsImmed())
-                    { const_value = atan2(GetParam(0).GetImmed(),
-                                          GetParam(1).GetImmed());
-                      goto ReplaceTreeWithConstValue; }
-                if((p1.has_min && p1.min > 0.0)
-                || (p1.has_max && p1.max < NEGATIVE_MAXIMUM)) // become atan(p0 / p1)
-                {
-                    CodeTree pow_tree;
-                    pow_tree.SetOpcode(cPow);
-                    pow_tree.AddParam(GetParam(1));
-                    pow_tree.AddParam(CodeTree(-1.0));
-                    pow_tree.Rehash();
-                    CodeTree div_tree;
-                    div_tree.SetOpcode(cMul);
-                    div_tree.AddParam(GetParam(0));
-                    div_tree.AddParamMove(pow_tree);
-                    div_tree.Rehash();
-                    SetOpcode(cAtan);
-                    SetParamMove(0, div_tree);
-                    DelParam(1);
-                }
-                break;
-            }
-
-            case cPow:
-            {
-                if(GetParam(0).IsImmed()
-                && GetParam(1).IsImmed())
-                    { const_value = pow(GetParam(0).GetImmed(),
-                                        GetParam(1).GetImmed());
-                      goto ReplaceTreeWithConstValue; }
-                if(GetParam(1).IsImmed()
-                && GetParam(1).GetImmed() == 1.0)
-                {
-                    // x^1 = x
-                    goto ReplaceTreeWithParam0;
-                }
-                if(GetParam(0).IsImmed()
-                && GetParam(0).GetImmed() == 1.0)
-                {
-                    // 1^x = 1
-                    goto ReplaceTreeWithOne;
-                }
-
-                // 5^(20*x) = (5^20)^x
-                if(GetParam(0).IsImmed()
-                && GetParam(1).GetOpcode() == cMul)
-                {
-                    bool changes = false;
-                    double base_immed = GetParam(0).GetImmed();
-                    CodeTree& mulgroup = GetParam(1);
-                    for(size_t a=mulgroup.GetParamCount(); a-->0; )
-                        if(mulgroup.GetParam(a).IsImmed())
-                        {
-                            double imm = mulgroup.GetParam(a).GetImmed();
-                            //if(imm >= 0.0)
-                            {
-                                double new_base_immed = std::pow(base_immed, imm);
-                                if(isinf(new_base_immed) || new_base_immed == 0.0)
-                                {
-                                    // It produced an infinity. Do not change.
-                                    break;
-                                }
-
-                                if(!changes)
-                                {
-                                    changes = true;
-                                    mulgroup.CopyOnWrite();
-                                }
-                                base_immed = new_base_immed;
-                                mulgroup.DelParam(a);
-                                break; //
-                            }
-                        }
-                    if(changes)
-                    {
-                        GetParam(0).Become(CodeTree(base_immed));
-                        mulgroup.Rehash();
-                    }
-                }
-                // (x^3)^2 = x^6
-                // NOTE: If 3 is even and 3*2 is not, x must be changed to abs(x).
-                if(GetParam(0).GetOpcode() == cPow
-                && GetParam(1).IsImmed()
-                && GetParam(0).GetParam(1).IsImmed())
-                {
-                    double a = GetParam(0).GetParam(1).GetImmed();
-                    double b = GetParam(1).GetImmed();
-                    double c = a * b; // new exponent
-                    if(IsEvenIntegerConst(a) // a is an even int?
-                    && !IsEvenIntegerConst(c)) // c is not?
-                    {
-                        CodeTree newbase;
-                        newbase.SetOpcode(cAbs);
-                        newbase.AddParam(GetParam(0).GetParam(0));
-                        newbase.Rehash();
-                        SetParamMove(0, newbase);
-                    }
-                    else
-                        SetParam(0, GetParam(0).GetParam(0));
-                    SetParam(1, CodeTree(c));
-                }
-                break;
-            }
-
-            case cMod:
-            {
-                /* Can more be done than this? */
-                if(GetParam(0).IsImmed()
-                && GetParam(1).IsImmed())
-                    { const_value = fmod(GetParam(0).GetImmed(),
-                                         GetParam(1).GetImmed());
-                      goto ReplaceTreeWithConstValue; }
-                break;
-            }
-
-            /* The following opcodes are processed by GenerateFrom()
-             * within fpoptimizer_bytecode_to_codetree.cc and thus
-             * they will never occur in the calling context:
-             */
-            case cDiv: // converted into cPow y -1
-            case cRDiv: // similar to above
-            case cSub: // converted into cMul y -1
-            case cRSub: // similar to above
-            case cRad: // converted into cMul x CONSTANT_RD
-            case cDeg: // converted into cMul x CONSTANT_DR
-            case cSqr: // converted into cMul x x
-            case cExp2: // converted into cPow 2.0 x
-            case cRSqrt: // converted into cPow x -0.5
-            case cCot: // converted into cMul (cPow (cTan x) -1)
-            case cSec: // converted into cMul (cPow (cCos x) -1)
-            case cCsc: // converted into cMul (cPow (cSin x) -1)
-            case cRPow: // converted into cPow y x
-                break; /* Should never occur */
-
-            /* The following opcodes are processed by GenerateFrom(),
-             * but they may still be synthesized in the grammar matching
-             * process:
-             * TODO: Figure out whether we should just convert
-             * these particular trees into their atomic counterparts
-             */
-            case cNeg: // converted into cMul x -1
-            {
-                if(GetParam(0).IsImmed())
-                {
-                    const_value = -GetParam(0).GetImmed();
-                    goto ReplaceTreeWithConstValue;
-                }
-                break;
-            }
-            case cInv: // converted into cPow x -1
-            {
-                if(GetParam(0).IsImmed())
-                {
-                    const_value = 1.0 / GetParam(0).GetImmed();
-                    goto ReplaceTreeWithConstValue;
-                }
-                break;
-            }
-
-            /* Opcodes that do not occur in the tree for other reasons */
-            case cDup:
-            case cFetch:
-            case cPopNMov:
-            case cNop:
-            case cJump:
-            case VarBegin:
-                break; /* Should never occur */
-            /* Opcodes that we can't do anything about */
-            case cPCall:
-            case cFCall:
-            case cEval:
-                break;
-        }
-    }
-
-    MinMaxTree CodeTree::CalculateResultBoundaries() const
+}
+iF2
+FPoptimizer_CodeTree{nD3
+ConstantFolding(eH2
+tree.Sort();
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Runs ConstantFolding for: "
+c8
+DumpHashes(tree);
+#endif
+if(false){redo:lR3
+Sort();
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Re-runs ConstantFolding: "
+c8
+DumpHashes(tree);
+#endif
+}
+if(xC1!=cImmed){iG
+p=l01(tree);if(p
+tL3
+l22&&p.min==p.max)lM
+p.min);tC}
+if(false){ReplaceTreeWithOne
+e83.ReplaceWithImmed(iQ(1))lC1;ReplaceTreeWithZero
+e83.ReplaceWithImmed(iQ(0))lC1;ReplaceTreeWithParam0:
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Before replace: "
+iJ
+std::hex<<'['<<cE2.hash1<<','<<cE2.hash2<<']'<<std::dec
+c8
+#endif
+tree.nQ3
+lR1
+0));
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"After replace: "
+iJ
+std::hex<<'['<<cE2.hash1<<','<<cE2.hash2<<']'<<std::dec
+c8
+#endif
+c9
+i62
+xC1
+tV2
+cImmed:lB
+tZ2:lB
+cAnd:case
+cAbsAnd:cT
+bool
+c5
+e23
+e92{if(!tN2
+a)))c5=true;lC3
+a),x92
+cAbsAnd)tV2
+IsNever
+e4
+c02:nD1);lB
+n01
+i62
+tree
+iK
+tV2
+0:e5
+1
+e83
+y7
+x92
+cAnd
+tU3
+c9
+default:if(x92
+cAnd||!c5)if(ConstantFolding_AndLogic(cP2
+eL2
+cOr:case
+cAbsOr:cT
+bool
+c5
+e23
+e92{if(!tN2
+a)))c5=true;lC3
+a),x92
+cAbsOr)){iI1
+e5
+iB2
+nD1);lB
+n01
+i62
+tree
+iK
+tV2
+0
+e4
+1
+e83
+y7
+x92
+cOr
+tU3
+c9
+default:if(x92
+cOr||!c5)if(ConstantFolding_OrLogic(cP2
+eL2
+cNot:case
+lQ2:{lW3
+n51
+0;cI3
+lE
+GetOpcode()tV2
+cEqual:n51
+cNEqual;lB
+cNEqual:n51
+cEqual;lB
+cLess:n51
+cGreaterOrEq;lB
+cGreater:n51
+cLessOrEq;lB
+cLessOrEq:n51
+cGreater;lB
+cGreaterOrEq:n51
+cLess;lB
+cNotNot:n51
+cNot;lB
+cNot:n51
+cNotNot;lB
+lQ2:n51
+cAbsNotNot;lB
+cAbsNotNot:n51
+lQ2;break;default:break;}
+if(opposite){tree
+y7
+OPCODE(opposite))lR3
+SetParamsMove(lE
+GetUniqueRef().tM1));c9
+i62
+tB
+0),x92
+lQ2)tV2
+c02
+e4
+iB2
+e5
+n01
+if(x92
+cNot&&GetPositivityInfo(lR1
+0))==c02)tree
+y7
+lQ2);if(x71
+cIf||x71
+nS3{tW
+i72=lR1
+0);tM2&ifp1=i72
+lN
+1);tM2&ifp2=i72
+lN
+2);if(ifp1
+c12
+ifp1
+c22
+ifp1
+nD
+cNot
+tU3
+t72
+xM3
+t82;tW
+p2;p2
+cW1
+p2
+yG3)e3
+if(ifp2
+c12
+ifp2
+c22
+tree.e7
+t72);t82;tW
+p2;p2
+y7
+ifp2
+nD
+cNot
+tU3
+p2
+yG3
+lN
+0))e3
+eL2
+cNotNot:case
+cAbsNotNot:{if(tN2
+0)))iN2
+lC3
+0),x92
+cAbsNotNot)tV2
+IsNever
+e4
+c02:e5
+n01
+if(x92
+cNotNot&&GetPositivityInfo(lR1
+0))==c02)tree
+y7
+cAbsNotNot);if(x71
+cIf||x71
+nS3{tW
+i72=lR1
+0);tM2&ifp1=i72
+lN
+1);tM2&ifp2=i72
+lN
+2);if(ifp1
+c12
+ifp1
+nD
+lQ2){tree.SetParam(0,i72
+xM3
+tree
+iO
+ifp1);tW
+p2;p2
+cW1
+p2
+yG3)e3
+if(ifp2
+c12
+ifp2
+c22
+tree.e7
+t72);t82;tree
+yG3);tree
+y7
+i72.e7
+c9}
+eL2
+cIf:case
+cAbsIf:{if(ConstantFolding_IfOperations(cP2
+break;}
+case
+cMul:{NowWeAreMulGroup:;AdoptChildrenWithSameOpcode(tree);iQ
+nG1=iQ(1)tW3
+tI1=0;bool
+nH1=false
+iV1
+if(!lR1
+a)yK1)xU1
+iQ
+immed=lR1
+a)tN;if(immed==iQ(0))goto
+ReplaceTreeWithZero;nG1*=immed;++tI1;}
+if(tI1>1||(tI1==1&&FloatEqual(nG1,e03)nH1=true;if(nH1){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"cMul: Will add new "
+tA3
+nG1<<"\n"
+;
+#endif
+e92
+if(lR1
+a)yK1){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<" - For that, deleting "
+tA3
+lR1
+a)tN
+iJ"\n"
+;
+#endif
+lD3!FloatEqual(nG1,e03
+tree
+yV
+nG1));i62
+tree
+iK
+tV2
+0:e5
+1:iN2
+default:if(ConstantFolding_MulGrouping(cP2
+if(ConstantFolding_MulLogicItems(cP2
+eL2
+cAdd:cT
+iQ
+iH1=0.0
+tW3
+tI1=0;bool
+nH1=false
+iV1
+if(!lR1
+a)yK1)xU1
+iQ
+immed=lR1
+a)tN;iH1+=immed;++tI1;}
+if(tI1>1||(tI1==1&&iH1==0.0))nH1=true;if(nH1){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"cAdd: Will add new "
+tA3
+iH1<<"\n"
+iJ"In: "
+c8
+#endif
+e92
+if(lR1
+a)yK1){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<" - For that, deleting "
+tA3
+lR1
+a)tN
+iJ"\n"
+;
+#endif
+lD3!(iH1==0.0))tree
+yV
+iH1));i62
+tree
+iK
+tV2
+0
+e4
+1:iN2
+default:if(ConstantFolding_AddGrouping(cP2
+if(ConstantFolding_AddLogicItems(cP2
+eL2
+cMin:cT
+size_t
+xA2=0;iG
+e0
+iV1
+while(a+1<tree
+iK&&lR1
+iS
+lR1
+a+1)))nD1+1);e91
+l22&&(!e0.l22||(p.max)<e0.max)){e0.max=p.max;e0.l22=true;xA2=a;}
+}
+if(e0.l22)e92{e91
+n32
+a!=xA2&&p.min>=e0.max)lD3
+tree
+iK==1){iN2
+eL2
+cMax:cT
+size_t
+xA2=0;iG
+eZ
+iV1
+while(a+1<tree
+iK&&lR1
+iS
+lR1
+a+1)))nD1+1);e91
+n32(!eZ.has_min||p.min>eZ.min)){eZ.min=p.min;eZ.xE2
+true;xA2=a;}
+}
+if(eZ.yJ3{e92{e91
+l22&&a!=xA2&&(p.max)<eZ.min){nD1);}
+}
+}
+if(tree
+iK==1){iN2
+eL2
+cEqual:case
+cNEqual:case
+cLess:case
+cGreater:case
+cLessOrEq:case
+cGreaterOrEq:if(ConstantFolding_Comparison(cP2
+lB
+cAbs:{iG
+p0=y3
+0));if
+eA2
+iN2
+if
+eB2{tree
+y03
+tree
+yV
+e03;goto
+NowWeAreMulGroup;}
+if(x71
+cMul){tM2&p=lR1
+0);yC<tW>lE3;yC<tW>y72
+lJ1
+p
+iK;++a){p0=l01(p
+lF3
+if
+eA2{lE3
+yX
+p
+lF3}
+if
+eB2{y72
+yX
+p
+lF3}
+}
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"Abs: mul group has "
+<<lE3
+e72)<<" pos, "
+<<y72
+e72)<<"neg\n"
+;
+#endif
+if(!lE3
+xT3||!y72
+xT3){
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"AbsReplace-Before: "
+;nX3(tree)iJ"\n"
+<<std::flush;DumpHashes(tree
+y82;
+#endif
+tW
+cB3;cB3
+y7
+cMul)lJ1
+p
+iK;++a){p0=l01(p
+lF3
+if(eA2||eB2){}
+else
+cB3
+iO
+p
+lF3}
+cB3
+tW2
+lG3;lG3
+y7
+cAbs);lG3
+lE1
+cB3);lG3
+tW2
+xL1
+cMul);lY3
+lE1
+lG3);xM1
+AddParamsMove(lE3);if(!y72
+xT3
+xX3
+y72
+e72)%2)lY3
+yV
+iQ(-1)));xM1
+AddParamsMove(y72);}
+tree.Become
+cL2);
+#ifdef DEBUG_SUBSTITUTIONS
+std::cout<<"AbsReplace-After: "
+;nX3(tree
+y82
+iJ"\n"
+<<std::flush;DumpHashes(tree
+y82;
+#endif
+goto
+NowWeAreMulGroup;}
+}
+break;}
+#define HANDLE_UNARY_CONST_FUNC(funcname) x8)lM funcname yD));tC
+case
+cLog:eZ3(fp_log);if(x71
+cPow){tW
+pow=lR1
+0);if(GetPositivityInfo(pow
+lN
+0))==c02)tH3
+pow
+lV1
+tree.eU1
+if(GetEvennessInfo(pow
+lN
+1))==c02)tH3
+tW
+abs;abs
+y7
+cAbs);abs
+lE1
+pow
+xM3
+abs
+lL1
+pow
+lV1
+pow.n91
+0,abs)lR3
+eU1}
+t41
+x71
+cAbs){tW
+pow=nW2
+0);if(pow
+nD
+cPow)tH3
+tW
+abs;abs
+y7
+cAbs);abs
+lE1
+pow
+xM3
+abs
+lL1
+pow
+lV1
+pow.n91
+0,abs)lR3
+eU1}
+lB
+cAcosh:eZ3(fp_acosh);lB
+cAsinh:eZ3(fp_asinh);lB
+cAtanh:eZ3(fp_atanh);lB
+cAcos:eZ3(fp_acos);lB
+cAsin:eZ3(fp_asin);lB
+cAtan:eZ3(fp_atan);lB
+cCosh:eZ3(fp_cosh);lB
+cSinh:eZ3(fp_sinh);lB
+cTanh:eZ3(fp_tanh);lB
+cSin:eZ3(fp_sin);lB
+cCos:eZ3(fp_cos);lB
+cTan:eZ3(fp_tan);lB
+cCeil:if(n4
+eZ3(fp_ceil);lB
+cTrunc:if(n4
+eZ3(fp_trunc);lB
+cFloor:if(n4
+eZ3(fp_floor);lB
+cInt:if(n4
+eZ3(fp_int);lB
+cCbrt:eZ3(fp_cbrt);lB
+cSqrt:eZ3(fp_sqrt);lB
+cExp:eZ3(fp_exp);lB
+cLog2:eZ3(fp_log2);lB
+cLog10:eZ3(fp_log10);lB
+yQ3:y0)lM
+fp_log2
+yD)*y1)t12
+cMod:y0)lM
+fp_mod
+tO3
+t12
+cAtan2:{iG
+p0=y2
+p1=y3
+1));x8&&fp_equal
+yD,iQ(0))xX3
+p1
+eM3
+p1.max)<0)lM
+fp_const_pi
+yH3
+if(p1.n32
+p1.min>=0.0)lM
+iQ(0));tC}
+if(xW2
+fp_equal(y1,iQ(0))xX3
+p0
+eM3
+p0.max)<0)lM-fp_const_pihalf
+yH3
+if(p0.n32
+p0.min>0)lM
+fp_const_pihalf
+yH3}
+y0)lM
+fp_atan2
+tO3;tC
+if((p1.n32
+p1.min>0.0)||(p1
+eM3
+p1.max)<fp_const_negativezero
+x5())){tW
+xB2;xB2
+y7
+cPow);xB2
+lE1
+tU2);xB2
+yV
+iQ(-1)));xB2
+tW2
+xD2;xD2
+y03
+xD2.l11
+xD2
+lE1
+xB2);xD2
+lL1
+tree
+y7
+cAtan)nT3
+0,xD2)l33
+1);eL2
+cPow:{if(ConstantFolding_PowOperations(cP2
+break;}
+case
+cDiv:y0&&y1!=0.0)lM
+lE
+GetImmed()/y1)t12
+cInv:x8&&lE
+GetImmed()!=0.0)lM
+iQ(1)/lE
+GetImmed())t12
+cSub:y0)lM
+lE
+GetImmed()-y1)t12
+cNeg:x8)lM-lE
+GetImmed())t12
+cRad:x8)lM
+RadiansToDegrees
+yD))t12
+cDeg:x8)lM
+DegreesToRadians
+yD))t12
+cSqr:x8)lM
+lE
+GetImmed()*lE
+GetImmed())t12
+cExp2:eZ3(fp_exp2);lB
+cRSqrt:x8)lM
+iQ(1)/fp_sqrt
+yD))t12
+cCot:x8)yI3
+fp_tan
+yD);if(xC
+cSec:x8)yI3
+fp_cos
+yD);if(xC
+cCsc:x8)yI3
+fp_sin
+yD);if(xC
+cHypot:y0)lM
+fp_hypot
+tO3
+t12
+cRDiv:case
+cRSub:case
+cDup:case
+cFetch:case
+cPopNMov:case
+cSinCos:case
+cNop:case
+cJump:lB
+cPCall:case
+cFCall:case
+cEval:xF3}
+#endif
+#ifdef FP_SUPPORT_OPTIMIZER
+nE
+using
+iF2
+FPoptimizer_CodeTree;iF2
+yM1
+lW3
+Compare>yI2
+Comp{}
+;iD2>yI2
+Comp<cLess
+tQ3<yM
+cLessOrEq
+tQ3<=yM
+cGreater
+tQ3>yM
+cGreaterOrEq
+tQ3>=yM
+cEqual
+tQ3==yM
+cNEqual
+tQ3!=b;}
+}
+;}
+iF2
+FPoptimizer_CodeTree{lO
+nQ
+set_abs(xX3!n32!l22){tP3}
+t41!n32
+max<iQ(0)){xE2
+true;min=-max;iC}
+t41!yJ3{tP3
+iC}
+t41
+min>=iQ(0)n92;t41!l22){tP3}
+t41
+max<iQ(0)){iQ
+tmp(-max);max=-min;min=tmp;}
+t41-min>=max){max=-min;min=iQ(0);}
+else{min=iQ(0);}
+}
+lO
+nQ
+set_neg(){std::swap(has_min,l22);std::swap(min,max);min=-min;max=-max;tD
+set_min_if
+lR2
+if(n32
+Comp<Compare>()(min,v))min=func(min);else{xE2
+i82
+has_min;min=i82
+min;}
+tD
+set_max_if
+lR2
+if(l22&&Comp<Compare>()(max,v))max=func(max);else{l22=i82
+l22;max=i82
+max;}
+tD
+set_min_max_if
+lR2
+set_min_if<Compare>(v,func,yK3
+set_max_if<Compare>(v,func,yK3}
+lO
+nQ
+set_min(iQ(lW
+if(yJ3
+min=func(min);else{xE2
+i82
+has_min;min=i82
+min;}
+}
+lO
+nQ
+set_max(iQ(lW
+if(l22)max=func(max);else{l22=i82
+l22;max=i82
+max;}
+}
+lO
+nQ
+xF2
+iQ(lW
+set_min(func,yK3
+set_max(func,yK3}
+lO
+iG
+l01
+yG)
 #ifdef DEBUG_SUBSTITUTIONS_extra_verbose
-    {
-        MinMaxTree tmp = CalculateResultBoundaries_do();
-        std::cout << "Estimated boundaries: ";
-        if(tmp.has_min) std::cout << tmp.min; else std::cout << "-inf";
-        std::cout << " .. ";
-        if(tmp.has_max) std::cout << tmp.max; else std::cout << "+inf";
-        std::cout << ": ";
-        FPoptimizer_Grammar::DumpTree(*this);
-        std::cout << std::endl;
-        return tmp;
-    }
-    MinMaxTree CodeTree::CalculateResultBoundaries_do() const
+{iG
+tmp=CalculateResultBoundaries_do(tree)iJ"Estimated boundaries: "
+;if(tmp.yJ3
+std::cout<<tmp.min;else
+std::cout<<"-inf"
+iJ" .. "
+;if(tmp.l22)std::cout<<tmp.max;else
+std::cout<<"+inf"
+iJ": "
+;nX3(tree)iJ
+std::endl
+lC1
+tmp;}
+lO
+iG
+nC
+CalculateResultBoundaries_do
+yG)
 #endif
-    {
-        using namespace std;
-        switch( GetOpcode() )
-        {
-            case cImmed:
-                return MinMaxTree(GetImmed(), GetImmed()); // a definite value.
-            case cAnd:
-            case cOr:
-            case cNot:
-            case cNotNot:
-            case cEqual:
-            case cNEqual:
-            case cLess:
-            case cLessOrEq:
-            case cGreater:
-            case cGreaterOrEq:
-            {
-                /* These operations always produce truth values (0 or 1) */
-                /* Narrowing them down is a matter of performing Constant optimization */
-                return MinMaxTree( 0.0, 1.0 );
-            }
-            case cAbs:
-            {
-                /* cAbs always produces a positive value */
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                if(m.has_min && m.has_max)
-                {
-                    if(m.min < 0.0 && m.max >= 0.0) // ex. -10..+6 or -6..+10
-                    {
-                        /* -x..+y: spans across zero. min=0, max=greater of |x| and |y|. */
-                        double tmp = -m.min; if(tmp > m.max) m.max = tmp;
-                        m.min = 0.0; m.has_min = true;
-                    }
-                    else if(m.min < 0.0) // ex. -10..-4
-                        { double tmp = m.max; m.max = -m.min; m.min = -tmp; }
-                }
-                else if(!m.has_min && m.has_max && m.max < 0.0) // ex. -inf..-10
-                {
-                    m.min = fabs(m.max); m.has_min = true; m.has_max = false;
-                }
-                else if(!m.has_max && m.has_min && m.min > 0.0) // ex. +10..+inf
-                {
-                    m.min = fabs(m.min); m.has_min = true; m.has_max = false;
-                }
-                else // ex. -inf..+inf, -inf..+10, -10..+inf
-                {
-                    // all of these cover -inf..0, 0..+inf, or both
-                    m.min = 0.0; m.has_min = true; m.has_max = false;
-                }
-                return m;
-            }
-
-            case cLog: /* Defined for 0.0 < x <= inf */
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                if(m.has_min) { if(m.min < 0.0) m.has_min = false; else m.min = log(m.min); } // No boundaries
-                if(m.has_max) { if(m.max < 0.0) m.has_max = false; else m.max = log(m.max); }
-                return m;
-            }
-
-            case cLog2: /* Defined for 0.0 < x <= inf */
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                if(m.has_min) { if(m.min < 0.0) m.has_min = false; else m.min = log(m.min)*CONSTANT_L2I; } // No boundaries
-                if(m.has_max) { if(m.max < 0.0) m.has_max = false; else m.max = log(m.max)*CONSTANT_L2I; }
-                return m;
-            }
-
-            case cAcosh: /* defined for             1.0 <  x <= inf */
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                if(m.has_min) { if(m.min <= 1.0) m.has_min = false; else m.min = fp_acosh(m.min); } // No boundaries
-                if(m.has_max) { if(m.max <= 1.0) m.has_max = false; else m.max = fp_acosh(m.max); }
-                return m;
-            }
-            case cAsinh: /* defined for all values -inf <= x <= inf */
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                if(m.has_min) m.min = fp_asinh(m.min); // No boundaries
-                if(m.has_max) m.max = fp_asinh(m.max);
-                return m;
-            }
-            case cAtanh: /* defined for all values -inf <= x <= inf */
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                if(m.has_min) m.min = fp_atanh(m.min); // No boundaries
-                if(m.has_max) m.max = fp_atanh(m.max);
-                return m;
-            }
-            case cAcos: /* defined for -1.0 <= x < 1, results within CONSTANT_PI..0 */
-            {
-                /* Somewhat complicated to narrow down from this */
-                /* TODO: A resourceful programmer may add it later. */
-                return MinMaxTree( 0.0, CONSTANT_PI );
-            }
-            case cAsin: /* defined for -1.0 <= x < 1, results within -CONSTANT_PIHALF..CONSTANT_PIHALF */
-            {
-                /* Somewhat complicated to narrow down from this */
-                /* TODO: A resourceful programmer may add it later. */
-                return MinMaxTree( -CONSTANT_PIHALF, CONSTANT_PIHALF );
-            }
-            case cAtan: /* defined for all values -inf <= x <= inf */
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                if(m.has_min) m.min = atan(m.min); else { m.min = -CONSTANT_PIHALF; m.has_min = true; }
-                if(m.has_max) m.max = atan(m.max); else { m.max =  CONSTANT_PIHALF; m.has_max = true; }
-                return m;
-            }
-            case cAtan2: /* too complicated to estimate */
-            {
-                /* Somewhat complicated to narrow down from this */
-                /* TODO: A resourceful programmer may add it later. */
-                return MinMaxTree(-CONSTANT_PI, CONSTANT_PI);
-            }
-
-            case cSin:
-            case cCos:
-            {
-                /* Could be narrowed down from here,
-                 * but it's too complicated due to
-                 * the cyclic nature of the function. */
-                /* TODO: A resourceful programmer may add it later. */
-                return MinMaxTree(-1.0, 1.0);
-            }
-            case cTan:
-            {
-                /* Could be narrowed down from here,
-                 * but it's too complicated due to
-                 * the cyclic nature of the function */
-                /* TODO: A resourceful programmer may add it later. */
-                return MinMaxTree(); // (CONSTANT_NEG_INF, CONSTANT_POS_INF);
-            }
-
-            case cCeil:
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                m.max = std::ceil(m.max); // ceil() may increase the value, may not decrease
-                return m;
-            }
-            case cFloor:
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                m.min = std::floor(m.min); // floor() may decrease the value, may not increase
-                return m;
-            }
-            case cInt:
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                m.min = std::floor(m.min); // int() may either increase or decrease the value
-                m.max = std::ceil(m.max); // for safety, we assume both
-                return m;
-            }
-            case cSinh: /* defined for all values -inf <= x <= inf */
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                if(m.has_min) m.min = sinh(m.min); // No boundaries
-                if(m.has_max) m.max = sinh(m.max);
-                return m;
-            }
-            case cTanh: /* defined for all values -inf <= x <= inf */
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                if(m.has_min) m.min = tanh(m.min); // No boundaries
-                if(m.has_max) m.max = tanh(m.max);
-                return m;
-            }
-            case cCosh: /* defined for all values -inf <= x <= inf, results within 1..inf */
-            {
-                MinMaxTree m = GetParam(0).CalculateResultBoundaries();
-                if(m.has_min)
-                {
-                    if(m.has_max) // max, min
-                    {
-                        if(m.min >= 0.0 && m.max >= 0.0) // +x .. +y
-                            { m.min = cosh(m.min); m.max = cosh(m.max); }
-                        else if(m.min < 0.0 && m.max >= 0.0) // -x .. +y
-                            { double tmp = cosh(m.min); m.max = cosh(m.max);
-                              if(tmp > m.max) m.max = tmp;
-                              m.min = 1.0; }
-                        else // -x .. -y
-                            { m.min = cosh(m.min); m.max = cosh(m.max);
-                              std::swap(m.min, m.max); }
-                    }
-                    else // min, no max
-                    {
-                        if(m.min >= 0.0) // 0..inf -> 1..inf
-                            { m.has_max = true; m.max = cosh(m.min); m.min = 1.0; }
-                        else
-                            { m.has_max = false; m.min = 1.0; } // Anything between 1..inf
-                    }
-                }
-                else // no min
-                {
-                    m.has_min = true; m.min = 1.0; // always a lower boundary
-                    if(m.has_max) // max, no min
-                    {
-                        m.min = cosh(m.max); // n..inf
-                        m.has_max = false; // No upper boundary
-                    }
-                    else // no max, no min
-                        m.has_max = false; // No upper boundary
-                }
-                return m;
-            }
-
-            case cIf:
-            {
-                // No guess which branch is chosen. Produce a spanning min & max.
-                MinMaxTree res1 = GetParam(1).CalculateResultBoundaries();
-                MinMaxTree res2 = GetParam(2).CalculateResultBoundaries();
-                if(!res2.has_min) res1.has_min = false; else if(res2.min < res1.min) res1.min = res2.min;
-                if(!res2.has_max) res1.has_max = false; else if(res2.max > res1.max) res1.max = res2.max;
-                return res1;
-            }
-
-            case cMin:
-            {
-                bool has_unknown_min = false;
-                bool has_unknown_max = false;
-
-                MinMaxTree result;
-                for(size_t a=0; a<GetParamCount(); ++a)
-                {
-                    MinMaxTree m = GetParam(a).CalculateResultBoundaries();
-                    if(!m.has_min)
-                        has_unknown_min = true;
-                    else if(!result.has_min || m.min < result.min)
-                        result.min = m.min;
-
-                    if(!m.has_max)
-                        has_unknown_max = true;
-                    else if(!result.has_max || m.max < result.max)
-                        result.max = m.max;
-                }
-                if(has_unknown_min) result.has_min = false;
-                if(has_unknown_max) result.has_max = false;
-                return result;
-            }
-            case cMax:
-            {
-                bool has_unknown_min = false;
-                bool has_unknown_max = false;
-
-                MinMaxTree result;
-                for(size_t a=0; a<GetParamCount(); ++a)
-                {
-                    MinMaxTree m = GetParam(a).CalculateResultBoundaries();
-                    if(!m.has_min)
-                        has_unknown_min = true;
-                    else if(!result.has_min || m.min > result.min)
-                        result.min = m.min;
-
-                    if(!m.has_max)
-                        has_unknown_max = true;
-                    else if(!result.has_max || m.max > result.max)
-                        result.max = m.max;
-                }
-                if(has_unknown_min) result.has_min = false;
-                if(has_unknown_max) result.has_max = false;
-                return result;
-            }
-            case cAdd:
-            {
-                /* It's complicated. Follow the logic below. */
-                /* Note: This also deals with the following opcodes:
-                 *       cNeg, cSub, cRSub
-                 */
-                MinMaxTree result(0.0, 0.0);
-                for(size_t a=0; a<GetParamCount(); ++a)
-                {
-                    MinMaxTree item = GetParam(a).CalculateResultBoundaries();
-
-                    if(item.has_min) result.min += item.min;
-                    else             result.has_min = false;
-                    if(item.has_max) result.max += item.max;
-                    else             result.has_max = false;
-
-                    if(!result.has_min && !result.has_max) break; // hopeless
-                }
-                if(result.has_min && result.has_max
-                && result.min > result.max) std::swap(result.min, result.max);
-                return result;
-            }
-            case cMul:
-            {
-                /* It's complicated. Follow the logic below. */
-                /* Note: This also deals with the following opcodes:
-                 *       cInv, cDiv, cRDiv, cRad, cDeg, cSqr
-                 *       cCot, Sec, cCsc, cLog2, cLog10
-                 */
-
-                struct Value
-                {
-                    enum ValueType { Finite, MinusInf, PlusInf };
-                    ValueType valueType;
-                    double value;
-
-                    Value(ValueType t): valueType(t), value(0) {}
-                    Value(double v): valueType(Finite), value(v) {}
-
-                    bool isNegative() const
-                    {
-                        return valueType == MinusInf ||
-                            (valueType == Finite && value < 0.0);
-                    }
-
-                    void operator*=(const Value& rhs)
-                    {
-                        if(valueType == Finite && rhs.valueType == Finite)
-                            value *= rhs.value;
-                        else
-                            valueType = (isNegative() != rhs.isNegative() ?
-                                         MinusInf : PlusInf);
-                    }
-
-                    bool operator<(const Value& rhs) const
-                    {
-                        return
-                            (valueType == MinusInf && rhs.valueType != MinusInf) ||
-                            (valueType == Finite &&
-                             (rhs.valueType == PlusInf ||
-                              (rhs.valueType == Finite && value < rhs.value)));
-                    }
-                };
-
-                struct MultiplicationRange
-                {
-                    Value minValue, maxValue;
-
-                    MultiplicationRange():
-                        minValue(Value::PlusInf),
-                        maxValue(Value::MinusInf) {}
-
-                    void multiply(Value value1, const Value& value2)
-                    {
-                        value1 *= value2;
-                        if(value1 < minValue) minValue = value1;
-                        if(maxValue < value1) maxValue = value1;
-                    }
-                };
-
-                MinMaxTree result(1.0, 1.0);
-                for(size_t a=0; a<GetParamCount(); ++a)
-                {
-                    MinMaxTree item = GetParam(a).CalculateResultBoundaries();
-                    if(!item.has_min && !item.has_max) return MinMaxTree(); // hopeless
-
-                    Value minValue0 = result.has_min ? Value(result.min) : Value(Value::MinusInf);
-                    Value maxValue0 = result.has_max ? Value(result.max) : Value(Value::PlusInf);
-                    Value minValue1 = item.has_min ? Value(item.min) : Value(Value::MinusInf);
-                    Value maxValue1 = item.has_max ? Value(item.max) : Value(Value::PlusInf);
-
-                    MultiplicationRange range;
-                    range.multiply(minValue0, minValue1);
-                    range.multiply(minValue0, maxValue1);
-                    range.multiply(maxValue0, minValue1);
-                    range.multiply(maxValue0, maxValue1);
-
-                    if(range.minValue.valueType == Value::Finite)
-                        result.min = range.minValue.value;
-                    else result.has_min = false;
-
-                    if(range.maxValue.valueType == Value::Finite)
-                        result.max = range.maxValue.value;
-                    else result.has_max = false;
-
-                    if(!result.has_min && !result.has_max) break; // hopeless
-                }
-                if(result.has_min && result.has_max
-                && result.min > result.max) std::swap(result.min, result.max);
-                return result;
-            }
-            case cMod:
-            {
-                /* TODO: The boundaries of modulo operator could be estimated better. */
-
-                MinMaxTree x = GetParam(0).CalculateResultBoundaries();
-                MinMaxTree y = GetParam(1).CalculateResultBoundaries();
-
-                if(y.has_max)
-                {
-                    if(y.max >= 0.0)
-                    {
-                        if(!x.has_min || x.min < 0)
-                            return MinMaxTree(-y.max, y.max);
-                        else
-                            return MinMaxTree(0.0, y.max);
-                    }
-                    else
-                    {
-                        if(!x.has_max || x.max >= 0)
-                            return MinMaxTree(y.max, -y.max);
-                        else
-                            return MinMaxTree(y.max, NEGATIVE_MAXIMUM);
-                    }
-                }
-                else
-                    return MinMaxTree();
-            }
-            case cPow:
-            {
-                if(GetParam(1).IsImmed() && GetParam(1).GetImmed() == 0.0)
-                {
-                    // Note: This makes 0^0 evaluate into 1.
-                    return MinMaxTree(1.0, 1.0); // x^0 = 1
-                }
-                if(GetParam(0).IsImmed() && GetParam(0).GetImmed() == 0.0)
-                {
-                    // Note: This makes 0^0 evaluate into 0.
-                    return MinMaxTree(0.0, 0.0); // 0^x = 0
-                }
-                if(GetParam(0).IsImmed() && FloatEqual(GetParam(0).GetImmed(), 1.0))
-                {
-                    return MinMaxTree(1.0, 1.0); // 1^x = 1
-                }
-
-                MinMaxTree p0 = GetParam(0).CalculateResultBoundaries();
-                MinMaxTree p1 = GetParam(1).CalculateResultBoundaries();
-                TriTruthValue p0_positivity =
-                    (p0.has_min && p0.min >= 0.0) ? IsAlways
-                  : (p0.has_max && p0.max < 0.0 ? IsNever
-                    : Unknown);
-                TriTruthValue p1_evenness = GetParam(1).GetEvennessInfo();
-
-                /* If param0 IsAlways, the return value is also IsAlways */
-                /* If param1 is even, the return value is IsAlways */
-                /* If param1 is odd, the return value is same as param0's */
-                /* If param0 is negative and param1 is not integer,
-                 * the return value is imaginary (assumed Unknown)
-                 *
-                 * Illustrated in this truth table:
-                 *  P=positive, N=negative
-                 *  E=even, O=odd, U=not integer
-                 *  *=unknown, X=invalid (unknown), x=maybe invalid (unknown)
-                 *
-                 *   param1: PE PO P* NE NO N* PU NU *
-                 * param0:
-                 *   PE      P  P  P  P  P  P  P  P  P
-                 *   PO      P  P  P  P  P  P  P  P  P
-                 *   PU      P  P  P  P  P  P  P  P  P
-                 *   P*      P  P  P  P  P  P  P  P  P
-                 *   NE      P  N  *  P  N  *  X  X  x
-                 *   NO      P  N  *  P  N  *  X  X  x
-                 *   NU      P  N  *  P  N  *  X  X  x
-                 *   N*      P  N  *  P  N  *  X  X  x
-                 *   *       P  *  *  P  *  *  x  x  *
-                 *
-                 * Note: This also deals with the following opcodes:
-                 *       cSqrt  (param0, PU) (x^0.5)
-                 *       cRSqrt (param0, NU) (x^-0.5)
-                 *       cExp   (PU, param1) (CONSTANT_E^x)
-                 */
-                TriTruthValue result_positivity = Unknown;
-                switch(p0_positivity)
-                {
-                    case IsAlways:
-                        // e.g.   5^x = positive.
-                        result_positivity = IsAlways;
-                        break;
-                    case IsNever:
-                    {
-                        result_positivity = p1_evenness;
-                        break;
-                    }
-                    default:
-                        switch(p1_evenness)
-                        {
-                            case IsAlways:
-                                // e.g. x^( 4) = positive
-                                // e.g. x^(-4) = positive
-                                result_positivity = IsAlways;
-                                break;
-                            case IsNever:
-                                break;
-                            case Unknown:
-                            {
-                                /* If p1 is const non-integer,
-                                 * assume the result is positive
-                                 * though it may be NaN instead.
-                                 */
-                                if(GetParam(1).IsImmed()
-                                && !GetParam(1).IsAlwaysInteger()
-                                && GetParam(1).GetImmed() >= 0.0)
-                                {
-                                    result_positivity = IsAlways;
-                                }
-                                break;
-                            }
-                        }
-                }
-                switch(result_positivity)
-                {
-                    case IsAlways:
-                    {
-                        /* The result is always positive.
-                         * Figure out whether we know the minimum value. */
-                        double min = 0.0;
-                        if(p0.has_min && p1.has_min)
-                        {
-                            min = pow(p0.min, p1.min);
-                            if(p0.min < 0.0 && (!p1.has_max || p1.max >= 0.0) && min >= 0.0)
-                                min = 0.0;
-                        }
-                        if(p0.has_min && p0.min >= 0.0 && p0.has_max && p1.has_max)
-                        {
-                            double max = pow(p0.max, p1.max);
-                            if(min > max) std::swap(min, max);
-                            return MinMaxTree(min, max);
-                        }
-                        return MinMaxTree(min, false);
-                    }
-                    case IsNever:
-                    {
-                        /* The result is always negative.
-                         * TODO: Figure out whether we know the maximum value.
-                         */
-                        return MinMaxTree(false, NEGATIVE_MAXIMUM);
-                    }
-                    default:
-                    {
-                        /* It can be negative or positive.
-                         * We know nothing about the boundaries. */
-                        break;
-                    }
-                }
-                break;
-            }
-
-            /* The following opcodes are processed by GenerateFrom()
-             * within fpoptimizer_bytecode_to_codetree.cc and thus
-             * they will never occur in the calling context:
-             */
-            case cNeg: // converted into cMul x -1
-            case cInv: // converted into cPow x -1
-            case cDiv: // converted into cPow y -1
-            case cRDiv: // similar to above
-            case cSub: // converted into cMul y -1
-            case cRSub: // similar to above
-            case cRad: // converted into cMul x CONSTANT_RD
-            case cDeg: // converted into cMul x CONSTANT_DR
-            case cSqr: // converted into cMul x x
-            case cExp: // converted into cPow CONSTANT_E x
-            case cExp2: // converted into cPow 2 x
-            case cSqrt: // converted into cPow x 0.5
-            case cRSqrt: // converted into cPow x -0.5
-            case cCot: // converted into cMul (cPow (cTan x) -1)
-            case cSec: // converted into cMul (cPow (cCos x) -1)
-            case cCsc: // converted into cMul (cPow (cSin x) -1)
-            case cLog10: // converted into cMul CONSTANT_L10I (cLog x)
-            case cRPow: // converted into cPow y x
-                break; /* Should never occur */
-
-            /* Opcodes that do not occur in the tree for other reasons */
-            case cDup:
-            case cFetch:
-            case cPopNMov:
-            case cNop:
-            case cJump:
-            case VarBegin:
-                break; /* Should never occur */
-
-            /* Opcodes that are completely unpredictable */
-            case cVar:
-            case cPCall:
-            case cFCall:
-            case cEval:
-                break; // Cannot deduce
-
-
-            //default:
-                break;
-        }
-        return MinMaxTree(); /* Cannot deduce */
-    }
+{eW1
+eA1(-fp_const_pihalf
+x5(),fp_const_pihalf
+x5());eW1
+pi_limits(-fp_const_pi
+x5(),fp_const_pi
+x5());eW1
+abs_pi_limits(iQ(0),fp_const_pi
+x5());using
+iF2
+std;cI3
+xC1
+tV2
+cImmed:n5
+tree
+tN
+c63
+tN);case
+cAnd:case
+cAbsAnd:case
+cOr:case
+cAbsOr:case
+cNot:case
+lQ2:case
+cNotNot:case
+cAbsNotNot:case
+cEqual:case
+cNEqual:case
+cLess:case
+cLessOrEq:case
+cGreater:case
+cGreaterOrEq:{n5
+iQ(0),iQ(1));}
+case
+cAbs:l9
+m.set_abs(cD
+cLog:l9
+m.y9
+fp_log
+cD
+cLog2:l9
+m.y9
+fp_log2
+cD
+cLog10:l9
+m.y9
+fp_log10
+cD
+cAcosh:l9
+m.iE2
+set_min_max_if<cGreaterOrEq
+yM3
+fp_acosh
+cD
+cAsinh:l9
+m.xF2
+fp_asinh
+cD
+cAtanh:l9
+m.iE2
+set_min_if<cGreater>(iQ(-1),fp_atanh);m.iE2
+set_max_if<cLess
+yM3
+fp_atanh
+cD
+cAcos:l9
+n5(m
+eM3
+m.max)<iQ(1))?fp_acos(m.max):iQ(0),(m.n32(m.min)>=iQ(-1))?fp_acos(m.min):fp_const_pi
+x5());}
+case
+cAsin:l9
+m.iE2
+set_min_if<cGreater>(iQ(-1),fp_asin,eA1);m.iE2
+set_max_if<cLess
+yM3
+fp_asin,eA1
+cD
+cAtan:l9
+m.xF2
+fp_atan,eA1
+cD
+cAtan2:{iG
+p0=y2
+p1=y3
+1));x8&&fp_equal
+yD,iQ(0))){lX3
+abs_pi_limits;}
+if(xW2
+fp_equal(y1,iQ(0))){lX3
+eA1;}
+lX3
+pi_limits;}
+case
+cSin:l9
+bool
+nR1=!iA2||!m.l22||(m.max-m.min)>=(yA
+nR1)cU
+iQ
+min=c32
+min,yA
+min<iQ(0))min
+yT
+iQ
+max=c32
+max,yA
+max<iQ(0))max
+yT
+if(max<min)max
+yT
+bool
+xJ1=(min<=fp_const_pihalf
+x5()&&max>=fp_const_pihalf
+x5());bool
+nI1=(min<=iQ(iA&&max>=iQ(iA);if(xJ1&&nI1)cU
+if(nI1)n5
+iQ(-1),iX1
+if(xJ1)n5
+xG2
+iQ(1));n5
+xG2
+iX1}
+case
+cCos:l9
+if(iA2)m.min+=fp_const_pihalf
+x5();if(m.l22)m.max+=fp_const_pihalf
+x5();bool
+nR1=!iA2||!m.l22||(m.max-m.min)>=(yA
+nR1)cU
+iQ
+min=c32
+min,yA
+min<iQ(0))min
+yT
+iQ
+max=c32
+max,yA
+max<iQ(0))max
+yT
+if(max<min)max
+yT
+bool
+xJ1=(min<=fp_const_pihalf
+x5()&&max>=fp_const_pihalf
+x5());bool
+nI1=(min<=iQ(iA&&max>=iQ(iA);if(xJ1&&nI1)cU
+if(nI1)n5
+iQ(-1),iX1
+if(xJ1)n5
+xG2
+iQ(1));n5
+xG2
+iX1}
+case
+cTan:{n5);}
+case
+cCeil:l9
+m.yN1
+cFloor
+n23
+cD
+cTrunc
+n23);m.yN1
+cInt
+n23);m.yN1
+cSinh:l9
+m.xF2
+fp_sinh
+cD
+cTanh:l9
+m.xF2
+fp_tanh,iG(iQ(-1),iQ(1))cD
+cCosh:l9
+if(iA2
+xX3
+m.l22
+xX3
+m.min>=iQ(0)&&m.max
+i92{m.min
+cH}
+t41(m.min)<iQ(0)&&m.max
+i92{iQ
+tmp
+cH
+if(tmp>m.max)m.max=tmp;m.min=iQ(1);}
+eN3
+min
+cH
+std::swap(m.min,m.max);}
 }
-
+else{if(m.min
+i92{m.iC
+m.min=fp_cosh(m.min);}
+eN3
+iC
+m.min=iQ(1);}
+}
+}
+eN3
+xE2
+true;m.min=iQ(1);if(m.l22){m.min=fp_cosh(m.max);m.iC}
+else
+m.iC}
+lX3
+m;}
+case
+cIf:case
+cAbsIf:{iG
+res1=y3
+1));iG
+res2=y3
+2));if(!res2.yJ3
+res1.xE2
+false;t41
+res1.n32(res2.min)<res1.min)res1.min=res2.min;if(!res2.l22)res1.iC
+t41
+res1
+eM3
+res2.max)>res1.max)res1.max=res2.max
+lC1
+res1;}
+case
+cMin:{bool
+iD
+e23
+bool
+iE
+e23
+y23;nX
+m
+y33!iA2)iD=true;xK1
+has_min||(m.min)<y43
+eP3=m.min;if(!m.l22)iE=true;xK1
+l22||(m.max)<y53
+eQ3=m.max;}
+if(iD
+c01
+xE2
+false;if(iE
+c01
+iC
+lX3
+y63
+cMax:{bool
+iD
+e23
+bool
+iE
+e23
+y23;nX
+m
+y33!iA2)iD=true;xK1
+has_min||m.min>y43
+eP3=m.min;if(!m.l22)iE=true;xK1
+l22||m.max>y53
+eQ3=m.max;}
+if(iD
+c01
+xE2
+false;if(iE
+c01
+iC
+lX3
+y63
+cAdd:{y23(iQ(0),iQ(0));nX
+item
+y33
+item.has_min
+eP3+=item.min
+xC2
+xE2
+false;if(item.l22
+eQ3+=item.max
+xC2
+iC
+if(!cQ3.n32!cQ3.l22)break;}
+if
+iZ2
+n32
+cQ3.l22&&y43>y53)std::swap
+iZ2
+min,y53)lC1
+y63
+cMul:{yI2
+Value{enum
+lH3{t92,tJ1,tA2}
+;lH3
+e9;iQ
+value;Value(lH3
+t):e9(t),value(0){}
+Value(iQ
+v):e9(t92),value(v){}
+bool
+y92
+n71
+e9==tJ1||(e9==t92&&value<iQ(0))iH2
+cL1*=yI
+Value&rhs
+xX3
+e9==t92&&rhs.e9==t92)value*=rhs.value;else
+e9=(y92)!=rhs.y92)?tJ1:tA2);}
+tL2<yI
+Value&rhs
+n71(e9==tJ1&&rhs.e9!=tJ1)||(e9==t92&&(rhs.e9==tA2||(rhs.e9==t92&&value<rhs.value)));}
+}
+;yI2
+xZ1{Value
+xH2,xI2;xZ1():xH2(Value::tA2),xI2(Value::tJ1){}
+void
+n52
+Value
+yO3,const
+Value&value2){yO3*=value2;if(yO3<xH2)xH2=yO3;if(xI2<yO3)xI2=yO3;}
+}
+;y23(iQ(y73
+nX
+item
+y33!item.n32!item.l22)n5
+tV3
+lI3=cQ3.has_min?Value
+iZ2
+min
+lF2
+tJ1
+tV3
+lJ3=cQ3.l22?Value
+iZ2
+max
+lF2
+tA2
+tV3
+lK3=item.has_min?Value(item.min
+lF2
+tJ1
+tV3
+lL3=item.l22?Value(item.max
+lF2
+tA2);xZ1
+range
+xN3
+lI3,lK3)xN3
+lI3,lL3)xN3
+lJ3,lK3)xN3
+lJ3,lL3);if(range.xH2.e9==Value::t92
+eP3=range.xH2.value
+xC2
+xE2
+false;if(range.xI2.e9==Value::t92
+eQ3=range.xI2.value
+xC2
+iC
+if(!cQ3.n32!cQ3.l22)break;}
+if
+iZ2
+n32
+cQ3.l22&&y43>y53)std::swap
+iZ2
+min,y53)lC1
+y63
+cMod:{iG
+x=y2
+y=y3
+1));if(y.l22
+xX3
+y.max
+i92{if(!x.has_min||(x.min)<0)n5-y.max,y.max);eR3
+iQ(0),y.max);}
+else{if(!x.l22||(x.max)>=0)n5
+y.max,-y.max);eR3
+y.max,fp_const_negativezero
+x5());}
+}
+eR3);}
+case
+cPow:{if(xW2
+y1==iQ(0
+xP3
+y73}
+x8&&lE
+GetImmed()==iQ(0
+xP3
+0),iQ(0));}
+x8&&fp_equal
+yD,iQ(1)xP3
+y73}
+if(xW2
+y1>0&&GetEvennessInfo(tU2)==c02
+lH2
+y1;iG
+tmp=y2
+cQ3;cQ3.xE2
+true;y43=0;if(tmp.n32
+tmp.min>=0
+eP3
+eO3(tmp.min,tB2
+t41
+tmp.l22&&tmp.max<=0
+eP3
+eO3(tmp.max,tB2
+cQ3.iC
+if(tmp.n32
+tmp.l22){cQ3.l22=true;y53=std::max(fp_abs(tmp.min),fp_abs(tmp.max));y53
+eO3
+iZ2
+max,tB2}
+lX3
+yS3
+iG
+p0=y2
+p1=y3
+1));cN1
+p0_positivity=(p0.n32
+tZ3)i92?c02:(p0
+eM3
+p0.max)<iQ(0)?iB2
+Unknown);cN1
+yA2=GetEvennessInfo(tU2);cN1
+t0=Unknown;cI3
+p0_positivity){iI1
+t0=c02;lB
+iB2{t0=yA2;break;}
+default:cI3
+yA2){iI1
+t0=c02;lB
+iB2
+lB
+Unknown:{if(xW2!eP2
+y1)&&y1
+i92{t0=c02;}
+xF3
+i62
+t0){iI1{iQ
+min=iQ(0);if(p0.n32
+p1.yJ3{min
+eO3
+tZ3,p1.min);if
+tZ3<iQ(0)&&(!p1.l22||p1.max
+i92&&min
+i92
+min=iQ(0);}
+if(p0.n32
+p0.min>=iQ(0)&&p0.l22&&p1.l22){iQ
+max=pow(p0.max,p1.max);if(min>max)std::swap(min,max);n5
+min,max);}
+n5
+min,false);}
+case
+iB2{n5
+false,fp_const_negativezero
+x5());}
+default:{break;}
+eL2
+cNeg:l9
+m.set_neg(cD
+cSub:{nL
+cNeg
+e82
+1));tmp
+y7
+cAdd);tmp.nK
+0));tmp
+lO3
+c42
+cInv:lV-1)))c42
+cDiv:{nL
+cInv
+e82
+1))iR
+lO3
+c42
+cRad:{tW
+tmp
+iR
+yV
+fp_const_rad_to_deg
+x5()))c42
+cDeg:{tW
+tmp
+iR
+yV
+fp_const_deg_to_rad
+x5()))c42
+cSqr:lV
+2)))c42
+cExp:eC2
+cPow);tmp
+yV
+fp_const_e
+x5()));tmp.nK
+0))c42
+cExp2:eC2
+cPow);tmp
+yV
+iQ(2)));tmp.nK
+0))c42
+cCbrt:l9
+m.xF2
+fp_cbrt
+cD
+cSqrt:l9
+if(iA2)m.min=(m.min)<0?0:fp_sqrt(m.min);if(m.l22)m.max=(m.max)<0?0:fp_sqrt(m.max
+cD
+cRSqrt:lV-0.5)))c42
+cHypot:{tW
+xsqr,ysqr,add,sqrt;xsqr.nK
+0));xsqr
+yV
+iQ(2)));ysqr.nK
+1));ysqr
+yV
+iQ(2)));xsqr
+y7
+cPow);ysqr
+y7
+cPow);add
+lE1
+xsqr);add
+lE1
+ysqr);add
+y7
+cAdd);sqrt
+lE1
+add);sqrt
+y7
+cSqrt)lC1
+l01(sqrt);}
+case
+yQ3:{nL
+cLog2
+e82
+0));tmp
+y03
+tmp
+lO3;tmp.nK
+1))c42
+cCot:{nL
+cTan
+e82
+0
+xU
+lI
+cSec:{nL
+cCos
+e82
+0
+xU
+lI
+cCsc:{nL
+cSin
+e82
+0
+xU
+l01(tmp);}
+lB
+cRDiv:case
+cRSub:case
+cDup:case
+cFetch:case
+cPopNMov:case
+cSinCos:case
+cNop:case
+cJump:case
+tZ2:lB
+cPCall:lB
+cFCall:lB
+cEval:break;}
+n5);}
+lO
+cN1
+GetIntegerInfo
+yG){cI3
+xC1
+tV2
+cImmed:lX3
+eP2
+tree
+tN)?c02:IsNever;case
+cFloor:case
+cCeil:case
+cTrunc:case
+cInt:lX3
+c02;case
+cAnd:case
+cOr:case
+cNot:case
+cNotNot:case
+cEqual:case
+cNEqual:case
+cLess:case
+cLessOrEq:case
+cGreater:case
+cGreaterOrEq:lX3
+c02;case
+cIf:{cN1
+a=GetIntegerInfo(tU2);cN1
+b=GetIntegerInfo(tI3);if(a==b
+n92
+a
+lC1
+Unknown;}
+case
+cAdd:case
+cMul:{e92
+if(GetIntegerInfo(lR1
+a))!=c02
+n92
+Unknown
+lC1
+c02;}
+default:break;}
+lX3
+Unknown;}
+nM3
+IsLogicalValue
+yG){cI3
+xC1
+tV2
+cImmed:lX3
+FloatEqual(tree
+tN,iQ(0))||FloatEqual(tree
+tN,iQ(1));case
+cAnd:case
+cOr:case
+cNot:case
+cNotNot:case
+cAbsAnd:case
+cAbsOr:case
+lQ2:case
+cAbsNotNot:case
+cEqual:case
+cNEqual:case
+cLess:case
+cLessOrEq:case
+cGreater:case
+cGreaterOrEq:nZ
+cMul:{e92
+if(!tN2
+a))n92
+false
+tQ1
+case
+cIf:case
+cAbsIf:{lX3
+tN2
+1))nN1
+tI3);}
+default:break;}
+xD1}
+#endif
+#ifdef FP_SUPPORT_OPTIMIZER
+nE
+#if defined(__x86_64) || !defined(FP_SUPPORT_CBRT)
+# define CBRT_IS_SLOW
+#endif
+#if defined(DEBUG_POWI) || defined(DEBUG_SUBSTITUTIONS)
+#include <cstdio>
+#endif
+t2{extern
+const
+lW3
+char
+powi_table[256];}
+iF2{using
+iF2
+FPoptimizer_CodeTree;nM3
+IsOptimizableUsingPowi(long
+immed,long
+penalty=0){FPoptimizer_ByteCode::iZ1
+x5
+synth;iP
+PushVar(tZ2)tW3
+bytecodesize_backup=iP
+GetByteCodeSize();FPoptimizer_ByteCode::xH1(immed,FPoptimizer_ByteCode::eL1
+x5::MulSequence,synth)tW3
+bytecode_grow_amount=iP
+GetByteCodeSize()-bytecodesize_backup
+lC1
+bytecode_grow_amount<size_t(MAX_POWI_BYTECODE_LENGTH-penalty);}
+nD3
+ChangeIntoRootChain(tW&tree,bool
+iC2,long
+tC2,long
+tD2){while(tD2>0)eC2
+cCbrt);eE2
+tmp
+lL1
+tree
+yB2--tD2;}
+while(tC2>0)eC2
+cSqrt);if(iC2){tmp
+y7
+cRSqrt);iC2
+e23}
+eE2
+tmp
+lL1
+tree
+yB2--tC2;}
+if(iC2)eC2
+cInv);eE2
+tree
+yB2}
+}
+lO
+yI2
+RootPowerTable{static
+const
+iQ
+RootPowers[(1+4)*(1+3)];}
+;lO
+const
+iQ
+t5(1+4)*(1+3)]={iQ(1),lU
+2),lU
+2*2),lU
+2*2*2),lU
+2*2*2*2),lU
+3
+l42
+2
+l42
+2*2
+l42
+2*2*2
+l42
+2*2*2*2
+l42
+3
+l42
+3*2
+l42
+3*2*2
+l42
+3*2*2*2
+l42
+3*2*2*2*2
+l42
+3*3
+l42
+3*3*2
+l42
+3*3*2*2
+l42
+3*3*2*2*2
+l42
+3*3*2*2*2*2)}
+;yI2
+PowiResolver{static
+const
+lW3
+MaxSep=4;static
+lP3
+MaxOp=5;typedef
+int
+yP3;typedef
+long
+lV3;typedef
+long
+eD;yI2
+xJ2{xJ2():n_int_sqrt(0),n_int_cbrt(0),sep_list(),n11(0){}
+int
+n_int_sqrt;int
+n_int_cbrt;int
+eK1
+MaxSep];eD
+n11;}
+;lO
+static
+xJ2
+CreatePowiResult(iQ
+tK2){xJ2
+cQ3;yP3
+cE=FindIntegerFactor
+nG2);if(cE==0){
+#ifdef DEBUG_POWI
+tE2"no factor found for %Lg\n"
+yC2);
+#endif
+lX3
+yS3
+cQ3.n11=lO1
+nG2,cE);lV3
+c52=EvaluateFactorCost(cE,0,0,0)+cA
+cQ3.n11);int
+eS3=0;int
+eT3=0;int
+lM3=0;
+#ifdef DEBUG_POWI
+tE2"orig = %Lg\n"
+yC2);tE2"plain factor = "
+tC3"%ld\n"
+,(int)cE,(long)c52);
+#endif
+for
+eS1
+n_s=0;n_s<MaxSep;++n_s){int
+xE=0;lV3
+y01=c52;yP3
+yA1=cE;for(int
+s=1;s<MaxOp*4;++s){
+#ifdef CBRT_IS_SLOW
+if(s>=MaxOp)break;
+#endif
+int
+n_sqrt=s%MaxOp;int
+n_cbrt=s/MaxOp;if(n_sqrt+n_cbrt>4)xU1
+iQ
+lP1=tK2;lP1-=t5
+s];eX1=FindIntegerFactor(lP1);if
+lY2!=0){eD
+xL=lO1(lP1,xO2);lV3
+cost=EvaluateFactorCost
+lY2,eS3+n_sqrt,eT3+n_cbrt,lM3+1)+cA
+xL);
+#ifdef DEBUG_POWI
+tE2"Candidate sep %u (%d*sqrt %d*cbrt)factor = "
+tC3"%ld (for %Lg to %ld)\n"
+,s,n_sqrt,n_cbrt,xO2,(long)cost
+i1
+lP1,(long)xL);
+#endif
+if(cost<y01){xE=s;yA1=xO2;y01=cost;}
+}
+}
+if(!xE)break;
+#ifdef DEBUG_POWI
+tE2"CHOSEN sep %u (%d*sqrt %d*cbrt)factor = "
+tC3"%ld, exponent %Lg->%Lg\n"
+,xE,xE%MaxOp,xE/MaxOp,yA1,y01
+i1
+nG2)i1
+nG2-t5
+xE]));
+#endif
+cQ3.eK1
+n_s]=xE
+n42-=t5
+xE];eS3+=xE%MaxOp;eT3+=xE/MaxOp;c52=y01;cE=yA1;lM3+=1;}
+cQ3.n11=lO1
+nG2,cE);
+#ifdef DEBUG_POWI
+tE2"resulting exponent is %ld (from exponent=%Lg, best_factor=%Lg)\n"
+,cQ3.n11
+yC2
+i1
+cE);
+#endif
+while(cE%2==0){++cQ3
+eG2;cE/=2;}
+while(cE%3==0){++cQ3.n_int_cbrt;cE/=3;}
+lX3
+yS3
+private:static
+lV3
+cA
+eD
+xL){static
+std::map
+yD2
+i6;if(xL<0){lV3
+cost=22
+lC1
+cost+cA-xL);}
+std::map
+yD2::nP3
+i=i6.nO2
+xL);if(i!=i6.c51
+xL
+n92
+i
+yQ2;std::pair
+yD2
+cL3
+xL,0.0);lV3&cost=cQ3
+cZ3;while(xL>1){int
+xO2=0;if(xL<256){xO2=FPoptimizer_ByteCode::powi_table[xL];if
+lY2&128)xO2&=127;else
+xO2=0;if
+lY2&64)xO2=-lY2&63)-1;}
+if
+lY2){cost+=cA
+xO2);xL/=xO2;xU1}
+if(!(xL&1)){xL/=2;cost+=6;}
+else{cost+=7;xL-=1;}
+}
+i6.nN3,cQ3)lC1
+cost;cN3
+eD
+lO1
+eO2,eX1){lX3
+makeLongInteger
+cC3*iQ
+lY2));cN3
+bool
+c11
+eO2,eX1){iQ
+v=value*iQ
+lY2)lC1
+isLongInteger(v);cN3
+yP3
+FindIntegerFactor
+eO2){eX1=(2*2*2*2);
+#ifdef CBRT_IS_SLOW
+#else
+xO2*=(3*3*3);
+#endif
+yP3
+lN3
+0;if(c11
+cC3,xO2)){lN3
+xO2;while(lY2%2)==0&&c11
+cC3,xO2/2))lN3
+xO2/=2;while(lY2%3)==0&&c11
+cC3,xO2/3))lN3
+xO2/=3;}
+#ifdef CBRT_IS_SLOW
+if(cQ3==0
+xX3
+c11
+cC3,3)n92
+3;}
+#endif
+lX3
+yS3
+static
+int
+EvaluateFactorCost(int
+xO2,int
+s,int
+c,int
+nmuls){lP3
+lQ3=6;
+#ifdef CBRT_IS_SLOW
+lP3
+c62=25;
+#else
+lP3
+c62=8;
+#endif
+int
+lN3
+s*lQ3+c*c62;while
+lY2%2==0){xO2/=2;cQ3+=lQ3;}
+while
+lY2%3==0){xO2/=3;cQ3+=c62;}
+cQ3+=nmuls
+lC1
+yS3}
+;}
+iF2
+FPoptimizer_CodeTree{nM3
+nC
+RecreateInversionsAndNegations(bool
+prefer_base2){bool
+changed=false
+lJ1
+GetParamCount();cJ3
+tP.RecreateInversionsAndNegations(prefer_base2))lT2
+if(changed){exit_changed:Mark_Incompletely_Hashed()tQ1
+cI3
+GetOpcode()tV2
+cMul:{yC<tW>iJ1;tW
+iK1,y21;if(true){bool
+nJ1
+e23
+iQ
+lS2=0;lK1
+nW
+yE2
+0)tF2
+tE
+eU3
+nJ1=true;lS2=tE
+1)tN;xF3
+if(nJ1){iQ
+immeds=1.0;lK1
+nW
+yK1){immeds*=powgroup
+tN;y11}
+lK1-->0;){tW&powgroup=tP;if(powgroup
+yE2
+0)tF2
+tE
+eU3
+tW&log2=tE
+0);log2.lH1
+log2
+y7
+yQ3);log2
+yV
+fp_pow(immeds,iQ(1)/lS2)));log2
+lL1
+xF3}
+}
+lK1
+nW
+yE2
+eU3
+tM2&exp_param=tE
+1);iQ
+tK2=exp_param
+tN;if(fp_equal
+nG2,iQ(-1))){lH1
+iJ1
+yX
+tP
+xM3
+y11
+t41
+tK2<0&&isInteger
+nG2)){tW
+iF;iF
+y7
+cPow);iF
+iO
+tE
+0));iF
+yV-tK2));iF
+lL1
+iJ1
+yX
+iF);lH1
+y11}
+t41
+powgroup
+tF2!iK1.eC1
+iK1=tE
+0);lH1
+y11
+t41
+powgroup
+nD
+yQ3&&!y21.eC1
+y21=powgroup;lH1
+y11}
+if(!iJ1
+xT3){lT2
+tW
+xN1;xN1
+y03
+xN1
+c33
+iJ1);xN1
+tW2
+xL1
+cMul);xM1
+SetParamsMove
+eU
+if(xM1
+IsImmed()&&fp_equal
+cL2
+tN,e03{iL1
+cInv)cM
+xN1);}
+else{if(xM1
+nX2>=xN1.nX2){iL1
+cDiv
+lU2
+cM
+xN1);}
+else{iL1
+cRDiv)cM
+xN1
+lU2;}
+}
+}
+if(iK1.eC1
+tW
+xL1
+e7
+xM1
+SetParamsMove
+eU
+while(xM1
+RecreateInversionsAndNegations(prefer_base2))xM1
+FixIncompleteHashes();iL1
+yQ3)cM
+iK1
+lU2;lT2}
+if(y21.eC1
+tW
+xL1
+cMul);lY3
+lE1
+y21
+lN
+1));xM1
+AddParamsMove
+eU
+while(xM1
+RecreateInversionsAndNegations(prefer_base2))xM1
+FixIncompleteHashes();DelParams();iL1
+yQ3)cM
+y21
+lN
+0)lU2;lT2
+eL2
+cAdd:{yC<tW>tG2;for
+cB1
+a=eT
+tP
+nD
+cMul){iM1
+xO1:;tW&lY3=tP
+tT
+for
+cB1
+b=lY3
+iK;b-->0;){if
+cL2
+lN
+b
+yB3
+xO2=lY3
+lN
+b)tN;if(fp_equal
+lY2
+xW
+xO1;}
+xM1
+lH1
+xM1
+eI1
+b)c72
+t41
+fp_equal
+lY2,iQ(-2))xX3
+tV
+xO1;}
+xM1
+lH1
+xM1
+eI1
+b);lY3
+yV
+iQ(2)))c72}
+}
+if(t1){lY3
+cK1
+lY3);y11}
+t41
+tP
+nD
+cDiv){iM1
+xP1:;tW&xN1=tP
+tT
+if(xN1
+lN
+0)yK1){e62
+xN1
+lN
+0)tN
+xW
+xP1;}
+xN1.lH1
+xN1.eI1
+0);xN1
+y7
+cInv)c72}
+if(t1
+xX3
+tV
+xP1;}
+xN1
+cK1
+xN1);y11}
+t41
+tP
+nD
+cRDiv){iM1
+nW1:;tW&xN1=tP
+tT
+if(xN1
+lN
+eU3
+e62
+xN1
+lN
+1)tN
+xW
+nW1;}
+xN1.lH1
+xN1.eI1
+1);xN1
+y7
+cInv)c72}
+if(t1
+xX3
+tV
+nW1;}
+xN1
+cK1
+xN1);y11}
+if(!tG2
+xT3){
+#ifdef DEBUG_SUBSTITUTIONS
+tE2"Will make a Sub conversion in:\n"
+);fflush(stdout);iV
+#endif
+tW
+yB1;yB1
+y7
+cAdd);yB1
+c33
+tG2);yB1
+tW2
+tJ3;tJ3
+y7
+cAdd);tJ3
+c33
+tM1));tJ3
+lL1
+if(tJ3
+yK1&&fp_equal(tJ3
+tN,iQ(0))){iL1
+cNeg)cG3);}
+else{if(tJ3.nX2==1){iL1
+cRSub)cG3)cH3;}
+t41
+yB1
+nD
+cAdd){iL1
+cSub)cH3
+cG3
+lN
+0)e52
+1;a<yB1
+iK;++a){tW
+c82;c82
+y7
+cSub);c82
+c33
+tM1));c82.lL2
+cM
+c82)cG3
+lF3}
+}
+else{iL1
+cSub)cH3
+cG3);}
+}
+#ifdef DEBUG_SUBSTITUTIONS
+tE2"After Sub conversion:\n"
+);fflush(stdout);iV
+#endif
+eL2
+cPow:{tM2&p0
+xH3
+0);tM2&p1
+xH3
+1);if(p1
+yK1
+xX3
+p1
+tN!=iQ(0)&&!eP2
+p1
+tN)){eE
+xJ2
+r=eE
+CreatePowiResult(fp_abs(p1
+tN));if(r.n11!=0){bool
+tK1
+e23
+if(p1
+tN<0&&r.eK1
+0]==0&&r
+eG2>0){tK1=true;}
+#ifdef DEBUG_POWI
+tE2"Will resolve powi %Lg as powi(chain(%d,%d),%ld)"
+i1
+fp_abs(p1
+tN),r
+eG2,r.n_int_cbrt,r.n11);eR1
+0;n<eE
+MaxSep;++n
+xX3
+r
+yD3==0)break;int
+n_sqrt=r
+yD3%eE
+MaxOp;int
+n_cbrt=r
+yD3/eE
+MaxOp;tE2"*chain(%d,%d)"
+,n_sqrt,n_cbrt);}
+tE2"\n"
+);
+#endif
+tW
+yF2
+xH3
+0);tW
+xK2=yF2;xK2.lH1
+ChangeIntoRootChain(xK2,tK1,r
+eG2,r.n_int_cbrt);xK2
+tW2
+pow;if(r.n11!=1){pow
+y7
+cPow);pow
+lE1
+xK2);pow
+yV
+iQ(r.n11)));}
+else
+pow.swap(xK2);tW
+mul;mul
+y03
+mul
+lE1
+pow);eR1
+0;n<eE
+MaxSep;++n
+xX3
+r
+yD3==0)break;int
+n_sqrt=r
+yD3%eE
+MaxOp;int
+n_cbrt=r
+yD3/eE
+MaxOp;tW
+c92=yF2;c92.lH1
+ChangeIntoRootChain(c92,false,n_sqrt,n_cbrt);c92
+lL1
+mul
+lE1
+c92);}
+if(p1
+tN<0&&!tK1){mul
+lL1
+iL1
+cInv);n91
+0,mul);eI1
+1);}
+else{iL1
+cMul);SetParamsMove(mul.tM1));}
+#ifdef DEBUG_POWI
+iV
+#endif
+lT2
+xF3}
+if(GetOpcode()==cPow&&(!p1
+yK1||!isLongInteger(p1
+tN)||!IsOptimizableUsingPowi
+x5(makeLongInteger(p1
+tN)))xX3
+p0
+yK1&&p0
+tN>0.0
+xX3
+prefer_base2){iQ
+xL2=fp_log2(p0
+tN);e62
+xL2,e03{eI1
+0);}
+else{lX
+CodeTreeImmed(xL2))n42
+iO
+p1)n42.Rehash()iT}
+iL1
+cExp2);lT2}
+else{iQ
+xL2=fp_log(p0
+tN);e62
+xL2,e03{eI1
+0);}
+else{lX
+CodeTreeImmed(xL2))n42
+iO
+p1)n42.Rehash()iT}
+iL1
+cExp);lT2}
+}
+t41
+GetPositivityInfo(p0)==c02
+xX3
+prefer_base2){tW
+log;log
+y7
+cLog2);log
+iO
+p0);log
+lL1
+lX
+p1)n42
+lE1
+log)n42
+lL1
+iL1
+cExp2)iT
+lT2}
+else{tW
+log;log
+y7
+cLog);log
+iO
+p0);log
+lL1
+lX
+p1)n42
+lE1
+log)n42
+lL1
+iL1
+cExp)iT
+lT2}
+}
+}
+break;}
+default:break;}
+if(changed)goto
+exit_changed
+lC1
+changed;}
+}
+#endif
+#ifdef FP_SUPPORT_OPTIMIZER
+nE
+iF2{using
+iF2
+FPoptimizer_CodeTree;class
+eD1{size_t
+y31
+tW3
+eF
+tW3
+eG
+tW3
+lQ1;cR3
+eD1():y31(0),eF(0),eG(0),lQ1(0){}
+void
+yR3
+OPCODE
+op){y31+=1;tP2
+cCos)++eF;tP2
+cSin)++eG;tP2
+cSec)++eF;tP2
+cCsc)++eG;tP2
+cTan)++lQ1;tP2
+cCot)++lQ1;}
+size_t
+GetCSEscore
+cD3
+size_t
+lN3
+y31
+lC1
+yS3
+int
+NeedsSinCos
+cD3
+bool
+always_sincostan=(y31==(eF+eG+lQ1));if((lQ1&&(eG||eF))||(eG&&eF)xX3
+always_sincostan
+n92
+1
+lC1
+2;}
+lX3
+0;}
+size_t
+MinimumDepth
+cD3
+size_t
+n_sincos=std::min(eF,eG);if(n_sincos==0
+n92
+2
+lC1
+1;}
+}
+;n53
+TreeCountType:public
+std::multimap<nC2,std::pair<eD1,tW> >{}
+;nD3
+FindTreeCounts(i0&iN1,cD2,OPCODE
+iO1{nX1
+i=iN1.nO2
+cE2);bool
+found
+e23
+for(;i!=iN1.c51
+cE2;++i
+xX3
+tree.IsIdenticalTo(i
+yQ2
+eI2){i
+yQ2.first.yR3
+iO1;found=true;xF3
+if(!found){eD1
+count;count.yR3
+iO1;iN1.nN3,std::make_pair(cE2,std::make_pair
+yX3
+c63)));}
+for
+n62
+y6++a)FindTreeCounts(iN1,lR1
+a)c63.e7}
+yI2
+yZ{bool
+BalanceGood;bool
+cB;}
+;lO
+yZ
+e33
+yZ3
+root,tM2&child
+xX3
+root.IsIdenticalTo(child)){yZ
+lN3{true,true}
+lC1
+yS3
+yZ
+lN3{true,false}
+;if(root
+nD
+cIf||root
+nD
+nS3{yZ
+cond
+iW
+0
+xO3
+yZ
+cJ
+iW
+1
+xO3
+yZ
+cC
+iW
+2
+xO3
+if(cond.cB||cJ.cB||cC.cB){cQ3.cB=true;}
+cQ3
+eA=((cJ.cB==cC.cB)cT2&&(cond
+eA||(cJ.cB&&cC.cB))&&(cJ
+eA
+cT2&&(cC
+eA
+cT2;}
+else{bool
+eY1
+e23
+bool
+nK1
+e23
+for
+cB1
+b=root
+iK,a=0;a<b;++a){yZ
+tmp
+iW
+a
+xO3
+if(tmp.cB
+c01
+cB=true;if(tmp
+eA
+eX3)eY1=true;t41
+tmp.cB)nK1=true;}
+if(eY1&&!nK1)cQ3
+eA
+e23}
+lX3
+yS3
+nM3
+eH1
+yZ3
+eY3
+cD2,const
+FPoptimizer_ByteCode::iZ1
+x5&synth,const
+i0&iN1){for
+cB1
+b=tree
+iK,a=0;a<b;++a){tM2&leaf=lR1
+a);nX1
+iY1;cI2
+i0::const_iterator
+i=iN1
+nA3
+i!=iN1.end();++i
+xX3
+i->eG3
+leaf.GetHash())continue
+l61
+i->lW2
+size_t
+score=occ.GetCSEscore();tM2&candidate=i->lX2
+cN2
+candidate))xU1
+if(leaf.nX2<occ.MinimumDepth())xU1
+if(score<2)xU1
+if(e33(eY3
+leaf)eA
+eX3)continue
+tQ1
+if(eH1(eY3
+leaf,synth,iN1)cA2}
+xD1
+nM3
+iP1
+yZ3
+nO3,tM2&expr){y8
+nO3
+lN
+iS
+expr)cA2
+y8
+iP1(nO3
+lN
+a),expr)n92
+true
+lC1
+false;}
+nM3
+GoodMomentForCSE
+yZ3
+nO3,tM2&expr
+xX3
+nO3
+nD
+cIf
+cA2
+y8
+nO3
+lN
+iS
+expr)cA2
+size_t
+tH2=0;y8
+iP1(nO3
+lN
+a),expr))++tH2
+lC1
+tH2!=1;}
+}
+iF2
+FPoptimizer_CodeTree{lO
+size_t
+nC
+SynthCommonSubExpressions(FPoptimizer_ByteCode::iZ1
+x5&synth
+cE3{size_t
+stacktop_before=iP
+GetStackTop();i0
+iN1;FindTreeCounts(iN1,*this,e7
+#ifdef DEBUG_SUBSTITUTIONS_CSE
+DumpHashes(*this);
+#endif
+for(;;){size_t
+xM2=0;nX1
+iY1;for(nX1
+j,i=iN1
+nA3
+i!=iN1.end();i=j){j=i;++j
+l61
+i->lW2
+size_t
+score=occ.GetCSEscore();cD2=i->lX2
+#ifdef DEBUG_SUBSTITUTIONS_CSE
+std::cout<<"Score "
+<<score<<":\n"
+;DumpTreeWithIndent(tree);
+#endif
+cN2
+tree))xX
+if(tree.nX2<occ.MinimumDepth())xX
+if(score<2)xX
+if(e33
+xZ3)eA
+eX3)xX
+if(eH1
+xZ3,synth,iN1)){xU1}
+if(!GoodMomentForCSE
+xZ3))xX
+score*=tree.nX2;if(score>xM2){xM2=score;iY1=i;}
+}
+if(xM2<=0)break
+l61
+iY1->lW2
+cD2=iY1->lX2
+#ifdef DEBUG_SUBSTITUTIONS_CSE
+std::cout<<tG3"Common Subexpression:"
+;nX3
+x5(tree)iJ"\n"
+;
+#endif
+int
+xQ1=occ.NeedsSinCos();tW
+tI2,tJ2;if(xQ1){tI2
+iO
+tree);tI2
+y7
+cSin);tI2
+lL1
+tJ2
+iO
+tree);tJ2
+y7
+cCos);tJ2
+lL1
+cN2
+tI2)||iP
+Find(tJ2)xX3
+xQ1==2){iN1.erase(iY1);xU1}
+xQ1=0;}
+}
+tree.SynthesizeByteCode(synth,false);iN1.erase(iY1);
+#ifdef DEBUG_SUBSTITUTIONS_CSE
+std::cout<<"Done with Common Subexpression:"
+;nX3
+x5(tree)iJ"\n"
+;
+#endif
+if(xQ1
+xX3
+xQ1==2){yP2
+yE1);}
+iP
+l12
+cSinCos,1,2);iP
+y62
+tI2,1);iP
+y62
+tJ2,0);}
+}
+lX3
+iP
+nP
+stacktop_before;}
+}
+#endif
+#ifdef FP_SUPPORT_OPTIMIZER
+nD3
+FunctionParserBase
+x5::Optimize(){using
+iF2
+FPoptimizer_CodeTree;lH1
+tW
+tree
+lR3
+GenerateFrom(data->nR,data->Immed,*data);FPoptimizer_Optimize::ApplyGrammars(tree);yC<lW3>yT3;yC
+x5
+immed
+tW3
+stacktop_max=0
+lR3
+SynthesizeByteCode(yT3,immed,stacktop_max);if(data->StackSize!=stacktop_max){data->StackSize=lW3(stacktop_max);
+#ifndef FP_USE_THREAD_SAFE_EVAL
+data->Stack
+n93
+stacktop_max);
+#endif
+}
+data->nR.swap(yT3);data->Immed.swap(immed);}
+#ifdef FP_SUPPORT_LONG_INT_TYPE
+cZ
+long
+eZ1
+#endif
+#ifdef FP_SUPPORT_MPFR_FLOAT_TYPE
+cZ
+MpfrFloat
+eZ1
+#endif
+#ifdef FP_SUPPORT_GMP_INT_TYPE
+cZ
+GmpInt
+eZ1
+#endif
+FUNCTIONPARSER_INSTANTIATE_TYPES
 #endif
 
-#line 1 "fpoptimizer/fpoptimizer_footer.txt"
-
 #endif
-
