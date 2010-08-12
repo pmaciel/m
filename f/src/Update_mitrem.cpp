@@ -59,6 +59,14 @@ void Update_mitrem()
       cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[*j].n << "\"..." << endl;
 
       if      (t=="bulk")      assembleDirichlet( M.vz[*j].e2n,ibulk,m.bulk );
+      else if (t=="velectrode") {
+        // vector of variable indices, and values
+        vector< unsigned > ibulk_and_u(ibulk);
+        vector< double   > bulk_and_u(m.bulk);
+        ibulk_and_u.push_back(ibulk.back()+1);
+        bulk_and_u.push_back(b.getAttribute< double >("metalpotential",0.));
+        assembleDirichlet( M.vz[*j].e2n,ibulk_and_u,bulk_and_u );
+      }
       else if (t=="dirichlet") assembleDirichlet( M.vz[*j].e2n,
         getVLabels(b.getAttribute< string >("vlabels")),
         getVValues(b.getAttribute< string >("vvalues")) );
