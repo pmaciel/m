@@ -1,6 +1,7 @@
 #ifndef mfunction_h
 #define mfunction_h
 
+#include <cmath>
 #include <cassert>
 #include <vector>
 #include <string>
@@ -17,6 +18,9 @@ class mfunction {
   // constructor with function and variables definitions
   mfunction(const std::string & _fs, const std::vector< std::string >& _vvs)
   {
+    // add constants
+    f.AddConstant("pi",M_PI);
+
     using namespace std;
     assert(_vvs.size());
     string vars(_vvs[0]);
