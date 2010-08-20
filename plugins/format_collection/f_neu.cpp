@@ -36,7 +36,12 @@ void f_neu::read(GetPot& o,mmesh& m)
 
 
   int dummy;
-  unsigned NUMNP, NELEM, NGRPS, NBSETS, NDFCD;
+  unsigned NUMNP,
+           NELEM,
+           NGRPS,
+           NBSETS,
+           NDFCD /* not used*/,
+           NDFVL;
   string s;
 
   // skip 6 initial lines
@@ -46,11 +51,11 @@ void f_neu::read(GetPot& o,mmesh& m)
   // read number of points, elements, groups, sets and dimensions
   getline(f,s);
   istringstream ss(s);
-  ss >> NUMNP >> NELEM >> NGRPS >> NBSETS >> NDFCD;
+  ss >> NUMNP >> NELEM >> NGRPS >> NBSETS >> NDFCD >> NDFVL;
 
   // set variable names (just coordinates)
-  m.vn.resize(NDFCD);
-  for (unsigned d=0; d<NDFCD; ++d)
+  m.vn.resize(NDFVL);
+  for (unsigned d=0; d<NDFVL; ++d)
     m.vn[d] = string(1,char('x'+d));
 
   // skip next two lines
@@ -58,14 +63,14 @@ void f_neu::read(GetPot& o,mmesh& m)
     getline(f,s);
 
   // allocate and read coordinates
-  m.vv.assign(NDFCD,vector< double >(NUMNP,0.));
+  m.vv.assign(NDFVL,vector< double >(NUMNP,0.));
   for (unsigned i=0; i<NUMNP; ++i) {
     getline(f,s);
     istringstream ss(s);
     unsigned ND;
     ss >> ND;
     ND--;
-    for (unsigned d=0; d<NDFCD; ++d)
+    for (unsigned d=0; d<NDFVL; ++d)
       ss >> m.vv[d][ND];
   }
 
