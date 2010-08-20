@@ -100,21 +100,36 @@ void t_manip::vren(mmesh& m, const unsigned i, const std::string& n)
 
 void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f)
 {
+  using std::string;
+  using std::vector;
+
   // add a new variable (with zeros) in the end
   const unsigned Ndim  = m.d();
   const unsigned Nnode = m.n();
-  m.vn.push_back(n);
-  m.vv.push_back(std::vector< double >(Nnode,0.));
+
+  // find this variable index (if it doesn't exist set to the end)
+  const unsigned v_idx = std::find(m.vn.begin(),m.vn.end(),n)!=m.vn.end()?
+    std::distance(m.vn.begin(),std::find(m.vn.begin(),m.vn.end(),n)) :
+    m.v();
+  if (v_idx>=m.v()) {
+    // variable name wasn't found, push it back
+    m.vn.push_back(n);
+    m.vv.push_back(vector< double >(Nnode,0.));
+  }
+  else {
+    // variable name was found, it exists already
+    m.vv[v_idx].assign(Nnode,0.);
+  }
   if (!f.length())
     return;
 
   // set mfunction (uses only the coordinates variables, for your own safety)
-  const std::vector< std::string > vnames(m.vn.begin(),m.vn.begin()+Ndim);
+  const vector< string > vnames(m.vn.begin(),m.vn.begin()+Ndim);
   mfunction mf(f,vnames);
 
   // evaluate at each node
-  std::vector< double >& v = m.vv.back();
-  std::vector< double > c(Ndim,0.);
+  vector< double >& v = m.vv[v_idx];
+  vector< double > c(Ndim,0.);
   for (unsigned n=0; n<Nnode; ++n) {
     for (unsigned d=0; d<Ndim; ++d)
       c[d] = m.vv[d][n];
