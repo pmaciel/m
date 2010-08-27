@@ -84,9 +84,9 @@ def configure(ctx):
       if Options.options.enable_cc: ctx.env.append_unique('CCFLAGS', ['-Wall','-O0','-g3'])
       if Options.options.enable_fc: ctx.env.append_unique('FCFLAGS', ['-Wall','-O0','-g3'])
     elif b=='optim':
-      ctx.                              env.append_unique('CXXFLAGS',['-Wall','-O3'])
-      if Options.options.enable_cc: ctx.env.append_unique('CCFLAGS', ['-Wall','-O3'])
-      if Options.options.enable_fc: ctx.env.append_unique('FCFLAGS', ['-Wall','-O3'])
+      ctx.                              env.append_unique('CXXFLAGS',['-Wall','-O3','-ffast-math']) #-Ofast?
+      if Options.options.enable_cc: ctx.env.append_unique('CCFLAGS', ['-Wall','-O3','-ffast-math'])
+      if Options.options.enable_fc: ctx.env.append_unique('FCFLAGS', ['-Wall','-O3','-ffast-math'])
     ctx.write_config_header('mkernel' + path.sep + 'mconfig.h')
     ctx.setenv('default')
 
