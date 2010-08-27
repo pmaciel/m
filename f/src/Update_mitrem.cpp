@@ -45,38 +45,47 @@ void Update_mitrem()
     ibulk[i] = ibulk[i-1]+1;
 
 
-  cout << "Update_mitrem: assemble MITReM equations..." << endl;
-  assembleMITReM(M.vz[0].e2n);
-  cout << "Update_mitrem: assemble MITReM equations." << endl;
+  {
+    boost::progress_timer t(cout);
+    cout << "Update_mitrem: system assembly..." << endl;
 
 
-  for (int i=0; i<m.x.getChildNode("bcs").nChildNode("bc"); ++i) {
-    const XMLNode b = m.x.getChildNode("bcs").getChildNode("bc",i);
-    const string  t = b.getAttribute("type");
-    const string  l = b.getAttribute("label");
-    const vector< unsigned > z = getZones(b.getAttribute< string >("zone"));
-    for (vector< unsigned >::const_iterator j=z.begin(); j!=z.end(); ++j) {
-      cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[*j].n << "\"..." << endl;
+    cout << "Update_mitrem: assemble MITReM equations..." << endl;
+    assembleMITReM(M.vz[0].e2n);
+    cout << "Update_mitrem: assemble MITReM equations." << endl;
 
-      if      (t=="bulk")      assembleDirichlet( M.vz[*j].e2n,ibulk,m.bulk );
-      else if (t=="velectrode") {
-        // vector of variable indices, and values
-        vector< unsigned > ibulk_and_u(ibulk);
-        vector< double   > bulk_and_u(m.bulk);
-        ibulk_and_u.push_back(ibulk.back()+1);
-        bulk_and_u.push_back(b.getAttribute< double >("metalpotential",0.));
-        assembleDirichlet( M.vz[*j].e2n,ibulk_and_u,bulk_and_u );
+
+    for (int i=0; i<m.x.getChildNode("bcs").nChildNode("bc"); ++i) {
+      const XMLNode b = m.x.getChildNode("bcs").getChildNode("bc",i);
+      const string  t = b.getAttribute("type");
+      const string  l = b.getAttribute("label");
+      const vector< unsigned > z = getZones(b.getAttribute< string >("zone"));
+      for (vector< unsigned >::const_iterator j=z.begin(); j!=z.end(); ++j) {
+        cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[*j].n << "\"..." << endl;
+
+        if      (t=="bulk")      assembleDirichlet( M.vz[*j].e2n,ibulk,m.bulk );
+        else if (t=="velectrode") {
+          // vector of variable indices, and values
+          vector< unsigned > ibulk_and_u(ibulk);
+          vector< double   > bulk_and_u(m.bulk);
+          ibulk_and_u.push_back(ibulk.back()+1);
+          bulk_and_u.push_back(b.getAttribute< double >("metalpotential",0.));
+          assembleDirichlet( M.vz[*j].e2n,ibulk_and_u,bulk_and_u );
+        }
+        else if (t=="dirichlet") assembleDirichlet( M.vz[*j].e2n,
+          getVLabels(b.getAttribute< string >("vlabels")),
+          getVValues(b.getAttribute< string >("vvalues")) );
+        else if (t=="electrode") assembleElectrode( M.vz[*j].e2n,
+          getGReactions(b.getAttribute< string >("gasreaction")),
+          getEReactions(b.getAttribute< string >("elecreaction")),
+          b.getAttribute< double >("metalpotential") );
+
+        cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[*j].n << "\"." << endl;
       }
-      else if (t=="dirichlet") assembleDirichlet( M.vz[*j].e2n,
-        getVLabels(b.getAttribute< string >("vlabels")),
-        getVValues(b.getAttribute< string >("vvalues")) );
-      else if (t=="electrode") assembleElectrode( M.vz[*j].e2n,
-        getGReactions(b.getAttribute< string >("gasreaction")),
-        getEReactions(b.getAttribute< string >("elecreaction")),
-        b.getAttribute< double >("metalpotential") );
-
-      cout << "Update_mitrem: assemble bc \"" << l << "\" (" << t << ") zone \"" << M.vz[*j].n << "\"." << endl;
     }
+
+
+    cout << "Update_mitrem: system assembly: timer: ";
   }
 
   // update residual L2 error norm
