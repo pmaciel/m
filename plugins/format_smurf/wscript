@@ -26,3 +26,11 @@ def build(ctx):
     includes = l.includes + ['../../mkernel'],
     source   = l.source   + ['f_smurf.cpp','f_plt.cpp'] )
 
+  # p smurf filter executable (does not use m)
+  ctx.new_task_gen(
+    features = 'cxx cprogram',
+    target   = 'p',
+    uselib_local = ['smurf'],
+    includes = ['.'],
+    source   = ['p.cpp'] )
+
