@@ -32,5 +32,7 @@ def build(ctx):
     target   = 'p',
     uselib_local = ['smurf'],
     includes = ['.'],
-    source   = ['p.cpp'] )
+    source   = ['p.cpp',
+      'smurf.cpp',                              # smurf
+      'ext/fparser.cc','ext/fpoptimizer.cc'] )  # function parser
 
