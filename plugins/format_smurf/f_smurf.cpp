@@ -113,7 +113,7 @@ void f_smurf::write(GetPot& o, const mmesh& m)
   const bool     reverse      = o.search("--smurf-reverse");
   const unsigned version      = o.follow(111, "--smurf-version");
   const double   solutiontime = o.follow(0.,  "--smurf-solutiontime");
-  SmURF::MeshWriter mwriter(fn,datatype,reverse,version,solutiontime);
+  SmURF::MeshWriter mwriter(fn,datatype,reverse,version);
 
   // headers section
   mwriter.writeMainHeader("untitled",m.vn);
@@ -130,7 +130,7 @@ void f_smurf::write(GetPot& o, const mmesh& m)
                                  (z.t==PRISM3?          SmURF::FEBRICK         : //*2
                                  (z.t==PYRAMID4?        SmURF::FEBRICK         : //*3
                                                         SmURF::ORDERED ))))))))));
-    mwriter.writeZoneHeader(type,pack,z.n,m.n(),m.e(i));
+    mwriter.writeZoneHeader(solutiontime,type,pack,z.n,m.n(),m.e(i));
   }
 
   // data section

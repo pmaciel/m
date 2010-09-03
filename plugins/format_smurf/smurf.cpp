@@ -62,12 +62,11 @@ string bread(ifstream& F)
 // ------------------------------------------------------------------------ //
 // MeshWriter
 
-MeshWriter::MeshWriter(const string& fname, const DataType _datatype, const bool _reverse, const unsigned _version, const double _solutiontime) :
+MeshWriter::MeshWriter(const string& fname, const DataType _datatype, const bool _reverse, const unsigned _version) :
   m_file(NULL),
   m_datatype(_datatype),
   m_reverse(_reverse),
-  m_version(_version),
-  m_solutiontime(_solutiontime)
+  m_version(_version)
 {
   // open file for writing
   m_file = fopen(fname.c_str(),"wb");
@@ -107,7 +106,7 @@ void MeshWriter::writeMainHeader(const string& htitle, const vector< string >& v
 }
 
 
-void MeshWriter::writeZoneHeader(const ZoneType& type, const ZonePack& pack, const std::string& title, const unsigned I, const unsigned J, const unsigned K)
+void MeshWriter::writeZoneHeader(const double& time, const ZoneType& type, const ZonePack& pack, const std::string& title, const unsigned I, const unsigned J, const unsigned K)
 {
   bwrite< float >(m_file,ZONEMARKER,m_reverse);
 
@@ -115,7 +114,7 @@ void MeshWriter::writeZoneHeader(const ZoneType& type, const ZonePack& pack, con
   bwrite< string >(m_file,title,m_reverse);  // title
   bwrite< int >(m_file,-1,m_reverse);        // BAD_SET_VALUE
   bwrite< int >(m_file,-2,m_reverse);        // strand ID: pending assignment by Tecplot
-  bwrite< double >(m_file,m_solutiontime,m_reverse);  // solution time
+  bwrite< double >(m_file,time,m_reverse);   // solution time
   bwrite< int >(m_file,-1,m_reverse);        // color
   bwrite< int >(m_file,type,m_reverse);      // type
   if (m_version<112)

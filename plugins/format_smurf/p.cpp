@@ -9,6 +9,18 @@
 #include "smurf.h"
 
 
+namespace aux {
+
+  // more helful zone structure, holding the variable values
+  struct zone : public SmURF::TecZone {
+    zone(const SmURF::TecZone& other) { this->operator=(other); }
+    zone& operator=(const SmURF::TecZone& other) {this->SmURF::TecZone::operator=(other); return *this; }
+    std::vector< std::vector< double > > vv;
+  };
+
+}
+
+
 using namespace std;
 
 
@@ -17,38 +29,44 @@ int main(int argc, char **argv)
   // get options
   GetPot o(argc,argv);
   if (o.search(2,"-h","--help") || o.size()<=1) {
-    cout << "smurf filter, usage: " << o[0] << " [options], with:" << endl
-         << "  -h|--help                       this help" << endl
-         << "  -if|--input-file [inputfile]    (default \"input.smurf\")" << endl
-         << "  -of|--output-file [outputfile]  (default \"[inputfile].filter.smurf\")" << endl
-         << "  -f|--filter [str]               filter to apply (function of file variables, default \"\")" << endl;
+    cout << "binary tecplot ordered zones filter, usage: " << o[0] << " [options], with:" << endl
+         << "  -h|--help             this help" << endl
+         << endl
+         << "  -i|--input-file       [inputfile] (default \"input.bin.plt\")" << endl
+         << "  -o|--output-file      [outputfile] (default \"[inputfile].filter.bin.plt\")" << endl
+         << "  -f|--filter           [function] filter to apply, default \"\")" << endl
+         << endl
+         << "  -of|--output-float    Tecplot data type (default double)" << endl
+         << "  -or|--output-reverse  Tecplot reversed output (default direct)" << endl
+         << "  -ov|--output-version  [number] Tecplot version (default 107)" << endl;
     return 0;
   }
-  const string finp(o.follow("input.smurf",2,"-if","--input-file")),
-               fout(o.follow((finp+".filter.smurf").c_str(),2,"-of","--output-file")),
-               filt(o.follow("",2,"-f","--filter"));
-  if (!filt.size()) {
-    cerr << "error: no filter, nothing to do!" << endl;
-    return 1;
-  }
+  const string finp(o.follow("input.bin.plt",                 2,"-i","--input-file")),
+               fout(o.follow((finp+".filter.bin.plt").c_str(),2,"-o","--output-file")),
+               filt(o.follow("",                              2,"-f","--filter"));
+  const SmURF::DataType outD = (o.search(    2,"-of","--output-float")? SmURF::FLOAT : SmURF::DOUBLE );
+  const bool            outR =  o.search(    2,"-or","--output-reverse");
+  const unsigned        outV =  o.follow(107,2,"-ov","--output-version");
 
 
-  // setup reader and writer
+  clog << "info: headers section: read..." << endl;
+  string              tec_title;  // input file title
+  vector< string >    tec_vars;   // input file variable names
+  vector< aux::zone > tec_zones;  // input file zones descriptions
   SmURF::MeshReader sreader(finp);
-  SmURF::MeshWriter swriter(fout);
-
-
-  // setup function, by setting variable names and filter
-  FunctionParser filter;
-  filter.AddConstant("pi",M_PI);  // useful stuff!
-  string           tec_title;     // input file title
-  vector< string > tec_vars;      // input file variable names
-
-
-  // main header section (read and write)
   sreader.readMainHeader(tec_title,tec_vars);
-  swriter.writeMainHeader(tec_title,tec_vars);
   {
+    vector< SmURF::TecZone > vtz = sreader.readZoneHeaders();
+    tec_zones.assign(vtz.begin(),vtz.end());
+  }
+  clog << "info: headers section: read." << endl;
+
+
+  clog << "info: setup filter..." << endl;
+  FunctionParser filter;
+  {
+    filter.AddConstant("pi",M_PI);  // useful stuff!
+
     assert(tec_vars.size());
     string vars(tec_vars[0]);  // variable names as a single string
     for (int i=1; i<(int) tec_vars.size(); ++i)
@@ -62,70 +80,65 @@ int main(int argc, char **argv)
       return 1;
     }
   }
+  clog << "info: setup filter." << endl;
 
 
-  // zone headers section (read)
-  vector< SmURF::TecZone > inp_zheaders = sreader.readZoneHeaders();
-
-
-  // set data to store to write later
-  vector< SmURF::TecZone >             out_zheaders;
-  vector< vector< vector< double > > > out_vvv;
-
-
-  // zone data section (read and filter)
+  clog << "info: data section: read and filter..." << endl;
+  unsigned isum  = 0,  // total number of entries
+           iskip = 0,  // skipped i entries
+           zskip = 0;  // .. zone entries
   {
-    vector< double > entry_vars(tec_vars.size(),0.);
-    vector< vector< unsigned > > _ve;  // matrices of elements nodes
-    vector< vector< double   > > _vv;  // matrices of values
-    for (vector< SmURF::TecZone >::iterator z=inp_zheaders.begin(); z!=inp_zheaders.end(); ++z) {
-      sreader.readZoneData(*z,_ve,_vv);
-      if (z->type==SmURF::ORDERED) {
-
-        // give this zone some room
-        out_zheaders.push_back(*z);
-        out_vvv.push_back(_vv);
-        SmURF::TecZone&             filt_z  = out_zheaders.back();
-        vector< vector< double > >& filt_vv = out_vvv.back();
+    vector< double > ev(tec_vars.size(),0.);  // i entries variable values
+    vector< vector< unsigned > > _ve;         // matrix of elements nodes (dummy)
+    for (vector< aux::zone >::iterator z=tec_zones.begin(); z!=tec_zones.end(); ++z) {
+      sreader.readZoneData(*z,_ve,z->vv);
+      isum  += z->i;
+      iskip += z->i;
+      if (z->type==SmURF::ORDERED && (z->i)>0) {
 
         // filter some entries out (in reverse, for performance)
-        for (unsigned i=filt_z.i; i>=0; --i) {
+        // (set entry values, evaluate condition and filter)
+        for (int i=((int) z->i)-1; i>=0; --i) {
           for (unsigned v=0; v<tec_vars.size(); ++v)
-            entry_vars[v] = filt_vv[v][i];
-          if (!filter.Eval(&entry_vars[0])) {
+            ev[v] = (z->vv)[v][i];
+          if (!filter.Eval(&ev[0])) {
             for (unsigned v=0; v<tec_vars.size(); ++v)
-              filt_vv[v].erase(filt_vv[v].begin()+i);
-            --filt_z.i;
+              (z->vv)[v].erase((z->vv)[v].begin()+i);
+            --z->i;
           }
         }
 
+        iskip -= z->i;
       }
+      zskip += (!z->i || z->type!=SmURF::ORDERED? 1:0);
     }
+    cout << "info: filter"
+         << " z:" << tec_zones.size() << '>' << tec_zones.size() - zskip
+         << " i:" << isum             << '>' << isum-iskip << endl;
+  }
+  clog << "info: data section: read and filter." << endl;
+
+
+  if (zskip>=tec_zones.size()) {
+    clog << "warn: filter is never satisfied, skipping output file" << endl;
+    return 1;
   }
 
 
-  // zone headers section (write)
-  for (vector< SmURF::TecZone >::iterator z=out_zheaders.begin(); z!=out_zheaders.end(); ++z)
-    swriter.writeZoneHeader(SmURF::ORDERED,SmURF::BLOCK,z->title,z->i);
+  clog << "info: headers and data section: write..." << endl;
+  SmURF::MeshWriter swriter(fout,outD,outR,outV);
+  swriter.writeMainHeader(tec_title,tec_vars);
 
+  for (vector< aux::zone >::iterator z=tec_zones.begin(); z!=tec_zones.end(); ++z)
+    if (z->type==SmURF::ORDERED && z->i)
+      swriter.writeZoneHeader(z->time,z->type,z->pack,z->title,z->i);
 
-  // zone data section (write)
-  {
-    vector< vector< unsigned > > _ve;  // matrices of elements nodes
-    for (unsigned i=0; i<out_zheaders.size(); ++i)
-      swriter.writeZoneData(out_zheaders[i].type,SmURF::BLOCK,_ve,out_vvv[i],-1);
-  }
+  vector< vector< unsigned > > _ve;  // matrix of elements nodes (dummy)
+  for (vector< aux::zone >::iterator z=tec_zones.begin(); z!=tec_zones.end(); ++z)
+    if (z->type==SmURF::ORDERED && z->i)
+      swriter.writeZoneData(z->type,z->pack,_ve,z->vv,-1);
+  clog << "info: headers and data section: write." << endl;
 
 
   return 0;
 }
-
-
-#if 0
-void f_smurf::write(GetPot& o, const mmesh& m)
-{
-  const string fn(o.get(o.inc_cursor(),""));
-
-}
-#endif
-
