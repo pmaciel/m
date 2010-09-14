@@ -6,12 +6,13 @@
 using namespace m;
 
 
-Register< mtransform,t_manip > mt_manip(11,"-tvsort","                variable sort by name (excluding coordinates)",
+Register< mtransform,t_manip > mt_manip(12,"-tvsort","                variable sort by name (excluding coordinates)",
                                            "-tvkeep","[str:...]       ... to keep, removing the rest",
                                            "-tvrm",  "[str:...]       ... removal, by name",
                                            "-tvmv",  "[str=str:...]   ... moving, from name, to before name",
                                            "-tvren", "[str=str:...]   ... rename, from name, to name",
-                                           "-tvadd", "[str[=fun]:...] ... addition, optionally set by function",
+                                           "-tvadd", "[str[=fun]:...] ... addition, optionally set by function (uses only coordinate variables)",
+                                           "-tvaxiz","                ... add new axisymmetric variables (around z axis, 3D only)",
                                            "-tzsort","                zone sort by name",
                                            "-tzkeep","[str:...]       ... to keep, removing the rest",
                                            "-tzrm",  "[str:...]       ... removal, by name",
@@ -22,24 +23,26 @@ Register< mtransform,t_manip > mt_manip(11,"-tvsort","                variable s
 void t_manip::transform(GetPot& o, mmesh& m)
 {
   using std::string;
+  using std::vector;
 
   // get options key
   const string k = o[o.get_cursor()],
-               v = (k=="-tvsort"||k=="-tzsort"? "" : o.get(o.inc_cursor(),""));
+               v = (k=="-tvsort"||k=="-tvaxiz"||k=="-tzsort"? "" : o.get(o.inc_cursor(),""));
 
   // operations that apply in one shot
        if (k=="-tvsort") { vsort(m);   return; }
   else if (k=="-tzsort") { zsort(m);   return; }
   else if (k=="-tvkeep") { vkeep(m,v); return; }
+  else if (k=="-tvaxiz") { vaxiz(m);   return; }
   else if (k=="-tzkeep") { zkeep(m,v); return; }
 
   // operations that apply multiple times
-  const std::vector< std::pair< string,string > > vops = getoperands(v);
-  for (std::vector< std::pair< string,string > >::const_iterator i=vops.begin(); i<vops.end(); ++i) {
+  const vector< std::pair< string,string > > vops = getoperands(v);
+  for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i<vops.end(); ++i) {
          if (k=="-tvrm")  { vrm(m,getvindex(m,i->first)); }
     else if (k=="-tvmv")  { vmv(m,getvindex(m,i->first),getvindex(m,i->second)); }
     else if (k=="-tvren") { vren(m,getvindex(m,i->first),i->second); }
-    else if (k=="-tvadd") { vadd(m,i->first,i->second); }
+    else if (k=="-tvadd") { vadd(m,i->first,i->second,vector< string >(m.vn.begin(),m.vn.begin()+m.d())); }
     else if (k=="-tzrm")  { zrm(m,getzindex(m,i->first)); }
     else if (k=="-tzmv")  { zmv(m,getzindex(m,i->first),getzindex(m,i->second)); }
     else if (k=="-tzren") { zren(m,getzindex(m,i->first),i->second); }
@@ -98,13 +101,12 @@ void t_manip::vren(mmesh& m, const unsigned i, const std::string& n)
   m.vn[i] = n;
 }
 
-void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f)
+void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f, const std::vector< std::string >& v)
 {
   using std::string;
   using std::vector;
 
   // add a new variable (with zeros) in the end
-  const unsigned Ndim  = m.d();
   const unsigned Nnode = m.n();
 
   // find this variable index (if it doesn't exist set to the end)
@@ -123,18 +125,52 @@ void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f)
   if (!f.length())
     return;
 
-  // set mfunction (uses only the coordinates variables, for your own safety)
-  const vector< string > vnames(m.vn.begin(),m.vn.begin()+Ndim);
-  mfunction mf(f,vnames);
+  // set mfunction
+  mfunction mf(f,v);
+
+  // set variables for this function
+  vector< unsigned > vindex(v.size(),0);
+  for (unsigned i=0; i<v.size(); ++i)
+    vindex[i] = getvindex(m,v[i]);
 
   // evaluate at each node
-  vector< double >& v = m.vv[v_idx];
-  vector< double > c(Ndim,0.);
+  vector< double >& veval = m.vv[v_idx];
+  vector< double > c(v.size(),0.);
   for (unsigned n=0; n<Nnode; ++n) {
-    for (unsigned d=0; d<Ndim; ++d)
-      c[d] = m.vv[d][n];
-    v[n] = mf.eval(&c[0]);
+    for (unsigned i=0; i<v.size(); ++i)
+      c[i] = m.vv[ vindex[i] ][n];
+    veval[n] = mf.eval(&c[0]);
   }
+}
+
+void t_manip::vaxiz(mmesh& m)
+{
+  using namespace std;
+
+  if (m.d()<3) {
+    cerr << "error: axisymmetry variables only for 3D" << endl;
+    throw 42;
+  }
+
+  // transform the coordinates
+  const string c_rho  ("axi_"+m.vn[0]+"_rho"  ),  // name for coordinates rho
+               c_theta("axi_"+m.vn[0]+"_theta");  // ... and theta
+  vector< string > v(m.vn.begin(),m.vn.begin()+2);
+  vadd(m,c_rho,   "sqrt("+v[0]+"*"+v[0]+"+"+v[1]+"*"+v[1]+")", v);
+  vadd(m,c_theta, "atan2("+v[1]+","+v[0]+")",                  v);
+  v.push_back(c_rho);
+  v.push_back(c_theta);
+
+  // transform the other vector fields (skipping coordinates)
+  const vector< bool > visvector = m.vvectors();
+  for (unsigned i=2; i<visvector.size(); ++i)
+    if (visvector[i]) {
+      vector< string > w(v);   // { Px,Py, Prho,Ptheta...
+      w.push_back(m.vn[i+0]);  //   Vx,Vy }
+      w.push_back(m.vn[i+1]);
+      vadd(m,"axi_"+w[4]+"_rho",   "("+w[4]+"*"+w[0]+"+"+w[5]+"*"+w[1]+")/"+w[2], w);
+      vadd(m,"axi_"+w[4]+"_theta", "("+w[5]+"*"+w[0]+"-"+w[4]+"*"+w[1]+")/"+w[2], w);
+    }
 }
 
 void t_manip::zsort(mmesh& m)

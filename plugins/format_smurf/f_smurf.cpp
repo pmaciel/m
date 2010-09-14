@@ -117,7 +117,7 @@ void f_smurf::write(GetPot& o, const mmesh& m)
 
   // headers section
   mwriter.writeMainHeader("untitled",m.vn);
-  for (unsigned i=0; i<m.vz.size(); ++i) {
+  for (unsigned i=0; i<m.z(); ++i) {
     const mzone& z = m.vz[i];
     const SmURF::ZoneType type = (z.t==ORDERED?         SmURF::ORDERED         :
                                  (z.t==FELINESEG?       SmURF::FELINESEG       :
@@ -132,9 +132,13 @@ void f_smurf::write(GetPot& o, const mmesh& m)
                                                         SmURF::ORDERED ))))))))));
     mwriter.writeZoneHeader(solutiontime,type,pack,z.n,m.n(),m.e(i));
   }
+  if (!m.z() && m.v()) {
+    // no connectivities present, but there is a point cloud
+    mwriter.writeZoneHeader(solutiontime,SmURF::ORDERED,pack,"point_cloud",m.n());
+  }
 
   // data section
-  for (unsigned i=0; i<m.vz.size(); ++i) {
+  for (unsigned i=0; i<m.z(); ++i) {
     const mzone& z = m.vz[i];
     const SmURF::ZoneType type = (z.t==ORDERED?         SmURF::ORDERED         :
                                  (z.t==FELINESEG?       SmURF::FELINESEG       :
@@ -191,6 +195,10 @@ void f_smurf::write(GetPot& o, const mmesh& m)
     }
     const int sharefrom = (type==SmURF::ORDERED || !i? -1:0);
     mwriter.writeZoneData(type,pack,ve,m.vv,sharefrom);
+  }
+  if (!m.z() && m.v()) {
+    // no connectivities present, but there is a point cloud
+    mwriter.writeZoneData(SmURF::ORDERED,pack,vector< vector< unsigned > >(),m.vv,-1);
   }
 }
 

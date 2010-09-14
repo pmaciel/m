@@ -144,7 +144,7 @@ void t_fix::check(const mzone& z, const vector< string >& vn, const vector< vect
   }
   f.precision(15);
 
-  TecZone tz = { z.n, e->N, I, J, z.t, true /*isblock*/, false /*isshared*/ };
+  TecZone tz(z.n, e->N, I, J, z.t, true /*isblock*/, false /*isshared*/);
   f << f_plt::setVariables(newvn) << endl
     << f_plt::setZoneHeader(tz) << endl;
   f_plt::writeZoneNodeValues(f,vv,tz.isblock);

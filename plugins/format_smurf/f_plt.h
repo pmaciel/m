@@ -4,6 +4,21 @@
 #include "mkernel.h"
 
 struct TecZone {
+  TecZone(
+      const std::string _t="",
+      const unsigned _nenodes=0,
+      const unsigned _i=1,
+      const unsigned _j=1,
+      const m::mtype _et=m::ORDERED,
+      const bool _isblock=false,
+      const bool _isshared=false) :
+    t(_t),
+    nenodes(_nenodes),
+    i(_i),
+    j(_j),
+    et(_et),
+    isblock(_isblock),
+    isshared(_isshared) {}
   std::string t;
   unsigned nenodes;
   unsigned i, j;

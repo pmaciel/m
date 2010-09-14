@@ -87,13 +87,13 @@ void f_plt::write(GetPot& o, const mmesh& m)
       case FEPOLYGON:
       case FEPOLYHEDRON: {
 
-        TecZone tz = { z.n,                                // t
-                       z.e2n.size()? z.e2n[0].n.size():0,  // nenodes
-                       m.n(),                              // i
-                       z.e2n.size(),                       // j
-                       z.t,                                // et
-                       false,                              // isblock
-                       t>0 };                              // isshared
+        TecZone tz(z.n,                                // t
+                   z.e2n.size()? z.e2n[0].n.size():0,  // nenodes
+                   m.n(),                              // i
+                   z.e2n.size(),                       // j
+                   z.t,                                // et
+                   false,                              // isblock
+                   t>0);                              // isshared
         f << setZoneHeader(tz,m.v(),solutiontime) << endl;
         writeZoneNodeValues(f,m.vv,isblock,t>0? 0:-1);  // (isblock is an option)
         writeZoneConnectivity(f,z.e2n,z.t);
@@ -132,13 +132,13 @@ void f_plt::write(GetPot& o, const mmesh& m)
           }
         }
         mtype et = FEBRICK;
-        TecZone tz = { z.n,         // t
-                       z.d()+1,     // nenodes
-                       m.n(),       // i
-                       e2n.size(),  // j
-                       et,          // et
-                       false,       // isblock
-                       t>0 };       // isshared
+        TecZone tz(z.n,         // t
+                   z.d()+1,     // nenodes
+                   m.n(),       // i
+                   e2n.size(),  // j
+                   et,          // et
+                   false,       // isblock
+                   t>0);        // isshared
         f << setZoneHeader(tz,m.v(),solutiontime) << endl;
         writeZoneNodeValues(f,m.vv,isblock,t>0? 0:-1);
         writeZoneConnectivity(f,e2n,et);
@@ -326,7 +326,7 @@ void f_plt::getPMBoundaryZoneElementsFromNodeIndices(const mmesh& m, const vecto
 vector< string > f_plt::getVariables(const string& s)
 {
   vector< string > r(1);
-  string y = splitstring(s.substr(12))[0];  // take out "VARIABLES ="
+  string y = splitstring(s.substr(11))[0];  // take out "VARIABLES ="
   istringstream ss(y);
   while (ss >> r.back())
     r.push_back("");

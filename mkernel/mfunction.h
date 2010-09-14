@@ -26,15 +26,14 @@ class mfunction {
     string vars(_vvs[0]);
     for (int i=1; i<(int) _vvs.size(); ++i)
       vars += ',' + _vvs[i];
-    clog << "m::mfunction::vars: \"" << vars << '"' << endl;
+    clog << "m::mfunction::f(" << vars << ") = \"" << _fs << '"' << endl;
 
     const int r = f.Parse(_fs,vars);
     if (r>=0) {
-      cerr << string(r+7, ' ') << '^' << endl
+      cerr << "m::mfunction::error:" << string(r+1+vars.length(),' ') << '^' << endl
            << f.ErrorMsg() << endl;
       throw 42;
     }
-    clog << "m::mfunction::funs: \"" << _fs << '"' << endl;
   }
 
   // evaluate (up to Nr-th) functions at given variables vector address
