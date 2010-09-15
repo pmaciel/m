@@ -6,8 +6,9 @@
 using namespace m;
 
 
-Register< mtransform,t_extrude > mt_extrude(2,"-tz","[z1:n:z2] mesh extrusion from constant steps, or",
-                                              "",   "[z1:r1:n:r2:z2]  ... from geometric progression");
+Register< mtransform,t_extrude > mt_extrude(3,"-tz","[z1:n:z2] mesh extrusion from constant steps, or",
+                                              "",   "[z1:r1:n:r2:z2]  ... from geometric progression",
+                                              "","--extrude-wires: connect extrusion layers with \"wires\" (default: no)");
 
 
 void t_extrude::transform(GetPot& o, mmesh& m2)
@@ -23,10 +24,11 @@ void t_extrude::transform(GetPot& o, mmesh& m2)
                  N2 = m2.n();
   if (D2>2)
     return;
+  const string str = o.get(o.inc_cursor(),"");
+  const bool wires = o.search("--extrude-wires");
 
 
   cout << "info: z-steps..." << endl;
-  const string str = o.get(o.inc_cursor(),"");
   const unsigned ncolon = count(str.begin(),str.end(),':');
   m_zsteps.clear();
   if      (ncolon==2)  zsteps_idf(str);
@@ -175,6 +177,44 @@ void t_extrude::transform(GetPot& o, mmesh& m2)
     }
   }
   cout << "info: connect extrusion layers." << endl;
+
+
+  if (wires) {
+    cout << "info: connect wires..." << endl;
+
+    // create new wire zones, set defaults
+    vector< mzone > w(N2+2*N2);
+    for (unsigned i=0; i<N2; ++i) {
+
+      // set name and type
+      std::ostringstream s;
+      s << "wire_" << i+1;
+      w[N2*0+i].n = w[N2*1+i].n = w[N2*2+i].n = s.str();
+      w[N2*1+i].n += "_bottom";
+      w[N2*2+i].n += "_top";
+      w[N2*0+i].t = w[N2*1+i].t = w[N2*2+i].t = FELINESEG;
+
+      // allocate wire connectivity
+      melem default_e;
+      default_e.n.assign(2,0);
+      w[N2*0+i].e2n.assign(Nzsteps-1,default_e);
+      w[N2*1+i].e2n.assign(1,default_e);
+      w[N2*2+i].e2n.assign(1,default_e);
+
+      // set wire connectivity
+      for (unsigned j=0; j<Nzsteps-1; ++j) {
+        w[N2*0+i].e2n[j].n[0] = i+N2*(j+0);
+        w[N2*0+i].e2n[j].n[1] = i+N2*(j+1);
+      }
+      w[N2*1+i].e2n[0].n[0] = w[N2*1+i].e2n[0].n[1] = i;
+      w[N2*2+i].e2n[0].n[0] = w[N2*2+i].e2n[0].n[1] = i+N2*(Nzsteps-1);
+    }
+
+    // append to mesh zones
+    m3.vz.insert(m3.vz.end(),w.begin(),w.end());
+
+    cout << "info: connect wires." << endl;
+  }
 
 
   m2 = m3;
