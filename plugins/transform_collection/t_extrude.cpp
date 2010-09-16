@@ -182,8 +182,12 @@ void t_extrude::transform(GetPot& o, mmesh& m2)
   if (wires) {
     cout << "info: connect wires..." << endl;
 
-    // create new wire zones, set defaults
-    vector< mzone > w(N2+2*N2);
+    // deafult element type for wires is a line segment
+    melem default_e;
+    default_e.n.assign(2,0);
+
+    // create new wire zones (separate)
+    vector< mzone > w(N2+2*N2+1);
     for (unsigned i=0; i<N2; ++i) {
 
       // set name and type
@@ -195,8 +199,6 @@ void t_extrude::transform(GetPot& o, mmesh& m2)
       w[N2*0+i].t = w[N2*1+i].t = w[N2*2+i].t = FELINESEG;
 
       // allocate wire connectivity
-      melem default_e;
-      default_e.n.assign(2,0);
       w[N2*0+i].e2n.assign(Nzsteps-1,default_e);
       w[N2*1+i].e2n.assign(1,default_e);
       w[N2*2+i].e2n.assign(1,default_e);
@@ -208,6 +210,18 @@ void t_extrude::transform(GetPot& o, mmesh& m2)
       }
       w[N2*1+i].e2n[0].n[0] = w[N2*1+i].e2n[0].n[1] = i;
       w[N2*2+i].e2n[0].n[0] = w[N2*2+i].e2n[0].n[1] = i+N2*(Nzsteps-1);
+    }
+
+    // create a zone with all the wires together
+    mzone& allw = w.back();
+    allw.n = "wires";
+    allw.t = FELINESEG;
+    allw.e2n.assign(N2*(Nzsteps-1),default_e);
+    for (unsigned i=0; i<N2; ++i) {
+      for (unsigned j=0; j<Nzsteps-1; ++j) {
+        allw.e2n[i*(Nzsteps-1)+j].n[0] = i+N2*(j+0);
+        allw.e2n[i*(Nzsteps-1)+j].n[1] = i+N2*(j+1);
+      }
     }
 
     // append to mesh zones
