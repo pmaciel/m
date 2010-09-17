@@ -5,7 +5,7 @@
 
 struct TecZone {
   TecZone(
-      const std::string _t="",
+      const std::string _t="untitled",
       const unsigned _nenodes=0,
       const unsigned _i=1,
       const unsigned _j=1,

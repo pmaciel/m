@@ -92,8 +92,8 @@ void f_plt::write(GetPot& o, const mmesh& m)
                    m.n(),                              // i
                    z.e2n.size(),                       // j
                    z.t,                                // et
-                   false,                              // isblock
-                   t>0);                              // isshared
+                   isblock,                            // isblock
+                   t>0);                               // isshared
         f << setZoneHeader(tz,m.v(),solutiontime) << endl;
         writeZoneNodeValues(f,m.vv,isblock,t>0? 0:-1);  // (isblock is an option)
         writeZoneConnectivity(f,z.e2n,z.t);
