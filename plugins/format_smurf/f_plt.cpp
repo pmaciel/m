@@ -326,10 +326,17 @@ void f_plt::getPMBoundaryZoneElementsFromNodeIndices(const mmesh& m, const vecto
 vector< string > f_plt::getVariables(const string& s)
 {
   vector< string > r(1);
-  string y = splitstring(s.substr(11))[0];  // take out "VARIABLES ="
+
+  // take out "VARIABLES" (up to '='), then take out '='
+  const size_t eq(s.find('=',9));
+  const string y = s.substr(eq!=std::string::npos? eq:11);
   istringstream ss(y);
-  while (ss >> r.back())
+  ss >> r.back();
+
+  while (ss >> r.back()) {
+    r.back() = trim(r.back(),"\"");
     r.push_back("");
+  }
   r.pop_back();
   return r;
 }
