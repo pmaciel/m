@@ -157,6 +157,13 @@ void readsoltp(const std::string& infile, int read_soln)
   for (int i=0; i<Nsys+Nmit; ++i)
     for (int n=0; n<Nnode; ++n)
       No_W[i][n] = M.vv[Ndim+i][n];
+  if (mitremassembler.forcebulk) {
+    cout << "readsoltp: force bulk concentrations..." << endl;
+    for (int i=0; i<mitremassembler.Nions; ++i)
+      for (int n=0; n<Nnode; ++n)
+        No_W[Nsys+i][n] = mitremassembler.bulk[i];
+    cout << "readsoltp: force bulk concentrations." << endl;
+  }
   cout << "readsoltp: copy/initialize solution." << endl;
 
 

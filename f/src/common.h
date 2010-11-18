@@ -68,6 +68,7 @@ struct mitremassembler_struct
 {
   XMLNode x;       // xml for setup
   bool ok;         // if electrochemistry is to be run
+  bool forcebulk;  // if bulk concentrations are to be forced at restarting
   int iterinit;    // start calculations after this number of iterations
   int iv;          // index in W vector
   int Nions;       // number of ions

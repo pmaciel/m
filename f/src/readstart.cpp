@@ -158,6 +158,7 @@ void readstart(const std::string& ccase)
     }
 
     // set bulk concentrations
+    mitremassembler.forcebulk = mitremassembler.x.getAttribute< std::string >("forcebulk","false")=="true";
     mitremassembler.bulk.resize(mitremassembler.Nions);
     for (int i=0; i<mitremassembler.Nions; ++i)
       mitremassembler.bulk[i] = (mitremassembler.m_mitrem)->getIonInletConcentration(i);
