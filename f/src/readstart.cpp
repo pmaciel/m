@@ -19,11 +19,12 @@ void readstart(const std::string& ccase)
   const string label = ccase.find(":")==string::npos? "*" : ccase.substr(ccase.find(":")+1);
   cout << "readstart: reading " << file << ":<cdb><c label=\"" << label << "\"/></cdb>..." << endl;
 
-  XMLNode c = XMLNode::openFileHelper(file.c_str(),"cdb");
+  m::hal::xobject c = XMLNode::openFileHelper(file.c_str(),"cdb");
   c = label!="*"? c.getChildNodeWithAttribute("c","label",label.c_str())
                 : c.getChildNode("c");
   if (c.isEmpty())
     nrerror("readstart: <cdb><c label=\"" + label + "\"/></cdb> not found");
+  c.flatten();
 
 
   // <setup/>

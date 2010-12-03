@@ -5,7 +5,7 @@
 #include <string>
 #include <cmath>
 
-#include "ext/xmlParser.h"
+#include "hal.h"
 #include "mfactory.h"
 #include "mkernel.h"
 #include "mlinearsystem.h"

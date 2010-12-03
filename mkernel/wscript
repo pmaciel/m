@@ -29,7 +29,7 @@ def build(ctx):
       'ext/fparser.cc','ext/fpoptimizer.cc',  # function parser
       'ext/xmlParser.cpp',                    # xml parser
       'cool/Element.cpp','cool/MathTools.cpp','cool/Framework.cpp',
-      'mlinearsystem.cpp','mmesh.cpp' ] )
+      'mlinearsystem.cpp','mmesh.cpp','hal.cpp' ] )
 
   # m executable
   ctx.new_task_gen(

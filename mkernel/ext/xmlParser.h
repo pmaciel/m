@@ -402,6 +402,15 @@ GIVENTYPE getAttribute(XMLCSTR name, GIVENTYPE init=GIVENTYPE(), int *i=NULL) co
     XMLAttribute *updateAttribute(XMLAttribute *newAttribute, XMLAttribute *oldAttribute);       ///< if the attribute to update is missing, a new one will be added
     XMLAttribute *updateAttribute(XMLCSTR lpszNewValue, XMLCSTR lpszNewName=NULL,int i=0);       ///< if the attribute to update is missing, a new one will be added
     XMLAttribute *updateAttribute(XMLCSTR lpszNewValue, XMLCSTR lpszNewName,XMLCSTR lpszOldName);///< set lpszNewName=NULL if you don't want to change the name of the attribute if the attribute to update is missing, a new one will be added
+///< return next attribute content with specific name (template version) and default value (return default if failing)
+template< class GIVENTYPE >
+XMLAttribute *updateAttribute(const GIVENTYPE& lpszNewValue, XMLCSTR lpszNewName,XMLCSTR lpszOldName)
+{
+  // use a stream to convert lpszNewValue into XMLCSTR
+  std::ostringstream oss;
+  oss << lpszNewValue;
+  return updateAttribute(oss.str().c_str(),lpszNewName,lpszOldName);
+}
     XMLCSTR       updateText(XMLCSTR lpszNewValue, int i=0);                                     ///< if the text to update is missing, a new one will be added
     XMLCSTR       updateText(XMLCSTR lpszNewValue, XMLCSTR lpszOldValue);                        ///< if the text to update is missing, a new one will be added
     XMLClear     *updateClear(XMLCSTR lpszNewContent, int i=0);                                  ///< if the clearTag to update is missing, a new one will be added
