@@ -63,6 +63,7 @@ void t_solution::transform(GetPot& o, mmesh& mold)
     // append variables with different names
     for (unsigned i=0; i<mnew.v(); ++i)
       if (!count(mold.vn.begin(),mold.vn.end(),mnew.vn[i])) {
+        cout << "info: appending variable: \"" << mnew.vn[i] << '"' << endl;
         mold.vn.push_back(mnew.vn[i]);
         mold.vv.push_back(mnew.vv[i]);
       }

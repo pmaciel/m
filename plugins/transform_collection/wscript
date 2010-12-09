@@ -23,6 +23,7 @@ def build(ctx):
       't_math.cpp',
       't_minmax.cpp',
       't_ncompress.cpp',
+      't_probe.cpp',
       't_ren.cpp',
       't_simplex.cpp',
       't_solution.cpp',
