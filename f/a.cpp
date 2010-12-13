@@ -218,6 +218,7 @@ int main(int argc, char **argv)
                 (o.search(2,"-Ice","-Jce")? Jce : Vce-Vwe )) << ')'
              << "  Vce:"  << Vce << "  Jce:"  << _Jce << "  Ice:"  << Ace*_Jce
              << "  Vwe:"  << Vwe << "  Jwe:"  << _Jwe << "  Iwe:"  << Awe*_Jwe
+             << "  (Vce-Vwe):"  << (Vce-Vwe)
              << "  |Ice+Iwe|:"  << std::abs(Ace*_Jce + Awe*_Jwe)
              << endl;
       }
@@ -228,6 +229,7 @@ int main(int argc, char **argv)
                 (o.search(2,"-Ice","-Jce")? Jce : Vce-Vwe )) << ')'
              << "\tVce\t" << Vce << "\tJce\t" << _Jce << "\tIce\t" << Ace*_Jce
              << "\tVwe\t" << Vwe << "\tJwe\t" << _Jwe << "\tIwe\t" << Awe*_Jwe
+             << "\t(Vce-Vwe)\t" << (Vce-Vwe)
              << "\t|Ice+Iwe|\t" << std::abs(Ace*_Jce + Awe*_Jwe)
              << endl;
       }
