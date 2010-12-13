@@ -59,13 +59,13 @@ int main(int argc, char **argv)
     eccase.find(":")==std::string::npos? "*" : eccase.substr(eccase.find(":")+1) );
 
   // set bulk concentrations and initialize mitrem
-  std::vector< double > bulk(m.getNIons(),0.);
+  vector< double > bulk(m.getNIons(),0.);
   for (unsigned i=0; i<m.getNIons(); ++i)
     bulk[i] = m.getIonInletConcentration(i);
   m.init(&bulk[0], /*U*/ 0., m.getSolutionTemperature(),m.getSolutionDensity());
 
   // set electrode reactions
-  std::vector< unsigned >
+  vector< unsigned >
     Rwe(getElecReactions(m,o.follow(":","-Rwe"))),
     Rce(getElecReactions(m,o.follow(":","-Rce")));
 
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
        * Newton method to current density value, f(V)=J
        */
 
-      const std::vector< unsigned >& R = (o.search(2,"-Iwe","-Jwe")? Rwe:Rce);
+      const vector< unsigned >& R = (o.search(2,"-Iwe","-Jwe")? Rwe:Rce);
       const double A(o.search(2,"-Iwe","-Jwe")? Awe:Ace),
                    J(o.search(2,"-Iwe","-Jwe")? Jwe:Jce);
       double       V(o.search(2,"-Iwe","-Jwe")? Vwe:Vce);
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
          * fit complementary electrode
          */
 
-        const std::vector< unsigned >& _R = (o.search(2,"-Iwe","-Jwe")? Rce:Rwe);
+        const vector< unsigned >& _R = (o.search(2,"-Iwe","-Jwe")? Rce:Rwe);
         const double _A(o.search(2,"-Iwe","-Jwe")? Ace:Awe),
                      _J(-J*A/_A);  // necessary J for a balanced I
         double       _V(-V);       // complementary V starts symmetric
@@ -208,23 +208,29 @@ int main(int argc, char **argv)
 
     // display/write adjustment message
     {
-      cout << "a: adjustment: "
-           << (o.search(2,"-Iwe","-Jwe")? "(Jwe[A.m-2]=" :
-              (o.search(2,"-Ice","-Jce")? "(Jce[A.m-2]=" : "(Vce-Vwe[V]=" ))
-           << (o.search(2,"-Iwe","-Jwe")? Jwe :
-              (o.search(2,"-Ice","-Jce")? Jce : Vce-Vwe )) << ')'
-           << "  Vce:"  << Vce << "  Jce:"  << cdensity(m,Rce,Vce) << "  Ice:"  << Ace*cdensity(m,Rce,Vce)
-           << "  Vwe:"  << Vwe << "  Jwe:"  << cdensity(m,Rwe,Vwe) << "  Iwe:"  << Awe*cdensity(m,Rwe,Vwe)
-           << endl;
-    }
-    if (fout) {
-      fout << (o.search(2,"-Iwe","-Jwe")? "(Jwe[A.m-2]=" :
-              (o.search(2,"-Ice","-Jce")? "(Jce[A.m-2]=" : "(Vce-Vwe[V]=" ))
-           << (o.search(2,"-Iwe","-Jwe")? Jwe :
-              (o.search(2,"-Ice","-Jce")? Jce : Vce-Vwe )) << ')'
-           << "\tVce\t" << Vce << "\tJce\t" << cdensity(m,Rce,Vce) << "\tIce\t" << Ace*cdensity(m,Rce,Vce)
-           << "\tVwe\t" << Vwe << "\tJwe\t" << cdensity(m,Rwe,Vwe) << "\tIwe\t" << Awe*cdensity(m,Rwe,Vwe)
-           << endl;
+      const double _Jwe(cdensity(m,Rwe,Vwe)),
+                   _Jce(cdensity(m,Rce,Vce));
+      {
+        cout << "a: adjustment: "
+             << (o.search(2,"-Iwe","-Jwe")? "(Jwe[A.m-2]=" :
+                (o.search(2,"-Ice","-Jce")? "(Jce[A.m-2]=" : "(Vce-Vwe[V]=" ))
+             << (o.search(2,"-Iwe","-Jwe")? Jwe :
+                (o.search(2,"-Ice","-Jce")? Jce : Vce-Vwe )) << ')'
+             << "  Vce:"  << Vce << "  Jce:"  << _Jce << "  Ice:"  << Ace*_Jce
+             << "  Vwe:"  << Vwe << "  Jwe:"  << _Jwe << "  Iwe:"  << Awe*_Jwe
+             << "  |Ice+Iwe|:"  << std::abs(Ace*_Jce + Awe*_Jwe)
+             << endl;
+      }
+      if (fout) {
+        fout << (o.search(2,"-Iwe","-Jwe")? "(Jwe[A.m-2]=" :
+                (o.search(2,"-Ice","-Jce")? "(Jce[A.m-2]=" : "(Vce-Vwe[V]=" ))
+             << (o.search(2,"-Iwe","-Jwe")? Jwe :
+                (o.search(2,"-Ice","-Jce")? Jce : Vce-Vwe )) << ')'
+             << "\tVce\t" << Vce << "\tJce\t" << _Jce << "\tIce\t" << Ace*_Jce
+             << "\tVwe\t" << Vwe << "\tJwe\t" << _Jwe << "\tIwe\t" << Awe*_Jwe
+             << "\t|Ice+Iwe|\t" << std::abs(Ace*_Jce + Awe*_Jwe)
+             << endl;
+      }
     }
 
 
@@ -309,14 +315,14 @@ std::vector< double > getRangedParam(const std::string& s, double mult)
     const double step((vd[1]/vd[1]!=vd[1]/vd[1]) || (vd[1]/vd[1]>1.e100)? 0. : vd[1]),
                  _min(step>0.? std::min(vd[0],vd[2]):std::max(vd[0],vd[2])),
                  _max(step<0.? std::min(vd[0],vd[2]):std::max(vd[0],vd[2]));
-    if (std::abs(step)<1.e-12) {
+    if (std::fabs(step)<1.e-12) {
       std::cerr << "a: invalid range step (|step|<1.e-12)!" << std::endl;
       throw 42;
     }
     param.assign(1,_min);
     while (step>0.? param.back()<_max : param.back()>_max)
       param.push_back(param.back()+step);
-    if (std::abs(param.back())>std::abs(_max))
+    if (std::fabs(param.back())>std::fabs(_max))
       param.back() = _max;
   }
   else {
