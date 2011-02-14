@@ -2,7 +2,6 @@
 #define mlinearsystem_h
 
 #include <vector>
-#include "boost/progress.hpp"
 #include "ext/xmlParser.h"
 #include "mmatrix.h"
 

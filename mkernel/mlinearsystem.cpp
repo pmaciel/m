@@ -1,6 +1,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include "boost/progress.hpp"
 #include "mfactory.h"
 #include "mlinearsystem.h"
 
