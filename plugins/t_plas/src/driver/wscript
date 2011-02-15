@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  pass
+
+
+def build(bld):
+  bld.program(
+    target   = 'plas_driver',
+    includes = ['.','../lib'],
+    source   = [
+      'main.cpp',
+      'plas.cpp',
+      'plasdriver_calcareatriangle.cpp',
+      'plasdriver_calcelementneighbours.cpp',
+      'plasdriver_calcelementnormals.cpp',
+      'plasdriver_calcelementvolumes.cpp',
+      'plasdriver_calcelmsaroundnode.cpp',
+      'plasdriver_calcnodalvolumes.cpp',
+      'plasdriver_calcvolumetetra.cpp',
+      'plasdriver_freegambitmemory.cpp',
+      'plasdriver_getfacenodes.cpp',
+      'plasdriver_initflowfield.cpp',
+      'plasdriver_readdriverdatafile.cpp',
+      'plasdriver_readgambitneutralfile.cpp',
+      'plasdriver_writetecplot.cpp' ],
+    use = 'plas',
+    lib = 'm' )
+
