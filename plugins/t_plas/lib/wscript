@@ -8,7 +8,7 @@ def configure(conf):
 def build(bld):
   bld.shlib(
     target   = 'plas',
-    includes = ['.'],
+    includes = ['.','../../../mkernel'],
     source   = [
       'initplas.cpp',
       'plas_allocatelocalentityvar.cpp',

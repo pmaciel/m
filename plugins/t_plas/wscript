@@ -2,44 +2,13 @@
 
 
 def configure(conf):
-  pass
-
-
-def build(bld):
-  bld.program(
-    target   = 'plas_driver',
-    includes = ['.','../lib'],
-    source   = [
-      'main.cpp',
-      'plas.cpp',
-      'plasdriver_calcareatriangle.cpp',
-      'plasdriver_calcelementneighbours.cpp',
-      'plasdriver_calcelementnormals.cpp',
-      'plasdriver_calcelementvolumes.cpp',
-      'plasdriver_calcelmsaroundnode.cpp',
-      'plasdriver_calcnodalvolumes.cpp',
-      'plasdriver_calcvolumetetra.cpp',
-      'plasdriver_freegambitmemory.cpp',
-      'plasdriver_getfacenodes.cpp',
-      'plasdriver_initflowfield.cpp',
-      'plasdriver_readdriverdatafile.cpp',
-      'plasdriver_readgambitneutralfile.cpp',
-      'plasdriver_writetecplot.cpp' ],
-    use = 'plas',
-    lib = 'm' )
-
-#!/usr/bin/env python
-
-
-def configure(conf):
-  conf.recurse('lib')
+  conf.env.m_mlibraries.append('t_plas')
 
 
 def build(bld):
   bld.shlib(
-    target   = 'mt_plas',
-    includes = ['.'],
-    use      = ['plas'],
-    source   = [
-      ] )
+    target   = 't_plas',
+    includes = ['.','../../mkernel'],
+    source   = ['t_plas.cpp','plas.cpp'],
+    use      = ['plas'] )
 
