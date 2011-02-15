@@ -19,10 +19,10 @@ def options(opt):
   opt.load('compiler_fc')   # ...
   opt.add_option('--enable-c',  action='store_true', default=False, help='Check for C compiler')
   opt.add_option('--enable-fc', action='store_true', default=False, help='Check for Fortran compiler')
-  opt.add_option('--flags', type='string', default='-fPIC,-fopenmp', dest='m_flags', help='Generic compilation flags, comma-separated (default: ''-fPIC,-fopenmp'')')
-  opt.add_option('--flags-cxx', type='string', default='', dest='m_cxxflags', help='Compilation flags, comma-separated (C++)')
-  opt.add_option('--flags-c',   type='string', default='', dest='m_cflags',   help='Compilation flags, comma-separated (C)')
-  opt.add_option('--flags-fc',  type='string', default='', dest='m_fcflags',  help='Compilation flags, comma-separated (Fortran)')
+  opt.add_option('--flags',     type='string', default='-fPIC', dest='m_flags',    help='Generic compilation flags, comma-separated (default: ''-fPIC'')')
+  opt.add_option('--flags-cxx', type='string', default='',      dest='m_cxxflags', help='Compilation flags, comma-separated (C++)')
+  opt.add_option('--flags-c',   type='string', default='',      dest='m_cflags',   help='Compilation flags, comma-separated (C)')
+  opt.add_option('--flags-fc',  type='string', default='',      dest='m_fcflags',  help='Compilation flags, comma-separated (Fortran)')
 
 
 def configure(conf):
