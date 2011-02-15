@@ -136,17 +136,17 @@ void t_ren::transform(GetPot& o, mmesh& m)
     vector< vector< unsigned > > M(Nnodes);
 
     // use all available zones to get all nodes neighbors
-    for (unsigned j=0; j<m.z(); ++j) {
-      const vector< melem >& e2n = m.vz[j].e2n;
+    for (unsigned iz=0; iz<m.z(); ++iz) {
+      const vector< melem >& e2n = m.vz[iz].e2n;
       for (unsigned j=0; j<e2n.size(); ++j) {
         const vector< unsigned >& nodes = e2n[j].n;
-        const unsigned Nnodes = nodes.size();
-        for (unsigned k=0; k<Nnodes; ++k)
-          for (unsigned l=1; l<Nnodes; ++l) {  // guarantee "except itself"
-            const unsigned i = nodes[k];
-            const unsigned j = nodes[(k+l)%Nnodes];
-            M[i].push_back(j);
-            M[j].push_back(i);
+        const unsigned _Nnodes = nodes.size();
+        for (unsigned k=0; k<_Nnodes; ++k)
+          for (unsigned l=1; l<_Nnodes; ++l) {  // guarantee "except itself"
+            const unsigned I = nodes[k];
+            const unsigned J = nodes[(k+l)%_Nnodes];
+            M[I].push_back(J);
+            M[J].push_back(I);
           }
       }
     }
@@ -212,12 +212,12 @@ void t_ren::transform(GetPot& o, mmesh& m)
   cout << "info: set method..." << endl;
   aux::renumber* renumber = NULL;
   {
-    mfactory< aux::renumber >* f = mfactory< aux::renumber >::instance();
-    f->Register(new ProductionLine< aux::renumber,aux::ren_cm     >("cm",    "Cuthill-McKee"));
-    f->Register(new ProductionLine< aux::renumber,aux::ren_king   >("king",  "King"));
-    f->Register(new ProductionLine< aux::renumber,aux::ren_rcm    >("rcm",   "reversed Cuthill-McKee"));
-    f->Register(new ProductionLine< aux::renumber,aux::ren_rking  >("rking", "reversed King"));
-    renumber = f->Create(o_method);
+    mfactory< aux::renumber >* fac = mfactory< aux::renumber >::instance();
+    fac->Register(new ProductionLine< aux::renumber,aux::ren_cm     >("cm",    "Cuthill-McKee"));
+    fac->Register(new ProductionLine< aux::renumber,aux::ren_king   >("king",  "King"));
+    fac->Register(new ProductionLine< aux::renumber,aux::ren_rcm    >("rcm",   "reversed Cuthill-McKee"));
+    fac->Register(new ProductionLine< aux::renumber,aux::ren_rking  >("rking", "reversed King"));
+    renumber = fac->Create(o_method);
   }
   if (renumber==NULL) {
     cerr << "error: incorrect method" << endl;
@@ -345,18 +345,18 @@ void t_ren::apply(const vector< unsigned >& A2B, mmesh& m)
 
       // check and correct
       ++Nelem;
-      for (unsigned i=0; i<Nenodes; ++i)
-        for (unsigned j=0; j<Ndim; ++j)
-          c[i][j] = m.vv[j][ enodes[i] ];
+      for (unsigned k=0; k<Nenodes; ++k)
+        for (unsigned l=0; l<Ndim; ++l)
+          c[k][l] = m.vv[l][ enodes[k] ];
       if (t_geo::cellgeom_ok(c))
         continue;
       ++Nerrors;
       for (unsigned l=0; l<Nenodes; ++l) {
         ++Nswap;
         swap( enodes[l], enodes[(l+1)%Nenodes] );
-        for (unsigned i=0; i<Nenodes; ++i)
-          for (unsigned j=0; j<Ndim; ++j)
-            c[i][j] = m.vv[j][ enodes[i] ];
+        for (unsigned k=0; k<Nenodes; ++k)
+          for (unsigned d=0; d<Ndim; ++d)
+            c[k][d] = m.vv[d][ enodes[k] ];
         if (t_geo::cellgeom_ok(c)) {
           ++Ncorr;
           break;

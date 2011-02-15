@@ -113,10 +113,10 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
 
     // rotate projection vectors (don't rotate, doesn't work...)
     /*
-    const double r[4] = { cos(angled*M_PI/180.), -sin(angled*M_PI/180.),
+    const double R[4] = { cos(angled*M_PI/180.), -sin(angled*M_PI/180.),
                           sin(angled*M_PI/180.),  cos(angled*M_PI/180.) };
-    PNT pu2(pu);  pu2[0]=r[0]*pu[0]+r[1]*pu[1];  pu2[1]=r[2]*pu[0]+r[3]*pu[1];  pu=pu2;
-    PNT pv2(pv);  pv2[0]=r[0]*pv[0]+r[1]*pv[1];  pv2[1]=r[2]*pv[0]+r[3]*pv[1];  pv=pv2;
+    PNT pu2(pu);  pu2[0]=R[0]*pu[0]+R[1]*pu[1];  pu2[1]=R[2]*pu[0]+R[3]*pu[1];  pu=pu2;
+    PNT pv2(pv);  pv2[0]=R[0]*pv[0]+R[1]*pv[1];  pv2[1]=R[2]*pv[0]+R[3]*pv[1];  pv=pv2;
     */
 
     // information
@@ -144,7 +144,7 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
 
 
   cout << "info: project at rotation angle [deg]: " << angled << "..." << endl;
-  const double r[4] = { cos(angled*M_PI/180.), -sin(angled*M_PI/180.),
+  const double R[4] = { cos(angled*M_PI/180.), -sin(angled*M_PI/180.),
                         sin(angled*M_PI/180.),  cos(angled*M_PI/180.) };
   vector< double > gridu,
                    gridv;
@@ -156,7 +156,7 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
       const double u = (points[i].first-pc)^pu,
                    v = (points[i].first-pc)^pv,
                    w = (points[i].first-pc)^pn;
-      points[i].second = PNT( r[0]*u+r[1]*v, r[2]*u+r[3]*v, w );
+      points[i].second = PNT( R[0]*u+R[1]*v, R[2]*u+R[3]*v, w );
       bbox[0] = min(bbox[0],points[i].second[0]);
       bbox[1] = max(bbox[1],points[i].second[0]);
       bbox[2] = min(bbox[2],points[i].second[1]);
@@ -329,11 +329,11 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
           qedge.erase(unique(qedge.begin(),qedge.end()),qedge.end());
           double mind = sqrt(du*du+dv*dv)+1.;
           int    mini = -1;
-          for (vector< int >::const_iterator i=qedge.begin(); i!=qedge.end(); ++i) {
-            const double d = dist(n.nucsite_xyz,points[*i].second);
+          for (vector< int >::const_iterator ei=qedge.begin(); ei!=qedge.end(); ++ei) {
+            const double d = dist(n.nucsite_xyz,points[*ei].second);
             if (d<mind) {
               mind = d;
-              mini = *i;
+              mini = *ei;
             }
           }
           if (mini>=0) {
@@ -341,7 +341,7 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
             const double u = (n.nucsite_xyz-pc)^pu,
                          v = (n.nucsite_xyz-pc)^pv,
                          w = (n.nucsite_xyz-pc)^pn;
-            n.nucsite_uv = PNT( r[0]*u+r[1]*v, r[2]*u+r[3]*v, w );
+            n.nucsite_uv = PNT( R[0]*u+R[1]*v, R[2]*u+R[3]*v, w );
           }
           else {
             n.ni.clear();
@@ -353,8 +353,8 @@ void t_surfmap::transform(GetPot& o, mmesh& m)
 
         // update (accumulate) quadrilateral area (intersected with zone)
         n.qarea = 0.;
-        for (size_t j=0; j<n.ni.size(); ++j)
-          n.qarea += tri[ n.ni[j] ].a * n.nw[j];
+        for (size_t k=0; k<n.ni.size(); ++k)
+          n.qarea += tri[ n.ni[k] ].a * n.nw[k];
 
       }
     }

@@ -58,8 +58,8 @@ void t_probe::transform(GetPot& o, mmesh& m)
     // search closest node by coordinates proximity
     for (unsigned n=0; n<m.n(); ++n) {
       double d = 0.;
-      for (unsigned i=0; i<m.d(); ++i)
-        d += (p[i]-m.vv[i][n]) * (p[i]-m.vv[i][n]);
+      for (unsigned j=0; j<m.d(); ++j)
+        d += (p[j]-m.vv[j][n]) * (p[j]-m.vv[j][n]);
       if (d<dmin) {
         dmin = d;
         idx  = (int) n;

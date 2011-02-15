@@ -68,14 +68,14 @@ void f_miotras::read(GetPot& o, mmesh& m)
   vector< unsigned > vezonemap;
   {
     getline(f,s);
-    istringstream ss(s);
-    ss >> dummy >> Nelem >> Nbelem;
+    istringstream ss1(s);
+    ss1 >> dummy >> Nelem >> Nbelem;
 
     vezonemap.assign(Nelem+Nbelem,0);
     for (unsigned i=0; i<Nelem+Nbelem; ++i) {
       getline(f,s);
-      istringstream ss(s);
-      ss >> vezonemap[i];
+      istringstream ss2(s);
+      ss2 >> vezonemap[i];
     }
   }
 
@@ -106,8 +106,8 @@ void f_miotras::read(GetPot& o, mmesh& m)
       ss >> dummy >> dummy >> en[0] >> en[1] >> en[2];
     else if (en.size()==2)
       ss >> dummy >> dummy >> en[1] >> en[0];
-    for (unsigned i=0; i<en.size(); ++i)
-      --en[i];  // 0-based index
+    for (unsigned j=0; j<en.size(); ++j)
+      --en[j];  // 0-based index
   }
   vezonemap.clear();
 

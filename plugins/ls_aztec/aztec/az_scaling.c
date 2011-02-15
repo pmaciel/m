@@ -1346,7 +1346,7 @@ void AZ_sym_row_sum_scaling(int action, AZ_MATRIX *Amat,
 
   register int indx_ptr, row, col, blkrow, blkcol, locblk, iblk = 0;
   int          i, j, j_last, bindx_row, k;
-  int          rblksz, numblk, cblksz, index;
+  int          rblksz, numblk, cblksz, _index;
   int          N;   /* number of unknowns  (rows) */
   int          m;   /* number of blocks (c.f. vbr) */
   double       row_sum = 0.0, *sc_vec, one = 1.0;
@@ -1449,8 +1449,8 @@ void AZ_sym_row_sum_scaling(int action, AZ_MATRIX *Amat,
             indx_ptr = indx[iblk++];
             cblksz = cptr[locblk+1] - cptr[locblk];
             for (col = 0; col < cblksz; col++) {
-              index = indx_ptr + col*rblksz + row;
-              row_sum += fabs(val[index]);
+              _index = indx_ptr + col*rblksz + row;
+              row_sum += fabs(val[_index]);
             }
           }
           if (fabs(row_sum) < DBL_MIN)
@@ -1478,8 +1478,8 @@ void AZ_sym_row_sum_scaling(int action, AZ_MATRIX *Amat,
             cblksz = cptr[locblk+1] - cptr[locblk];
             for (col = 0; col < cblksz; col++) {
               j = cptr[locblk] + col;
-              index = indx_ptr + col*rblksz + row;
-              val[index] *= (row_sum * sc_vec[j]);
+              _index = indx_ptr + col*rblksz + row;
+              val[_index] *= (row_sum * sc_vec[j]);
             }
           }
           iblk -= numblk;
@@ -1553,7 +1553,7 @@ void AZ_equil_scaling(int action, AZ_MATRIX *Amat,
 
   register int indx_ptr, row, col, blkrow, blkcol, locblk, iblk = 0;
   int          i, j, j_last, bindx_row;
-  int          rblksz, numblk, cblksz, index;
+  int          rblksz, numblk, cblksz, _index;
   int          m, k, N, Npe, iteration;
   double      *sc_vec, *rowsum, *colsum, one = 1.0, zed= 0.0, scaledval;
   double       maxrow, minrow;
@@ -1704,8 +1704,8 @@ void AZ_equil_scaling(int action, AZ_MATRIX *Amat,
               cblksz = cptr[locblk+1] - cptr[locblk];
               for (col = 0; col < cblksz; col++) {
                 j = cptr[locblk] + col;
-                index = indx_ptr + col*rblksz + row;
-                scaledval = fabs(val[index])*sc_vec[i]*sc_vec[j];
+                _index = indx_ptr + col*rblksz + row;
+                scaledval = fabs(val[_index])*sc_vec[i]*sc_vec[j];
                 rowsum[i] += scaledval;
                 colsum[j] += scaledval;
               }
@@ -1767,8 +1767,8 @@ void AZ_equil_scaling(int action, AZ_MATRIX *Amat,
             cblksz = cptr[locblk+1] - cptr[locblk];
             for (col = 0; col < cblksz; col++) {
               j = cptr[locblk] + col;
-              index = indx_ptr + col*rblksz + row;
-              val[index] *= (scaledval * sc_vec[j]);
+              _index = indx_ptr + col*rblksz + row;
+              val[_index] *= (scaledval * sc_vec[j]);
             }
           }
           iblk -= numblk;

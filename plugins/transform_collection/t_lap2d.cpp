@@ -147,11 +147,11 @@ void t_lap2d::transform(GetPot& o, mmesh& m)
 
         const vector< unsigned >& en = e->n;
         const AElement E(en,m.vv[0],m.vv[1]);
-        for (unsigned i=0; i<(unsigned) en.size(); ++i)
-          for (unsigned j=0; j<(unsigned) en.size(); ++j)
+        for (unsigned j=0; j<(unsigned) en.size(); ++j)
+          for (unsigned k=0; k<(unsigned) en.size(); ++k)
             for (unsigned b=0; b<Nb; ++b)
-              (ls->A)(en[i],en[j],b,b) += 0.25 * conductivity[b] / E.Size() *
-                 (E.NX(i)*E.NX(j) + E.NY(i)*E.NY(j));
+              (ls->A)(en[j],en[k],b,b) += 0.25 * conductivity[b] / E.Size() *
+                 (E.NX(j)*E.NX(k) + E.NY(j)*E.NY(k));
 
       }
     }

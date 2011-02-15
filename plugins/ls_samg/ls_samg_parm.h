@@ -23,14 +23,14 @@ struct s_parm {
   s_parm(const std::string& _n, int    *_pi, int _p1, int _p2) : n(_n), fpi(NULL), fpd(NULL), fps(NULL), pd(NULL), pi(_pi),  d(0.), i(0),  s(""), p1(_p1), p2(_p2), radix(10) {}
 
   // parameter string conversion, setting/default and getting
-  template< class T > T cvt(const std::string& s, T init=T()) const
+  template< class T > T cvt(const std::string& _s, T _init=T()) const
   {
-    T r(init);
-    std::istringstream iss(s);
+    T r(_init);
+    std::istringstream iss(_s);
     iss >> r;
     return r;
   }
-  void set(const std::string& s);
+  void set(const std::string& _s);
   void def();
   bool ismain() { return (p1? false:true); }
   std::string get();

@@ -9,22 +9,22 @@ namespace m {
   namespace aux {
 
 
-void s_parm::set(const std::string &s)
+void s_parm::set(const std::string &_s)
 {
   // parameters set by functions
-  if      (fpi!=NULL) { int    v = cvt< int    >(s); (*fpi)( &v ); }
-  else if (fpd!=NULL) { double v = cvt< double >(s); (*fpd)( &v ); }
+  if      (fpi!=NULL) { int    v = cvt< int    >(_s); (*fpi)( &v ); }
+  else if (fpd!=NULL) { double v = cvt< double >(_s); (*fpd)( &v ); }
   else if (fps!=NULL) {
-    int w = (int) s.length();  // convert string to vector of int's...
+    int w = (int) _s.length();  // convert string to vector of int's...
     std::vector< int > v(w);
     for (int j=0; j<w; ++j)
-      v[j] = (int) s[j];
+      v[j] = (int) _s[j];
     (*fps)( &v[0],&w );        // ... then set the option
   }
 
   // parameters set "directly"
-  else if (pd!=NULL)        { *pd = cvt< double >(s); }
-  else if (pi!=NULL && !p1) { *pi = cvt< int    >(s); }
+  else if (pd!=NULL)        { *pd = cvt< double >(_s); }
+  else if (pi!=NULL && !p1) { *pi = cvt< int    >(_s); }
 
   // integer sub-parameters
   else if (pi!=NULL) {
@@ -34,7 +34,7 @@ void s_parm::set(const std::string &s)
     std::vector< unsigned > parm,
                             subparm;
     {
-      unsigned v = cvt< unsigned >(s);
+      unsigned v = cvt< unsigned >(_s);
       while (v) {
         subparm.push_back(v % radix);
         v /= radix;
@@ -58,8 +58,8 @@ void s_parm::set(const std::string &s)
     }
 
     // set sub-parameter in the vector of digits
-    for (int i=0; i<(int) subparm.size(); ++i)
-      parm[p1+i-1] = subparm[i];
+    for (int j=0; j<(int) subparm.size(); ++j)
+      parm[p1+j-1] = subparm[j];
 
     // rebuild number from vector of digits
     int number = 0,

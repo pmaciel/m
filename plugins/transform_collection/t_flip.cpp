@@ -36,9 +36,9 @@ void t_flip::transform(GetPot& o, mmesh& m)
       vector< unsigned >& enodes = m.vz[i].e2n[j].n;
 
       // check if ok
-      for (unsigned i=0; i<Nenodes; ++i)
-        for (unsigned j=0; j<Ndim; ++j)
-          c[i][j] = m.vv[j][ enodes[i] ];
+      for (unsigned k=0; k<Nenodes; ++k)
+        for (unsigned l=0; l<Ndim; ++l)
+          c[k][l] = m.vv[l][ enodes[k] ];
       if (t_geo::cellgeom_ok(c))
         continue;
 
@@ -47,9 +47,9 @@ void t_flip::transform(GetPot& o, mmesh& m)
       for (unsigned l=0; l<Nenodes; ++l) {
         ++Nswap;
         swap( enodes[l], enodes[(l+1)%Nenodes] );
-        for (unsigned i=0; i<Nenodes; ++i)
-          for (unsigned j=0; j<Ndim; ++j)
-            c[i][j] = m.vv[j][ enodes[i] ];
+        for (unsigned k=0; k<Nenodes; ++k)
+          for (unsigned d=0; d<Ndim; ++d)
+            c[k][d] = m.vv[d][ enodes[k] ];
         if (t_geo::cellgeom_ok(c)) {
           ++Ncorr;
           break;

@@ -73,13 +73,13 @@ void t_manip::vkeep(m::mmesh& m, const std::string& s)
 
   // get list of (variable) names to keep
   vector< std::pair< string,string > > vops = getoperands(s);
-  vector< string > vkeep;
+  vector< string > keep;
   for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
-    vkeep.push_back(i->first);
+    keep.push_back(i->first);
 
   // remove variables not in that list (apply in reverse for performance)
   for (vector< string >::const_reverse_iterator i=m.vn.rbegin(); i!=m.vn.rend(); ++i)
-    if (!std::count(vkeep.begin(),vkeep.end(),*i))
+    if (!std::count(keep.begin(),keep.end(),*i))
       vrm(m,getvindex(m,*i));
 }
 
@@ -136,10 +136,10 @@ void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f, const s
   // evaluate at each node
   vector< double >& veval = m.vv[v_idx];
   vector< double > c(v.size(),0.);
-  for (unsigned n=0; n<Nnode; ++n) {
-    for (unsigned i=0; i<v.size(); ++i)
-      c[i] = m.vv[ vindex[i] ][n];
-    veval[n] = mf.eval(&c[0]);
+  for (unsigned i=0; i<Nnode; ++i) {
+    for (unsigned j=0; j<v.size(); ++j)
+      c[j] = m.vv[ vindex[j] ][i];
+    veval[i] = mf.eval(&c[0]);
   }
 }
 
@@ -198,13 +198,13 @@ void t_manip::zkeep(m::mmesh& m, const std::string& s)
 
   // get list of (zone) names to keep
   vector< std::pair< string,string > > vops = getoperands(s);
-  vector< string > zkeep;
+  vector< string > keep;
   for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
-    zkeep.push_back(i->first);
+    keep.push_back(i->first);
 
   // remove zones not in that list (apply in reverse for performance)
   for (vector< mzone >::const_reverse_iterator i=m.vz.rbegin(); i!=m.vz.rend(); ++i)
-    if (!std::count(zkeep.begin(),zkeep.end(),i->n))
+    if (!std::count(keep.begin(),keep.end(),i->n))
       zrm(m,getzindex(m,i->n));
 }
 

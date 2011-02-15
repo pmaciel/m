@@ -260,10 +260,12 @@ void MeshReader::readMainHeader(string& htitle, vector< string >& hvnames)
   cout << "SmURF: version number: \"" << m_version << "\"" << endl;
 
   // byte order, filetype and title
-  int i;
-  i = bread< int >(m_file);    // 1
-  if (m_version>107)
-    i = bread< int >(m_file);  // 0
+  {
+    int i;
+    i = bread< int >(m_file);    // 1
+    if (m_version>107)
+      i = bread< int >(m_file);  // 0
+  }
   htitle = bread< string >(m_file);
 
   // variables
@@ -360,17 +362,17 @@ void MeshReader::readZoneData(const TecZone& z, vector< vector< unsigned > >& ve
     if (z.pack==BLOCK) {
 
       for (unsigned N=0; N<m_nvars; ++N)
-        for (unsigned i=0; i<Nnode; ++i)
-          if (vtypes[N]==DOUBLE)  vv[N][i] = bread< double >(m_file);
-          else                    vv[N][i] = (double) bread< float >(m_file);
+        for (unsigned j=0; j<Nnode; ++j)
+          if (vtypes[N]==DOUBLE)  vv[N][j] = bread< double >(m_file);
+          else                    vv[N][j] = (double) bread< float >(m_file);
 
     }
     else if (z.pack==POINT) {
 
-      for (unsigned i=0; i<Nnode; ++i)
+      for (unsigned j=0; j<Nnode; ++j)
         for (unsigned N=0; N<m_nvars; ++N)
-          if (vtypes[N]==DOUBLE)  vv[N][i] = bread< double >(m_file);
-          else                    vv[N][i] = (double) bread< float >(m_file);
+          if (vtypes[N]==DOUBLE)  vv[N][j] = bread< double >(m_file);
+          else                    vv[N][j] = (double) bread< float >(m_file);
 
     }
   }
@@ -385,8 +387,8 @@ void MeshReader::readZoneData(const TecZone& z, vector< vector< unsigned > >& ve
                        (z.type==FEBRICK?         8:0 )))));
     ve.assign(Nelem,vector< unsigned >(L,0));
     for (unsigned j=0; j<Nelem; ++j)
-      for (unsigned i=0; i<L; ++i)
-        ve[j][i] = bread< unsigned >(m_file);
+      for (unsigned k=0; k<L; ++k)
+        ve[j][k] = bread< unsigned >(m_file);
   }
 }
 

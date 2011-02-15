@@ -79,13 +79,13 @@ void t_math::rotate(vector< double >& vx, vector< double >& vy, vector< vector< 
 
   // states
   for (unsigned d=0; d<vvx.size(); ++d) {
-    vector< double >& vx = *vvx[d];
-    vector< double >& vy = *vvy[d];
-    for (unsigned n=0; n<vx.size(); ++n) {
-      const double x = vx[n];
-      const double y = vy[n];
-      vx[n] = x*cos(a) + y*sin(a);
-      vy[n] =-x*sin(a) + y*cos(a);
+    vector< double >& _vx = *vvx[d];
+    vector< double >& _vy = *vvy[d];
+    for (unsigned n=0; n<_vx.size(); ++n) {
+      const double x = _vx[n];
+      const double y = _vy[n];
+      _vx[n] = x*cos(a) + y*sin(a);
+      _vy[n] =-x*sin(a) + y*cos(a);
     }
   }
 }

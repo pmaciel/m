@@ -27,10 +27,10 @@ struct GGroup {
 
 void f_neu::read(GetPot& o,mmesh& m)
 {
-  const string fn(o.get(o.inc_cursor(),""));
-  ifstream f(fn.c_str());
+  const string filename(o.get(o.inc_cursor(),""));
+  ifstream f(filename.c_str());
   if (!f) {
-    cerr << "error accessing file: \"" << fn << "\"" << endl;
+    cerr << "error accessing file: \"" << filename << "\"" << endl;
     throw 42;
   }
 
@@ -50,8 +50,10 @@ void f_neu::read(GetPot& o,mmesh& m)
 
   // read number of points, elements, groups, sets and dimensions
   getline(f,s);
-  istringstream ss(s);
-  ss >> NUMNP >> NELEM >> NGRPS >> NBSETS >> NDFCD >> NDFVL;
+  {
+    istringstream ss(s);
+    ss >> NUMNP >> NELEM >> NGRPS >> NBSETS >> NDFCD >> NDFVL;
+  }
 
   // set variable names (just coordinates)
   m.vn.resize(NDFVL);
@@ -197,7 +199,7 @@ void f_neu::read(GetPot& o,mmesh& m)
     vector< GElement > e2n(NENTRY);
 
     // read boundary elements connectivity
-    vector< unsigned > nbelems(PYRAMID4+1,0); // nb. elements per type
+    vector< unsigned > nbelems_pertype(PYRAMID4+1,0); // nb. elements per type
     for (int i=0; i<NENTRY; ++i) {
       int ELEM, ETYPE, FACE;
       f >> ELEM >> ETYPE >> FACE;
@@ -216,7 +218,7 @@ void f_neu::read(GetPot& o,mmesh& m)
         cerr << "error: reference for an unexpected volume element" << endl;
         throw 42;
       }
-      ++nbelems[(unsigned) ft];  // add a face element of this type
+      ++nbelems_pertype[(unsigned) ft];  // add a face element of this type
       fn.assign(ft==FELINESEG?       2:
                (ft==FEQUADRILATERAL? 4:
                (ft==FETRIANGLE?      3:
@@ -283,10 +285,10 @@ void f_neu::read(GetPot& o,mmesh& m)
     // count element types
     vector< mtype    > felemstypes;
     vector< unsigned > felemsnb;
-    for (unsigned t=0; t<nbelems.size(); ++t)
-      if (nbelems[t]>0) {
-        felemstypes.push_back((mtype) t);
-        felemsnb.push_back(nbelems[t]);
+    for (unsigned T=0; T<nbelems_pertype.size(); ++T)
+      if (nbelems_pertype[T]>0) {
+        felemstypes.push_back((mtype) T);
+        felemsnb.push_back(nbelems_pertype[T]);
       }
 
     // set new zones, distinguishing different element types

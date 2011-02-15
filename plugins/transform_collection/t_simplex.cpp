@@ -142,18 +142,18 @@ vector< melem > t_simplex::simplex(const mtype& t, const vector< unsigned >& en)
 #undef n7
 
       // set rotation bits, and rotate geometry 120/240 deg. by swapping
-      unsigned t;
+      unsigned s;
       const unsigned rb =
           (min(V[1],V[6])<min(V[2],V[5])? 4:0)   // for face 1
         + (min(V[3],V[6])<min(V[2],V[7])? 2:0)   // ... face 2
         + (min(V[4],V[6])<min(V[5],V[7])? 1:0);  // ... face 3
       if (rb==1 || rb==6) {
-        t = V[1];  V[1] = V[4];  V[4] = V[3];  V[3] = t;
-        t = V[5];  V[5] = V[7];  V[7] = V[2];  V[2] = t;
+        s = V[1];  V[1] = V[4];  V[4] = V[3];  V[3] = s;
+        s = V[5];  V[5] = V[7];  V[7] = V[2];  V[2] = s;
       }
       else if (rb==2 || rb==5) {
-        t = V[1];  V[1] = V[3];  V[3] = V[4];  V[4] = t;
-        t = V[5];  V[5] = V[2];  V[2] = V[7];  V[7] = t;
+        s = V[1];  V[1] = V[3];  V[3] = V[4];  V[4] = s;
+        s = V[5];  V[5] = V[2];  V[2] = V[7];  V[7] = s;
       }
 
       // split according to number of diagonal going through V[6]

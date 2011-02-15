@@ -125,129 +125,129 @@ double& ls_aztec::A(const unsigned R, const unsigned C, const unsigned r, const 
 }
 
 
-void ls_aztec::set_az_options(XMLNode& xml, int *options, double *params)
+void ls_aztec::set_az_options(XMLNode& _xml, int *_options, double *_params)
 {
   // set matrix type
-  const string mtype_str = xml.getAttribute< string >("mtype","msr");
+  const string mtype_str = _xml.getAttribute< string >("mtype","msr");
   mtype = mtype_str=="vbr"? AZ_VBR_MATRIX : AZ_MSR_MATRIX;
 
   // set options
-  const string solver   = xml.getAttribute< string >("solver"),
-               scaling  = xml.getAttribute< string >("scaling"),
-               precond  = xml.getAttribute< string >("precond"),
-               subdomain_solve = xml.getAttribute< string >("subdomain_solve"),
-               conv     = xml.getAttribute< string >("conv"),
-               output   = xml.getAttribute< string >("output"),
-               pre_calc = xml.getAttribute< string >("pre_calc"),
-               overlap  = xml.getAttribute< string >("overlap"),
-               type_overlap    = xml.getAttribute< string >("type_overlap"),
-               orthog   = xml.getAttribute< string >("orthog"),
-               aux_vec  = xml.getAttribute< string >("aux_vec");
-  const int output_int  = xml.getAttribute< int >("output",  options[AZ_output]),
-            overlap_int = xml.getAttribute< int >("overlap", options[AZ_overlap]);
-  options[AZ_solver] = (solver=="cg"?        AZ_cg       :  // preconditioned conjugate gradient method
-                       (solver=="gmres"?     AZ_gmres    :  // preconditioned gmres method
-                       (solver=="cgs"?       AZ_cgs      :  // preconditioned cg squared method
-                       (solver=="tfqmr"?     AZ_tfqmr    :  // preconditioned transpose-free qmr method
-                       (solver=="bicgstab"?  AZ_bicgstab :  // preconditioned stabilized bi-cg method
-                       (solver=="slu"?       AZ_slu      :  // super LU direct method
-                       (solver=="symmlq"?    AZ_symmlq   :  // indefinite symmetric like symmlq
-                       (solver=="GMRESR"?    AZ_GMRESR   :  // recursive GMRES (not supported)
-                       (solver=="fixed_pt"?  AZ_fixed_pt :  // fixed point iteration
-                       (solver=="analyze"?   AZ_analyze  :  // fixed point iteration
-                       (solver=="lu"?        AZ_lu       :  // sparse LU direct method (also used for preconditioning)
-                                             options[AZ_solver] )))))))))));  // (default)
+  const string solver   = _xml.getAttribute< string >("solver"),
+               scaling  = _xml.getAttribute< string >("scaling"),
+               precond  = _xml.getAttribute< string >("precond"),
+               subdomain_solve = _xml.getAttribute< string >("subdomain_solve"),
+               conv     = _xml.getAttribute< string >("conv"),
+               output   = _xml.getAttribute< string >("output"),
+               pre_calc = _xml.getAttribute< string >("pre_calc"),
+               overlap  = _xml.getAttribute< string >("overlap"),
+               type_overlap    = _xml.getAttribute< string >("type_overlap"),
+               orthog   = _xml.getAttribute< string >("orthog"),
+               aux_vec  = _xml.getAttribute< string >("aux_vec");
+  const int output_int  = _xml.getAttribute< int >("output",  _options[AZ_output]),
+            overlap_int = _xml.getAttribute< int >("overlap", _options[AZ_overlap]);
+  _options[AZ_solver] = (solver=="cg"?        AZ_cg       :  // preconditioned conjugate gradient method
+                        (solver=="gmres"?     AZ_gmres    :  // preconditioned gmres method
+                        (solver=="cgs"?       AZ_cgs      :  // preconditioned cg squared method
+                        (solver=="tfqmr"?     AZ_tfqmr    :  // preconditioned transpose-free qmr method
+                        (solver=="bicgstab"?  AZ_bicgstab :  // preconditioned stabilized bi-cg method
+                        (solver=="slu"?       AZ_slu      :  // super LU direct method
+                        (solver=="symmlq"?    AZ_symmlq   :  // indefinite symmetric like symmlq
+                        (solver=="GMRESR"?    AZ_GMRESR   :  // recursive GMRES (not supported)
+                        (solver=="fixed_pt"?  AZ_fixed_pt :  // fixed point iteration
+                        (solver=="analyze"?   AZ_analyze  :  // fixed point iteration
+                        (solver=="lu"?        AZ_lu       :  // sparse LU direct method (also used for preconditioning)
+                                              _options[AZ_solver] )))))))))));  // (default)
 
-  options[AZ_scaling] = (scaling=="none"?        AZ_none        :  // no scaling
-                        (scaling=="Jacobi"?      AZ_Jacobi      :  // Jacobi scaling
-                        (scaling=="BJacobi"?     AZ_BJacobi     :  // block Jacobi scaling
-                        (scaling=="row_sum"?     AZ_row_sum     :  // point row-sum scaling
-                        (scaling=="sym_diag"?    AZ_sym_diag    :  // symmetric diagonal scaling
-                        (scaling=="sym_row_sum"? AZ_sym_row_sum :  // symmetric diagonal scaling
-                        (scaling=="equil"?       AZ_equil       :  // equilib scaling
-                        (scaling=="sym_BJacobi"? AZ_sym_BJacobi :  // symmetric block Jacobi scaling
-                        options[AZ_scaling] ))))))));  // (default)
+  _options[AZ_scaling] = (scaling=="none"?        AZ_none        :  // no scaling
+                         (scaling=="Jacobi"?      AZ_Jacobi      :  // Jacobi scaling
+                         (scaling=="BJacobi"?     AZ_BJacobi     :  // block Jacobi scaling
+                         (scaling=="row_sum"?     AZ_row_sum     :  // point row-sum scaling
+                         (scaling=="sym_diag"?    AZ_sym_diag    :  // symmetric diagonal scaling
+                         (scaling=="sym_row_sum"? AZ_sym_row_sum :  // symmetric diagonal scaling
+                         (scaling=="equil"?       AZ_equil       :  // equilib scaling
+                         (scaling=="sym_BJacobi"? AZ_sym_BJacobi :  // symmetric block Jacobi scaling
+                                                  _options[AZ_scaling] ))))))));  // (default)
 
-  options[AZ_precond] = (precond=="none"?         AZ_none         :  // no preconditioning
-                        (precond=="Jacobi"?       AZ_Jacobi       :  // Jacobi (also used for scaling options)
-                        (precond=="sym_GS"?       AZ_sym_GS       :  // symmetric Gauss-Siedel
-                        (precond=="Neumann"?      AZ_Neumann      :  // Neumann series polynomial
-                        (precond=="ls"?           AZ_ls           :  // least-squares polynomial
-                        (precond=="ilu"?          AZ_ilu          :  // domain decomposition with ilu in subdomains
-                        (precond=="bilu"?         AZ_bilu         :  // domain decomposition with block ilu in subdomains
-                        (precond=="lu"?           AZ_lu           :  // domain decomposition with lu in subdomains
-                        (precond=="icc"?          AZ_icc          :  // domain decomposition with incomplete Choleski in domains
-                        (precond=="ilut"?         AZ_ilut         :  // domain decomposition with ilut in subdomains
-                        (precond=="rilu"?         AZ_rilu         :  // domain decomposition with rilu in subdomains
-                        (precond=="recursive"?    AZ_recursive    :  // recursive call to AZ_iterate()
-                        (precond=="smoother"?     AZ_smoother     :  // recursive call to AZ_iterate()
-                        (precond=="dom_decomp"?   AZ_dom_decomp   :  // domain decomposition using subdomain solver given by options[AZ_subdomain_solve]
-                        (precond=="multilevel"?   AZ_multilevel   :  // do multiplicative domain decomposition with coarse grid (not supported)
-                        (precond=="user_precond"? AZ_user_precond :  // user's preconditioning
-                        (precond=="bilu_ifp"?     AZ_bilu_ifp     :  // domain decomposition with bilu using ifpack in subdom
-                        options[AZ_precond] )))))))))))))))));  // (default)
+  _options[AZ_precond] = (precond=="none"?         AZ_none         :  // no preconditioning
+                         (precond=="Jacobi"?       AZ_Jacobi       :  // Jacobi (also used for scaling options)
+                         (precond=="sym_GS"?       AZ_sym_GS       :  // symmetric Gauss-Siedel
+                         (precond=="Neumann"?      AZ_Neumann      :  // Neumann series polynomial
+                         (precond=="ls"?           AZ_ls           :  // least-squares polynomial
+                         (precond=="ilu"?          AZ_ilu          :  // domain decomposition with ilu in subdomains
+                         (precond=="bilu"?         AZ_bilu         :  // domain decomposition with block ilu in subdomains
+                         (precond=="lu"?           AZ_lu           :  // domain decomposition with lu in subdomains
+                         (precond=="icc"?          AZ_icc          :  // domain decomposition with incomplete Choleski in domains
+                         (precond=="ilut"?         AZ_ilut         :  // domain decomposition with ilut in subdomains
+                         (precond=="rilu"?         AZ_rilu         :  // domain decomposition with rilu in subdomains
+                         (precond=="recursive"?    AZ_recursive    :  // recursive call to AZ_iterate()
+                         (precond=="smoother"?     AZ_smoother     :  // recursive call to AZ_iterate()
+                         (precond=="dom_decomp"?   AZ_dom_decomp   :  // domain decomposition using subdomain solver given by options[AZ_subdomain_solve]
+                         (precond=="multilevel"?   AZ_multilevel   :  // do multiplicative domain decomposition with coarse grid (not supported)
+                         (precond=="user_precond"? AZ_user_precond :  // user's preconditioning
+                         (precond=="bilu_ifp"?     AZ_bilu_ifp     :  // domain decomposition with bilu using ifpack in subdom
+                                                   _options[AZ_precond] )))))))))))))))));  // (default)
 
-  options[AZ_subdomain_solve] = (subdomain_solve=="lu"?   AZ_lu   :  // domain decomposition with lu in subdomains
-                                (subdomain_solve=="ilut"? AZ_ilut :  // domain decomposition with ilut in subdomains
-                                (subdomain_solve=="ilu"?  AZ_ilu  :  // domain decomposition with ilu in subdomains
-                                (subdomain_solve=="rilu"? AZ_rilu :  // domain decomposition with rilu in subdomains
-                                (subdomain_solve=="bilu"? AZ_bilu :  // domain decomposition with block ilu in subdomains
-                                (subdomain_solve=="icc"?  AZ_icc  :  // domain decomposition with incomplete Choleski in domains
-                                options[AZ_subdomain_solve] ))))));  // (default)
+  _options[AZ_subdomain_solve] = (subdomain_solve=="lu"?   AZ_lu   :  // domain decomposition with lu in subdomains
+                                 (subdomain_solve=="ilut"? AZ_ilut :  // domain decomposition with ilut in subdomains
+                                 (subdomain_solve=="ilu"?  AZ_ilu  :  // domain decomposition with ilu in subdomains
+                                 (subdomain_solve=="rilu"? AZ_rilu :  // domain decomposition with rilu in subdomains
+                                 (subdomain_solve=="bilu"? AZ_bilu :  // domain decomposition with block ilu in subdomains
+                                 (subdomain_solve=="icc"?  AZ_icc  :  // domain decomposition with incomplete Choleski in domains
+                                                           _options[AZ_subdomain_solve] ))))));  // (default)
 
-  options[AZ_conv] = (conv=="r0"?              AZ_r0              :  // ||r||_2 / ||r^{(0)}||_2
-                     (conv=="rhs"?             AZ_rhs             :  // ||r||_2 / ||b||_2
-                     (conv=="Anorm"?           AZ_Anorm           :  // ||r||_2 / ||A||_infty
-                     (conv=="sol"?             AZ_sol             :  // ||r||_infty/(||A||_infty ||x||_1+||b||_infty)
-  //                 (conv=="weighted"?        AZ_weighted        :  // ||r||_WRMS
-                     (conv=="expected_values"? AZ_expected_values :  // ||r||_WRMS with weights taken as |A||x0|
-                     (conv=="noscaled"?        AZ_noscaled        :  // ||r||_2
-                     options[AZ_conv] ))))));  // (default)
+  _options[AZ_conv] = (conv=="r0"?              AZ_r0              :  // ||r||_2 / ||r^{(0)}||_2
+                      (conv=="rhs"?             AZ_rhs             :  // ||r||_2 / ||b||_2
+                      (conv=="Anorm"?           AZ_Anorm           :  // ||r||_2 / ||A||_infty
+                      (conv=="sol"?             AZ_sol             :  // ||r||_infty/(||A||_infty ||x||_1+||b||_infty)
+  //                  (conv=="weighted"?        AZ_weighted        :  // ||r||_WRMS
+                      (conv=="expected_values"? AZ_expected_values :  // ||r||_WRMS with weights taken as |A||x0|
+                      (conv=="noscaled"?        AZ_noscaled        :  // ||r||_2
+                                                _options[AZ_conv] ))))));  // (default)
 
-  options[AZ_output] = (output=="all"?      AZ_all      :  // print out everything including matrix
-                       (output=="none"?     AZ_none     :  // print out no results (not even warnings)
-                       (output=="last"?     AZ_last     :  // print out final residual and warnings
-                       (output=="warnings"? AZ_warnings :  // print out only warning messages
-                       (output_int>0?       output_int  :  // print residual every output_int iteration
-                                            options[AZ_output] )))));  // (default)
+  _options[AZ_output] = (output=="all"?      AZ_all      :  // print out everything including matrix
+                        (output=="none"?     AZ_none     :  // print out no results (not even warnings)
+                        (output=="last"?     AZ_last     :  // print out final residual and warnings
+                        (output=="warnings"? AZ_warnings :  // print out only warning messages
+                        (output_int>0?       output_int  :  // print residual every output_int iteration
+                                             _options[AZ_output] )))));  // (default)
 
-  options[AZ_pre_calc] = (pre_calc=="calc"?      AZ_calc       :  // use no previous information
-                         (pre_calc=="recalc"?    AZ_recalc     :  // use last symbolic information
-                         (pre_calc=="reuse"?     AZ_reuse      :  // use a previous factorization to precondition
-                         (pre_calc=="sys_reuse"? AZ_sys_reuse  :  // use last factorization to precondition
-                                                 options[AZ_pre_calc] ))));  // (default)
+  _options[AZ_pre_calc] = (pre_calc=="calc"?      AZ_calc       :  // use no previous information
+                          (pre_calc=="recalc"?    AZ_recalc     :  // use last symbolic information
+                          (pre_calc=="reuse"?     AZ_reuse      :  // use a previous factorization to precondition
+                          (pre_calc=="sys_reuse"? AZ_sys_reuse  :  // use last factorization to precondition
+                                                  _options[AZ_pre_calc] ))));  // (default)
 
-  options[AZ_overlap] = (overlap=="none"? AZ_none     :  // no overlap
-                        (overlap=="diag"? AZ_diag     :  // use diagonal blocks for overlapping
-                        (overlap=="full"? AZ_full     :  // use external rows for overlapping
-                        (overlap_int>=0?  overlap_int :  // overlapping steps
-                                          options[AZ_overlap] ))));  // (default)
+  _options[AZ_overlap] = (overlap=="none"? AZ_none     :  // no overlap
+                         (overlap=="diag"? AZ_diag     :  // use diagonal blocks for overlapping
+                         (overlap=="full"? AZ_full     :  // use external rows for overlapping
+                         (overlap_int>=0?  overlap_int :  // overlapping steps
+                                           _options[AZ_overlap] ))));  // (default)
 
-  options[AZ_type_overlap] = (type_overlap=="standard"?  AZ_standard  :
-                             (type_overlap=="symmetric"? AZ_symmetric :
-                                                         options[AZ_type_overlap] ));  // (default)
+  _options[AZ_type_overlap] = (type_overlap=="standard"?  AZ_standard  :
+                              (type_overlap=="symmetric"? AZ_symmetric :
+                                                          _options[AZ_type_overlap] ));  // (default)
 
-  options[AZ_orthog] = (orthog=="classic"?  AZ_classic  :  // 2 steps of classical Gram-Schmidt orthogonalization
-                       (orthog=="modified"? AZ_modified :  // modified Gram-Schmidt orthogonalization
-                                            options[AZ_orthog] ));  // (default)
+  _options[AZ_orthog] = (orthog=="classic"?  AZ_classic  :  // 2 steps of classical Gram-Schmidt orthogonalization
+                        (orthog=="modified"? AZ_modified :  // modified Gram-Schmidt orthogonalization
+                                             _options[AZ_orthog] ));  // (default)
 
-  options[AZ_aux_vec] = (aux_vec=="resid"? AZ_resid :  // r is set to the initial residal vector
-                        (aux_vec=="rand"?  AZ_rand  :  // r is set to the random numbers between -1. and 1.
-                                           options[AZ_aux_vec] ));  // (default)
+  _options[AZ_aux_vec] = (aux_vec=="resid"? AZ_resid :  // r is set to the initial residal vector
+                         (aux_vec=="rand"?  AZ_rand  :  // r is set to the random numbers between -1. and 1.
+                                            _options[AZ_aux_vec] ));  // (default)
 
-  options[AZ_graph_fill] = xml.getAttribute< int >("graph_fill", options[AZ_graph_fill]);
-  options[AZ_max_iter]   = xml.getAttribute< int >("max_iter",   options[AZ_max_iter]);
-  options[AZ_poly_ord]   = xml.getAttribute< int >("poly_ord",   options[AZ_poly_ord]);
-  options[AZ_kspace]     = xml.getAttribute< int >("kspace",     options[AZ_kspace]);
-  options[AZ_reorder]    = xml.getAttribute< int >("reorder",    options[AZ_reorder]);
-  options[AZ_keep_info]  = xml.getAttribute< int >("keep_info",  options[AZ_keep_info]);
+  _options[AZ_graph_fill] = _xml.getAttribute< int >("graph_fill", _options[AZ_graph_fill]);
+  _options[AZ_max_iter]   = _xml.getAttribute< int >("max_iter",   _options[AZ_max_iter]);
+  _options[AZ_poly_ord]   = _xml.getAttribute< int >("poly_ord",   _options[AZ_poly_ord]);
+  _options[AZ_kspace]     = _xml.getAttribute< int >("kspace",     _options[AZ_kspace]);
+  _options[AZ_reorder]    = _xml.getAttribute< int >("reorder",    _options[AZ_reorder]);
+  _options[AZ_keep_info]  = _xml.getAttribute< int >("keep_info",  _options[AZ_keep_info]);
 
   // set params
-  params[AZ_tol]       = xml.getAttribute< double >("tol",       params[AZ_tol]);
-  params[AZ_drop]      = xml.getAttribute< double >("drop",      params[AZ_drop]);
-  params[AZ_ilut_fill] = xml.getAttribute< double >("ilut_fill", params[AZ_ilut_fill]);
-  params[AZ_omega]     = xml.getAttribute< double >("omega",     params[AZ_omega]);
-  // params[AZ_weights] = // harder to implement, not done
+  _params[AZ_tol]       = _xml.getAttribute< double >("tol",       _params[AZ_tol]);
+  _params[AZ_drop]      = _xml.getAttribute< double >("drop",      _params[AZ_drop]);
+  _params[AZ_ilut_fill] = _xml.getAttribute< double >("ilut_fill", _params[AZ_ilut_fill]);
+  _params[AZ_omega]     = _xml.getAttribute< double >("omega",     _params[AZ_omega]);
+  // _params[AZ_weights] = // harder to implement, not done
 }
 
 
