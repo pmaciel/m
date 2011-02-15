@@ -1,5 +1,6 @@
 
 #include <cstdio>  // for sscanf
+#include "boost/timer.hpp"
 #include "mfactory.h"
 #include "ls_wsmp.h"
 

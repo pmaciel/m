@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 
 
-def configure(ctx):
-  ctx.env.m_mlibraries.append('ls_samg')
-  ctx.env['LIB_SAMG']     = ['amg']
-  ctx.env['LIBPATH_SAMG'] = ['/home/pedro/workspace/external/samg/samg24a2p3_omp-linuxEMT64-ifort11.1.064-gcc4']
-  ctx.env['RPATH_SAMG']   = ['/home/pedro/workspace/external/samg/samg24a2p3_omp-linuxEMT64-ifort11.1.064-gcc4']
+def configure(conf):
+  conf.env.m_mlibraries.append('ls_samg')
+  conf.env['LIB_SAMG']       = ['amg']
+  conf.env['LIBPATH_SAMG']   = ['/home/pmaciel/Documents/dev/external/samg/samg24a2p3_omp-linuxEMT64-ifort11.1.064-gcc4']
+  conf.env['RPATH_SAMG']     = ['/home/pmaciel/Documents/dev/external/samg/samg24a2p3_omp-linuxEMT64-ifort11.1.064-gcc4']
+  conf.env['LINKFLAGS_SAMG'] = ['-fopenmp']
 
 
-def build(ctx):
-  ctx.new_task_gen(
-    features = 'cxx cshlib',
+def build(bld):
+  bld.shlib(
     target   = 'ls_samg',
     defines  = ['SAMG_UNIX_LINUX','SAMG_LCASE_USCORE'],
     includes = ['.','../../mkernel'],
     source   = ['ls_samg.cpp','ls_samg_parm.cpp'],
-    uselib   = ['SAMG'] )
+    use      = ['SAMG'] )
 

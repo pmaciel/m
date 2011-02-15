@@ -1,28 +1,28 @@
 #!/usr/bin/env python
 
-def configure(ctx):
+def configure(conf):
+  from sys import platform
 
-  ctx.env.m_mlibraries.append('mkernel')
+  conf.env.m_mlibraries.append('mkernel')
 
   # set configuration header options
-  # (with import/export symbols depending on compiler)
-  ctx.undefine('MVERSION')
-  ctx.define('MVERSION',ctx.env.m_mversion)
-  ctx.define('M_SYMEXPORT','',0)
-  ctx.define('M_SYMIMPORT','',0)
-  if ctx.env['CXX_NAME']=='gcc':
-    ctx.define('M_SYMBOL_EXPORT','',0) #__attribute__ ((dllexport))
-    ctx.define('M_SYMBOL_IMPORT','',0) #__attribute__ ((dllimport))
-  elif ctx.env['CXX_NAME']=='msvc':
-    ctx.define('M_SYMBOL_EXPORT','__declspec(dllexport)',0)
-    ctx.define('M_SYMBOL_IMPORT','__declspec(dllimport)',0)
+  conf.undefine('MVERSION')
+  conf.define('MVERSION',''.join([conf.env.m_mversion,'/',conf.env.m_mbuild]))
+  ## FIXME: import/export symbols depending on compiler
+  ##  - prefix imp/exporting symbols qualifiers for dll's
+  ##  - if 'cshlib': t.defines.extend(['M_CSHLIB'])
+  conf.define('M_SYMBOL_EXPORT','',quote=False)
+  conf.define('M_SYMBOL_IMPORT','',quote=False)
+  if platform=='win32':
+    conf.define('M_SYMBOL_EXPORT','__declspec(dllexport)' if conf.env['CXX_NAME']=='msvc' else '', quote=False)
+    conf.define('M_SYMBOL_IMPORT','__declspec(dllimport)' if conf.env['CXX_NAME']=='msvc' else '', quote=False)
+  conf.write_config_header('mconfig.h')
 
 
-def build(ctx):
+def build(bld):
 
   # mkernel library
-  ctx.new_task_gen(
-    features = 'cxx cshlib',
+  bld.shlib(
     target   = 'mkernel',
     includes = ['.'],
     source   = [
@@ -32,10 +32,9 @@ def build(ctx):
       'mlinearsystem.cpp','mmesh.cpp','hal.cpp' ] )
 
   # m executable
-  ctx.new_task_gen(
-    features = 'cxx cprogram',
+  bld.program(
     target   = 'm',
-    uselib_local = ctx.env.m_mlibraries,
+    use      = bld.env.m_mlibraries,
     includes = ['.'],
     source   = ['m.cpp'] )
 

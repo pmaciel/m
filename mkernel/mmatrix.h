@@ -299,7 +299,8 @@ struct mmatrix_vbr : mmatrix< T,mmatrix_vbr< T > > {
       for (int j=0; j<(int) nz[i].size(); ++j)
         if ((int) nz[i][j]!=i)
           bindx[k++] = (int) nz[i][j];
-      for (int j=0, k=bpntr[i]; j<(int) nz[i].size(); ++j, ++k)
+      k = bpntr[i];
+      for (int j=0; j<(int) nz[i].size(); ++j, ++k)
         indx[k+1] = indx[k] + (int) (P::Nb*P::Nb);
     }
 

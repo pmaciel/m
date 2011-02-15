@@ -26,13 +26,9 @@ void crossProd(const std::vector< double >& v1, const std::vector< double >& v2,
 class RealVector : public std::vector< double >
 {
  public:
-  RealVector(const RealVector& other, bool dummy=false) {
-    resize(other.size());
-    for (size_t i=0; i<other.size(); ++i)
-      operator[](i) = other[i];
-  }
-  RealVector(const double& v, const unsigned& size) :
-    std::vector< double >(size,v) {}
+  RealVector(const RealVector& other, bool dummy=false) : std::vector< double >(other) {}
+  RealVector(const double& _v, const unsigned& _size) :
+    std::vector< double >(_size,_v) {}
 
   // unary minus operator
   const RealVector& operator-() {

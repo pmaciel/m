@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
 
-def configure(ctx):
+def configure(conf):
   pass
 
 
-def build(ctx):
+def build(bld):
 
   # mitremassembler (from mitrem1) static library
-  ctx.new_task_gen(
-    features = 'cxx cshlib',
+  bld.shlib(
     target   = 'mitremassembler',
     includes = [
       '../mkernel/ext',  # for xmlParser
@@ -142,10 +141,9 @@ def build(ctx):
       'mitrem1/Projects/MathematicsPhysics/src/MathematicsPhysics.cpp' ] )
 
   # f executable
-  ctx.new_task_gen(
-    features = 'cxx cprogram',
+  bld.program(
     target   = 'f',
-    uselib_local = ctx.env.m_mlibraries + ['mitremassembler'],
+    use      = bld.env.m_mlibraries + ['mitremassembler'],
     includes = [
       'src',
       '../mkernel',
@@ -197,10 +195,9 @@ def build(ctx):
       'src/writesoltp.cpp' ] )
 
   # a executable
-  ctx.new_task_gen(
-    features = 'cxx cprogram',
+  bld.program(
     target   = 'a',
-    uselib_local = ctx.env.m_mlibraries + ['mitremassembler'],
+    use      = bld.env.m_mlibraries + ['mitremassembler'],
     includes = [
       '../mkernel',
       '../mkernel/ext',  # for xmlParser

@@ -1039,7 +1039,7 @@ XMLCSTR XMLNode::updateName_WOSD(XMLSTR lpszName)
 
 // private:
 XMLNode::XMLNode(struct XMLNodeDataTag *p){ d=p; (p->ref_count)++; }
-XMLNode::XMLNode(XMLNodeData *pParent, XMLSTR lpszName, char isDeclaration)
+XMLNode::XMLNode(XMLNodeData *pParent, XMLSTR lpszName, char _isDeclaration)
 {
     d=(XMLNodeData*)malloc(sizeof(XMLNodeData));
     d->ref_count=1;
@@ -1050,7 +1050,7 @@ XMLNode::XMLNode(XMLNodeData *pParent, XMLSTR lpszName, char isDeclaration)
     d->nClear = 0;
     d->nAttribute = 0;
 
-    d->isDeclaration = isDeclaration;
+    d->isDeclaration = _isDeclaration;
 
     d->pParent = pParent;
     d->pChild= NULL;
@@ -1128,12 +1128,12 @@ void *XMLNode::addToOrder(int memoryIncrease,int *_pos, int nc, void *p, int siz
 }
 
 // Add a child node to the given element.
-XMLNode XMLNode::addChild_priv(int memoryIncrease, XMLSTR lpszName, char isDeclaration, int pos)
+XMLNode XMLNode::addChild_priv(int memoryIncrease, XMLSTR lpszName, char _isDeclaration, int pos)
 {
     if (!lpszName) return emptyXMLNode;
     d->pChild=(XMLNode*)addToOrder(memoryIncrease,&pos,d->nChild,d->pChild,sizeof(XMLNode),eNodeChild);
     d->pChild[pos].d=NULL;
-    d->pChild[pos]=XMLNode(d,lpszName,isDeclaration);
+    d->pChild[pos]=XMLNode(d,lpszName,_isDeclaration);
     d->nChild++;
     return d->pChild[pos];
 }
@@ -2603,10 +2603,10 @@ char         XMLNode::isDeclaration    (     ) const { if (!d) return 0;        
 char         XMLNode::isEmpty          (     ) const { return (d==NULL); }
 XMLNode       XMLNode::emptyNode       (     )       { return XMLNode::emptyXMLNode; }
 
-XMLNode       XMLNode::addChild(XMLCSTR lpszName, char isDeclaration, XMLElementPosition pos)
-              { return addChild_priv(0,stringDup(lpszName),isDeclaration,pos); }
-XMLNode       XMLNode::addChild_WOSD(XMLSTR lpszName, char isDeclaration, XMLElementPosition pos)
-              { return addChild_priv(0,lpszName,isDeclaration,pos); }
+XMLNode       XMLNode::addChild(XMLCSTR lpszName, char _isDeclaration, XMLElementPosition pos)
+              { return addChild_priv(0,stringDup(lpszName),_isDeclaration,pos); }
+XMLNode       XMLNode::addChild_WOSD(XMLSTR lpszName, char _isDeclaration, XMLElementPosition pos)
+              { return addChild_priv(0,lpszName,_isDeclaration,pos); }
 XMLAttribute *XMLNode::addAttribute(XMLCSTR lpszName, XMLCSTR lpszValue)
               { return addAttribute_priv(0,stringDup(lpszName),stringDup(lpszValue)); }
 XMLAttribute *XMLNode::addAttribute_WOSD(XMLSTR lpszName, XMLSTR lpszValuev)

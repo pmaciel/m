@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
 
-def configure(ctx):
-  ctx.env.m_mlibraries.append('mtransform_collection')
+def configure(conf):
+  conf.env.m_mlibraries.append('mtransform_collection')
 
 
-def build(ctx):
-  ctx.new_task_gen(
-    features = 'cxx cshlib',
+def build(bld):
+  bld.shlib(
     target   = 'mtransform_collection',
     includes = ['.','../../mkernel','../format_smurf'],
     source   = [

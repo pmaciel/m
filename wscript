@@ -1,117 +1,104 @@
 #!/usr/bin/env python
 
 
-# the following two variables are used by the target "waf dist"
-VERSION='0.4.0'
-APPNAME='m'
-
-# these variables are mandatory ('/' are converted automatically)
 top = '.'
 out = 'build'
+VERSION='0.4.0'
+APPNAME='m'
+# missing MPI support: CC=mpicc, CFLAGS+=['-DMPI','-Dlowercase_']
 
 
-def set_options(ctx):
+def options(opt):
 
-  # build environment, plugins and compilers/flags
-  ctx.add_option('--build',   type='string', default='default', dest='m_build',   help='build environment(s) ([default|debug|optim],...)')
-  ctx.add_option('--plugins', type='string', default='',        dest='m_plugins', help='plugins directories (''plugins'' looks recursively into plugins directory)')
-  ctx.add_option('--enable-cc', action='store_true', default=False, help='Check for C compiler')
-  ctx.add_option('--enable-fc', action='store_true', default=False, help='Check for Fortran compiler')
-  ctx.tool_options('compiler_cxx')
-  ctx.tool_options('compiler_cc')
-  ctx.tool_options('compiler_fortran')
-  ctx.add_option('--flags',    type='string', default='', dest='m_flags',    help='Compilation flags (generic, like -fPIC,-fopenmp,...)')
-  ctx.add_option('--cxxflags', type='string', default='', dest='m_cxxflags', help='Compilation flags (C++)')
-  ctx.add_option('--ccflags',  type='string', default='', dest='m_ccflags',  help='Compilation flags (C)')
-  ctx.add_option('--fcflags',  type='string', default='', dest='m_fcflags',  help='Compilation flags (Fortran)')
+  # build type, plugins and compilers/flags
+  opt.add_option('--build',   type='string', default='optim', dest='m_mbuild',   help='build type ([debug|optim|...])')
+  opt.add_option('--plugins', type='string', default='',      dest='m_mplugins', help='plugins directories (''plugins'' looks recursively into plugins directory)')
+
+  opt.load('compiler_cxx')  # mandatory compiler
+  opt.load('compiler_c')    # optional compilers
+  opt.load('compiler_fc')   # ...
+  opt.add_option('--enable-c',  action='store_true', default=False, help='Check for C compiler')
+  opt.add_option('--enable-fc', action='store_true', default=False, help='Check for Fortran compiler')
+  opt.add_option('--flags', type='string', default='-fPIC,-fopenmp', dest='m_flags', help='Generic compilation flags, comma-separated (default: ''-fPIC,-fopenmp'')')
+  opt.add_option('--flags-cxx', type='string', default='', dest='m_cxxflags', help='Compilation flags, comma-separated (C++)')
+  opt.add_option('--flags-c',   type='string', default='', dest='m_cflags',   help='Compilation flags, comma-separated (C)')
+  opt.add_option('--flags-fc',  type='string', default='', dest='m_fcflags',  help='Compilation flags, comma-separated (Fortran)')
 
 
-def configure(ctx):
-  import Options
+def configure(conf):
+  from Options import options
   from os import path
 
-  # set generic, C++, C and Fortran compiler/flags
-  ctx.check_tool('compiler_cxx')
-  ctx.env['CXXFLAGS'] = filter( None, ctx.env['CXXFLAGS']
-    + Options.options.m_flags.split(',')
-    + Options.options.m_cxxflags.split(',') )
+  # general things
+  conf.env.m_mbuild   = options.m_mbuild if options.m_mbuild else 'user'
+  conf.env.m_mversion = VERSION
 
-  if Options.options.enable_cc:
-    ctx.check_tool('compiler_cc')
-    ctx.env['CCFLAGS'] = filter( None, ctx.env['CCFLAGS']
-      + Options.options.m_flags.split(',')
-      + Options.options.m_ccflags.split(',') )
+  # libraries search in (flat) installation directory
+  conf.env['RPATH'] = path.abspath(conf.options.prefix + path.sep + conf.env.m_mbuild)
 
-  if Options.options.enable_fc:
-    ctx.check_tool('compiler_fortran')
-    ctx.env['FCFLAGS'] = filter( None, ctx.env['FCFLAGS']
-      + Options.options.m_flags.split(',')
-      + Options.options.m_fcflags.split(',') )
-    if not ctx.check_fortran():
-      ctx.fatal('cannot compile a simple fortran program!')
-    #ctx.check_fortran_clib()
-    ##st, mangler = ctx.check_fortran_mangling()
-    ##if not st:
-    ##  ctx.fatal('cannot detect the mangling scheme')
-    # check Fortran if dummy main routine is needed
-    ctx.check_fortran_dummy_main()
+  # set compiler flags
+  if True:
+    conf.load('compiler_cxx')
+    conf.env.append_unique('CXXFLAGS', filter(None,conf.env['CXXFLAGS']
+      + options.m_flags.split(',') + options.m_cxxflags.split(',') ))
+  if options.enable_c:
+    conf.load('compiler_c')
+    conf.env.append_unique('CFLAGS',filter(None,conf.env['CFLAGS']
+      + options.m_flags.split(',') + options.m_cflags.split(',') ))
+  if options.enable_fc:
+    conf.load('compiler_fc')
+    conf.env.append_unique('FCFLAGS',filter(None,conf.env['FCFLAGS']
+      + options.m_flags.split(',') + options.m_fcflags.split(',') ))
 
-  # set mkernel and plugins
-  ctx.env.m_mlibraries = []
-  ctx.env.m_mversion = VERSION
-  ctx.env.m_plugins  = ['mkernel']
-  if len(Options.options.m_plugins):  ctx.env.m_plugins.extend(Options.options.m_plugins.split(','))
-  if 'plugins' in ctx.env.m_plugins:
-    while 'plugins' in ctx.env.m_plugins: ctx.env.m_plugins.remove('plugins')
+  if conf.env.m_mbuild=='debug':
+    conf.                      env.append_unique('CXXFLAGS',['-Wall','-O0','-g3'])
+    if options.enable_c:  conf.env.append_unique('CFLAGS',  ['-Wall','-O0','-g3'])
+    if options.enable_fc: conf.env.append_unique('FCFLAGS', ['-Wall','-O0','-g3'])
+  elif conf.env.m_mbuild=='devel':
+    conf.                      env.append_unique('CXXFLAGS',['-Wall','-O0','-g3','-Wextra','-Wno-unused-parameter','-Wshadow','-Winline','-Wundef'])
+    if options.enable_c:  conf.env.append_unique('CFLAGS',  ['-Wall','-O0','-g3','-Wextra','-Wno-unused-parameter','-Wshadow','-Winline','-Wundef'])
+    if options.enable_fc: conf.env.append_unique('FCFLAGS', ['-Wall','-O0','-g3','-Wextra','-Wno-unused-parameter','-Wshadow','-Winline'])
+  elif conf.env.m_mbuild=='optim':
+    conf.                      env.append_unique('CXXFLAGS',['-Wall','-O3','-ffast-math'])
+    if options.enable_c:  conf.env.append_unique('CFLAGS',  ['-Wall','-O3','-ffast-math'])
+    if options.enable_fc: conf.env.append_unique('FCFLAGS', ['-Wall','-O3','-ffast-math'])
+
+  print                       'I: build type: ',conf.env.m_mbuild
+  print                       'I: compilation flags (C++):     ',conf.env['CXXFLAGS']
+  if options.enable_c:  print 'I: compilation flags (C):       ',conf.env['CFLAGS']
+  if options.enable_fc: print 'I: compilation flags (Fortran): ',conf.env['FCFLAGS']
+
+
+  # set plugins & libraries
+  # 1. add libraries from plugins directory, recursively)
+  # 2. add mkernel library unconditionally, in the first place)
+  # 3. set (unique plugins)
+  # 4. configure plugins/libraries
+  p = options.m_mplugins.split(',') if len(options.m_mplugins) else []
+  if 'plugins' in p:
+    while 'plugins' in p: p.remove('plugins')
     def lookforwscripts(args,dir,files):
-      if 'wscript' in files: ctx.env.m_plugins.append(dir)
+      if 'wscript' in files: p.append(dir)
     path.walk('plugins',lookforwscripts,None)
-  print 'Info: plugins: ',ctx.env.m_plugins
-  ctx.sub_config(ctx.env.m_plugins)
-
-  # set build environment(s)
-  ctx.env.m_build = Options.options.m_build.split(',')
-  if not 'default' in ctx.env.m_build: ctx.env.m_build += ['default']
-  for b in ctx.env.m_build:
-    if b!='default':
-      env = ctx.all_envs['default'].copy()
-      env.set_variant(b)
-      ctx.set_env_name(b,env)
-    ctx.setenv(b)
-    ctx.env['PREFIX'] += path.sep + b
-    if b=='debug':
-      ctx.                              env.append_unique('CXXFLAGS',['-Wall','-O0','-g3'])
-      if Options.options.enable_cc: ctx.env.append_unique('CCFLAGS', ['-Wall','-O0','-g3'])
-      if Options.options.enable_fc: ctx.env.append_unique('FCFLAGS', ['-Wall','-O0','-g3'])
-    elif b=='optim':
-      ctx.                              env.append_unique('CXXFLAGS',['-Wall','-O3','-ffast-math']) #-Ofast?
-      if Options.options.enable_cc: ctx.env.append_unique('CCFLAGS', ['-Wall','-O3','-ffast-math'])
-      if Options.options.enable_fc: ctx.env.append_unique('FCFLAGS', ['-Wall','-O3','-ffast-math'])
-    ctx.write_config_header('mkernel' + path.sep + 'mconfig.h')
-    ctx.setenv('default')
-
-  # summary
-  for b in ctx.env.m_build:
-    print                               'Info:',b,'compilation flags (C++):     ',ctx.all_envs[b]['CXXFLAGS']
-    if Options.options.enable_cc: print 'Info:',b,'compilation flags (C):       ',ctx.all_envs[b]['CCFLAGS']
-    if Options.options.enable_fc: print 'Info:',b,'compilation flags (Fortran): ',ctx.all_envs[b]['FCFLAGS']
+  conf.env.m_mplugins = list(set(p))
+  while 'mkernel' in conf.env.m_mplugins: conf.env.m_mplugins.remove('mkernel')
+  conf.env.m_mplugins.insert(0,'mkernel')
+  conf.env.m_mlibraries = []
+  conf.recurse(conf.env.m_mplugins)
+  print 'I: plugins:   ',conf.env.m_mplugins
+  print 'I: libraries: ',conf.env.m_mlibraries
 
 
-def build(ctx):
+def build(bld):
+  from waflib.TaskGen import feature, before
 
-  # plugins build:
-  # - single installation directory
-  # - prefix imp/exporting symbols qualifiers for dll's
-  ctx.add_subdirs(ctx.env.m_plugins)
-  tasks = [] + ctx.all_task_gen
-  for b in ctx.env.m_build:
-    for task in tasks:
-      t = task if b=='default' else task.clone(b)
-      t.name  = t.target + '_'+b
-      t.rpath = t.install_path = ctx.env_of_name(b)['PREFIX']
-      if 'uselib_local' in dir(t):  t.uselib_local = [l + '_'+b for l in t.uselib_local]
-      # if 'cshlib' in t.features.split(' '): t.defines = t.defines.split(' ') + ['M_CSHLIB']
+  # bld(name='love', rule='echo not war?')
+  bld.recurse(bld.env.m_mplugins)
 
-  ## nice target
-  #ctx.new_task_gen(name='love', rule='echo not war?')
+  # force install path to be the same as library search path
+  @feature('*')
+  @before('process_rule') 
+  def process_install_path(self):
+    if not getattr(self,'install_path',None):
+      self.install_path = bld.env['RPATH']
 

@@ -106,8 +106,8 @@ class mfactory {
     va_list ap;
     va_start(ap,k);
     for(unsigned i=1; i<n && !yes; ++i) {
-      const char* k = va_arg(ap,char*);
-      yes = search(k);
+      const char* a = va_arg(ap,char*);
+      yes = search(a);
     }
     va_end(ap);
     return yes;
@@ -187,8 +187,8 @@ class Register {
     va_list ap;
     va_start(ap,t);
     for(unsigned i=1; i<n; ++i) {
-      const char* k = va_arg(ap,char*);  vk.push_back(k);
-      const char* t = va_arg(ap,char*);  vt.push_back(t);
+      const char* _k = va_arg(ap,char*);  vk.push_back(_k);
+      const char* _t = va_arg(ap,char*);  vt.push_back(_t);
     }
     va_end(ap);
 

@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
 
-def configure(ctx):
-  ctx.env.m_mlibraries.append('ls_aztec')
+def configure(conf):
+  conf.env.m_mlibraries.append('ls_aztec')
 
 
-def build(ctx):
-  ctx.new_task_gen(
-    features = 'cxx cshlib',
+def build(bld):
+  bld.shlib(
     target   = 'ls_aztec',
-    uselib_local = ['aztec'],
+    use      = ['aztec'],
     lib      = ['lapack','blas','gfortran'],
     includes = ['.','aztec','../../mkernel'],
     source   = ['ls_aztec.cpp'] )

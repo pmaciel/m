@@ -16,11 +16,11 @@ unsigned mmesh::d() const
     if (vn[i].length())
       trail[i] = *(vn[i].end()-1);
 
-  unsigned d = 0;  // dimension
-  if (trail[0]!='?')                 d=1;
-  if (d==1 && trail[1]==trail[0]+1)  d=2;
-  if (d==2 && trail[2]==trail[0]+2)  d=3;
-  return d;
+  unsigned _d = 0;  // dimension
+  if (trail[0]!='?')                  _d=1;
+  if (_d==1 && trail[1]==trail[0]+1)  _d=2;
+  if (_d==2 && trail[2]==trail[0]+2)  _d=3;
+  return _d;
 
   /*
   works well, but might be difficult to understand
@@ -80,10 +80,10 @@ void mmesh::compress()
   // A2B: old-to-new numbering
   vector< unsigned > B2A,
                      A2B;
-  for (vector< mzone >::const_iterator z=vz.begin(); z!=vz.end(); ++z)
-    for (unsigned i=0; i<z->e2n.size(); ++i)
+  for (vector< mzone >::const_iterator zi=vz.begin(); zi!=vz.end(); ++zi)
+    for (unsigned i=0; i<zi->e2n.size(); ++i)
       B2A.insert(B2A.end(),
-        z->e2n[i].n.begin(),z->e2n[i].n.end() );
+        zi->e2n[i].n.begin(),zi->e2n[i].n.end() );
   sort(B2A.begin(),B2A.end());
   B2A.erase(unique(B2A.begin(),B2A.end()),B2A.end());
   A2B.assign(n(),0);
@@ -99,9 +99,9 @@ void mmesh::compress()
   }
 
   // and renumber connectivities
-  for (vector< mzone >::iterator z=vz.begin(); z!=vz.end(); ++z) {
-    for (unsigned i=0; i<z->e2n.size(); ++i)
-      for (vector< unsigned >::iterator j=z->e2n[i].n.begin(); j!=z->e2n[i].n.end(); ++j)
+  for (vector< mzone >::iterator zi=vz.begin(); zi!=vz.end(); ++zi) {
+    for (unsigned i=0; i<zi->e2n.size(); ++i)
+      for (vector< unsigned >::iterator j=zi->e2n[i].n.begin(); j!=zi->e2n[i].n.end(); ++j)
         *j = A2B[*j];
   }
 }
@@ -110,16 +110,16 @@ void mmesh::compress()
 mmesh mmesh::extract(const string& zn)
 {
   mmesh r;
-  for (vector< mzone >::iterator z=vz.begin(); z!=vz.end(); ++z) {
-    if (z->n==zn) {
+  for (vector< mzone >::iterator zi=vz.begin(); zi!=vz.end(); ++zi) {
+    if (zi->n==zn) {
       // get used zone node indices and remove duplicates
       // B2A: new-to-old numbering
       // A2B: old-to-new numbering
       vector< unsigned > B2A,
                          A2B;
-      for (unsigned i=0; i<z->e2n.size(); ++i)
+      for (unsigned i=0; i<zi->e2n.size(); ++i)
         B2A.insert(B2A.end(),
-          z->e2n[i].n.begin(),z->e2n[i].n.end() );
+          zi->e2n[i].n.begin(),zi->e2n[i].n.end() );
       sort(B2A.begin(),B2A.end());
       B2A.erase(unique(B2A.begin(),B2A.end()),B2A.end());
       A2B.assign(vv[0].size(),0);
@@ -135,7 +135,7 @@ mmesh mmesh::extract(const string& zn)
           r.vv[j][i] = vv[j][B2A[i]];
 
       // and renumber (this zone) connectivity
-      r.vz.assign(1,*z);   // copy given zone
+      r.vz.assign(1,*zi);   // copy given zone
       for (unsigned i=0; i<r.e(0); ++i)
         for (vector< unsigned >::iterator j=r.vz[0].e2n[i].n.begin(); j!=r.vz[0].e2n[i].n.end(); ++j)
           *j = A2B[*j];
