@@ -28,3 +28,18 @@ def build(bld):
     use = 'plas',
     lib = 'm' )
 
+#!/usr/bin/env python
+
+
+def configure(conf):
+  conf.recurse('lib')
+
+
+def build(bld):
+  bld.shlib(
+    target   = 'mt_plas',
+    includes = ['.'],
+    use      = ['plas'],
+    source   = [
+      ] )
+

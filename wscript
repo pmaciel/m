@@ -63,10 +63,10 @@ def configure(conf):
     if options.enable_c:  conf.env.append_unique('CFLAGS',  ['-Wall','-O3','-ffast-math'])
     if options.enable_fc: conf.env.append_unique('FCFLAGS', ['-Wall','-O3','-ffast-math'])
 
-  print                       'I: build type: ',conf.env.m_mbuild
-  print                       'I: compilation flags (C++):     ',conf.env['CXXFLAGS']
-  if options.enable_c:  print 'I: compilation flags (C):       ',conf.env['CFLAGS']
-  if options.enable_fc: print 'I: compilation flags (Fortran): ',conf.env['FCFLAGS']
+  conf.msg('Build type',conf.env.m_mbuild)
+  conf.msg('Compilation flags (C++)'                          ,conf.env['CXXFLAGS'])
+  if options.enable_c:  conf.msg('Compilation flags (C)'      ,conf.env['CFLAGS'])
+  if options.enable_fc: conf.msg('Compilation flags (Fortran)',conf.env['FCFLAGS'])
 
 
   # set plugins & libraries
@@ -85,8 +85,8 @@ def configure(conf):
   conf.env.m_mplugins.insert(0,'mkernel')
   conf.env.m_mlibraries = []
   conf.recurse(conf.env.m_mplugins)
-  print 'I: plugins:   ',conf.env.m_mplugins
-  print 'I: libraries: ',conf.env.m_mlibraries
+  conf.msg('Plugins',  conf.env.m_mplugins)
+  conf.msg('Libraries',conf.env.m_mlibraries)
 
 
 def build(bld):
