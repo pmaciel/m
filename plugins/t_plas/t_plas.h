@@ -2,7 +2,7 @@
 #define t_plas_h
 
 #include "mkernel.h"
-#include "lib/plas.h"
+#include "plas.h"
 
 
 // Preprocessor constants
