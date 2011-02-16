@@ -95,7 +95,7 @@ class t_plas : public m::mtransform {
  public:
   void   plasdriver_GetFaceNodes(DRIVER_GAMBIT_MESH *dmesh, int elm, int face, int *nodes);
 
- private:  // member variables
+ public:  // member variables (TODO: refactor)
   PLAS_DATA          dplasdata;
   DRIVER_PARAMETERS  dparam;
   DRIVER_GAMBIT_MESH dmesh;
@@ -103,12 +103,8 @@ class t_plas : public m::mtransform {
 };
 
 
-// pointers to object instance (TODO: refactor)
-extern t_plas             *pt_plas;
-extern DRIVER_PARAMETERS  *p_dparam;
-extern DRIVER_GAMBIT_MESH *p_dmesh;
-extern DRIVER_FLOW_FIELD  *p_dflow;
+// pointer to tranformation module instance
+extern t_plas *pt_plas;
 
 
 #endif
-

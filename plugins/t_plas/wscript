@@ -9,6 +9,6 @@ def build(bld):
   bld.shlib(
     target   = 't_plas',
     includes = ['.','../../mkernel'],
-    source   = ['t_plas.cpp','plas.cpp'],
+    source   = ['t_plas.cpp'],
     use      = ['plas'] )
 
