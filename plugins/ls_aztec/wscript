@@ -6,10 +6,31 @@ def configure(conf):
 
 
 def build(bld):
+
+  bld.stlib(
+    target   = 'aztec',
+    defines  = ['append_','AZ_SERIAL','lint'],
+    includes = ['.'],
+    source   = [
+      # aztec
+      'az_bilu.c', 'az_cg.c', 'az_cgs.c', 'az_cgstab.c', 'az_check.c',
+      'az_comm.c', 'az_converge.c', 'az_dd_overlap.c', 'az_dgemv2.c',
+      'az_dgemv3.c', 'az_domain_decomp.c', 'az_fortran_wrap.c', 'az_scaling.c',
+      'az_flop_cnt.c', 'az_gmres.c', 'az_gmresr.c', 'az_ilu_util.c',
+      'az_ilut.c', 'az_interface.c', 'az_lu_y12.c', 'az_matrix_util.c',
+      'az_matvec_mult.c', 'az_old_matvec_mult.c', 'az_pad_utils.c', 'az_poly.c',
+      'az_precond.c', 'az_qmrcgs.c', 'az_reorder.f', 'az_rilu.c', 'az_solve.c',
+      'az_sort.c', 'az_subdomain_solver.c', 'az_tools.c', 'az_util.c',
+      'az_icc.c', 'az_fix_pt.c', 'md_wrap_scalar_c.c', 'md_timer_generic.c',
+      # netlib Y12M
+     'y12m.f', 'y12mae.f', 'y12maf.f', 'y12mbe.f', 'y12mbf.f', 'y12mce.f',
+     'y12mcf.f', 'y12mde.f', 'y12mdf.f', 'y12mfe.f', 'y12mge.f', 'y12mhe.f',
+     'y12cck.f' ] )
+
   bld.shlib(
     target   = 'ls_aztec',
-    use      = ['aztec'],
-    lib      = ['lapack','blas','gfortran'],
     includes = ['.','aztec','../../mkernel'],
-    source   = ['ls_aztec.cpp'] )
+    source   = ['ls_aztec.cpp'],
+    use      = ['aztec'],
+    lib      = ['lapack','blas','gfortran'] )
 

@@ -2,18 +2,17 @@
 
 
 def configure(conf):
-  conf.env.m_mlibraries.append('mformat_collection')
+  conf.env.m_mlibraries.append('collection_io')
 
 
 def build(bld):
   bld.shlib(
-    target   = 'mformat_collection',
+    target   = 'collection_io',
     includes = ['.','../../mkernel'],
     source   = [
       'f_cfmesh.cpp',
       'f_miotras.cpp',
       'f_muphys.cpp',
-      'f_neu.cpp',
       'f_steven.cpp',
       'f_xpl.cpp' ] )
 

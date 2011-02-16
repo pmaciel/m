@@ -6,7 +6,6 @@ def configure(conf):
 
 
 def build(bld):
-  # PLaS library and interface module
-  bld.shlib(target='plas',   includes=['.','../../mkernel'], source=['plas.cpp'])
+  bld.stlib(target='plas',   includes=['.','../../mkernel'], source=['plas.cpp'])
   bld.shlib(target='t_plas', includes=['.','../../mkernel'], source=['t_plas.cpp'], use=['plas'])
 

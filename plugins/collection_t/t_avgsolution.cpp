@@ -1,6 +1,6 @@
 
 #include "mfactory.h"
-#include "f_plt.h"
+#include "../io_smurf/f_plt.h"
 #include "t_avgsolution.h"
 
 using namespace std;

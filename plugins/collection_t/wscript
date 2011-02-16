@@ -2,16 +2,15 @@
 
 
 def configure(conf):
-  conf.env.m_mlibraries.append('mtransform_collection')
+  conf.env.m_mlibraries.append('collection_t')
 
 
 def build(bld):
   bld.shlib(
-    target   = 'mtransform_collection',
+    target   = 'collection_t',
     includes = ['.','../../mkernel','../format_smurf'],
     source   = [
       't_avgsolution.cpp',
-      't_debug.cpp',
       't_extrude.cpp',
       't_fix.cpp',
       't_flip.cpp',

@@ -2,7 +2,7 @@
 #include <numeric>
 #include "mfactory.h"
 #include "t_fix.h"  // this class implementation
-#include "f_plt.h"  // use this class to write tecplot files
+#include "../io_smurf/f_plt.h"  // use this class to write tecplot files
 #include "cool/Element.hh"  // elements properties
 
 using namespace std;
