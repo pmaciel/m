@@ -10,28 +10,25 @@
  * Documentation of input/output parameters in plas.h
  */
 
-extern DRIVER_PARAMETERS dparam;
-extern DRIVER_GAMBIT_MESH dmesh;
-extern DRIVER_FLOW_FIELD dflow;
 
 // Set flow solver parameters on initialization.
 void plasinterface_setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
 {
   fp->flowSolver = FLOWSOLVER_DRIVER;
-  fp->numDim = dmesh.numDim;
-  fp->numUnk = dparam.numUnk;
-  fp->numNod = dmesh.numNod;
-  fp->numElm = dmesh.numElm;
-  fp->numBnd = dmesh.numBnd;
-  fp->rhoCont = dflow.rho;
-  fp->muCont = dflow.mu;
-  fp->nuCont = dflow.mu/dflow.rho;
-  fp->cpCont = dflow.cp;
-  fp->kCont = dflow.k;
-  fp->dtEul = dparam.dtEul;
-  fp->domainVolume = dmesh.domainVolume;
-  fp->minElmVolume = dmesh.minElmVolume;
-  fp->maxElmVolume = dmesh.maxElmVolume;
+  fp->numDim = p_dmesh->numDim;
+  fp->numUnk = p_dparam->numUnk;
+  fp->numNod = p_dmesh->numNod;
+  fp->numElm = p_dmesh->numElm;
+  fp->numBnd = p_dmesh->numBnd;
+  fp->rhoCont = p_dflow->rho;
+  fp->muCont = p_dflow->mu;
+  fp->nuCont = p_dflow->mu/p_dflow->rho;
+  fp->cpCont = p_dflow->cp;
+  fp->kCont = p_dflow->k;
+  fp->dtEul = p_dparam->dtEul;
+  fp->domainVolume = p_dmesh->domainVolume;
+  fp->minElmVolume = p_dmesh->minElmVolume;
+  fp->maxElmVolume = p_dmesh->maxElmVolume;
 
   fp->time = 0.;
   fp->writeOutput = 1;
@@ -40,8 +37,8 @@ void plasinterface_setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
 // Set flow solver parameters on time step.
 void plasinterface_setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp)
 {
-  fp->time += dparam.dtEul;
-  fp->iter = dparam.iter;
+  fp->time += p_dparam->dtEul;
+  fp->iter = p_dparam->iter;
 }
 
 // Set partitioning data.
@@ -53,13 +50,13 @@ void plasinterface_setPartitioningData(PLAS_PART_DATA *part)
 // Provide node of an element to PLaS.
 int plasinterface_getElmNode(int elm, int enod)
 {
-  return dmesh.elmNodes[elm][enod];
+  return p_dmesh->elmNodes[elm][enod];
 }
 
 // Provide neighbour of an element to PLaS.
 int plasinterface_getElmNeighbour(int elm, int eface)
 {
-  return dmesh.elmNeighbs[elm][eface];
+  return p_dmesh->elmNeighbs[elm][eface];
 }
 
 // Provide arbitrary reference point of boundary face to PLaS.
@@ -67,33 +64,33 @@ double plasinterface_getBndFaceRefCoord(int bnd, int bface, int dim)
 {
   int faceNodes[4];
 
-  plasdriver_GetFaceNodes(&dmesh,dmesh.bndDomElms[bnd][bface],dmesh.bndFaces[bnd][bface],faceNodes);
+  ::pt_plas->plasdriver_GetFaceNodes(p_dmesh,p_dmesh->bndDomElms[bnd][bface],p_dmesh->bndFaces[bnd][bface],faceNodes);
 
-  return dmesh.coords[faceNodes[0]][dim];
+  return p_dmesh->coords[faceNodes[0]][dim];
 }
 
 // Provide domain element associated to boundary face to PLaS.
 int plasinterface_getBndDomElm(int bnd, int bface, int dummy)
 {
-  return dmesh.bndDomElms[bnd][bface];
+  return p_dmesh->bndDomElms[bnd][bface];
 }
 
 // Provide node coordinate to PLaS.
 double plasinterface_getNodCoord(int nod, int dim)
 {
-  return dmesh.coords[nod][dim];
+  return p_dmesh->coords[nod][dim];
 }
 
 // Provide component of element normal to PLaS.
 double plasinterface_getElmNormComp(int elm, int eface, int dim)
 {
-  return dmesh.elmNorms[elm][eface][dim];
+  return p_dmesh->elmNorms[elm][eface][dim];
 }
 
 // Provide component of boundary face normal to PLaS.
 double plasinterface_getBndFaceNormComp(int bnd, int face, int dim)
 {
-  return dmesh.elmNorms[dmesh.bndDomElms[bnd][face]][dmesh.bndFaces[bnd][face]][dim];
+  return p_dmesh->elmNorms[p_dmesh->bndDomElms[bnd][face]][p_dmesh->bndFaces[bnd][face]][dim];
 }
 
 // Provide component of element face middle-point vector.
@@ -104,11 +101,11 @@ double plasinterface_getElmFaceMiddlePoint(int elm, int eface, int dim)
   int ctr = 0;
   double coord = 0.0;
 
-  plasdriver_GetFaceNodes(&dmesh,elm,eface,faceNodes);
+  ::pt_plas->plasdriver_GetFaceNodes(p_dmesh,elm,eface,faceNodes);
 
   for(ifac=0; ifac<4; ifac++){
     if(faceNodes[ifac]!=-1){
-      coord += dmesh.coords[faceNodes[ifac]][dim];
+      coord += p_dmesh->coords[faceNodes[ifac]][dim];
       ctr++;
     }
   }
@@ -120,19 +117,19 @@ double plasinterface_getElmFaceMiddlePoint(int elm, int eface, int dim)
 // Provide nodal area/volume to PLaS.
 double plasinterface_getNodVol(int nod)
 {
-  return dmesh.nodVolumes[nod];
+  return p_dmesh->nodVolumes[nod];
 }
 
 // Provide element area/volume to PLaS.
 double plasinterface_getElmVol(int elm)
 {
-  return dmesh.elmVolumes[elm];
+  return p_dmesh->elmVolumes[elm];
 }
 
 // Provide number of faces of a boundary to PLaS.
 int plasinterface_getNumBndFaces(int bnd)
 {
-  return dmesh.numBndFaces[bnd];
+  return p_dmesh->numBndFaces[bnd];
 }
 
 // Provide information about which boundary is a wall to PLaS.
@@ -140,7 +137,7 @@ int plasinterface_getWallBndFlag(int bnd)
 {
   int flag;
 
-  if(dmesh.bndTypes[bnd]==1){
+  if(p_dmesh->bndTypes[bnd]==1){
     flag = 1;
   } else{
     flag = 0;
@@ -154,7 +151,7 @@ int plasinterface_getPerBndFlag(int bnd)
 {
   int flag;
 
-  if(dmesh.bndTypes[bnd]<0){
+  if(p_dmesh->bndTypes[bnd]<0){
     flag = 1;
   } else{
     flag = 0;
@@ -176,19 +173,19 @@ double plasinterface_getPerBndOffset(int bnd, int dim)
 // Provide type of an element to PLaS.
 int plasinterface_getElementType(int elm)
 {
-  return dmesh.elmTypes[elm];
+  return p_dmesh->elmTypes[elm];
 }
 
 // Provide nodal velocity component at time step n to PLaS.
 double plasinterface_getVelocityComp(int nod, int dim)
 {
-  return dflow.u[nod][dim];
+  return p_dflow->u[nod][dim];
 }
 
 // Provide nodal velocity component at time step n-1 to PLaS.
 double plasinterface_getVelocityCompOld(int nod, int dim)
 {
-  return dflow.u[nod][dim];
+  return p_dflow->u[nod][dim];
 }
 
 // Provide velocity component derivative at time step n.
@@ -206,25 +203,25 @@ double plasinterface_getVelocityDerivativeCompOld(int nod, int idim, int jdim)
 // Provide nodal temperature at time step n to PLaS.
 double plasinterface_getTemperature(int nod)
 {
-  return dflow.T[nod];
+  return p_dflow->T[nod];
 }
 
 // Provide nodal temperature at time step n-1 to PLaS.
 double plasinterface_getTemperatureOld(int nod)
 {
-  return dflow.T[nod];
+  return p_dflow->T[nod];
 }
 
 // Provide nodal pressure at time step n to PLaS.
 double plasinterface_getPressure(int nod)
 {
-  return dflow.p[nod];
+  return p_dflow->p[nod];
 }
 
 // Provide nodal pressure at time step n-1 to PLaS.
 double plasinterface_getPressureOld(int nod)
 {
-  return dflow.p[nod];
+  return p_dflow->p[nod];
 }
 
 // Provide starting element for local brute force search.
@@ -236,7 +233,7 @@ int plasinterface_StartElementSearch(double *pos)
 // Provide ending element for local brute force search.
 int plasinterface_EndElementSearch(double *pos)
 {
-  return dmesh.numElm-1;
+  return p_dmesh->numElm-1;
 }
 
 // Provide Eulerian time scale (tke/disspation) for a node.

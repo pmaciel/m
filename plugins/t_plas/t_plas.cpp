@@ -8,13 +8,36 @@
 #endif
 
 #include "mfactory.h"
-#include "plas.h"
 #include "t_plas.h"
 
 using namespace m;
 
 
 Register< mtransform,t_plas > mt_plas("-tplas","Particle Lagrangian Solver (PLaS)");
+
+
+t_plas             *pt_plas;
+DRIVER_PARAMETERS  *p_dparam;
+DRIVER_GAMBIT_MESH *p_dmesh;
+DRIVER_FLOW_FIELD  *p_dflow;
+
+
+t_plas::t_plas() : m::mtransform()
+{
+  ::pt_plas  = this;
+  ::p_dparam = &dparam;
+  ::p_dmesh  = &dmesh;
+  ::p_dflow  = &dflow;
+}
+
+
+t_plas::~t_plas()
+{
+  ::pt_plas  = NULL;
+  ::p_dparam = NULL;
+  ::p_dmesh  = NULL;
+  ::p_dflow  = NULL;
+}
 
 
 void t_plas::transform(GetPot& o, mmesh& m)

@@ -2,6 +2,8 @@
 #define t_plas_h
 
 #include "mkernel.h"
+#include "lib/plas.h"
+
 
 // Preprocessor constants
 #define AIR      1
@@ -72,9 +74,12 @@ typedef struct driver_flow_field{
 // module to use the Particle Lagrangian Solver (PLaS)
 class t_plas : public m::mtransform {
  public:
+  t_plas();
+  ~t_plas();
   void transform(GetPot& o, m::mmesh& m);
 
- private:  // member functions
+  // member functions (TODO: refactor)
+ private:
   double plasdriver_CalcAreaTriangle(double c[3][2]);
   void   plasdriver_CalcElementNeighbours(DRIVER_GAMBIT_MESH *dmesh);
   void   plasdriver_CalcElementNormals(DRIVER_GAMBIT_MESH *dmesh);
@@ -83,11 +88,12 @@ class t_plas : public m::mtransform {
   void   plasdriver_CalcNodalVolumes(DRIVER_GAMBIT_MESH *dmesh);
   double plasdriver_CalcVolumeTetra(double c[4][3]);
   void   plasdriver_FreeGambitMemory(DRIVER_GAMBIT_MESH *dmesh);
-  void   plasdriver_GetFaceNodes(DRIVER_GAMBIT_MESH *dmesh, int elm, int face, int *nodes);
   void   plasdriver_InitFlowField(DRIVER_GAMBIT_MESH *dmesh, int material, DRIVER_FLOW_FIELD *dflow);
   void   plasdriver_ReadDriverDataFile(DRIVER_PARAMETERS *dparam);
   void   plasdriver_ReadGambitNeutralFile(DRIVER_GAMBIT_MESH *dmesh, DRIVER_PARAMETERS *dparam);
   void   plasdriver_WriteTecplot(DRIVER_GAMBIT_MESH *dmesh, DRIVER_PARAMETERS *dparam, DRIVER_FLOW_FIELD *dflow);
+ public:
+  void   plasdriver_GetFaceNodes(DRIVER_GAMBIT_MESH *dmesh, int elm, int face, int *nodes);
 
  private:  // member variables
   PLAS_DATA          dplasdata;
@@ -95,6 +101,14 @@ class t_plas : public m::mtransform {
   DRIVER_GAMBIT_MESH dmesh;
   DRIVER_FLOW_FIELD  dflow;
 };
+
+
+// pointers to object instance (TODO: refactor)
+extern t_plas             *pt_plas;
+extern DRIVER_PARAMETERS  *p_dparam;
+extern DRIVER_GAMBIT_MESH *p_dmesh;
+extern DRIVER_FLOW_FIELD  *p_dflow;
+
 
 #endif
 
