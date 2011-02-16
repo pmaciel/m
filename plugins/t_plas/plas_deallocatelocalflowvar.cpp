@@ -13,16 +13,10 @@
 
 void plas_DeallocateLocalFlowVar(int numDim, LOCAL_FLOW_VARIABLES *flow)
 {
-  int idim;
-
-  //***De-allocate data***//
-
-  free(flow->vel);
-  free(flow->velDt);
-  for(idim=0; idim<numDim; idim++){
-    free(flow->velDx[idim]);
-  }
-  free(flow->velDx);
-  free(flow->vort);
+  delete[] flow->vel;
+  delete[] flow->velDt;
+  for (int idim=0; idim<numDim; ++idim)
+    delete[] flow->velDx[idim];
+  delete[] flow->velDx;
+  delete[] flow->vort;
 }
-

@@ -19,6 +19,6 @@ void plas_TerminateOnError(char *errMessage)
   plasinterface_screenWarning(screenMessage);
   plasinterface_screenWarning((char*) "*** Terminating program.\n");
 
-  exit(-1);
+  throw 42;
 }
 

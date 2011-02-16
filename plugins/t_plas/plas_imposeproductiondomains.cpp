@@ -25,8 +25,8 @@ void plas_ImposeProductionDomains(PLAS_DATA *data)
   plas_AllocateLocalEntityVar(data->fp.numDim,&ent);
   plas_AllocateLocalFlowVar(data->fp.numDim,&flow);
 
-  newDiam = (double*)calloc(data->ip.numMaxEnt,sizeof(double));
-  newPos = (double*)calloc(data->ip.numMaxEnt*data->fp.numDim,sizeof(double));
+  newDiam = new double[data->ip.numMaxEnt];
+  newPos  = new double[data->ip.numMaxEnt*data->fp.numDim];
 
   //***Creation of bubbles is performed only by the master process***//
 
@@ -168,7 +168,7 @@ void plas_ImposeProductionDomains(PLAS_DATA *data)
   plas_DeallocateLocalEntityVar(&ent);
   plas_DeallocateLocalFlowVar(data->fp.numDim,&flow);
 
-  free(newDiam);
-  free(newPos);
+  delete[] newDiam;
+  delete[] newPos;
 }
 

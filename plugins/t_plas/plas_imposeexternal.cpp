@@ -16,15 +16,15 @@ void plas_ImposeExternal(PLAS_DATA *data)
   LOCAL_ENTITY_VARIABLES ent;
   LOCAL_FLOW_VARIABLES flow;
   int numProc = plas_MpiGetNumProc();
-  int *disps = (int*)calloc(numProc,sizeof(int));
-  int *recs = (int*)calloc(numProc,sizeof(int));
+  int *disps  = new int[numProc];
+  int *recs   = new int[numProc];
   int ient,idim,totNewEnt;
   double *newPos,*newVel,*newDiam,*newTemp;
 
 #ifdef MPI
   int iproc;
-  int *dispsArr = (int*)calloc(numProc,sizeof(int));
-  int *recsArr = (int*)calloc(numProc,sizeof(int));
+  int *dispsArr = new int[numProc];
+  int *recsArr  = new int[numProc];
 #endif
 
   //***Allocation of local data structure***//
@@ -35,10 +35,10 @@ void plas_ImposeExternal(PLAS_DATA *data)
   //***Broadcast entity data***//
 
   totNewEnt = plas_MpiAllSumInt(data->numExtEnt);
-  newDiam = (double*)calloc(totNewEnt,sizeof(double));
-  newTemp = (double*)calloc(totNewEnt,sizeof(double));
-  newPos = (double*)calloc(totNewEnt*data->fp.numDim,sizeof(double));
-  newVel = (double*)calloc(totNewEnt*data->fp.numDim,sizeof(double));
+  newDiam = new double[totNewEnt];
+  newTemp = new double[totNewEnt];
+  newPos  = new double[totNewEnt*data->fp.numDim];
+  newVel  = new double[totNewEnt*data->fp.numDim];
 
 #ifdef MPI
   MPI_Allgather(&data->numExtEnt,1,MPI_INT,recs,1,MPI_INT,MPI_COMM_WORLD);
@@ -107,11 +107,11 @@ void plas_ImposeExternal(PLAS_DATA *data)
   plas_DeallocateLocalEntityVar(&ent);
   plas_DeallocateLocalFlowVar(data->fp.numDim,&flow);
 
-  free(newDiam);
-  free(newTemp);
-  free(newPos);
-  free(newVel);
-  free(disps);
-  free(recs);
+  delete[] newDiam;
+  delete[] newTemp;
+  delete[] newPos;
+  delete[] newVel;
+  delete[] disps;
+  delete[] recs;
 }
 

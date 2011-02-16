@@ -14,35 +14,34 @@ void terminatePLaS(PLAS_DATA *data)
   ///***Free dynamic memory of PLaS***//
 
   for(ient=0; ient<data->ip.numMaxEnt; ient++){
-    free(data->ed[ient].position);
-    free(data->ed[ient].velocity);
-    free(data->ed[ient].velocityOld);
+    delete[] data->ed[ient].position;
+    delete[] data->ed[ient].velocity;
+    delete[] data->ed[ient].velocityOld;
   }
-  free(data->ed);
+  delete[] data->ed;
 
   for(inod=0; inod<data->fp.numNod; inod++){
-    free(data->pd[inod].volFracDx);
-    free(data->pd[inod].avgVel);
-    free(data->pd[inod].stdVel);
-    free(data->pd[inod].dispForce);
+    delete[] data->pd[inod].volFracDx;
+    delete[] data->pd[inod].avgVel;
+    delete[] data->pd[inod].stdVel;
+    delete[] data->pd[inod].dispForce;
   }
-  free(data->pd);
+  delete[] data->pd;
 
   if(data->ip.numProdDom>0){
-    for(idim=0; idim<data->ip.numProdDom; idim++){
-      free(data->ip.prodParam[idim]);
-    }
-    free(data->ip.prodParam);
-    free(data->ip.prodDom);
-    free(data->ip.massFluxes);
-    free(data->rp.massResid);
+    for (idim=0; idim<data->ip.numProdDom; ++idim)
+      delete[] data->ip.prodParam[idim];
+    delete[] data->ip.prodParam;
+    delete[] data->ip.prodDom;
+    delete[] data->ip.massFluxes;
+    delete[] data->rp.massResid;
   }
 
   if(data->fp.part.numNodPairs){
-    free(data->fp.part.sendRank);
-    free(data->fp.part.sendNodeIdx);
-    free(data->fp.part.recvRank);
-    free(data->fp.part.recvNodeIdx);
+    delete[] data->fp.part.sendRank;
+    delete[] data->fp.part.sendNodeIdx;
+    delete[] data->fp.part.recvRank;
+    delete[] data->fp.part.recvNodeIdx;
   }
 }
 

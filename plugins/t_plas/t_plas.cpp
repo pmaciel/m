@@ -72,11 +72,11 @@ void t_plas::transform(GetPot& o, mmesh& m)
   //***Define or read steady-state flow field***//
 
   printf("Initializing flow field...\n");
-  dflow.p = (double*)calloc(dmesh.numNod,sizeof(double));
-  dflow.T = (double*)calloc(dmesh.numNod,sizeof(double));
-  dflow.u = (double**)calloc(dmesh.numNod,sizeof(double*));
+  dflow.p = new double[dmesh.numNod];
+  dflow.T = new double[dmesh.numNod];
+  dflow.u = new double*[dmesh.numNod];
   for(i=0; i<dmesh.numNod; i++){
-    dflow.u[i] = (double*)calloc(dmesh.numDim,sizeof(double));
+    dflow.u[i] = new double[dmesh.numDim];
   }
   plasdriver_InitFlowField(&dmesh,dparam.material,&dflow);
 
@@ -111,12 +111,11 @@ void t_plas::transform(GetPot& o, mmesh& m)
   printf("Terminating PLaS...\n");
   terminatePLaS(&dplasdata);
   plasdriver_FreeGambitMemory(&dmesh);
-  for(i=0; i<dmesh.numNod; i++){
-    free(dflow.u[i]);
-  }
-  free(dflow.p);
-  free(dflow.u);
-  free(dflow.T);
+  for(i=0; i<dmesh.numNod; ++i)
+    delete[] dflow.u[i];
+  delete[] dflow.p;
+  delete[] dflow.u;
+  delete[] dflow.T;
 
 #ifdef MPI
   MPI_Finalize();
@@ -141,9 +140,9 @@ void t_plas::plasdriver_CalcElementNeighbours(DRIVER_GAMBIT_MESH *dmesh)
 {
   int neighbourFound,jnod,knod,lnod,ielm,jelm,kelm,lelm,ifac,faceNodes[4];
 
-  dmesh->elmNeighbs = (int**)calloc(dmesh->numElm,sizeof(int*));
+  dmesh->elmNeighbs = new int*[dmesh->numElm];
   for(ielm=0; ielm<dmesh->numElm; ielm++){
-    dmesh->elmNeighbs[ielm] = (int*)calloc(dmesh->numElmFaces[ielm],sizeof(int));
+    dmesh->elmNeighbs[ielm] = new int[dmesh->numElmFaces[ielm]];
     for(ifac=0; ifac<dmesh->numElmFaces[ielm]; ifac++){
       plasdriver_GetFaceNodes(dmesh,ielm,ifac,faceNodes);
       neighbourFound = 0;
@@ -248,7 +247,7 @@ void t_plas::plasdriver_CalcElementVolumes(DRIVER_GAMBIT_MESH *dmesh)
   int ielm;
   double c2[3][2],c3[4][3];
 
-  dmesh->elmVolumes = (double*)calloc(dmesh->numElm,sizeof(double));
+  dmesh->elmVolumes = new double[dmesh->numElm];
 
   for(ielm=0; ielm<dmesh->numElm; ielm++){
 
@@ -437,11 +436,11 @@ void t_plas::plasdriver_CalcElmsAroundNode(DRIVER_GAMBIT_MESH *dmesh)
 #define MAXNODELMS 50
   int inod,ielm;
 
-  dmesh->numNodElms = (int*)calloc(dmesh->numNod,sizeof(int));
+  dmesh->numNodElms = new int[dmesh->numNod];
 
-  dmesh->nodElms = (int**)calloc(dmesh->numNod,sizeof(int*));
+  dmesh->nodElms = new int*[dmesh->numNod];
   for(inod=0; inod<dmesh->numNod; inod++){
-    dmesh->nodElms[inod] = (int*)calloc(MAXNODELMS,sizeof(int));
+    dmesh->nodElms[inod] = new int[MAXNODELMS];
   }
 
   for(ielm=0; ielm<dmesh->numElm; ielm++){
@@ -461,7 +460,7 @@ void t_plas::plasdriver_CalcNodalVolumes(DRIVER_GAMBIT_MESH *dmesh)
 {
   int inod,ielm;
 
-  dmesh->nodVolumes = (double*)calloc(dmesh->numNod,sizeof(double));
+  dmesh->nodVolumes = new double[dmesh->numNod];
 
   for(inod=0; inod<dmesh->numNod; inod++){
     for(ielm=0; ielm<dmesh->numNodElms[inod]; ielm++){
@@ -502,42 +501,42 @@ void t_plas::plasdriver_FreeGambitMemory(DRIVER_GAMBIT_MESH *dmesh)
 {
   int inod,ielm,ibnd,ifac;
 
-  free(dmesh->elmTypes);
-  free(dmesh->numElmNodes);
-  free(dmesh->numBndFaces);
+  delete[] dmesh->elmTypes;
+  delete[] dmesh->numElmNodes;
+  delete[] dmesh->numBndFaces;
 
   for(inod=0; inod<dmesh->numNod; inod++){
-    free(dmesh->coords[inod]);
-    free(dmesh->nodElms[inod]);
+    delete[] dmesh->coords[inod];
+    delete[] dmesh->nodElms[inod];
   }
-  free(dmesh->coords);
-  free(dmesh->nodElms);
+  delete[] dmesh->coords;
+  delete[] dmesh->nodElms;
 
   for(ielm=0; ielm<dmesh->numElm; ielm++){
-    free(dmesh->elmNodes[ielm]);
-    free(dmesh->elmNeighbs[ielm]);
+    delete[] dmesh->elmNodes[ielm];
+    delete[] dmesh->elmNeighbs[ielm];
     for(ifac=0; ifac<dmesh->numElmFaces[ielm]; ifac++){
-      free(dmesh->elmNorms[ielm][ifac]);
+      delete[] dmesh->elmNorms[ielm][ifac];
     }
-    free(dmesh->elmNorms[ielm]);
+    delete[] dmesh->elmNorms[ielm];
   }
-  free(dmesh->elmNodes);
-  free(dmesh->elmNeighbs);
-  free(dmesh->elmNorms);
+  delete[] dmesh->elmNodes;
+  delete[] dmesh->elmNeighbs;
+  delete[] dmesh->elmNorms;
 
   for(ibnd=0; ibnd<dmesh->numBnd; ibnd++){
-    free(dmesh->bndNames[ibnd]);
-    free(dmesh->bndFaces[ibnd]);
-    free(dmesh->bndDomElms[ibnd]);
+    delete[] dmesh->bndNames[ibnd];
+    delete[] dmesh->bndFaces[ibnd];
+    delete[] dmesh->bndDomElms[ibnd];
   }
-  free(dmesh->bndNames);
-  free(dmesh->bndFaces);
-  free(dmesh->bndDomElms);
-  free(dmesh->numNodElms);
-  free(dmesh->numElmFaces);
-  free(dmesh->elmVolumes);
-  free(dmesh->nodVolumes);
-  free(dmesh->bndTypes);
+  delete[] dmesh->bndNames;
+  delete[] dmesh->bndFaces;
+  delete[] dmesh->bndDomElms;
+  delete[] dmesh->numNodElms;
+  delete[] dmesh->numElmFaces;
+  delete[] dmesh->elmVolumes;
+  delete[] dmesh->nodVolumes;
+  delete[] dmesh->bndTypes;
 }
 
 
@@ -782,7 +781,7 @@ void t_plas::plasdriver_ReadDriverDataFile(DRIVER_PARAMETERS *dparam)
   ignore_cp = fgets(text,100,inpFile);
   ignore_i  = fscanf(inpFile,"%d",&dparam->numBnd);
   printf("   Number of boundaries is %d\n",dparam->numBnd);
-  dparam->bnd = (int*)calloc(dparam->numBnd,sizeof(int));
+  dparam->bnd = new int[dparam->numBnd];
   ignore_cp  = fgets(text,100,inpFile);
   for(i=0; i<dparam->numBnd; i++){
     ignore_i = fscanf(inpFile,"%d",&dparam->bnd[i]);
@@ -862,9 +861,9 @@ void t_plas::plasdriver_ReadGambitNeutralFile(DRIVER_GAMBIT_MESH *dmesh, DRIVER_
 
   printf("   Number of dimensions is %d\n",dmesh->numDim);
   printf("   Number of nodes is %d\n",dmesh->numNod);
-  dmesh->coords = (double**)calloc(dmesh->numNod,sizeof(double*));
+  dmesh->coords = new double*[dmesh->numNod];
   for(inod=0; inod<dmesh->numNod; inod++){
-    dmesh->coords[inod] = (double*)calloc(dmesh->numDim,sizeof(double));
+    dmesh->coords[inod] = new double[dmesh->numDim];
   }
 
   for(i=6; i<8; i++){ignore_cp = fgets(dmesh->text[i],100,inpFile);}
@@ -881,11 +880,11 @@ void t_plas::plasdriver_ReadGambitNeutralFile(DRIVER_GAMBIT_MESH *dmesh, DRIVER_
 
   printf("   Number of elements is %d\n",dmesh->numElm);
   ctr_tri = ctr_tet = ctr_qua = ctr_hex = ctr_pri = ctr_pyr = 0;
-  dmesh->elmTypes = (int*)calloc(dmesh->numElm,sizeof(int));
-  dmesh->numElmNodes = (int*)calloc(dmesh->numElm,sizeof(int));
-  dmesh->elmNodes = (int**)calloc(dmesh->numElm,sizeof(int*));
-  dmesh->numElmFaces = (int*)calloc(dmesh->numElm,sizeof(int));
-  dmesh->elmNorms = (double***)calloc(dmesh->numElm,sizeof(double**));
+  dmesh->elmTypes    = new int     [dmesh->numElm];
+  dmesh->numElmNodes = new int     [dmesh->numElm];
+  dmesh->elmNodes    = new int*    [dmesh->numElm];
+  dmesh->numElmFaces = new int     [dmesh->numElm];
+  dmesh->elmNorms    = new double**[dmesh->numElm];
 
   for(i=8; i<10; i++){ignore_cp = fgets(dmesh->text[i],100,inpFile);}
 
@@ -921,13 +920,13 @@ void t_plas::plasdriver_ReadGambitNeutralFile(DRIVER_GAMBIT_MESH *dmesh, DRIVER_
       ctr_pyr++;
     }
 
-    dmesh->elmNorms[ielm] = (double**)calloc(dmesh->numElmFaces[ielm],sizeof(double*));
+    dmesh->elmNorms[ielm] = new double*[dmesh->numElmFaces[ielm]];
     for(ifac=0; ifac<dmesh->numElmFaces[ielm]; ifac++){
-      dmesh->elmNorms[ielm][ifac] = (double*)calloc(dmesh->numDim,sizeof(double));
+      dmesh->elmNorms[ielm][ifac] = new double[dmesh->numDim];
     }
 
     ignore_i  = fscanf(inpFile,"%d",&dmesh->numElmNodes[ielm]);
-    dmesh->elmNodes[ielm] = (int*)calloc(dmesh->numElmNodes[ielm],sizeof(int));
+    dmesh->elmNodes[ielm] = new int[dmesh->numElmNodes[ielm]];
     for(idim=0; idim<dmesh->numElmNodes[ielm]; idim++){
       ignore_i  = fscanf(inpFile,"%d",&dmesh->elmNodes[ielm][idim]);
       dmesh->elmNodes[ielm][idim]--;
@@ -948,11 +947,11 @@ void t_plas::plasdriver_ReadGambitNeutralFile(DRIVER_GAMBIT_MESH *dmesh, DRIVER_
   //***Read boundary information***//
 
   printf("   Number of boundaries is %d\n",dmesh->numBnd);
-  dmesh->bndNames = (char**)calloc(dmesh->numBnd,sizeof(char*));
-  dmesh->numBndFaces = (int*)calloc(dmesh->numBnd,sizeof(int));
-  dmesh->bndFaces = (int**)calloc(dmesh->numBnd,sizeof(int*));
-  dmesh->bndDomElms = (int**)calloc(dmesh->numBnd,sizeof(int*));
-  dmesh->bndTypes = (int*)calloc(dmesh->numBnd,sizeof(int*));
+  dmesh->bndNames    = new char*[dmesh->numBnd];
+  dmesh->numBndFaces = new int  [dmesh->numBnd];
+  dmesh->bndFaces    = new int* [dmesh->numBnd];
+  dmesh->bndDomElms  = new int* [dmesh->numBnd];
+  dmesh->bndTypes    = new int  [dmesh->numBnd];
   if(dparam->numBnd!=dmesh->numBnd){
     sprintf(errMessage,"Number of boundary mismatch between driver.conf and Gambit mesh file.");
     plas_TerminateOnError(errMessage);
@@ -960,7 +959,7 @@ void t_plas::plasdriver_ReadGambitNeutralFile(DRIVER_GAMBIT_MESH *dmesh, DRIVER_
   for(i=0; i<dmesh->numBnd; i++){
     dmesh->bndTypes[i] = dparam->bnd[i];
   }
-  free(dparam->bnd);
+  delete[] dparam->bnd;
 
   for(i=10; i<14; i++){ignore_cp = fgets(dmesh->text[i],100,inpFile);}
 
@@ -974,7 +973,7 @@ void t_plas::plasdriver_ReadGambitNeutralFile(DRIVER_GAMBIT_MESH *dmesh, DRIVER_
   for(ibnd=0; ibnd<dmesh->numBnd; ibnd++){
     ignore_cp = fgets(dmesh->text[i],100,inpFile);
     i++;
-    dmesh->bndNames[ibnd] = (char*)calloc(33,sizeof(char));
+    dmesh->bndNames[ibnd] = new char[33];
     for(j=0; j<32; j++){
       ignore_i  = fscanf(inpFile,"%c",&dmesh->bndNames[ibnd][j]);
     }
@@ -1004,8 +1003,8 @@ void t_plas::plasdriver_ReadGambitNeutralFile(DRIVER_GAMBIT_MESH *dmesh, DRIVER_
     ignore_i  = fscanf(inpFile,"%d",&dummy);
     ignore_i  = fscanf(inpFile,"%d",&dummy);
     ignore_cp = fgets(dummyString,100,inpFile);
-    dmesh->bndFaces[ibnd] = (int*)calloc(dmesh->numBndFaces[ibnd],sizeof(int));
-    dmesh->bndDomElms[ibnd] = (int*)calloc(dmesh->numBndFaces[ibnd],sizeof(int));
+    dmesh->bndFaces[ibnd]   = new int[dmesh->numBndFaces[ibnd]];
+    dmesh->bndDomElms[ibnd] = new int[dmesh->numBndFaces[ibnd]];
     for(jbnd=0; jbnd<dmesh->numBndFaces[ibnd]; jbnd++){
       ignore_i  = fscanf(inpFile,"%d",&dmesh->bndDomElms[ibnd][jbnd]);
       dmesh->bndDomElms[ibnd][jbnd]--;

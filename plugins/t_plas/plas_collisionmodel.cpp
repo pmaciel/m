@@ -1,4 +1,5 @@
 
+#include <cmath>
 #include "common.h"
 
 /*
@@ -61,14 +62,9 @@ void plas_CollisionModel(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, int numDe
     length;
 
 
-  /*
   double **M = new double*[data->fp.numDim];
   for (int r=0; r<data->fp.numDim; ++r)
     M[r] = new double[data->fp.numDim];
-  */
-  double **M = (double **) malloc( sizeof(double*)*(data->fp.numDim) );
-  for (idim=0; idim<data->fp.numDim; ++idim)
-    M[idim] = (double *) malloc( sizeof(double)*(data->fp.numDim) );
 
 
   //***Set local entity properties (subscript i)***//
@@ -194,12 +190,12 @@ void plas_CollisionModel(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, int numDe
     Jx = -(1.0-e)*uiPrPr[1]*(Mi*Mj)/(Mi+Mj);
     length = plas_CalcVectorLength(data->fp.numDim,uijRel);
 
-    if(fabs(length)<7.0/2.0*mu_static*(1.0+e)*fabs(uiPrPr[0])){
+    if(std::abs(length)<7.0/2.0*mu_static*(1.0+e)*std::abs(uiPrPr[0])){
       Jy = -2.0/7.0*uijRelPrPr[1]*Mi*Mj/(Mi+Mj);
       Jz = -2.0/7.0*uijRelPrPr[2]*Mi*Mj/(Mi+Mj);
     }else{
-      Jy = -mu_dynamic*uijRelPrPr[1]/length*abs(Jx);
-      Jz = -mu_dynamic*uijRelPrPr[2]/length*abs(Jx);
+      Jy = -mu_dynamic*uijRelPrPr[1]/length*std::abs(Jx);
+      Jz = -mu_dynamic*uijRelPrPr[2]/length*std::abs(Jx);
     }
 
     uiPrPrNew[0] = uiPrPr[0]+Jx/Mi;
@@ -217,13 +213,8 @@ void plas_CollisionModel(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, int numDe
     }
   }
 
-  /*
   for (int r=0; r<data->fp.numDim; ++r)
     delete[] M[r];
   delete[] M;
-  */
-  for (idim=0; idim<data->fp.numDim; ++idim)
-    free(M[idim]);
-  free(M);
 }
 

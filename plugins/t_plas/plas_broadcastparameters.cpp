@@ -45,23 +45,19 @@ void plas_BroadcastParameters(PLAS_DATA *data)
 
   //***Broadcast allocatable data***//
 
-  if(data->ip.numProdDom>0){
-    if(irank!=0){
-      data->ip.prodDom = (int*)calloc(data->ip.numProdDom,sizeof(int));
-    }
+  if (data->ip.numProdDom>0) {
+    if (irank!=0)
+      data->ip.prodDom = new int[data->ip.numProdDom];
     plas_MpiBroadcastInt(data->ip.prodDom,data->ip.numProdDom,0);
-    if(irank!=0){
-      data->ip.prodParam = (double**)calloc(data->ip.numProdDom,sizeof(double*));
-      for(i=0; i<data->ip.numProdDom; i++){
-        data->ip.prodParam[i] = (double*)calloc(6,sizeof(double));
-      }
+    if (irank!=0) {
+      data->ip.prodParam = new double*[data->ip.numProdDom];
+      for (i=0; i<data->ip.numProdDom; ++i)
+        data->ip.prodParam[i] = new double[6];
     }
-    for(i=0; i<data->ip.numProdDom; i++){
+    for (i=0; i<data->ip.numProdDom; ++i)
       plas_MpiBroadcastDouble(data->ip.prodParam[i],6,0);
-    }
-    if(irank!=0){
-      data->ip.massFluxes = (double*)calloc(data->ip.numProdDom,sizeof(double));
-    }
+    if (irank!=0)
+      data->ip.massFluxes = new double[data->ip.numProdDom];
     plas_MpiBroadcastDouble(data->ip.massFluxes,data->ip.numProdDom,0);
   }
 }

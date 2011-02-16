@@ -1,4 +1,5 @@
 
+#include <cstdlib>
 #include "common.h"
 
 
@@ -10,8 +11,5 @@
 
 int plas_RandomInteger(int min, int max)
 {
-  double r = (double)max-(double)min+1.0;
-
-  return min + (int)(r*rand()/(RAND_MAX+1.0));
+  return min + (int)( ((double)(max - min) + 1.) * rand()/(RAND_MAX + 1.));
 }
-

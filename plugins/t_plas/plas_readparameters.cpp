@@ -65,10 +65,10 @@ void plas_ReadParameters(PLAS_DATA *data)
 
   if(data->ip.numProdDom>0){
 
-    data->ip.prodDom = (int*)calloc(data->ip.numProdDom,sizeof(int));
-    if(data->ip.numProdDom>0){
-      data->ip.prodParam = (double**)calloc(data->ip.numProdDom,sizeof(double*));
-      data->ip.massFluxes = (double*)calloc(data->ip.numProdDom,sizeof(double));
+    data->ip.prodDom = new int[data->ip.numProdDom];
+    if (data->ip.numProdDom>0) {
+      data->ip.prodParam  = new double*[data->ip.numProdDom];
+      data->ip.massFluxes = new double [data->ip.numProdDom];
     }
 
     for(i=0; i<data->ip.numProdDom; i++){
@@ -77,7 +77,7 @@ void plas_ReadParameters(PLAS_DATA *data)
         sprintf(errMessage,"Bad value for production domain type #%d.",i);
         plas_TerminateOnError(errMessage);
       }
-      data->ip.prodParam[i] = (double*)calloc(6,sizeof(double));
+      data->ip.prodParam[i] = new double[6];
       for(j=0; j<6; j++){
         ignore_i = fscanf(inpFile,"%lf",&data->ip.prodParam[i][j]);
       }
@@ -227,7 +227,7 @@ void plas_ReadParameters(PLAS_DATA *data)
 
   //***Read the output statistics filename***//
 
-  data->ip.writeStatsFilename = (char *)calloc(200,sizeof(char));
+  data->ip.writeStatsFilename = new char[200];
   ignore_cp = fgets(inpText,200,inpFile);
   ignore_i  = fscanf(inpFile,"%s",inpText);
   strncpy(data->ip.writeStatsFilename,inpText,200);
@@ -239,7 +239,7 @@ void plas_ReadParameters(PLAS_DATA *data)
 
   //***Read the output tecplot filename***//
 
-  data->ip.writeTecplotFilename = (char *)calloc(200,sizeof(char));
+  data->ip.writeTecplotFilename = new char[200];
   ignore_cp = fgets(inpText,200,inpFile);
   ignore_i  = fscanf(inpFile,"%s",inpText);
   strncpy(data->ip.writeTecplotFilename,inpText,200);
@@ -251,7 +251,7 @@ void plas_ReadParameters(PLAS_DATA *data)
 
   //***Read the configuration filename***//
 
-  data->ip.confFilename = (char *)calloc(200,sizeof(char));
+  data->ip.confFilename = new char[200];
   ignore_cp = fgets(inpText,200,inpFile);
   ignore_i  = fscanf(inpFile,"%s",inpText);
   strncpy(data->ip.confFilename,inpText,200);

@@ -1,4 +1,5 @@
 
+#include <cmath>
 #include "common.h"
 
 
@@ -31,7 +32,7 @@ void plas_SolveGaussSeidel(int numDim, double **mat, double *s, double *rhs)
         }
       }
       s[idim] = (rhs[idim]-s[idim])/mat[idim][idim];
-      errLoc = fabs(s[idim]-sOld[idim]);
+      errLoc = std::abs(s[idim]-sOld[idim]);
       if(errLoc>errMax){errMax = errLoc;}
       sOld[idim] = s[idim];
     }

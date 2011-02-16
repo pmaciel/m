@@ -13,26 +13,23 @@
 void plas_PassEntities(PLAS_DATA *data)
 {
   LOCAL_ENTITY_VARIABLES ent;
-  int numProc = plas_MpiGetNumProc();
-  int irank = plas_MpiGetRank();
-  int *disps = (int*)calloc(numProc,sizeof(int));
-  int *recs = (int*)calloc(numProc,sizeof(int));
+  int numProc        = plas_MpiGetNumProc();
+  int irank          = plas_MpiGetRank();
+  int *disps         = new int[numProc];
+  int *recs          = new int[numProc];
   int leftCtrOneProc = data->sd.leftproc;
   int leftCtrAllProc = plas_MpiAllSumInt(data->sd.leftproc);
-  int *foundProc = (int*)calloc(leftCtrAllProc,sizeof(int));
-  int *foundElm = (int*)calloc(leftCtrAllProc,sizeof(int));
-  int *foundNode = (int*)calloc(leftCtrAllProc,sizeof(int));
+  int *foundProc     = new int[leftCtrAllProc];
+  int *foundElm      = new int[leftCtrAllProc];
+  int *foundNode     = new int[leftCtrAllProc];
   int idim,jdim,ient,jent,ielm,inod;
   char errMessage[100];
 
+  double *leftDataOneProc = new double[(2*data->fp.numDim+1)*leftCtrOneProc];
 #ifdef MPI
-  double
-    *leftDataOneProc = (double*)calloc((2*data->fp.numDim+1)*leftCtrOneProc,sizeof(double)),
-    *leftDataAllProc = (double*)calloc((2*data->fp.numDim+1)*leftCtrAllProc,sizeof(double));
+  double *leftDataAllProc = new double[(2*data->fp.numDim+1)*leftCtrAllProc];
 #else
-  double
-    *leftDataOneProc = (double*)calloc((2*data->fp.numDim+1)*leftCtrOneProc,sizeof(double)),
-    *leftDataAllProc = leftDataOneProc;
+  double *leftDataAllProc = leftDataOneProc;
 #endif
 
   //***Allocation of local data structure***//
@@ -155,14 +152,14 @@ void plas_PassEntities(PLAS_DATA *data)
 
   plas_DeallocateLocalEntityVar(&ent);
 
-  free(foundProc);
-  free(foundElm);
-  free(foundNode);
-  free(leftDataOneProc);
+  delete[] foundProc;
+  delete[] foundElm;
+  delete[] foundNode;
+  delete[] leftDataOneProc;
 #ifdef MPI
-  free(leftDataAllProc);
+  delete[] leftDataAllProc;
 #endif
-  free(disps);
-  free(recs);
+  delete[] disps;
+  delete[] recs;
 }
 

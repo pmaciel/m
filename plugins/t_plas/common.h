@@ -10,7 +10,6 @@
 
 // Included headers
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <cmath>
 #ifdef MPI
@@ -76,88 +75,88 @@ typedef struct _local_flow_variables{
 
 
 // Function declarations
-void   plas_AllocateLocalEntityVar(int numDim, LOCAL_ENTITY_VARIABLES *ent);       
-void   plas_AllocateLocalFlowVar(int numDim, LOCAL_FLOW_VARIABLES *flow);       
-void   plas_BroadcastParameters(PLAS_DATA *data);       
-void   plas_CalcBackCoupling(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double *force, double tFactor);       
-void   plas_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *normVec);       
-void   plas_CalcCellwiseData(PLAS_DATA *data);       
-double plas_CalcConcInterf(PLAS_DATA *data, double pressBubble);       
-void   plas_CalcCouplingForcesBubble(PLAS_DATA *data,LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);       
-void   plas_CalcCouplingForcesParticle(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);       
-double plas_CalcDispReynolds(double viscosity, double diameter, double normVel);       
-double plas_CalcDragCoeff(int flowType, double reynolds);       
-void   plas_CalcEntityCoefficients(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow);       
-double plas_CalcKinematicResponseTime(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent);       
-double plas_CalcLiftCoeff(int flowType);       
-double plas_CalcMassTransferCoeff(PLAS_DATA *data, double sherwood, double spalding);       
-void   plas_CalcMatVectScalarProduct_2D(double *value, double **m, double *a);       
-void   plas_CalcMatVectScalarProduct_3D(double *value, double **m, double *a);       
-void   plas_CalcMaterialData(PLAS_DATA *data, double T, double p);       
-void   plas_CalcNodeImpactFactors(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, double *dist);       
-double plas_CalcNusseltNumber(int evapModel, double reynolds, double spalding, double prandtl);       
-double plas_CalcPrandtlNumber(PLAS_DATA *data);       
-double plas_CalcPressBubble(PLAS_DATA *data, double diameter, double pressure);       
-double plas_CalcRhoBubble(PLAS_DATA *data, double temperature, double pressBubble);       
-void   plas_CalcRotationMatrix_2D(double phi, double **m);       
-void   plas_CalcRotationMatrix_3D(double phi, double **m, int axis);       
-double plas_CalcSchmidtNumber(PLAS_DATA *data);       
-double plas_CalcSherwoodNumber(int evapModel, double reynolds, double schmidt, double spalding);       
-double plas_CalcSpaldingNumber(PLAS_DATA *data, double pressure);       
-double plas_CalcThermalResponseTime(PLAS_DATA *data, double diameter);       
-void   plas_CalcTrajectory(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double dtLagr);       
-double plas_CalcVectorAngle(int numDim, double *a, double *b);       
-double plas_CalcVectorLength(int numDim, double *a);       
-void   plas_CalcVectorRotation_3D(double psi, double **m, double *a);       
-void   plas_CalcVorticity(int numDim, LOCAL_FLOW_VARIABLES *flow);       
-double plas_CalcWallFaceDistance(int numDim, double *pos, int ibnd, int ifac);       
-void   plas_CheckNaN(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent);       
-int    plas_Coalescence(PLAS_DATA *data, double dj, double di, double *uRelPrPr, double *x, double *y, double *z, double Mi, double Mj, double *uiPrPr, double *uiPrPrNew, double *uiNew, double *ui);       
-void   plas_CollisionModel(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, int numDens, double dtLagr);       
-void   plas_CreateStatsFile(PLAS_DATA *data, char *outpString);       
-void   plas_CreateTecplotFile(PLAS_DATA *data, char *outpString);       
-void   plas_DeallocateLocalEntityVar(LOCAL_ENTITY_VARIABLES *ent);       
-void   plas_DeallocateLocalFlowVar(int numDim, LOCAL_FLOW_VARIABLES *flow);       
-void   plas_FindExitFace(int numBnd, int numDim, LOCAL_ENTITY_VARIABLES *ent, int *f, int *i, int *j);       
-void   plas_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARIABLES *ent, int *idx, double *dmin);       
-int    plas_FindNearestElementNode(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent);       
-void   plas_ImposeExternal(PLAS_DATA *data);       
-void   plas_ImposeProductionDomains(PLAS_DATA *data);       
-void   plas_Interpolate(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);       
-void   plas_InterpolatePressure(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);       
-void   plas_InterpolateTemperature(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);       
-void   plas_InterpolateVelocity(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);       
-void   plas_LoadInitialDistribution(PLAS_DATA *data, char *inpString);       
-int    plas_MpiAllMaxInt(int val);       
-void   plas_MpiAllMaxIntArray(int *val, int size);       
-int    plas_MpiAllMinInt(int val);       
-double plas_MpiAllSumDouble(double val);       
-void   plas_MpiAllSumDoubleArray(double *val, int size);       
-int    plas_MpiAllSumInt(int val);       
-void   plas_MpiAllSumIntArray(int *val, int size);       
-void   plas_MpiBarrier();       
-void   plas_MpiBroadcastDouble(double *variable, int size, int root);       
-void   plas_MpiBroadcastInt(int *variable, int size, int root);       
-int    plas_MpiGetNumProc();       
-int    plas_MpiGetRank();       
-void   plas_NormalizeVector(int numDim, double *a);       
-void   plas_PassEntities(PLAS_DATA *data);       
-double plas_RandomDouble();       
-double plas_RandomGaussian(float m, float s);       
-void   plas_RandomInitialDistribution(PLAS_DATA *data);       
-int    plas_RandomInteger(int min, int max);       
-void   plas_ReadParameters(PLAS_DATA *data);       
-void   plas_SearchDomainParallel(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent);       
-void   plas_SearchSuccessive(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent);       
-double plas_SetDiameter(PLAS_DATA *data);       
-void   plas_SetElementFaces(int numDim, LOCAL_ENTITY_VARIABLES *ent);       
-void   plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent);       
-void   plas_SetElementNodes(int numDim, LOCAL_ENTITY_VARIABLES *ent);       
-void   plas_SolveGaussSeidel(int numDim, double **mat, double *s, double *rhs);       
-void   plas_WallBounce(int numDim, double elasticity, LOCAL_ENTITY_VARIABLES *ent, int ibnd, int ifac);       
-void   plas_WriteStatsFile(PLAS_DATA *data, char *outpString, int iter, double time);       
-void   plas_WriteTecplotFile(PLAS_DATA *data, char *outpString, int iter, double time);       
+void   plas_AllocateLocalEntityVar(int numDim, LOCAL_ENTITY_VARIABLES *ent);
+void   plas_AllocateLocalFlowVar(int numDim, LOCAL_FLOW_VARIABLES *flow);
+void   plas_BroadcastParameters(PLAS_DATA *data);
+void   plas_CalcBackCoupling(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double *force, double tFactor);
+void   plas_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *normVec);
+void   plas_CalcCellwiseData(PLAS_DATA *data);
+double plas_CalcConcInterf(PLAS_DATA *data, double pressBubble);
+void   plas_CalcCouplingForcesBubble(PLAS_DATA *data,LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
+void   plas_CalcCouplingForcesParticle(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
+double plas_CalcDispReynolds(double viscosity, double diameter, double normVel);
+double plas_CalcDragCoeff(int flowType, double reynolds);
+void   plas_CalcEntityCoefficients(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow);
+double plas_CalcKinematicResponseTime(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent);
+double plas_CalcLiftCoeff(int flowType);
+double plas_CalcMassTransferCoeff(PLAS_DATA *data, double sherwood, double spalding);
+void   plas_CalcMatVectScalarProduct_2D(double *value, double **m, double *a);
+void   plas_CalcMatVectScalarProduct_3D(double *value, double **m, double *a);
+void   plas_CalcMaterialData(PLAS_DATA *data, double T, double p);
+void   plas_CalcNodeImpactFactors(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, double *dist);
+double plas_CalcNusseltNumber(int evapModel, double reynolds, double spalding, double prandtl);
+double plas_CalcPrandtlNumber(PLAS_DATA *data);
+double plas_CalcPressBubble(PLAS_DATA *data, double diameter, double pressure);
+double plas_CalcRhoBubble(PLAS_DATA *data, double temperature, double pressBubble);
+void   plas_CalcRotationMatrix_2D(double phi, double **m);
+void   plas_CalcRotationMatrix_3D(double phi, double **m, int axis);
+double plas_CalcSchmidtNumber(PLAS_DATA *data);
+double plas_CalcSherwoodNumber(int evapModel, double reynolds, double schmidt, double spalding);
+double plas_CalcSpaldingNumber(PLAS_DATA *data, double pressure);
+double plas_CalcThermalResponseTime(PLAS_DATA *data, double diameter);
+void   plas_CalcTrajectory(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double dtLagr);
+double plas_CalcVectorAngle(int numDim, double *a, double *b);
+double plas_CalcVectorLength(int numDim, double *a);
+void   plas_CalcVectorRotation_3D(double psi, double **m, double *a);
+void   plas_CalcVorticity(int numDim, LOCAL_FLOW_VARIABLES *flow);
+double plas_CalcWallFaceDistance(int numDim, double *pos, int ibnd, int ifac);
+void   plas_CheckNaN(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent);
+int    plas_Coalescence(PLAS_DATA *data, double dj, double di, double *uRelPrPr, double *x, double *y, double *z, double Mi, double Mj, double *uiPrPr, double *uiPrPrNew, double *uiNew, double *ui);
+void   plas_CollisionModel(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, int numDens, double dtLagr);
+void   plas_CreateStatsFile(PLAS_DATA *data, char *outpString);
+void   plas_CreateTecplotFile(PLAS_DATA *data, char *outpString);
+void   plas_DeallocateLocalEntityVar(LOCAL_ENTITY_VARIABLES *ent);
+void   plas_DeallocateLocalFlowVar(int numDim, LOCAL_FLOW_VARIABLES *flow);
+void   plas_FindExitFace(int numBnd, int numDim, LOCAL_ENTITY_VARIABLES *ent, int *f, int *i, int *j);
+void   plas_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARIABLES *ent, int *idx, double *dmin);
+int    plas_FindNearestElementNode(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent);
+void   plas_ImposeExternal(PLAS_DATA *data);
+void   plas_ImposeProductionDomains(PLAS_DATA *data);
+void   plas_Interpolate(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
+void   plas_InterpolatePressure(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
+void   plas_InterpolateTemperature(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
+void   plas_InterpolateVelocity(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
+void   plas_LoadInitialDistribution(PLAS_DATA *data, char *inpString);
+int    plas_MpiAllMaxInt(int val);
+void   plas_MpiAllMaxIntArray(int *val, int size);
+int    plas_MpiAllMinInt(int val);
+double plas_MpiAllSumDouble(double val);
+void   plas_MpiAllSumDoubleArray(double *val, int size);
+int    plas_MpiAllSumInt(int val);
+void   plas_MpiAllSumIntArray(int *val, int size);
+void   plas_MpiBarrier();
+void   plas_MpiBroadcastDouble(double *variable, int size, int root);
+void   plas_MpiBroadcastInt(int *variable, int size, int root);
+int    plas_MpiGetNumProc();
+int    plas_MpiGetRank();
+void   plas_NormalizeVector(int numDim, double *a);
+void   plas_PassEntities(PLAS_DATA *data);
+double plas_RandomDouble();
+double plas_RandomGaussian(float m, float s);
+void   plas_RandomInitialDistribution(PLAS_DATA *data);
+int    plas_RandomInteger(int min, int max);
+void   plas_ReadParameters(PLAS_DATA *data);
+void   plas_SearchDomainParallel(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent);
+void   plas_SearchSuccessive(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent);
+double plas_SetDiameter(PLAS_DATA *data);
+void   plas_SetElementFaces(int numDim, LOCAL_ENTITY_VARIABLES *ent);
+void   plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent);
+void   plas_SetElementNodes(int numDim, LOCAL_ENTITY_VARIABLES *ent);
+void   plas_SolveGaussSeidel(int numDim, double **mat, double *s, double *rhs);
+void   plas_WallBounce(int numDim, double elasticity, LOCAL_ENTITY_VARIABLES *ent, int ibnd, int ifac);
+void   plas_WriteStatsFile(PLAS_DATA *data, char *outpString, int iter, double time);
+void   plas_WriteTecplotFile(PLAS_DATA *data, char *outpString, int iter, double time);
 
 
-#endif  // PLAS_COMMON_H       
+#endif  // PLAS_COMMON_H
 

@@ -25,16 +25,13 @@ void plas_CalcTrajectory(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLO
     theta     = 0.5,
     boltzmann = 5.670400e-8;
 
-  /*
+
   double **mat = new double*[data->fp.numDim+2];
   for (int r=0; r<data->fp.numDim+2; ++r)
     mat[r] = new double[data->fp.numDim+2];
-  */
-  double **mat = (double **) malloc( sizeof(double*)*(data->fp.numDim + 2) );
-  for (idim=0; idim<data->fp.numDim + 2; ++idim)
-    mat[idim] = (double *) malloc( sizeof(double)*(data->fp.numDim + 2) );
 
-  //@todo: Concentration definition depends on saturation model
+
+  // TODO: Concentration definition depends on saturation model
   double alpha = 1.25;
   double flow_concentration = flow->pressure*data->md.HeDisp*alpha;
 
@@ -161,13 +158,8 @@ void plas_CalcTrajectory(PLAS_DATA *data, LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLO
   }
 
 
-  /*
   for (int r=0; r<data->fp.numDim+2; ++r)
     delete[] mat[r];
   delete[] mat;
-  */
-  for (idim=0; idim<data->fp.numDim + 2; ++idim)
-    free(mat[idim]);
-  free(mat);
 }
 

@@ -13,26 +13,20 @@
 
 void plas_AllocateLocalEntityVar(int numDim, LOCAL_ENTITY_VARIABLES *ent)
 {
-  int idim;
+  ent->edata.elmNodes = new int[MAXELMNODES];
+  ent->edata.elmNorms = new double*[MAXELMNORMS];
+  for (int idim=0; idim<MAXELMNORMS; ++idim)
+    ent->edata.elmNorms[idim] = new double[numDim];
+  ent->edata.elmFaceVectors = new double*[MAXELMFACES];
+  for (int idim=0; idim<MAXELMFACES; ++idim)
+    ent->edata.elmFaceVectors[idim] = new double[numDim];
+  ent->vel    = new double[numDim];
+  ent->velOld = new double[numDim];
+  ent->relVel = new double[numDim];
+  ent->pos    = new double[numDim];
+  ent->posOld = new double[numDim];
 
-  //***Allocate data***//
-
-  ent->edata.elmNodes = (int*)calloc(MAXELMNODES,sizeof(int));
-  ent->edata.elmNorms = (double**)calloc(MAXELMNORMS,sizeof(double*));
-  for(idim=0; idim<MAXELMNORMS; idim++){
-    ent->edata.elmNorms[idim] = (double*)calloc(numDim,sizeof(double));
-  }
-  ent->edata.elmFaceVectors = (double**)calloc(MAXELMFACES,sizeof(double*));
-  for(idim=0; idim<MAXELMFACES; idim++){
-    ent->edata.elmFaceVectors[idim] = (double*)calloc(numDim,sizeof(double));
-  }
-  ent->vel = (double*)calloc(numDim,sizeof(double));
-  ent->velOld = (double*)calloc(numDim,sizeof(double));
-  ent->relVel = (double*)calloc(numDim,sizeof(double));
-  ent->pos = (double*)calloc(numDim,sizeof(double));
-  ent->posOld = (double*)calloc(numDim,sizeof(double));
-
-  ent->elm = -1;
+  ent->elm  = -1;
   ent->node = -1;
 }
 

@@ -32,35 +32,34 @@ void initPLaS(PLAS_DATA *data)
 
   //***Allocate memory for dispersed phase data***//
 
-  data->ed = (PLAS_ENTITY_DATA*)calloc(data->ip.numMaxEnt,sizeof(PLAS_ENTITY_DATA));
-  for(ient=0; ient<data->ip.numMaxEnt; ient++){
-    data->ed[ient].flag = DFLAG_DISABLED;
-    data->ed[ient].position = (double*)calloc(data->fp.numDim,sizeof(double));
-    data->ed[ient].velocity = (double*)calloc(data->fp.numDim,sizeof(double));
-    data->ed[ient].velocityOld = (double*)calloc(data->fp.numDim,sizeof(double));
-    data->ed[ient].node = -1;
-    data->ed[ient].element = -1;
+  data->ed = new PLAS_ENTITY_DATA[data->ip.numMaxEnt];
+  for (ient=0; ient<data->ip.numMaxEnt; ++ient) {
+    data->ed[ient].flag        = DFLAG_DISABLED;
+    data->ed[ient].position    = new double[data->fp.numDim];
+    data->ed[ient].velocity    = new double[data->fp.numDim];
+    data->ed[ient].velocityOld = new double[data->fp.numDim];
+    data->ed[ient].node        = -1;
+    data->ed[ient].element     = -1;
   }
 
-  data->pd = (PLAS_PHASE_DATA*)calloc(data->fp.numNod,sizeof(PLAS_PHASE_DATA));
+  data->pd = new PLAS_PHASE_DATA[data->fp.numNod];
   for(inod=0; inod<data->fp.numNod; inod++){
-    data->pd[inod].volFracDx = (double*)calloc(data->fp.numDim,sizeof(double));
-    data->pd[inod].avgVel = (double*)calloc(data->fp.numDim,sizeof(double));
-    data->pd[inod].stdVel = (double*)calloc(data->fp.numDim,sizeof(double));
-    data->pd[inod].dispForce = (double*)calloc(data->fp.numUnk,sizeof(double));
+    data->pd[inod].volFracDx = new double[data->fp.numDim];
+    data->pd[inod].avgVel    = new double[data->fp.numDim];
+    data->pd[inod].stdVel    = new double[data->fp.numDim];
+    data->pd[inod].dispForce = new double[data->fp.numUnk];
   }
 
   //***Initialize fixed runtime parameters***//
 
   data->rp.lagrTimeFactor = 0.3;
-  data->rp.errTol = 1e-6;
-  data->rp.wallElasticity = 1.0;
+  data->rp.errTol         = 1e-6;
+  data->rp.wallElasticity = 1.;
 
   //***Initialize variable runtime parameters***//
 
-  if(data->ip.numProdDom>0){
-    data->rp.massResid = (double*)calloc(data->ip.numProdDom,sizeof(double));
-  }
+  if (data->ip.numProdDom>0)
+    data->rp.massResid = new double[data->ip.numProdDom];
 
   //***Initialize material data from database***//
 

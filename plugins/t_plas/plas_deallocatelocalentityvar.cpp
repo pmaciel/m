@@ -12,23 +12,16 @@
 
 void plas_DeallocateLocalEntityVar(LOCAL_ENTITY_VARIABLES *ent)
 {
-  int idim;
-
-  //***De-allocate data***//
-
-  free(ent->edata.elmNodes);
-  for(idim=0; idim<MAXELMNORMS; idim++){
-    free(ent->edata.elmNorms[idim]);
-  }
-  free(ent->edata.elmNorms);
-  for(idim=0; idim<MAXELMFACES; idim++){
-    free(ent->edata.elmFaceVectors[idim]);
-  }
-  free(ent->edata.elmFaceVectors);
-  free(ent->vel);
-  free(ent->velOld);
-  free(ent->relVel);
-  free(ent->pos);
-  free(ent->posOld);
+  delete[] ent->edata.elmNodes;
+  for (int idim=0; idim<MAXELMNORMS; ++idim)
+    delete[] ent->edata.elmNorms[idim];
+  delete[] ent->edata.elmNorms;
+  for (int idim=0; idim<MAXELMFACES; ++idim)
+    delete[] ent->edata.elmFaceVectors[idim];
+  delete[] ent->edata.elmFaceVectors;
+  delete[] ent->vel;
+  delete[] ent->velOld;
+  delete[] ent->relVel;
+  delete[] ent->pos;
+  delete[] ent->posOld;
 }
-
