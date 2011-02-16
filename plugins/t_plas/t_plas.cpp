@@ -12,15 +12,9 @@ using namespace m;
 Register< mtransform,t_plas > mt_plas("-tplas","Particle Lagrangian Solver (PLaS)");
 
 
-t_plas *pt_plas;
-
-
-t_plas::t_plas() : m::mtransform() { ::pt_plas  = this; }
-t_plas::~t_plas()                  { ::pt_plas  = NULL; }
-
-
 void t_plas::transform(GetPot& o, mmesh& m)
 {
+#if 0
   int i;
 
   printf("-------------------\n");
@@ -95,21 +89,20 @@ void t_plas::transform(GetPot& o, mmesh& m)
   MPI_Comm_size(MPI_COMM_WORLD,&proc);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 #endif
-  initPLaS(&dplasdata);
+  plas::initialize();
   printf("--------------------\n");
 
   //***Perform PLaS iterations***//
 
   for(dparam.iter=1; dparam.iter<=dparam.numIter; dparam.iter++){
     printf("Iteration %d\n",dparam.iter);
-    runPLaS(&dplasdata);
+    plas::run();
   }
 
   //***Terminate PLaS***//
 
   printf("--------------------\n");
   printf("Terminating PLaS...\n");
-  terminatePLaS(&dplasdata);
   plasdriver_FreeGambitMemory(&dmesh);
   for(i=0; i<dmesh.numNod; ++i)
     delete[] dflow.u[i];
@@ -121,6 +114,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
   MPI_Finalize();
 #endif
   printf("-------------------\n");
+#endif
 }
 
 
@@ -1101,28 +1095,23 @@ void t_plas::plasdriver_WriteTecplot(DRIVER_GAMBIT_MESH *dmesh, DRIVER_PARAMETER
 }
 
 
-/*
- * Below are interfacing functions to PLaS (called during PLaS runtime)
- */
-
-
-void plasinterface_setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
+void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
 {
   fp->flowSolver   = FLOWSOLVER_DRIVER;
-  fp->numDim       = pt_plas->dmesh.numDim;
-  fp->numUnk       = pt_plas->dparam.numUnk;
-  fp->numNod       = pt_plas->dmesh.numNod;
-  fp->numElm       = pt_plas->dmesh.numElm;
-  fp->numBnd       = pt_plas->dmesh.numBnd;
-  fp->rhoCont      = pt_plas->dflow.rho;
-  fp->muCont       = pt_plas->dflow.mu;
-  fp->nuCont       = pt_plas->dflow.mu/pt_plas->dflow.rho;
-  fp->cpCont       = pt_plas->dflow.cp;
-  fp->kCont        = pt_plas->dflow.k;
-  fp->dtEul        = pt_plas->dparam.dtEul;
-  fp->domainVolume = pt_plas->dmesh.domainVolume;
-  fp->minElmVolume = pt_plas->dmesh.minElmVolume;
-  fp->maxElmVolume = pt_plas->dmesh.maxElmVolume;
+  fp->numDim       = dmesh.numDim;
+  fp->numUnk       = dparam.numUnk;
+  fp->numNod       = dmesh.numNod;
+  fp->numElm       = dmesh.numElm;
+  fp->numBnd       = dmesh.numBnd;
+  fp->rhoCont      = dflow.rho;
+  fp->muCont       = dflow.mu;
+  fp->nuCont       = dflow.mu/dflow.rho;
+  fp->cpCont       = dflow.cp;
+  fp->kCont        = dflow.k;
+  fp->dtEul        = dparam.dtEul;
+  fp->domainVolume = dmesh.domainVolume;
+  fp->minElmVolume = dmesh.minElmVolume;
+  fp->maxElmVolume = dmesh.maxElmVolume;
   fp->writeOutput  = 1;
 
   fp->time = 0.;
@@ -1130,65 +1119,35 @@ void plasinterface_setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
 }
 
 
-void plasinterface_setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp)
+void t_plas::setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp)
 {
-  fp->time += pt_plas->dparam.dtEul;
-  fp->iter =  pt_plas->dparam.iter;
+  fp->time += dparam.dtEul;
+  fp->iter =  dparam.iter;
 }
 
 
-double plasinterface_getBndFaceRefCoord(int bnd, int bface, int dim)
+double t_plas::getBndFaceRefCoord(int bnd, int bface, int dim)
 {
   int faceNodes[4];
-  ::pt_plas->plasdriver_GetFaceNodes(&pt_plas->dmesh,pt_plas->dmesh.bndDomElms[bnd][bface],pt_plas->dmesh.bndFaces[bnd][bface],faceNodes);
+  plasdriver_GetFaceNodes(&dmesh,dmesh.bndDomElms[bnd][bface],dmesh.bndFaces[bnd][bface],faceNodes);
 
-  return pt_plas->dmesh.coords[faceNodes[0]][dim];
+  return dmesh.coords[faceNodes[0]][dim];
 }
 
 
-double plasinterface_getElmFaceMiddlePoint(int elm, int eface, int dim)
+double t_plas::getElmFaceMiddlePoint(int elm, int eface, int dim)
 {
   int faceNodes[4];
-  ::pt_plas->plasdriver_GetFaceNodes(&pt_plas->dmesh,elm,eface,faceNodes);
+  plasdriver_GetFaceNodes(&dmesh,elm,eface,faceNodes);
 
   int ctr = 0;
   double coord = 0.;
   for (int ifac=0; ifac<4; ++ifac)
     if (faceNodes[ifac]!=-1) {
-      coord += pt_plas->dmesh.coords[faceNodes[ifac]][dim];
+      coord += dmesh.coords[faceNodes[ifac]][dim];
       ++ctr;
     }
   coord /= ctr;
 
   return coord;
 }
-
-
-double plasinterface_getBndFaceNormComp           (int bnd, int face, int dim)    { return pt_plas->dmesh.elmNorms[pt_plas->dmesh.bndDomElms[bnd][face]][pt_plas->dmesh.bndFaces[bnd][face]][dim]; }
-double plasinterface_getElmNormComp               (int elm, int eface, int dim)   { return pt_plas->dmesh.elmNorms[elm][eface][dim]; }
-double plasinterface_getElmVol                    (int elm)                       { return pt_plas->dmesh.elmVolumes[elm]; }
-double plasinterface_getEulerianTimeScale         (int nod)                       { return 0.; }
-double plasinterface_getNodCoord                  (int nod, int dim)              { return pt_plas->dmesh.coords[nod][dim]; }
-double plasinterface_getNodVol                    (int nod)                       { return pt_plas->dmesh.nodVolumes[nod]; }
-double plasinterface_getPerBndOffset              (int bnd, int dim)              { return 0.; }  // TODO: implement
-double plasinterface_getPressure                  (int nod)                       { return pt_plas->dflow.p[nod]; }
-double plasinterface_getPressureOld               (int nod)                       { return pt_plas->dflow.p[nod]; }
-double plasinterface_getTemperature               (int nod)                       { return pt_plas->dflow.T[nod]; }
-double plasinterface_getTemperatureOld            (int nod)                       { return pt_plas->dflow.T[nod]; }
-double plasinterface_getVelocityComp              (int nod, int dim)              { return pt_plas->dflow.u[nod][dim]; }
-double plasinterface_getVelocityCompOld           (int nod, int dim)              { return pt_plas->dflow.u[nod][dim]; }
-double plasinterface_getVelocityDerivativeComp    (int nod, int idim, int jdim)   { return 0.; }
-double plasinterface_getVelocityDerivativeCompOld (int nod, int idim, int jdim)   { return 0.; }
-int    plasinterface_getBndDomElm                 (int bnd, int bface, int dummy) { return pt_plas->dmesh.bndDomElms[bnd][bface]; }
-int    plasinterface_getElementType               (int elm)                       { return pt_plas->dmesh.elmTypes[elm]; }
-int    plasinterface_getElmNeighbour              (int elm, int eface)            { return pt_plas->dmesh.elmNeighbs[elm][eface]; }
-int    plasinterface_getElmNode                   (int elm, int enod)             { return pt_plas->dmesh.elmNodes[elm][enod]; }
-int    plasinterface_getNumBndFaces               (int bnd)                       { return pt_plas->dmesh.numBndFaces[bnd]; }
-int    plasinterface_getPerBndFlag                (int bnd)                       { return pt_plas->dmesh.bndTypes[bnd]<0?  1:0; }
-int    plasinterface_getWallBndFlag               (int bnd)                       { return pt_plas->dmesh.bndTypes[bnd]==1? 1:0; }
-int    plasinterface_EndElementSearch             (double *pos)                   { return pt_plas->dmesh.numElm-1; }
-int    plasinterface_StartElementSearch           (double *pos)                   { return 0; }
-void   plasinterface_setPartitioningData          (PLAS_PART_DATA *part)          { part->numNodPairs = 0; }
-void   plasinterface_screenOutput                 (char *text)                    { printf("INFO: %s",text); }
-void   plasinterface_screenWarning                (char *text)                    { printf("WARN: %s",text); }
-

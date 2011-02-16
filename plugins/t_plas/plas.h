@@ -1,19 +1,23 @@
-
-/*
- * This file contains definitions of the PLaS data structure
- * and interface functions to the flow solver. These functions
- * have to be implemented on the flow solver side and provide
- * data to PLaS.
- */
-
 #ifndef PLAS_PLAS_H
 #define PLAS_PLAS_H
 
 
 /*
- * Preprocessor constants
+ * This file contains definitions of the PLaS data structure
+ * and interface functions to the flow solver.
  */
 
+
+/// Included files
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#ifdef MPI
+#include <mpi.h>
+#endif
+
+
+/// Preprocessor constants
 #define DFLAG_DISABLED       0
 #define DFLAG_ENABLED        1
 #define DFLAG_CREATED        2
@@ -55,10 +59,7 @@
 #endif
 
 
-/*
- * Data of a dispersed entity (particle, droplet or bubble)
- */
-
+/// Data of a dispersed entity (particle, droplet or bubble)
 typedef struct _plas_entity_data{
   int flag;             // Entity enabled/disabled flag
   int element;          // Grid element containing the entity
@@ -71,10 +72,7 @@ typedef struct _plas_entity_data{
 } PLAS_ENTITY_DATA;
 
 
-/*
- * Data of the dispersed phase (per node)
- */
-
+/// Data of the dispersed phase (per node)
 typedef struct _plas_phase_data{
   int numDens;         // Number density of entities (per node)
   double volFrac;      // Volume fraction (per node)
@@ -89,10 +87,7 @@ typedef struct _plas_phase_data{
 } PLAS_PHASE_DATA;
 
 
-/*
- * Data of the dispersed phase material
- */
-
+/// Data of the dispersed phase material
 typedef struct _plas_material_data{
   double rhoDisp;           // Density of dispersed entities
   double muDisp;            // Viscosity of dispersed entities
@@ -111,10 +106,7 @@ typedef struct _plas_material_data{
 } PLAS_MATERIAL_DATA;
 
 
-/*
- * Statistics data of PLaS
- */
-
+/// Statistics data of PLaS
 typedef struct _plas_stats{
   int enabled;         // Number of active entities
   int in;              // Number of entities added
@@ -133,10 +125,7 @@ typedef struct _plas_stats{
 } PLAS_STATS;
 
 
-/*
- * PLaS input parameters (read from PLaS input file)
- */
-
+/// PLaS input parameters (read from PLaS input file)
 typedef struct _plas_input_param{
   int numMaxEnt;               // Maximum number of entities per process
   int numIniEnt;               // Number of initially distributed entities:
@@ -166,10 +155,7 @@ typedef struct _plas_input_param{
 } PLAS_INPUT_PARAM;
 
 
-/*
- * Partitioning data
- */
-
+/// Partitioning data
 typedef struct _plas_part_data{
   int numNodPairs;   // Number of updatable/ghost node pairs
   int *sendRank;     // Sending ranks
@@ -179,10 +165,7 @@ typedef struct _plas_part_data{
 } PLAS_PART_DATA;
 
 
-/*
- * Data to be set by the flow solver
- */
-
+/// Data to be set by the flow solver
 typedef struct _plas_flowsolver_param{
 
   //***To be set on initialization (see interface function below)***//
@@ -213,10 +196,7 @@ typedef struct _plas_flowsolver_param{
 } PLAS_FLOWSOLVER_PARAM;
 
 
-/*
- * Internal PLaS runtime variables
- */
-
+/// Internal PLaS runtime variables
 typedef struct _plas_runtime_param{
   double lagrTimeFactor;  // Lagrangian time factor (constant)
   double errTol;          // Error tolerance
@@ -225,308 +205,1018 @@ typedef struct _plas_runtime_param{
   double wallElasticity;  // Elasticity factor for wall bounces
 } PLAS_RUNTIME_PARAM;
 
-
-/*
- * PLaS data structure (instantiate in the flow solver)
- */
-
-typedef struct _plas_data{
-  PLAS_ENTITY_DATA *ed;      // Entity data structure (per entity)
-  PLAS_PHASE_DATA *pd;       // Phase data structure (per node)
-  PLAS_MATERIAL_DATA md;     // Material data structure
-  PLAS_STATS sd;             // Statistics data structure
-  PLAS_INPUT_PARAM ip;       // Input file parameter structure
-  PLAS_FLOWSOLVER_PARAM fp;  // Flowsolver parameter structure
-  PLAS_RUNTIME_PARAM rp;     // PLaS internal runtime parameter structure
-  int numExtEnt;             // Number of bubbles coming from external code
-  double *extEntPos;         // Positions of bubbles coming from external code
-  double *extEntVel;         // Velocities of bubbles coming from external code
-  double *extEntTemp;        // Temperatures of bubbles coming from external code
-  double *extEntDiam;        // Diameters of bubbles coming from external code
-} PLAS_DATA;
+/// Entity element data structures
+typedef struct _entity_element_data{
+  int numElmNodes;          // Number of element nodes
+  int *elmNodes;            // Element nodes
+  int numElmFaces;          // Number of element faces
+  double **elmFaceVectors;  // Element face middle points
+  double **elmNorms;        // Element face normals
+} ENTITY_ELEMENT_DATA;
 
 
-/*
- * Declaration of PLaS interface functions
- */
+/// Local entity variables data structure
+typedef struct _local_entity_variables{
+  int flag;                   // Flag to determine if the entity is active
+  int node;                   // Number of corresponding grid node
+  int elm;                    // Number of corresponding grid element
+  double diam;                // Diameter
+  double *pos;                // Entity position at time step n
+  double *posOld;             // Entity position at time step n-1
+  double *vel;                // Entity velocity at time step n
+  double *velOld;             // Entity velocity at time step n-1
+  double *relVel;             // Relative velocity
+  double normVel;             // Norm of the relative velocity
+  double temp;                // Temperature
+  double relTemp;             // Relative temperature
+  double reynolds;            // Dispersed Reynold number
+  double nusselt;             // Nusselt number
+  double sherwood;            // Sherwood number
+  double schmidt;             // Schmidt number
+  double spalding;            // Spalding number
+  double prandtl;             // Prandtl number
+  double dragCoeff;           // Drag coefficient
+  double liftCoeff;           // Lift coefficient
+  double kinRespTime;         // Kinematic response time
+  double thermRespTime;       // Thermal response time
+  double massTrCoeff;         // Mass transfer coefficient beta
+  double pressBubble;         // Bubble interal pressure
+  double rhoBubble;           // Bubble internal density
+  double concInterf;          // Bubble surface concentration
+  double concDelta;           // Bubble concentration boundary layer
+  ENTITY_ELEMENT_DATA edata;  // Corresponding grid element data
+} LOCAL_ENTITY_VARIABLES;
 
-void initPLaS(PLAS_DATA *data);
-void runPLaS(PLAS_DATA *data);
-void terminatePLaS(PLAS_DATA *data);
 
-void   plas_CalcCrossProduct_3D(double *value, double *a, double *b);       
-double plas_CalcVectScalarProduct(int numDim, double *a, double *b);       
-double plas_ReadDoubleParam(FILE *inpFile);       
-int    plas_ReadIntParam(FILE *inpFile);       
-void   plas_TerminateOnError(char *errMessage);       
+/// Local flow variables data structure
+typedef struct _local_flow_variables{
+  double *vel;           // Local instantaneous flow velocity
+  double *velDt;         // Flow velocity time derivative
+  double **velDx;        // Flow velocity space derivative
+  double *vort;          // Local instantaneous flow vorticity
+  double pressure;       // Local instantaneous flow pressure
+  //double concentration;  // Local instanteneous flow (solvent) concentration
+  double temp;           // Local instantaneous flow temperature
+} LOCAL_FLOW_VARIABLES;
 
 
-////////////////////////////////////////////////////////////////////////////////////////
-//  Declaration of PLaS interface functions to be implemented in calling flow solver  //
-////////////////////////////////////////////////////////////////////////////////////////
+/// PLaS interface class
+class plas {
 
-// --------------------------------------------
-// Set flow solver parameters on initialization
-// --------------------------------------------
-// fp = pointer to PLaS data structure
-//
-void plasinterface_setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp);
 
-// ---------------------------------------
-// Set flow solver parameters on time step
-// ---------------------------------------
-// fp = pointer to PLaS data structure
-//
-void plasinterface_setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp);
+ public:  // interface public methods
 
-//----------------------
-// Set partitioning data
-//----------------------
-// part = partitioning data structure
-//
-void plasinterface_setPartitioningData(PLAS_PART_DATA *part);
+  /**
+   * This function initializes the PLaS solver. It has to be
+   * called before doing any run of PLaS from the driving flow
+   * solver.
+   */
+  void initialize();
 
-// ----------------------------------
-// Provide node of an element to PLaS
-// ----------------------------------
-// elm = element index
-// enod = node of the element
-// return value = node index
-//
-int plasinterface_getElmNode(int elm, int enod);
+  /**
+   * This is the main routine of the PLaS solver. It has to be
+   * called at each time step of the driving flow solver.
+   */
+  void run();
 
-// ---------------------------------------
-// Provide neighbour of an element to PLaS
-// ---------------------------------------
-// elm = element index
-// eface = face of the element
-// return value = neighbour element index
-//
-int plasinterface_getElmNeighbour(int elm, int eface);
+  /**
+   * This routine terminates PLaS. It has to be called after
+   * the last run of PLaS from the driving flow solver.
+   */
+  virtual ~plas();
 
-// ----------------------------------------------------------
-// Provide arbitrary reference point of boundary face to PLaS
-// ----------------------------------------------------------
-// bnd = boundary index
-// bface = face of the boundary
-// dim = coordinate index
-// return value = reference point of the face
-//
-double plasinterface_getBndFaceRefCoord(int bnd, int bface, int dim);
 
-// ----------------------------------------------------------
-// Provide domain element associated to boundary face to PLaS
-// ----------------------------------------------------------
-// bnd = boundary index
-// bface = face of the boundary
-// dummy = not needed
-// return value = element index
-//
-int plasinterface_getBndDomElm(int bnd, int bface, int dummy);
+ private:  // interface methods to implement in derived class
 
-// -------------------------------
-// Provide node coordinate to PLaS
-// -------------------------------
-// nod = node index
-// dim = coordinate index
-// return value = coordinate of the node
-//
-double plasinterface_getNodCoord(int nod, int dim);
+  /**
+   * Set flow solver parameters on initialization
+   * @param[in] fp pointer to PLaS data structure
+   */
+  virtual void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp) = 0;
 
-// -------------------------------------------
-// Provide component of element normal to PLaS
-// -------------------------------------------
-// elm = element index
-// eface = face of the element
-// dim = coordinate index
-// return value = coordinate of the normal
-//
-double plasinterface_getElmNormComp(int elm, int eface, int dim);
+  /**
+   * Set flow solver parameters on time step
+   * @param[in] fp pointer to PLaS data structure
+   */
+  virtual void setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp) = 0;
 
-// -------------------------------------------------
-// Provide component of boundary face normal to PLaS
-// -------------------------------------------------
-// elm = element index
-// bface = face of the boundary
-// dim = coordinate index
-// return value = coordinate of the normal
-//
-double plasinterface_getBndFaceNormComp(int bnd, int bface, int dim);
+  /**
+   * Set partitioning data
+   * @param[in] part partitioning data structure
+   */
+  virtual void setPartitioningData(PLAS_PART_DATA *part) = 0;
 
-// -----------------------------------------------------
-// Provide component of element face middle-point vector
-// -----------------------------------------------------
-// elm = element index
-// eface = face of the element
-// dim = coordinate index
-// return value = coordinate of the face middle-point
-//
-double plasinterface_getElmFaceMiddlePoint(int elm, int eface, int dim);
+  /**
+   * Provide node of an element to PLaS
+   * @param[in] elm element index
+   * @param[in] enod node of the element
+   * @return node index
+   */
+  virtual int getElmNode(int elm, int enod) = 0;
 
-// ---------------------------------
-// Provide nodal area/volume to PLaS
-// ---------------------------------
-// nod = node index
-// return value = nodal cell volume
-//
-double plasinterface_getNodVol(int nod);
+  /**
+   * Provide neighbour of an element to PLaS
+   * @param[in] elm element index
+   * @param[in] eface face of the element
+   * @return neighbour element index
+   */
+  virtual int getElmNeighbour(int elm, int eface) = 0;
 
-// -----------------------------------
-// Provide element area/volume to PLaS
-// -----------------------------------
-// elm = element index
-// return value = element volume
-//
-double plasinterface_getElmVol(int elm);
+  /**
+   * Provide arbitrary reference point of boundary face to PLaS
+   * @param[in] bnd boundary index
+   * @param[in] bface face of the boundary
+   * @param[in] dim coordinate index
+   * @return reference point of the face
+   */
+  virtual double getBndFaceRefCoord(int bnd, int bface, int dim) = 0;
 
-// ---------------------------------------------
-// Provide number of faces of a boundary to PLaS
-// ---------------------------------------------
-// bnd = boundary index
-// return value = number of boundary faces
-//
-int plasinterface_getNumBndFaces(int bnd);
+  /**
+   * Provide domain element associated to boundary face to PLaS
+   * @param[in] bnd boundary index
+   * @param[in] bface face of the boundary
+   * @param[in] dummy not needed
+   * @return element index
+   */
+  virtual int getBndDomElm(int bnd, int bface, int dummy) = 0;
 
-// ----------------------------------------------------------
-// Provide information about which boundary is a wall to PLaS
-// ----------------------------------------------------------
-// bnd = boundary index
-// return value = value if boundary is a wall, else zero
-//
-int plasinterface_getWallBndFlag(int bnd);
+  /**
+   * Provide node coordinate to PLaS
+   * @param[in] nod node index
+   * @param[in] dim coordinate index
+   * @return coordinate of the node
+   */
+  virtual double getNodCoord(int nod, int dim) = 0;
 
-// ----------------------------------------------------
-// Provide information about which boundary is periodic
-// ----------------------------------------------------
-// bnd = boundary index
-// return value = value if boundary is periodic, else zero
-//
-int plasinterface_getPerBndFlag(int bnd);
+  /**
+   * Provide component of element normal to PLaS
+   * @param[in] elm element index
+   * @param[in] eface face of the element
+   * @param[in] dim coordinate index
+   * @return coordinate of the normal
+   */
+  virtual double getElmNormComp(int elm, int eface, int dim) = 0;
 
-// ----------------------------------------------------------
-// Provide information about periodic boundary offset to PLaS
-// ----------------------------------------------------------
-// bnd = boundary index
-// dim = coordinate index
-// return value = periodic boundary offset
-//
-double plasinterface_getPerBndOffset(int bnd, int dim);
+  /**
+   * Provide component of boundary face normal to PLaS
+   * @param[in] elm element index
+   * @param[in] bface face of the boundary
+   * @param[in] dim coordinate index
+   * @return coordinate of the normal
+   */
+  virtual double getBndFaceNormComp(int bnd, int bface, int dim) = 0;
 
-// ----------------------------------
-// Provide type of an element to PLaS
-// ----------------------------------
-// elm = element index
-// return value = element type (codes in #defines)
-//
-int plasinterface_getElementType(int elm);
+  /**
+   * Provide component of element face middle-point vector
+   * @param[in] elm element index
+   * @param[in] eface face of the element
+   * @param[in] dim coordinate index
+   * @return coordinate of the face middle-point
+   */
+  virtual double getElmFaceMiddlePoint(int elm, int eface, int dim) = 0;
 
-// -------------------------------------------------------
-// Provide nodal velocity component at time step n to PLaS
-// -------------------------------------------------------
-// nod = node index
-// dim = coordinate index
-// return value = velocity at time step n
-//
-double plasinterface_getVelocityComp(int nod, int dim);
+  /**
+   * Provide nodal area/volume to PLaS
+   * @param[in] nod node index
+   * @return nodal cell volume
+   */
+  virtual double getNodVol(int nod) = 0;
 
-// ---------------------------------------------------------
-// Provide nodal velocity component at time step n-1 to PLaS
-// ---------------------------------------------------------
-// nod = node index
-// dim = coordinate index
-// return value = velocity at time step n-1
-//
-double plasinterface_getVelocityCompOld(int nod, int dim);
+  /**
+   * Provide element area/volume to PLaS
+   * @param[in] elm element index
+   * @return element volume
+   */
+  virtual double getElmVol(int elm) = 0;
 
-// ----------------------------------------------------
-// Provide velocity component derivative at time step n
-// ----------------------------------------------------
-// nod = node index
-// idim = variable to take derivatrive of
-// jdim = coordinate direction of derivative
-// return value = velocity derivative at time step n-1
-//
-double plasinterface_getVelocityDerivativeComp(int nod, int idim, int jdim);
+  /**
+   * Provide number of faces of a boundary to PLaS
+   * @param[in] bnd boundary index
+   * @return number of boundary faces
+   */
+  virtual int getNumBndFaces(int bnd) = 0;
 
-// ------------------------------------------------------
-// Provide velocity component derivative at time step n-1
-// ------------------------------------------------------
-// nod = node index
-// idim = variable to take derivatrive of
-// jdim = coordinate direction of derivative
-// return value = velocity derivative at time step n-1
-//
-double plasinterface_getVelocityDerivativeCompOld(int nod, int idim, int jdim);
+  /**
+   * Provide information about which boundary is a wall to PLaS
+   * @param[in] bnd boundary index
+   * @return non-zero if boundary is a wall, else zero
+   */
+  virtual int getWallBndFlag(int bnd) = 0;
 
-//-------------------------------------------------
-// Provide nodal temperature at time step n to PLaS
-//-------------------------------------------------
-// nod = node idx
-// return value = temperature at time step n
-//
-double plasinterface_getTemperature(int nod);
+  /**
+   * Provide information about which boundary is periodic
+   * @param[in] bnd boundary index
+   * @return non-zero if boundary is periodic, else zero
+   */
+  virtual int getPerBndFlag(int bnd) = 0;
 
-//---------------------------------------------------
-// Provide nodal temperature at time step n-1 to PLaS
-//---------------------------------------------------
-// nod = node idx
-// return value = temperature at time step n-1
-//
-double plasinterface_getTemperatureOld(int nod);
+  /**
+   * Provide information about periodic boundary offset to PLaS
+   * @param[in] bnd boundary index
+   * @param[in] dim coordinate index
+   * @return periodic boundary offset
+   */
+  virtual double getPerBndOffset(int bnd, int dim) = 0;
 
-//----------------------------------------------
-// Provide nodal pressure at time step n to PLaS
-//----------------------------------------------
-// nod = node idx
-// return value = pressure at time step n
-//
-double plasinterface_getPressure(int nod);
+  /**
+   * Provide type of an element to PLaS
+   * @param[in] elm element index
+   * @return element type (codes in #defines)
+   */
+  virtual int getElementType(int elm) = 0;
 
-//------------------------------------------------
-// Provide nodal pressure at time step n-1 to PLaS
-//------------------------------------------------
-// nod = node idx
-// return value = pressure at time step n-1
-//
-double plasinterface_getPressureOld(int nod);
+  /**
+   * Provide nodal velocity component at time step n to PLaS
+   * @param[in] nod node index
+   * @param[in] dim coordinate index
+   * @return velocity at time step n
+   */
+  virtual double getVelocityComp(int nod, int dim) = 0;
 
-// -----------------------------------------------------
-// Provide starting element for local brute force search
-// -----------------------------------------------------
-// pos = position vector (xyz)
-// return value = lowest element for BF search (0)
-//
-int plasinterface_StartElementSearch(double *pos);
+  /**
+   * Provide nodal velocity component at time step n-1 to PLaS
+   * @param[in] nod node index
+   * @param[in] dim coordinate index
+   * @return velocity at time step n-1
+   */
+  virtual double getVelocityCompOld(int nod, int dim) = 0;
 
-// ---------------------------------------------------
-// Provide ending element for local brute force search
-// ---------------------------------------------------
-// pos = position vector (xyz)
-// return value = highest element for BF search (numElm-1)
-//
-int plasinterface_EndElementSearch(double *pos);
+  /**
+   * Provide velocity component derivative at time step n
+   * @param[in] nod node index
+   * @param[in] idim variable to take derivatrive of
+   * @param[in] jdim coordinate direction of derivative
+   * @return velocity derivative at time step n-1
+   */
+  virtual double getVelocityDerivativeComp(int nod, int idim, int jdim) = 0;
 
-// -------------------------------------------------------
-// Provide Eulerian time scale (tke/disspation) for a node
-// -------------------------------------------------------
-// nod = node index
-// return value = Eulerian time scale (k/eps)
-//
-double plasinterface_getEulerianTimeScale(int nod);
+  /**
+   * Provide velocity component derivative at time step n-1
+   * @param[in] nod node index
+   * @param[in] idim variable to take derivatrive of
+   * @param[in] jdim coordinate direction of derivative
+   * @return velocity derivative at time step n-1
+   */
+  virtual double getVelocityDerivativeCompOld(int nod, int idim, int jdim) = 0;
 
-// ---------------------------
-// Pass data for screen output
-// ---------------------------
-// text = screen output
-//
-void plasinterface_screenOutput(char *text);
+  /**
+   * Provide nodal temperature at time step n to PLaS
+   * @param[in] nod node idx
+   * @return temperature at time step n
+   */
+  virtual double getTemperature(int nod) = 0;
 
-// ------------------------------
-// Pass data for a screen warning
-// ------------------------------
-// text = screen warning
-//
-void plasinterface_screenWarning(char *text);
+  /**
+   * Provide nodal temperature at time step n-1 to PLaS
+   * @param[in] nod node idx
+   * @return temperature at time step n-1
+   */
+  virtual double getTemperatureOld(int nod) = 0;
+
+  /**
+   * Provide nodal pressure at time step n to PLaS
+   * @param[in] nod node idx
+   * @return pressure at time step n
+   */
+  virtual double getPressure(int nod) = 0;
+
+  /**
+   * Provide nodal pressure at time step n-1 to PLaS
+   * @param[in] nod node idx
+   * @return pressure at time step n-1
+   */
+  virtual double getPressureOld(int nod) = 0;
+
+  /**
+   * Provide starting element for local brute force search
+   * @param[in] pos position vector (xyz)
+   * @return lowest element for BF search (0)
+   */
+  virtual int StartElementSearch(double *pos) = 0;
+
+  /**
+   * Provide ending element for local brute force search
+   * @param[in] pos position vector (xyz)
+   * @return highest element for BF search (numElm-1)
+   */
+  virtual int EndElementSearch(double *pos) = 0;
+
+  /**
+   * Provide Eulerian time scale (tke/disspation) for a node
+   * @param[in] nod node index
+   * @return Eulerian time scale (k/eps)
+   */
+  virtual double getEulerianTimeScale(int nod) = 0;
+
+  /**
+   * Pass data for screen output
+   * @param[in] text screen output
+   */
+  virtual void screenOutput(char *text) = 0;
+
+  /**
+   * Pass data for a screen warning
+   * @param[in] text screen warning
+   */
+  virtual void screenWarning(char *text) = 0;
+
+
+ public:  // internal methods
+
+   /**
+    * This function computes the 3D cross product of two vectors.
+    */
+   void plas_CalcCrossProduct_3D(double *value, double *a, double *b);
+
+   /**
+    * This function computes the scalar product of two vectors.
+    */
+   double plas_CalcVectScalarProduct(int numDim, double *a, double *b);
+
+   /**
+    * This file contains all write functionality, to the screen,
+    * to output files and to Tecplot.
+    *
+    * This routine terminates PLaS due to a fatal error. It
+    * writes out an error message.
+    */
+   void plas_TerminateOnError(char *errMessage);
+
+   /**
+    * This file contains all functionality to read in data from
+    * the PLaS.conf data file.
+    *
+    * This function reads integer parameters.
+    */
+   int plas_ReadIntParam(FILE *inpFile);
+
+   /**
+    * This file contains all functionality to read in data from
+    * the PLaS.conf data file.
+    *
+    * This function reads double parameters.
+    */
+   double plas_ReadDoubleParam(FILE *inpFile);
+
+
+ private:  // internal methods
+
+  /**
+   * This file includes allocation and deallocation routines
+   * for PLaS data structures LOCAL_ENTITY_VARIABLES and
+   * LOCAL_FLOW_VARIABLES.
+   *
+   * This function allocates data for an instance of the
+   * structure LOCAL_ENTITY_VARIABLES, which stores the position,
+   * velocity and grid element information of an entity.
+   */
+  void plas_AllocateLocalEntityVar(int numDim, LOCAL_ENTITY_VARIABLES *ent);
+
+  /**
+   * This file includes allocation and deallocation routines
+   * for PLaS data structures LOCAL_ENTITY_VARIABLES and
+   * LOCAL_FLOW_VARIABLES.
+   *
+   * This function allocates data for an instance of the
+   * structure LOCAL_FLOW_VARIABLES, which stores the flow
+   * velocity and its derivatives at the entity position.
+   */
+  void plas_AllocateLocalFlowVar(int numDim, LOCAL_FLOW_VARIABLES *flow);
+
+  /**
+   * This file contains all functionality to read in data from
+   * the PLaS.conf data file.
+   *
+   * This function broadcasts input data for a multi=processor
+   * environment by the MPI Broadcast command.
+   */
+  void plas_BroadcastParameters();
+
+  /**
+   * This file includes the computation of back-coupling terms
+   * from the dispersed phase to the continuous phase.
+   *
+   * This function computes the mass and momentum back coupling
+   * terms for a dispersed entity.
+   */
+  void plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double *force, double tFactor);
+
+  /**
+   * This file includes all functionality concerning entities
+   * interacting with boundaries of the computational domain,
+   * such as wall bounces and entities leaving through outlets.
+   *
+   * This function calculates the unit normal vector of a
+   * boundary face.
+   */
+  void plas_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *unitVec);
+
+  /**
+   * This file includes a function to manage cellwise data of
+   * the secondary phase.
+   *
+   * This function computes the cellwise data (e.g. the volume
+   * fraction) of the secondary phase and corrects the data
+   * on the boundaries of a multiprocessor job.
+   */
+  void plas_CalcCellwiseData();
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the concentation in bubble's surface.
+   */
+  double plas_CalcConcInterf(double pressBubble);
+
+  /**
+   * This file includes the computation of back-coupling terms
+   * from the dispersed phase to the continuous phase.
+   *
+   * This function computes the momentum back coupling forces
+   * for a bubble.
+   */
+  void plas_CalcCouplingForcesBubble(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
+
+  /**
+   * This file includes the computation of back-coupling terms
+   * from the dispersed phase to the continuous phase.
+   *
+   * This function calculates the momentum back coupling forces
+   * for a particle or droplet.
+   */
+  void plas_CalcCouplingForcesParticle(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the entity Reynolds number.
+   */
+  double plas_CalcDispReynolds(double viscosity, double diameter, double normVel);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the entity drag coefficient.
+   */
+  double plas_CalcDragCoeff(int flowType, double reynolds);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes all flow coefficients.
+   */
+  void plas_CalcEntityCoefficients(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the kinematic response time of the
+   * dispersed entity.
+   */
+  double plas_CalcKinematicResponseTime(LOCAL_ENTITY_VARIABLES *ent);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the entity lift coefficient.
+   */
+  double plas_CalcLiftCoeff(int flowType);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the entity mass transfer
+   * coefficient.
+   */
+  double plas_CalcMassTransferCoeff(double sherwood, double spalding);
+
+  /**
+   * This function contains the material database for dispersed
+   * particles, droplets and bubbles.
+   */
+  void plas_CalcMaterialData(double T, double p);
+
+  /**
+   * This function computes the 2D scalar product of a matrix
+   * and a vector.
+   */
+  void plas_CalcMatVectScalarProduct_2D(double *value, double **m, double *a);
+
+  /**
+   * This function computes the 3D scalar product of a matrix
+   * and a vector.
+   */
+  void plas_CalcMatVectScalarProduct_3D(double *value, double **m, double *a);
+
+  /**
+   * This file includes all functinality to perform an element
+   * search for a dispersed entity.
+   *
+   * This function computes the node impact factors of an
+   * element according to the entity position.
+   */
+  void plas_CalcNodeImpactFactors(LOCAL_ENTITY_VARIABLES *ent, double *imp);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the entity Nusselt number.
+   */
+  double plas_CalcNusseltNumber(int evapModel, double reynolds, double spalding, double prandtl);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the entity Prandtl number.
+   */
+  double plas_CalcPrandtlNumber();
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   */
+  double plas_CalcPressBubble(double diameter, double pressure);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   */
+  double plas_CalcRhoBubble(double temperature, double pressBubble);
+
+  /**
+   * This function computes a rotation matrix in 2D.
+   */
+  void plas_CalcRotationMatrix_2D(double phi, double **m);
+
+  /**
+   * This function computes a rotation matrix in 3D.
+   */
+  void plas_CalcRotationMatrix_3D(double phi, double **m, int axis);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the entity Schmidt number.
+   */
+  double plas_CalcSchmidtNumber();
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the entity Sherwood number.
+   */
+  double plas_CalcSherwoodNumber(int evapModel, double reynolds, double schmidt, double spalding);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the entity Spalding number.
+   */
+  double plas_CalcSpaldingNumber(double pressure);
+
+  /**
+   * This file includes functions to compute flow coefficients.
+   *
+   * This function computes the thermal response time of the
+   * dispersed entity.
+   */
+  double plas_CalcThermalResponseTime(double diameter);
+
+  /**
+   * This file includes the functionality to perform  trajectory
+   * integrations of dispersed entities.
+   *
+   * This function composes the trajectory equation.
+   */
+  void plas_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double dtLagr);
+
+  /**
+   * This function computes the angle between two vectors.
+   */
+  double plas_CalcVectorAngle(int numDim, double *a, double *b);
+
+  /**
+   * This function computes the length of a vector.
+   */
+  double plas_CalcVectorLength(int numDim, double *a);
+
+  /**
+   * This function rotates a 3D vector.
+   */
+  void plas_CalcVectorRotation_3D(double phi, double **m, double *a);
+
+  /**
+   * This function computes the vorticity of the fluid flow.
+   */
+  void plas_CalcVorticity(int numDim, LOCAL_FLOW_VARIABLES *flow);
+
+  /**
+   * This file includes all functionality concerning entities
+   * interacting with boundaries of the computational domain,
+   * such as wall bounces and entities leaving through outlets.
+   *
+   * This function calculates the distance of an entity to a
+   * wall face.
+   */
+  double plas_CalcWallFaceDistance(int numDim, double *pos, int ibnd, int ifac);
+
+  /**
+   * This file includes the functionality to perform  trajectory
+   * integrations of dispersed entities.
+   *
+   * This function performs a not-a-number check for the entity
+   * position and velocity.
+   */
+  void plas_CheckNaN(LOCAL_ENTITY_VARIABLES *ent);
+
+  /**
+   * This function computes coalescense of bubbles according
+   * to the thin film theory.
+   *
+   * The routine is not used for the time being. Before using
+   * it, please check carefully the implementation.
+   */
+  int plas_Coalescence(double dj, double di, double *uijRelPrPr, double *x, double *y, double *z, double Mi, double Mj, double *uiPrPr, double *uiPrPrNew, double *uiNew, double *ui);
+
+  /**
+   * This function computes inter-entity collisions based on the
+   * stochastic model of Sommerfeld.
+   */
+  void plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double dtLagr);
+
+  /**
+   * This file contains all write functionality, to the screen,
+   * to output files and to Tecplot.
+   *
+   * This function writes the PLaS statistics to a file.
+   */
+  void plas_CreateStatsFile(char *outpString);
+
+  /**
+   * This file contains all write functionality, to the screen,
+   * to output files and to Tecplot.
+   *
+   * This function creates a Tecplot file of the dispersed
+   * phase entities.
+   */
+  void plas_CreateTecplotFile(char *outpString);
+
+  /**
+   * This file includes allocation and deallocation routines
+   * for PLaS data structures LOCAL_ENTITY_VARIABLES and
+   * LOCAL_FLOW_VARIABLES.
+   *
+   * This function de-allocates data for an instance of the type
+   * LOCAL_ENTITY_VARIABLES.
+   */
+  void plas_DeallocateLocalEntityVar(LOCAL_ENTITY_VARIABLES *ent);
+
+  /**
+   * This file includes allocation and deallocation routines
+   * for PLaS data structures LOCAL_ENTITY_VARIABLES and
+   * LOCAL_FLOW_VARIABLES.
+   *
+   * This function de-allocates data for an instance of the
+   * structure LOCAL_FLOW_VARIABLES.
+   */
+  void plas_DeallocateLocalFlowVar(int numDim, LOCAL_FLOW_VARIABLES *flow);
+
+  /**
+   * This file includes all functionality concerning entities
+   * interacting with boundaries of the computational domain,
+   * such as wall bounces and entities leaving through outlets.
+   *
+   * This function finds the index of the boundary face through
+   * which an entity leaft the computational domain.
+   */
+  void plas_FindExitFace(int numBnd, int numDim, LOCAL_ENTITY_VARIABLES *ent, int *f, int *i, int *j);
+
+  /**
+   * This file includes all functinality to perform an element
+   * search for a dispersed entity.
+   *
+   * This function finds the smallest element face distance to
+   * an entity.
+   */
+  void plas_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARIABLES *ent, int *idx, double *dmin);
+
+  /**
+   * This file includes all functinality to perform an element
+   * search for a dispersed entity.
+   *
+   * This function finds the closest element node to an entity.
+   */
+  int plas_FindNearestElementNode(LOCAL_ENTITY_VARIABLES *ent);
+
+  /**
+   * This file contains routines for the generation of entities,
+   * be it to form an initial set of entities or to create
+   * entites due to secondary phase boundary conditions.
+   *
+   * This function imposes entities that were generated by an
+   * external code module (e.g. electrochemistry).
+   */
+  void plas_ImposeExternal();
+
+  /**
+   * This file contains routines for the generation of entities,
+   * be it to form an initial set of entities or to create
+   * entites due to secondary phase boundary conditions.
+   *
+   * This function generates entites in specified spatial
+   * domains of the computational space.
+   */
+  void plas_ImposeProductionDomains();
+
+  /**
+   * This function manages the interpolation of variables from
+   * the fluid flow solver.
+   */
+  void plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
+
+  /**
+   * This function performs pressure interpolation from the
+   * fluid flow solver.
+   */
+  void plas_InterpolatePressure(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
+
+  /**
+   * This function performs temperature interpolation from the
+   * fluid flow solver.
+   */
+  void plas_InterpolateTemperature(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
+
+  /**
+   * This function performs velocity interpolation from the
+   * fluid flow solver.
+   */
+  void plas_InterpolateVelocity(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
+
+  /**
+   * This file contains routines for the generation of entities,
+   * be it to form an initial set of entities or to create
+   * entites due to secondary phase boundary conditions.
+   *
+   * This function loads a distribution of entities from a file.
+   */
+  void plas_LoadInitialDistribution(char *inpString);
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * MPI Allreduce of the data type MPI_INT with MPI_MAX as an
+   * operator, extended to arrays.
+   */
+  void plas_MpiAllMaxIntArray(int *val, int size);
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * MPI Allreduce of the data type MPI_INT with MPI_MAX as an
+   * operator, applicable for scalar data.
+   */
+  int plas_MpiAllMaxInt(int val);
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * MPI Allreduce of the data type MPI_INT with MPI_MIN as an
+   * operator, applicable for scalar data.
+   */
+  int plas_MpiAllMinInt(int val);
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * MPI Allreduce of the data type MPI_DOUBLE with MPI_SUM as
+   * an operator, extended to arrays.
+   */
+  void plas_MpiAllSumDoubleArray(double *val, int size);
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * MPI Allreduce of the data type MPI_DOUBLE with MPI_SUM as
+   * an operator, applicable for scalar data.
+   */
+  double plas_MpiAllSumDouble(double val);
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * MPI Allreduce of the data type MPI_INT with MPI_SUM as an
+   * operator, extended to arrays.
+   */
+  void plas_MpiAllSumIntArray(int *val, int size);
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * MPI Allreduce of the data type MPI_INT with MPI_SUM as an
+   * operator, applicable for scalar data.
+   */
+  int plas_MpiAllSumInt(int val);
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * MPI Barrier
+   */
+  void plas_MpiBarrier();
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * MPI Broadcast of the data type MPI_DOUBLE
+   */
+  void plas_MpiBroadcastDouble(double *variable, int size, int root);
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * MPI Broadcast of the data type MPI_INT
+   */
+  void plas_MpiBroadcastInt(int *variable, int size, int root);
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * This function returns the number of processes.
+   */
+  int plas_MpiGetNumProc();
+
+  /**
+   * This file contains MPI functionality for parallel
+   * computation of dispersed two-phase flow.
+   *
+   * This function returns the rank of the calling process.
+   */
+  int plas_MpiGetRank();
+
+  /**
+   * This function normalizes a vector to length one.
+   */
+  void plas_NormalizeVector(int numDim, double *a);
+
+  /**
+   * This file includes a function to pass an entity from one
+   * process of a multi-processor job to another one after the
+   * entity has crossed a process boundary.
+   *
+   * Function to pass entities from one process to another.
+   */
+  void plas_PassEntities();
+
+  /**
+   * This file contains routines to generate random numbers.
+   *
+   * This functions generates random doubles between 0 and 1.
+   */
+  double plas_RandomDouble();
+
+  /**
+   * This file contains routines to generate random numbers.
+   *
+   * This functions generates random numbers according to a
+   * Gaussian distribution with mean m and standard deviation s.
+   *
+   * (c) Copyright 1994, Everett F. Carter Jr.
+   * Permission is granted by the author to use this software
+   * for any application provided this copyright notice
+   * is preserved.
+   */
+  double plas_RandomGaussian(float m, float s);
+
+  /**
+   * This file contains routines for the generation of entities,
+   * be it to form an initial set of entities or to create
+   * entites due to secondary phase boundary conditions.
+   *
+   * This function performs a random initial distribution of
+   * dispersed entites.
+   */
+  void plas_RandomInitialDistribution();
+
+  /**
+   * This file contains routines to generate random numbers.
+   *
+   * This functions generates random integers.
+   */
+  int plas_RandomInteger(int min, int max);
+
+  /**
+   * This file contains all functionality to read in data from
+   * the PLaS.conf data file.
+   *
+   * This function reads the PLaS.conf data file.
+   */
+  void plas_ReadParameters();
+
+  /**
+   * This file includes all functinality to perform an element
+   * search for a dispersed entity.
+   */
+  void plas_SearchDomainParallel(LOCAL_ENTITY_VARIABLES *ent);
+
+  /**
+   * This file includes all functinality to perform an element
+   * search for a dispersed entity.
+   *
+   * This function performs a successive neigbour search routine
+   * following the algorithm of Loehner et al.
+   */
+  void plas_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent);
+
+  /**
+   * This file contains routines for the generation of entities,
+   * be it to form an initial set of entities or to create
+   * entites due to secondary phase boundary conditions.
+   *
+   * This function sets an entity diameter according to a
+   * distribution function.
+   */
+  double plas_SetDiameter();
+
+  /**
+   * This function sets the faces and normal vectors of the
+   * element assigned to a dispersed entity.
+   */
+  void plas_SetElementFaces(int numDim, LOCAL_ENTITY_VARIABLES *ent);
+
+  /**
+   * This function sets the geometry of an element assigned to
+   * a dispersed entity.
+   */
+  void plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent);
+
+  /**
+   * This function sets the nodes of the element assigned to a
+   * dispersed entity.
+   */
+  void plas_SetElementNodes(int numDim, LOCAL_ENTITY_VARIABLES *ent);
+
+  /**
+   * This file includes the functionality to perform  trajectory
+   * integrations of dispersed entities.
+   *
+   * This function solves the trajectory equation.
+   */
+  void plas_SolveGaussSeidel(int numDim, double **mat, double *s, double *rhs);
+
+  /**
+   * This file includes all functionality concerning entities
+   * interacting with boundaries of the computational domain,
+   * such as wall bounces and entities leaving through outlets.
+   *
+   * This function performs a wall bounce for an entity that
+   * crossed a wall face of the domain boundary in the last
+   * trajectory updata. Position and velocity are corrected.
+   */
+  void plas_WallBounce(int numDim, double elasticity, LOCAL_ENTITY_VARIABLES *ent, int ibnd, int ifac);
+
+  /**
+   * This file contains all write functionality, to the screen,
+   * to output files and to Tecplot.
+   *
+   * This function writes the PLaS statistics to a file.
+   */
+  void plas_WriteStatsFile(char *outpString, int iter, double time);
+
+  /**
+   * This file contains all write functionality, to the screen,
+   * to output files and to Tecplot.
+   *
+   * This function appends Tecplot output of the dispersed
+   * phase entities into the previously created file
+   */
+  void plas_WriteTecplotFile(char *outpString, int iter, double time);
+
+
+ public: // internal data (PLAS_DATA)
+
+  PLAS_ENTITY_DATA      *ed;          // Entity data structure (per entity)
+  PLAS_PHASE_DATA       *pd;          // Phase data structure (per node)
+  PLAS_MATERIAL_DATA    md;           // Material data structure
+  PLAS_STATS            sd;           // Statistics data structure
+  PLAS_INPUT_PARAM      ip;           // Input file parameter structure
+  PLAS_FLOWSOLVER_PARAM fp;           // Flowsolver parameter structure
+  PLAS_RUNTIME_PARAM    rp;           // PLaS internal runtime parameter structure
+  int                   numExtEnt;    // Number of bubbles coming from external code
+  double                *extEntPos;   // Positions of bubbles coming from external code
+  double                *extEntVel;   // Velocities of bubbles coming from external code
+  double                *extEntTemp;  // Temperatures of bubbles coming from external code
+  double                *extEntDiam;  // Diameters of bubbles coming from external code
+
+};
 
 #endif  // PLAS_PLAS_H
 
