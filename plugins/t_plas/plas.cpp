@@ -1,5 +1,5 @@
 
-#include "plas_driver.h"
+#include "t_plas.h"
 
 /*
  * This file includes the interface between the PLaS driver
