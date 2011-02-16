@@ -32,7 +32,6 @@ typedef struct driver_gambit_mesh{
     numElm,
     numBnd,
     numDim,
-    numGrps,
     *elmTypes,
     *bndTypes,
     *numElmNodes,
@@ -52,9 +51,7 @@ typedef struct driver_gambit_mesh{
     domainVolume,
     minElmVolume,
     maxElmVolume;
-  char
-    **bndNames,
-    text[100][100];
+  char **bndNames;
 } DRIVER_GAMBIT_MESH;
 
 
@@ -72,7 +69,8 @@ typedef struct driver_flow_field{
 
 
 // module to use the Particle Lagrangian Solver (PLaS)
-class t_plas : public m::mtransform, plas {
+class t_plas : public m::mtransform,
+               public plas {
  public:
   void transform(GetPot& o, m::mmesh& m);
 
@@ -88,7 +86,7 @@ class t_plas : public m::mtransform, plas {
   void   plasdriver_FreeGambitMemory(DRIVER_GAMBIT_MESH *dmesh);
   void   plasdriver_InitFlowField(DRIVER_GAMBIT_MESH *dmesh, int material, DRIVER_FLOW_FIELD *dflow);
   void   plasdriver_ReadDriverDataFile(DRIVER_PARAMETERS *dparam);
-  void   plasdriver_ReadGambitNeutralFile(DRIVER_GAMBIT_MESH *dmesh, DRIVER_PARAMETERS *dparam);
+  void   plasdriver_ReadGambitNeutralFile();
   void   plasdriver_WriteTecplot(DRIVER_GAMBIT_MESH *dmesh, DRIVER_PARAMETERS *dparam, DRIVER_FLOW_FIELD *dflow);
   void   plasdriver_GetFaceNodes(DRIVER_GAMBIT_MESH *dmesh, int elm, int face, int *nodes);
 
@@ -122,13 +120,14 @@ class t_plas : public m::mtransform, plas {
    int    EndElementSearch             (double *pos)                   { return dmesh.numElm-1; }
    int    StartElementSearch           (double *pos)                   { return 0; }
    void   setPartitioningData          (PLAS_PART_DATA *part)          { part->numNodPairs = 0; }
-   void   screenOutput                 (char *text)                    { printf("INFO: %s",text); }
-   void   screenWarning                (char *text)                    { printf("WARN: %s",text); }
+   void   screenOutput                 (const std::string& text)                    { std::cout << "t_plas: info: " << text << std::endl; }
+   void   screenWarning                (const std::string& text)                    { std::cout << "t_plas: warn: " << text << std::endl; }
 
  private:  // member variables
   DRIVER_PARAMETERS  dparam;
   DRIVER_GAMBIT_MESH dmesh;
   DRIVER_FLOW_FIELD  dflow;
+  m::mmesh M;
 };
 
 

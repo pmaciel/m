@@ -1,6 +1,11 @@
 
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <cmath>
+#ifdef MPI
+#include <mpi.h>
+#endif
 #include "plas.h"
 
 
@@ -1584,7 +1589,7 @@ void plas::plas_CheckNaN(LOCAL_ENTITY_VARIABLES *ent)
   if(isnan(checkNanPos) || isnan(checkNanVel)){
     ent->flag = DFLAG_DISABLED;
     sd.lost++;
-    screenWarning((char*) "Not-a-number detected.\n");
+    screenWarning("Not-a-number detected");
   }
 }
 
@@ -1703,9 +1708,9 @@ void plas::plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double 
     length;
 
 
-  double **M = new double*[fp.numDim];
+  double **mat = new double*[fp.numDim];
   for (int r=0; r<fp.numDim; ++r)
-    M[r] = new double[fp.numDim];
+    mat[r] = new double[fp.numDim];
 
 
   //***Set local entity properties (subscript i)***//
@@ -1783,10 +1788,10 @@ void plas::plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double 
     Phi = asin(L);
     Psi = atan(Y/Z);
 
-    plas_CalcRotationMatrix_3D(Phi,M,2);
-    plas_CalcMatVectScalarProduct_3D(pos2Pr,M,xPr);
-    plas_CalcVectorRotation_3D(Psi,M,xPr);
-    plas_CalcMatVectScalarProduct_3D(pos2Pr,M,pos2Pr);
+    plas_CalcRotationMatrix_3D(Phi,mat,2);
+    plas_CalcMatVectScalarProduct_3D(pos2Pr,mat,xPr);
+    plas_CalcVectorRotation_3D(Psi,mat,xPr);
+    plas_CalcMatVectScalarProduct_3D(pos2Pr,mat,pos2Pr);
 
     for(idim=0; idim<fp.numDim; idim++){
       pos2Pr[idim] *= (dj+di)/2.0;
@@ -1855,8 +1860,8 @@ void plas::plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double 
   }
 
   for (int r=0; r<fp.numDim; ++r)
-    delete[] M[r];
-  delete[] M;
+    delete[] mat[r];
+  delete[] mat;
 }
 
 
@@ -3478,15 +3483,10 @@ void plas::plas_SolveGaussSeidel(int numDim, double **mat, double *s, double *rh
 }
 
 
-void plas::plas_TerminateOnError(char *errMessage)
+void plas::plas_TerminateOnError(const std::string& errMessage)
 {
-  char screenMessage[120];
-
-  screenWarning((char*) "*** PLAS FATAL ERROR!\n");
-  sprintf(screenMessage,"*** %s\n",errMessage);
-  screenWarning(screenMessage);
-  screenWarning((char*) "*** Terminating program.\n");
-
+  screenWarning(errMessage);
+  screenWarning("FATAL ERROR!");
   throw 42;
 }
 

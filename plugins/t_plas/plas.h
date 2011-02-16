@@ -2,19 +2,8 @@
 #define PLAS_PLAS_H
 
 
-/*
- * This file contains definitions of the PLaS data structure
- * and interface functions to the flow solver.
- */
-
-
 /// Included files
-#include <cstdio>
-#include <cstring>
-#include <cmath>
-#ifdef MPI
-#include <mpi.h>
-#endif
+#include <string>
 
 
 /// Preprocessor constants
@@ -512,13 +501,13 @@ class plas {
    * Pass data for screen output
    * @param[in] text screen output
    */
-  virtual void screenOutput(char *text) = 0;
+  virtual void screenOutput(const std::string& text) = 0;
 
   /**
    * Pass data for a screen warning
    * @param[in] text screen warning
    */
-  virtual void screenWarning(char *text) = 0;
+  virtual void screenWarning(const std::string& text) = 0;
 
 
  public:  // internal methods
@@ -540,7 +529,7 @@ class plas {
     * This routine terminates PLaS due to a fatal error. It
     * writes out an error message.
     */
-   void plas_TerminateOnError(char *errMessage);
+   void plas_TerminateOnError(const std::string& errMessage);
 
    /**
     * This file contains all functionality to read in data from

@@ -14,39 +14,29 @@ Register< mtransform,t_plas > mt_plas("-tplas","Particle Lagrangian Solver (PLaS
 
 void t_plas::transform(GetPot& o, mmesh& m)
 {
-#if 0
-  int i;
-
-  printf("-------------------\n");
-  printf("PLaS driver program\n");
-  printf("-------------------\n");
-
-  //***Read driver parameters***//
-
-  printf("Reading driver.conf...\n");
+  screenOutput("read driver parameters (driver.conf)");
   plasdriver_ReadDriverDataFile(&dparam);
 
-  //***Read mesh***//
 
-  printf("Reading Gambit neutral file \"%s.neu\"...\n",dparam.gridString);
-  plasdriver_ReadGambitNeutralFile(&dmesh,&dparam);
+  screenOutput("converting m::mmesh to dmesh...");
+  M = m;
+  plasdriver_ReadGambitNeutralFile();
 
-  //***Geometry calculations***//
 
-  printf("Performing geometry calculations...\n");
-  printf("   Elements around nodes...\n");
+  screenOutput("performing geometry calculations: elements around nodes...");
   plasdriver_CalcElmsAroundNode(&dmesh);
-  printf("   Element neighbours...\n");
+  screenOutput("performing geometry calculations: element neighbours...");
   plasdriver_CalcElementNeighbours(&dmesh);
-  printf("   Element normals...\n");
+  screenOutput("performing geometry calculations: element normals...");
   plasdriver_CalcElementNormals(&dmesh);
-  printf("   Element volumes...\n");
+  screenOutput("performing geometry calculations: element volumes...");
   plasdriver_CalcElementVolumes(&dmesh);
-  printf("   Nodal volumes...\n");
+  screenOutput("performing geometry calculations: nodal volumes...");
   plasdriver_CalcNodalVolumes(&dmesh);
 
-  dmesh.domainVolume = 0.0;
-  for(i=0; i<dmesh.numElm; i++){
+
+  dmesh.domainVolume = 0.;
+  for (int i=0; i<dmesh.numElm; ++i){
     dmesh.domainVolume += dmesh.elmVolumes[i];
     if(i==0){
       dmesh.minElmVolume = dmesh.elmVolumes[i];
@@ -61,28 +51,24 @@ void t_plas::transform(GetPot& o, mmesh& m)
     }
   }
 
+
   dparam.numUnk = dmesh.numDim+2;
 
-  //***Define or read steady-state flow field***//
 
-  printf("Initializing flow field...\n");
+  screenOutput("initializing flow field...");
   dflow.p = new double[dmesh.numNod];
   dflow.T = new double[dmesh.numNod];
   dflow.u = new double*[dmesh.numNod];
-  for(i=0; i<dmesh.numNod; i++){
+  for (int i=0; i<dmesh.numNod; ++i)
     dflow.u[i] = new double[dmesh.numDim];
-  }
   plasdriver_InitFlowField(&dmesh,dparam.material,&dflow);
 
-  //***Write Tecplot file of flow field***//
 
-  printf("Writing out flow field file \"%s.plt\"\n",dparam.gridString);
+  screenOutput("write flow field...");
   plasdriver_WriteTecplot(&dmesh,&dparam,&dflow);
 
-  //***Initialize PLaS***//
 
-  printf("--------------------\n");
-  printf("Initializing PLaS...\n");
+  screenOutput("initializing PLaS...");
 #ifdef MPI
   int proc, rank;
   MPI_Init(&argc,&argv);
@@ -90,31 +76,28 @@ void t_plas::transform(GetPot& o, mmesh& m)
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 #endif
   plas::initialize();
-  printf("--------------------\n");
+  screenOutput("initializing PLaS.");
 
-  //***Perform PLaS iterations***//
 
-  for(dparam.iter=1; dparam.iter<=dparam.numIter; dparam.iter++){
-    printf("Iteration %d\n",dparam.iter);
+  screenOutput("perform PLaS iterations...");
+  for (dparam.iter=1; dparam.iter<=dparam.numIter; ++dparam.iter) {
+    screenOutput("iterate...");
     plas::run();
   }
+  screenOutput("perform PLaS iterations.");
 
-  //***Terminate PLaS***//
 
-  printf("--------------------\n");
-  printf("Terminating PLaS...\n");
+  screenOutput("terminating PLaS...");
   plasdriver_FreeGambitMemory(&dmesh);
-  for(i=0; i<dmesh.numNod; ++i)
+  for (int i=0; i<dmesh.numNod; ++i)
     delete[] dflow.u[i];
   delete[] dflow.p;
   delete[] dflow.u;
   delete[] dflow.T;
-
 #ifdef MPI
   MPI_Finalize();
 #endif
-  printf("-------------------\n");
-#endif
+  screenOutput("terminating PLaS.");
 }
 
 
@@ -747,74 +730,55 @@ void t_plas::plasdriver_InitFlowField(DRIVER_GAMBIT_MESH *dmesh, int material, D
 // This function reads the driver data from an input file.
 void t_plas::plasdriver_ReadDriverDataFile(DRIVER_PARAMETERS *dparam)
 {
-  int i,ignore_i;
-  char fileString[100],errMessage[100],text[100],*ignore_cp;
+  int ignore_i;
+  char text[100],*ignore_cp;
   FILE *inpFile;
 
-  //***Check if file exists***//
 
-  sprintf(fileString,"./plas.driver");
-  if(fopen(fileString,"r")==0){
-    sprintf(errMessage,"File \"%s\" was not found.",fileString);
-    plas_TerminateOnError(errMessage);
-  }
+  screenOutput("check if file \"plas.driver\" exists...");
+  if (!fopen("plas.driver","r"))
+    plas_TerminateOnError("file \"plas.driver\" was not found");
 
-  //***Openm file***//
 
-  inpFile = fopen(fileString,"r");
+  screenOutput("open file...");
+  inpFile = fopen("plas.driver","r");
 
-  //***Read case name***//
 
+  screenOutput("read case name...");
   ignore_cp = fgets(text,100,inpFile);
   ignore_i  = fscanf(inpFile,"%s",dparam->gridString);
-  printf("   Case name is \"%s\"\n",dparam->gridString);
   ignore_cp = fgets(text,100,inpFile);
 
-  //***Read boundaries***//
 
+  screenOutput("read boundaries...");
   ignore_cp = fgets(text,100,inpFile);
   ignore_i  = fscanf(inpFile,"%d",&dparam->numBnd);
-  printf("   Number of boundaries is %d\n",dparam->numBnd);
   dparam->bnd = new int[dparam->numBnd];
   ignore_cp  = fgets(text,100,inpFile);
-  for(i=0; i<dparam->numBnd; i++){
+  for (int i=0; i<dparam->numBnd; ++i)
     ignore_i = fscanf(inpFile,"%d",&dparam->bnd[i]);
-  }
-  ignore_cp  = fgets(text,100,inpFile);
+  ignore_cp = fgets(text,100,inpFile);
 
-  //***Read number of iterations***//
 
+  screenOutput("read number of iterations...");
   dparam->numIter = plas_ReadIntParam(inpFile);
-  if(dparam->numIter<0){
-    sprintf(errMessage,"Bad value for numer of iterations.");
-    plas_TerminateOnError(errMessage);
-  }
-  printf("   Number of iterations is %d\n",dparam->numIter);
+  if (dparam->numIter<0)
+    plas_TerminateOnError("bad value for numer of iterations.");
 
-  //***Read Eulerian time step size***//
 
+  screenOutput("read Eulerian time step size...");
   dparam->dtEul = plas_ReadDoubleParam(inpFile);
-  if(dparam->dtEul<=0.0){
-    sprintf(errMessage,"Bad value for Eulerian time step size.");
-    plas_TerminateOnError(errMessage);
-  }
-  printf("   Eulerian time step is %f\n",dparam->dtEul);
+  if (dparam->dtEul<=0.)
+    plas_TerminateOnError("bad value for Eulerian time step size");
 
-  //***Read flow medium***//
 
+  screenOutput("read flow medium...");
   dparam->material = plas_ReadDoubleParam(inpFile);
-  if(dparam->material!=AIR && dparam->material!=WATER && dparam->material!=NITROGEN){
-    sprintf(errMessage,"Bad value for material identifier.");
-    plas_TerminateOnError(errMessage);
-  }
-  if(dparam->material==AIR){
-    printf("   Flow medium is AIR\n");
-  } else if(dparam->material==WATER){
-    printf("   Flow medium is WATER\n");
-  } else if(dparam->material==NITROGEN){
-    printf("   Flow medium is NITROGEN\n");
-  }
+  if (dparam->material!=AIR && dparam->material!=WATER && dparam->material!=NITROGEN)
+    plas_TerminateOnError("bad value for material identifier.");
 
+
+  screenOutput("close file...");
   fclose(inpFile);
 }
 
@@ -822,192 +786,187 @@ void t_plas::plasdriver_ReadDriverDataFile(DRIVER_PARAMETERS *dparam)
 // This file contains routines to compute the geometry of the
 // mesh used for the steady-state flow solution.
 // This function reads a Gambit mesh.
-void t_plas::plasdriver_ReadGambitNeutralFile(DRIVER_GAMBIT_MESH *dmesh, DRIVER_PARAMETERS *dparam)
+void t_plas::plasdriver_ReadGambitNeutralFile()
 {
-  int g,i,j,idim,inod,ielm,ifac,ibnd,jbnd,dummy,ignore_i;
-  int ctr_tri,ctr_tet,ctr_qua,ctr_hex,ctr_pri,ctr_pyr;
-  char fileString[100],dummyString[100],errMessage[100],*ignore_cp;
-  FILE *inpFile;
+  /*
+    typedef struct driver_gambit_mesh{
+      int
+        numNod,
+        numElm,
+        numBnd,
+        numDim,
+        *elmTypes,
+        *bndTypes,
+        *numElmNodes,
+        **elmNodes,
+        *numBndFaces,
+        **bndFaces,
+        **bndDomElms,
+        *numNodElms,
+        **nodElms,
+        *numElmFaces,
+        **elmNeighbs;
+      double
+        **coords,
+        ***elmNorms,
+        *nodVolumes,
+        *elmVolumes,
+        domainVolume,
+        minElmVolume,
+        maxElmVolume;
+      char
+        **bndNames,
+        text[100][100];
+    } DRIVER_GAMBIT_MESH;
+  */
+    /*
+    M.vn.clear();
+    for (int d=0; d<dmesh.numDim; ++d) M.vn.push_back(    std::string(1,char('x'+d)));
+    for (int d=0; d<dmesh.numDim; ++d) M.vn.push_back("v"+std::string(1,char('x'+d)));
+    M.vn.push_back("p");
+    M.vn.push_back("T");
+    M.vv.assign(M.v(),std::vector< double >(dmesh.numNod,0.));
+    */
 
-  //***Open file***//
+  int i,j,idim,ielm,ifac,ibnd,jbnd,dummy,ignore_i,ctr_tri,ctr_tet,ctr_qua,ctr_hex,ctr_pri,ctr_pyr;
+  char dummyString[100],*ignore_cp,text[100][100];
+  FILE *inpFile = NULL;
 
-  sprintf(fileString,"%s.neu",dparam->gridString);
-  if(fopen(fileString,"r")==0){
-    printf("Neutral file reader error: File \"%s\" was not found.\n",fileString);
-    exit(-1);
+
+  dmesh.numNod = (int) M.n();
+  dmesh.numDim = (int) M.d();
+  dmesh.numElm = 0;
+  dmesh.numBnd = 0;
+  for (unsigned i=0; i<M.z(); ++i) {
+    dmesh.numElm += M.d(i)==M.d()?   M.e(i):0;
+    dmesh.numBnd += M.d(i)==M.d()-1?      1:0;
   }
 
-  inpFile = fopen(fileString,"r");
-
-  for(i=0; i<6; i++){ignore_cp = fgets(dmesh->text[i],100,inpFile);}
-
-  //***Scan header data***//
-
-  ignore_i  = fscanf(inpFile,"%d",&dmesh->numNod);
-  ignore_i  = fscanf(inpFile,"%d",&dmesh->numElm);
-  ignore_i  = fscanf(inpFile,"%d",&dmesh->numGrps);
-  ignore_i  = fscanf(inpFile,"%d",&dmesh->numBnd);
-  ignore_i  = fscanf(inpFile,"%d",&dmesh->numDim);
-  ignore_i  = fscanf(inpFile,"%d",&dummy);
-  ignore_cp = fgets(dummyString,100,inpFile);
 
   //***Read nodes***//
-
-  printf("   Number of dimensions is %d\n",dmesh->numDim);
-  printf("   Number of nodes is %d\n",dmesh->numNod);
-  dmesh->coords = new double*[dmesh->numNod];
-  for(inod=0; inod<dmesh->numNod; inod++){
-    dmesh->coords[inod] = new double[dmesh->numDim];
+  dmesh.coords = new double*[M.n()];
+  for (unsigned i=0; i<M.n(); ++i) {
+    dmesh.coords[i] = new double[M.d()];
+    for (unsigned d=0; d<M.d(); ++d)
+      dmesh.coords[i][d] = M.vv[d][i];
   }
 
-  for(i=6; i<8; i++){ignore_cp = fgets(dmesh->text[i],100,inpFile);}
 
-  for(inod=0; inod<dmesh->numNod; inod++){
-    ignore_i  = fscanf(inpFile,"%d",&dummy);
-    for(idim=0; idim<dmesh->numDim; idim++){
-      ignore_i  = fscanf(inpFile,"%lf",&dmesh->coords[inod][idim]);
-    }
-    ignore_cp = fgets(dummyString,100,inpFile);
-  }
+  //OK up to here
+
 
   //***Read elements***//
-
-  printf("   Number of elements is %d\n",dmesh->numElm);
   ctr_tri = ctr_tet = ctr_qua = ctr_hex = ctr_pri = ctr_pyr = 0;
-  dmesh->elmTypes    = new int     [dmesh->numElm];
-  dmesh->numElmNodes = new int     [dmesh->numElm];
-  dmesh->elmNodes    = new int*    [dmesh->numElm];
-  dmesh->numElmFaces = new int     [dmesh->numElm];
-  dmesh->elmNorms    = new double**[dmesh->numElm];
+  dmesh.elmTypes    = new int     [dmesh.numElm];
+  dmesh.numElmNodes = new int     [dmesh.numElm];
+  dmesh.elmNodes    = new int*    [dmesh.numElm];
+  dmesh.numElmFaces = new int     [dmesh.numElm];
+  dmesh.elmNorms    = new double**[dmesh.numElm];
 
-  for(i=8; i<10; i++){ignore_cp = fgets(dmesh->text[i],100,inpFile);}
+  for(i=8; i<10; i++){ignore_cp = fgets(text[i],100,inpFile);}
 
-  for(ielm=0; ielm<dmesh->numElm; ielm++){
+  for(ielm=0; ielm<dmesh.numElm; ielm++){
 
     ignore_i  = fscanf(inpFile,"%d",&dummy);
     ignore_i  = fscanf(inpFile,"%d",&dummy);
 
     if(dummy==1 || dummy==3 || dummy==6){
-      dmesh->elmTypes[ielm] = ELM_SIMPLEX;
-      if(dmesh->numDim==2){
-        dmesh->numElmFaces[ielm] = 3;
+      dmesh.elmTypes[ielm] = ELM_SIMPLEX;
+      if(dmesh.numDim==2){
+        dmesh.numElmFaces[ielm] = 3;
         ctr_tri++;
-      } else if(dmesh->numDim==3){
-        dmesh->numElmFaces[ielm] = 4;
+      } else if(dmesh.numDim==3){
+        dmesh.numElmFaces[ielm] = 4;
         ctr_tet++;
       }
     } else if(dummy==2){
-      dmesh->elmTypes[ielm] = ELM_QUAD;
-      dmesh->numElmFaces[ielm] = 4;
+      dmesh.elmTypes[ielm] = ELM_QUAD;
+      dmesh.numElmFaces[ielm] = 4;
       ctr_qua++;
     } else if(dummy==4){
-      dmesh->elmTypes[ielm] = ELM_HEX;
-      dmesh->numElmFaces[ielm] = 6;
+      dmesh.elmTypes[ielm] = ELM_HEX;
+      dmesh.numElmFaces[ielm] = 6;
       ctr_hex++;
     } else if(dummy==5){
-      dmesh->elmTypes[ielm] = ELM_PRISM;
-      dmesh->numElmFaces[ielm] = 5;
+      dmesh.elmTypes[ielm] = ELM_PRISM;
+      dmesh.numElmFaces[ielm] = 5;
       ctr_pri++;
     } else if(dummy==7){
-      dmesh->elmTypes[ielm] = ELM_PYRAMID;
-      dmesh->numElmFaces[ielm] = 5;
+      dmesh.elmTypes[ielm] = ELM_PYRAMID;
+      dmesh.numElmFaces[ielm] = 5;
       ctr_pyr++;
     }
 
-    dmesh->elmNorms[ielm] = new double*[dmesh->numElmFaces[ielm]];
-    for(ifac=0; ifac<dmesh->numElmFaces[ielm]; ifac++){
-      dmesh->elmNorms[ielm][ifac] = new double[dmesh->numDim];
+    dmesh.elmNorms[ielm] = new double*[dmesh.numElmFaces[ielm]];
+    for(ifac=0; ifac<dmesh.numElmFaces[ielm]; ifac++){
+      dmesh.elmNorms[ielm][ifac] = new double[dmesh.numDim];
     }
 
-    ignore_i  = fscanf(inpFile,"%d",&dmesh->numElmNodes[ielm]);
-    dmesh->elmNodes[ielm] = new int[dmesh->numElmNodes[ielm]];
-    for(idim=0; idim<dmesh->numElmNodes[ielm]; idim++){
-      ignore_i  = fscanf(inpFile,"%d",&dmesh->elmNodes[ielm][idim]);
-      dmesh->elmNodes[ielm][idim]--;
+    ignore_i  = fscanf(inpFile,"%d",&dmesh.numElmNodes[ielm]);
+    dmesh.elmNodes[ielm] = new int[dmesh.numElmNodes[ielm]];
+    for(idim=0; idim<dmesh.numElmNodes[ielm]; idim++){
+      ignore_i  = fscanf(inpFile,"%d",&dmesh.elmNodes[ielm][idim]);
+      dmesh.elmNodes[ielm][idim]--;
     }
     ignore_cp = fgets(dummyString,100,inpFile);
   }
 
-  if(dmesh->numDim==2){
-    printf("      Triangles: %d\n",ctr_tri);
-    printf("      Quadrilaterals: %d\n",ctr_qua);
-  } else if(dmesh->numDim==3){
-    printf("      Tetrahedra: %d\n",ctr_tet);
-    printf("      Hexahedra: %d\n",ctr_hex);
-    printf("      Prisms: %d\n",ctr_pri);
-    printf("      Pyramids: %d\n",ctr_pyr);
-  }
 
   //***Read boundary information***//
-
-  printf("   Number of boundaries is %d\n",dmesh->numBnd);
-  dmesh->bndNames    = new char*[dmesh->numBnd];
-  dmesh->numBndFaces = new int  [dmesh->numBnd];
-  dmesh->bndFaces    = new int* [dmesh->numBnd];
-  dmesh->bndDomElms  = new int* [dmesh->numBnd];
-  dmesh->bndTypes    = new int  [dmesh->numBnd];
-  if(dparam->numBnd!=dmesh->numBnd){
-    sprintf(errMessage,"Number of boundary mismatch between driver.conf and Gambit mesh file.");
-    plas_TerminateOnError(errMessage);
+  dmesh.bndNames    = new char*[dmesh.numBnd];
+  dmesh.numBndFaces = new int  [dmesh.numBnd];
+  dmesh.bndFaces    = new int* [dmesh.numBnd];
+  dmesh.bndDomElms  = new int* [dmesh.numBnd];
+  dmesh.bndTypes    = new int  [dmesh.numBnd];
+  if (dparam.numBnd!=dmesh.numBnd)
+    plas_TerminateOnError("Number of boundary mismatch between driver.conf and Gambit mesh file");
+  for(i=0; i<dmesh.numBnd; i++){
+    dmesh.bndTypes[i] = dparam.bnd[i];
   }
-  for(i=0; i<dmesh->numBnd; i++){
-    dmesh->bndTypes[i] = dparam->bnd[i];
-  }
-  delete[] dparam->bnd;
+  delete[] dparam.bnd;
 
-  for(i=10; i<14; i++){ignore_cp = fgets(dmesh->text[i],100,inpFile);}
-
-  g = dmesh->numGrps;
-  do{
-    do{
-      ignore_cp = fgets(dummyString,100,inpFile);
-    }while(strncmp(dummyString,"ENDOFSECTION",12)!=0);
-  }while(--g>0);
-
-  for(ibnd=0; ibnd<dmesh->numBnd; ibnd++){
-    ignore_cp = fgets(dmesh->text[i],100,inpFile);
+  for(ibnd=0; ibnd<dmesh.numBnd; ibnd++){
+    ignore_cp = fgets(text[i],100,inpFile);
     i++;
-    dmesh->bndNames[ibnd] = new char[33];
+    dmesh.bndNames[ibnd] = new char[33];
     for(j=0; j<32; j++){
-      ignore_i  = fscanf(inpFile,"%c",&dmesh->bndNames[ibnd][j]);
+      ignore_i  = fscanf(inpFile,"%c",&dmesh.bndNames[ibnd][j]);
     }
 
-    //***Align boundary name***//
 
+    //***Align boundary name***//
     i = 0;
-    while(dmesh->bndNames[ibnd][i]==32){
+    while(dmesh.bndNames[ibnd][i]==32){
       i++;
     }
     j = 0;
     while(i<32){
-      dmesh->bndNames[ibnd][j] = dmesh->bndNames[ibnd][i];
+      dmesh.bndNames[ibnd][j] = dmesh.bndNames[ibnd][i];
       i++;
       j++;
     }
-    dmesh->bndNames[ibnd][j] = '\0';
+    dmesh.bndNames[ibnd][j] = '\0';
 
     ignore_i  = fscanf(inpFile,"%d",&dummy);
 
-    if(dummy!=1){
-      printf("Neutral file reader error: Boundary ITYPE is not element/cell.\n");
-      exit(-1);
-    }
+    if (dummy!=1)
+      plas_TerminateOnError("Neutral file reader error: Boundary ITYPE is not element/cell");
 
-    ignore_i  = fscanf(inpFile,"%d",&dmesh->numBndFaces[ibnd]);
+    ignore_i  = fscanf(inpFile,"%d",&dmesh.numBndFaces[ibnd]);
     ignore_i  = fscanf(inpFile,"%d",&dummy);
     ignore_i  = fscanf(inpFile,"%d",&dummy);
     ignore_cp = fgets(dummyString,100,inpFile);
-    dmesh->bndFaces[ibnd]   = new int[dmesh->numBndFaces[ibnd]];
-    dmesh->bndDomElms[ibnd] = new int[dmesh->numBndFaces[ibnd]];
-    for(jbnd=0; jbnd<dmesh->numBndFaces[ibnd]; jbnd++){
-      ignore_i  = fscanf(inpFile,"%d",&dmesh->bndDomElms[ibnd][jbnd]);
-      dmesh->bndDomElms[ibnd][jbnd]--;
+    dmesh.bndFaces[ibnd]   = new int[dmesh.numBndFaces[ibnd]];
+    dmesh.bndDomElms[ibnd] = new int[dmesh.numBndFaces[ibnd]];
+    for(jbnd=0; jbnd<dmesh.numBndFaces[ibnd]; jbnd++){
+      ignore_i  = fscanf(inpFile,"%d",&dmesh.bndDomElms[ibnd][jbnd]);
+      dmesh.bndDomElms[ibnd][jbnd]--;
       ignore_i  = fscanf(inpFile,"%d",&dummy);
-      ignore_i  = fscanf(inpFile,"%d",&dmesh->bndFaces[ibnd][jbnd]);
-      dmesh->bndFaces[ibnd][jbnd]--;
+      ignore_i  = fscanf(inpFile,"%d",&dmesh.bndFaces[ibnd][jbnd]);
+      dmesh.bndFaces[ibnd][jbnd]--;
       ignore_cp = fgets(dummyString,100,inpFile);
     }
-    ignore_cp = fgets(dmesh->text[i],100,inpFile);
+    ignore_cp = fgets(text[i],100,inpFile);
     i++;
   }
 
