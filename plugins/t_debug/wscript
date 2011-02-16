@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  conf.env.m_mlibraries.append('t_debug')
+
+
+def build(bld):
+  bld.shlib(
+    target   = 't_debug',
+    includes = ['.','../../mkernel'],
+    source   = ['t_debug.cpp'] )
+
