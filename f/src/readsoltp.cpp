@@ -7,16 +7,16 @@
 #include "common.h"
 
 
-/*
+/**
  * comparison of boundary element with "inner cells" connectivity, returning the
  * "inner cell" index and respective opposite node global/local indices.
  * note: it only checks cells which touch a boundary
- * in: "inner" connectivity
- * in: marker for cells sitting on the boundary
- * in: boundary element to compare
- * out: "inner" correponding cell (0-based)
- * out: ... cell opposite node, global index (0-based)
- * out: ... cell opposite node, local index (0-based)
+ * @param[in] e2n "inner" connectivity
+ * @param[in] e2n_isbnd marker for cells sitting on the boundary
+ * @param[in] ben boundary element to compare
+ * @param[out] bcell "inner" corresponding cell (0-based)
+ * @param[out] bnode ... cell opposite node, global index (0-based)
+ * @param[out] binc ... cell opposite node, local index (0-based)
  */
 void fab(
   const std::vector< m::melem >& e2n, const std::vector< bool >& e2n_isbnd,
@@ -51,11 +51,11 @@ void fab(
 }
 
 
-/*
+/**
  * read grid/solution file in tecplot format
  * (first into m:mmesh format, then convert into native data structure)
- * in: file name
- * in: if solution is to be read as well
+ * @param[in] infile file name
+ * @param[in] read_soln if solution is to be read as well
  */
 void readsoltp(const std::string& infile, int read_soln)
 {

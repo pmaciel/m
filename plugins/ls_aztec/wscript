@@ -23,9 +23,9 @@ def build(bld):
       'az_sort.c', 'az_subdomain_solver.c', 'az_tools.c', 'az_util.c',
       'az_icc.c', 'az_fix_pt.c', 'md_wrap_scalar_c.c', 'md_timer_generic.c',
       # netlib Y12M
-     'y12m.f', 'y12mae.f', 'y12maf.f', 'y12mbe.f', 'y12mbf.f', 'y12mce.f',
-     'y12mcf.f', 'y12mde.f', 'y12mdf.f', 'y12mfe.f', 'y12mge.f', 'y12mhe.f',
-     'y12cck.f' ] )
+      'y12m.f', 'y12mae.f', 'y12maf.f', 'y12mbe.f', 'y12mbf.f', 'y12mce.f',
+      'y12mcf.f', 'y12mde.f', 'y12mdf.f', 'y12mfe.f', 'y12mge.f', 'y12mhe.f',
+      'y12cck.f' ] )
 
   bld.shlib(
     target   = 'ls_aztec',
