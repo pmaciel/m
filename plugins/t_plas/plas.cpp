@@ -3,9 +3,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#ifdef MPI
-#include <mpi.h>
-#endif
 #include "plas.h"
 
 
@@ -14,25 +11,16 @@ void plas::initialize()
   int ient,inod;
   FILE *inpFile;
 
-  //***Flow solver parameters that have to be set only once***//
 
+  //***Flow solver parameters that have to be set only once***//
   setFlowSolverParamOnInit(&fp);
 
-  //***Set partitioning data structure in case of parallel computation***//
 
-  setPartitioningData(&(fp.part));
+  //***Read parameters from input file***//
+  plas_ReadParameters();
 
-  //***Read parameters from input file and broadcast them***//
-
-  if (!plas_MpiGetRank()) {
-    plas_ReadParameters();
-  }
-  plas_MpiBarrier();
-  plas_BroadcastParameters();
-  plas_MpiBarrier();
 
   //***Allocate memory for dispersed phase data***//
-
   ed = new PLAS_ENTITY_DATA[ip.numMaxEnt];
   for (ient=0; ient<ip.numMaxEnt; ++ient) {
     ed[ient].flag        = DFLAG_DISABLED;
@@ -51,20 +39,21 @@ void plas::initialize()
     pd[inod].dispForce = new double[fp.numUnk];
   }
 
-  //***Initialize fixed runtime parameters***//
 
+  //***Initialize fixed runtime parameters***//
   rp.lagrTimeFactor = 0.3;
   rp.errTol         = 1e-6;
   rp.wallElasticity = 1.;
 
-  //***Initialize variable runtime parameters***//
 
+  //***Initialize variable runtime parameters***//
   if (ip.numProdDom>0)
     rp.massResid = new double[ip.numProdDom];
 
-  //***Initialize material data from database***//
 
+  //***Initialize material data from database***//
   plas_CalcMaterialData(ip.iniTempDisp,getPressure(0));
+
 
   //***Initial entity distribution***//
 
@@ -88,8 +77,6 @@ void plas::initialize()
     plas_LoadInitialDistribution(ip.writeTecplotFilename);
   else if (ip.numIniEnt>0)
     plas_RandomInitialDistribution();
-
-  plas_MpiBarrier();
 }
 
 
@@ -101,13 +88,13 @@ void plas::run()
   int idx,ient,jent,inod,idim,iunk,ibnd,ifac,subIter,facFound,avgctr;
   double cellSize,minCellSize,entVel,dtLagr,dtRemaining,unitVec[fp.numDim];
 
-  //***Flow solver parameters that have to be set at every time step***//
 
-  screenOutput((char*) "Initialization...\n");
+  //***Flow solver parameters that have to be set at every time step***//
+  screenOutput("Initialization...\n");
   setFlowSolverParamOnTimeStep(&(fp));
 
-  //***Allocate dynamic memory***//
 
+  //***Allocate dynamic memory***//
   plas_AllocateLocalEntityVar(fp.numDim,&ent);
   plas_AllocateLocalFlowVar(fp.numDim,&flow);
 
@@ -133,7 +120,6 @@ void plas::run()
   if(fp.iter==1){
     plas_CalcCellwiseData();
   }
-  plas_MpiBarrier();
 
   for(inod=0; inod<fp.numNod; inod++){
     for(iunk=0; iunk<fp.numUnk; iunk++){
@@ -168,25 +154,22 @@ void plas::run()
       break;
     }
   }
-  plas_MpiBarrier();
 
   //***Entity production***//
 
   if (ip.numProdDom>0){
-    screenOutput((char*) "Imposing new entities in production domains...\n");
+    screenOutput("Imposing new entities in production domains...\n");
     plas_ImposeProductionDomains();
   }
-  plas_MpiBarrier();
 
-  if(plas_MpiAllSumInt(numExtEnt)>0){
-    screenOutput((char*) "Imposing externally generated entities...\n");
+  if (numExtEnt>0){
+    screenOutput("Imposing externally generated entities...\n");
     plas_ImposeExternal();
   }
-  plas_MpiBarrier();
 
   //***Loop over dispersed entities to update trajectories***//
 
-  screenOutput((char*) "Updating trajectories...\n");
+  screenOutput("Updating trajectories...\n");
   for(ient=0; ient<sd.enabled; ient++){
 
     //***Get entity information from global data structure***//
@@ -384,52 +367,35 @@ void plas::run()
 
   } //***End trajectory loop***//
 
-  plas_MpiBarrier();
 
-  //***Pass entities between parallel processes***//
 
-  if(plas_MpiGetNumProc()>1){screenOutput((char*) "Inter-process communication...\n");}
+//***Pass entities between parallel processes***//
   plas_PassEntities();
-  plas_MpiBarrier();
 
-  //***Update counters***//
 
-  screenOutput((char*) "Post-processing...\n");
-
-  sd.enabled   = plas_MpiAllSumInt(sd.enabled);
-  sd.in        = plas_MpiAllSumInt(sd.in);
-  sd.out       = plas_MpiAllSumInt(sd.out);
-  sd.bounce    = plas_MpiAllSumInt(sd.bounce);
-  sd.periodic  = plas_MpiAllSumInt(sd.periodic);
-  sd.passed    = plas_MpiAllSumInt(sd.passed);
-  sd.leftproc  = plas_MpiAllSumInt(sd.leftproc);
-  sd.coll      = plas_MpiAllSumInt(sd.coll);
-  sd.coalesc   = plas_MpiAllSumInt(sd.coalesc);
-  sd.lost      = plas_MpiAllSumInt(sd.lost);
+//***Update counters***//
+  screenOutput("Post-processing...\n");
   sd.enabled  -= sd.out;
   sd.lost     += sd.leftproc-sd.passed;
   sd.enabled  -= sd.lost;
-  plas_MpiBarrier();
+
 
   //***Update statistics***//
-
   if(sd.enabled>0){
-    sd.reynoldsAvg = plas_MpiAllSumDouble(sd.reynoldsAvg)/plas_MpiAllSumInt(avgctr);
-    sd.nusseltAvg  = plas_MpiAllSumDouble(sd.nusseltAvg)/plas_MpiAllSumInt(avgctr);
-    sd.dtLagrAvg   = plas_MpiAllSumDouble(sd.dtLagrAvg)/plas_MpiAllSumInt(avgctr);
-    sd.subIterAvg  = plas_MpiAllSumDouble(sd.subIterAvg)/plas_MpiAllSumInt(avgctr);
+    sd.reynoldsAvg /= avgctr;
+    sd.nusseltAvg  /= avgctr;
+    sd.dtLagrAvg   /= avgctr;
+    sd.subIterAvg  /= avgctr;
   } else{
     sd.reynoldsAvg = 0.;
     sd.nusseltAvg  = 0.;
     sd.dtLagrAvg   = 0.;
     sd.subIterAvg  = 0.;
   }
-  plas_MpiBarrier();
 
   //**Compute dispersed phase cellwise data***//
 
   plas_CalcCellwiseData();
-  plas_MpiBarrier();
 
   //***Write PLaS output to files***//
 
@@ -437,13 +403,11 @@ void plas::run()
   if (fp.writeOutput) {
     plas_WriteTecplotFile(ip.writeTecplotFilename,fp.iter,fp.time);
   }
-  plas_MpiBarrier();
 
   //***Free dynamic memory***//
 
   plas_DeallocateLocalEntityVar(&ent);
   plas_DeallocateLocalFlowVar(fp.numDim,&flow);
-  plas_MpiBarrier();
 }
 
 
@@ -473,13 +437,6 @@ plas::~plas()
     delete[] ip.prodDom;
     delete[] ip.massFluxes;
     delete[] rp.massResid;
-  }
-
-  if (fp.part.numNodPairs) {
-    delete[] fp.part.sendRank;
-    delete[] fp.part.sendNodeIdx;
-    delete[] fp.part.recvRank;
-    delete[] fp.part.recvNodeIdx;
   }
 }
 
@@ -515,59 +472,6 @@ void plas::plas_AllocateLocalFlowVar(int numDim, LOCAL_FLOW_VARIABLES *flow)
 }
 
 
-void plas::plas_BroadcastParameters()
-{
-  int irank = plas_MpiGetRank();
-  int i;
-
-  //***Broadcast static data***//
-
-  plas_MpiBroadcastInt(&ip.numMaxEnt,1,0);
-  plas_MpiBroadcastInt(&ip.numIniEnt,1,0);
-  plas_MpiBroadcastInt(&ip.numProdDom,1,0);
-  plas_MpiBroadcastInt(&ip.iniDiamType,1,0);
-  plas_MpiBroadcastDouble(&ip.iniDiam,1,0);
-  plas_MpiBroadcastDouble(&ip.iniDiamStd,1,0);
-  plas_MpiBroadcastDouble(ip.iniVel,3,0);
-  plas_MpiBroadcastDouble(&ip.iniTempDisp,1,0);
-  plas_MpiBroadcastInt(&ip.material,1,0);
-  plas_MpiBroadcastInt(&rp.flowType,1,0);
-  plas_MpiBroadcastInt(&ip.momentumCoupl,1,0);
-  plas_MpiBroadcastInt(&ip.volfracCoupl,1,0);
-  plas_MpiBroadcastInt(&ip.energyCoupl,1,0);
-  plas_MpiBroadcastInt(&ip.collisionModel,1,0);
-  plas_MpiBroadcastInt(&ip.liftForce,1,0);
-  plas_MpiBroadcastInt(&ip.evapModel,1,0);
-  plas_MpiBroadcastInt(&ip.perBnd,1,0);
-  plas_MpiBroadcastDouble(ip.gravVec,3,0);
-  plas_MpiBroadcastInt(&ip.restart,1,0);
-
-  /*
-   * ip.writeTecplotFilename and ip.writeStatsFilename don't need
-   * broadcasting because only rank 0 writes them, and ip.confFilename
-   * doesn't need reading (again)
-   */
-
-  //***Broadcast allocatable data***//
-
-  if (ip.numProdDom>0) {
-    if (irank!=0)
-      ip.prodDom = new int[ip.numProdDom];
-    plas_MpiBroadcastInt(ip.prodDom,ip.numProdDom,0);
-    if (irank!=0) {
-      ip.prodParam = new double*[ip.numProdDom];
-      for (i=0; i<ip.numProdDom; ++i)
-        ip.prodParam[i] = new double[6];
-    }
-    for (i=0; i<ip.numProdDom; ++i)
-      plas_MpiBroadcastDouble(ip.prodParam[i],6,0);
-    if (irank!=0)
-      ip.massFluxes = new double[ip.numProdDom];
-    plas_MpiBroadcastDouble(ip.massFluxes,ip.numProdDom,0);
-  }
-}
-
-
 void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double *force, double tFactor)
 {
   double limitFrac = 0.95;
@@ -575,7 +479,6 @@ void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABL
   double contVol,iFrac,jFrac,rhsTerm,impFac[ent->edata.numElmNodes];
 
   //***Volume fraction trigger***//
-
   if(ip.volfracCoupl){
     if(pd[ent->node].volFrac>limitFrac){
       iFrac = limitFrac;
@@ -593,7 +496,6 @@ void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABL
   }
 
   //***Compute back-coupling force contribution (m/s^2) for fluid momentum equation (negative sign)***//
-
   if(ip.momentumCoupl==FORCE_PIC){
 
     inod = ent->node;
@@ -607,7 +509,6 @@ void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABL
     plas_CalcNodeImpactFactors(ent,impFac);
     for(idim=0; idim<ent->edata.numElmNodes; idim++){
       inod = ent->edata.elmNodes[idim];
-      if(fp.flowSolver==FLOWSOLVER_SFELES){inod %= fp.numNod;}
       contVol = getNodVol(inod);
       for(jdim=0; jdim<fp.numDim; jdim++){
         pd[inod].dispForce[jdim+1] -= tFactor*impFac[idim]*force[jdim]*jFrac/((1.0-iFrac)*contVol*fp.rhoCont);
@@ -616,7 +517,6 @@ void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABL
   }
 
   //***Compute back-coupling term for fluid continuity equation***//
-
   if(ip.volfracCoupl){
 
     inod = ent->node;
@@ -635,36 +535,24 @@ void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABL
 
 void plas::plas_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *unitVec)
 {
-  int idim;
-  double length;
-
-  //***Get normal vector of a boundary face***//
-
-  for(idim=0; idim<numDim; idim++){
+  // get normal vector of a boundary face
+  for (int idim=0; idim<numDim; ++idim)
     unitVec[idim] = getBndFaceNormComp(ibnd,ifac,idim);
-  }
 
-  //***Divide normal vector components by vector length***//
-
-  length = plas_CalcVectorLength(numDim,unitVec);
-  for(idim=0; idim<numDim; idim++){
+  // divide normal vector components by vector length
+  const double length = plas_CalcVectorLength(numDim,unitVec);
+  for (int idim=0; idim<numDim; ++idim)
     unitVec[idim] /= length;
-  }
 }
 
 
 void plas::plas_CalcCellwiseData()
 {
-  int irank = plas_MpiGetRank();
-  int ient,inod,ielm,idim,jdim,itype,numElmNodes=0,correctNumDens[fp.part.numNodPairs];
+  int ient,inod,ielm,idim,jdim,itype,numElmNodes=0;
   double ivol=0,xi,yi,xixi,xiyi,volFracOld[fp.numNod];
-  double correctDiam[fp.part.numNodPairs],correctRespTime[fp.part.numNodPairs];
-  double correctVel[fp.numDim*fp.part.numNodPairs];
-  double correctStdDiam[fp.part.numNodPairs],correctStdVel[fp.numDim*fp.part.numNodPairs];
-  double correctVolFracDx[fp.numDim*fp.part.numNodPairs];
+
 
   //***Initialize cellwise secondary phase data***//
-
   for(inod=0; inod<fp.numNod; inod++){
     pd[inod].numDens = 0;
     volFracOld[inod] = pd[inod].volFrac;
@@ -680,12 +568,11 @@ void plas::plas_CalcCellwiseData()
     }
   }
 
-  //***Assemble cellwise data by looping over all active entities***//
 
+  //***Assemble cellwise data by looping over all active entities***//
   for(ient=0; ient<ip.numMaxEnt; ient++){
     if(ed[ient].flag==DFLAG_ENABLED){
       inod = ed[ient].node;
-      if(fp.flowSolver==FLOWSOLVER_SFELES){inod %= fp.numNod;}
       pd[inod].numDens++;
       if(fp.numDim==2){
         ivol = PI*ed[ient].diameter*ed[ient].diameter/4.0;
@@ -702,8 +589,8 @@ void plas::plas_CalcCellwiseData()
     }
   }
 
-  //***Divide averaged quantities by number density***//
 
+  //***Divide averaged quantities by number density***//
   for(inod=0; inod<fp.numNod; inod++){
     if(pd[inod].numDens>0){
       pd[inod].avgDiam /= pd[inod].numDens;
@@ -714,14 +601,13 @@ void plas::plas_CalcCellwiseData()
     }
   }
 
-  //***Compute standard deviations of averaged quantities***//
 
+  //***Compute standard deviations of averaged quantities***//
   if(ip.collisionModel){
 
     for(ient=0; ient<ip.numMaxEnt; ient++){
       if(ed[ient].flag==DFLAG_ENABLED){
         inod = ed[ient].node;
-        if(fp.flowSolver==FLOWSOLVER_SFELES){inod %= fp.numNod;}
 
         pd[inod].stdDiam += pow(ed[ient].diameter-pd[inod].avgDiam,2.0);
         for(idim=0; idim<fp.numDim; idim++){
@@ -740,8 +626,8 @@ void plas::plas_CalcCellwiseData()
     }
   }
 
-  //***Calculate volume fraction derivatrives in time and space***//
 
+  //***Calculate volume fraction derivatrives in time and space***//
   if(ip.volfracCoupl){
 
     for(inod=0; inod<fp.numNod; inod++){
@@ -752,17 +638,12 @@ void plas::plas_CalcCellwiseData()
       for(idim=0; idim<fp.numDim; idim++){
 
         itype = getElementType(ielm);
-        if(itype==ELM_SIMPLEX){
-          numElmNodes = fp.numDim+1;
-        } else if(itype==ELM_PRISM){
-          numElmNodes = 6;
-        } else if(itype==ELM_QUAD){
-          numElmNodes = 4;
-        } else if(itype==ELM_HEX){
-          numElmNodes = 8;
-        } else if(itype==ELM_PYRAMID){
-          numElmNodes = 5;
-        }
+        numElmNodes = (itype==ELM_SIMPLEX? fp.numDim+1 :
+                      (itype==ELM_PRISM?   6 :
+                      (itype==ELM_QUAD?    4 :
+                      (itype==ELM_HEX?     8 :
+                      (itype==ELM_PYRAMID? 5 :
+                                           0 )))));
 
         xi = yi = xixi = xiyi = 0.0;
         for(jdim=0; jdim<numElmNodes; jdim++){
@@ -775,90 +656,7 @@ void plas::plas_CalcCellwiseData()
         pd[inod].volFracDx[idim] = (numElmNodes*xiyi-xi*yi)/(numElmNodes*xixi-xi*xi);
       }
     }
-  }
 
-  //***Gather phase data on partition boundaries***//
-
-  for(inod=0; inod<fp.part.numNodPairs; inod++){
-
-    correctNumDens[inod] = 0;
-    correctDiam[inod] = 0.0;
-    correctStdDiam[inod] = 0.0;
-    correctRespTime[inod] = 0.0;
-    for(idim=0; idim<fp.numDim; idim++){
-      correctVel[fp.numDim*inod+idim] = 0.0;
-      correctStdVel[fp.numDim*inod+idim] = 0.0;
-      correctVolFracDx[fp.numDim*inod+idim] = 0.0;
-    }
-
-    if(fp.part.sendRank[inod]==irank){
-      correctNumDens[inod] += pd[fp.part.sendNodeIdx[inod]].numDens;
-      correctDiam[inod] += pd[fp.part.sendNodeIdx[inod]].avgDiam*correctNumDens[inod];
-      correctStdDiam[inod] += pd[fp.part.sendNodeIdx[inod]].stdDiam*correctNumDens[inod];
-      correctRespTime[inod] += pd[fp.part.sendNodeIdx[inod]].avgRespTime*correctNumDens[inod];
-      for(idim=0; idim<fp.numDim; idim++){
-        correctVel[fp.numDim*inod+idim] += pd[fp.part.sendNodeIdx[inod]].avgVel[idim]*correctNumDens[inod];
-        correctStdVel[fp.numDim*inod+idim] += pd[fp.part.sendNodeIdx[inod]].stdVel[idim]*correctNumDens[inod];
-        correctVolFracDx[fp.numDim*inod+idim] += pd[fp.part.sendNodeIdx[inod]].volFracDx[idim]*correctNumDens[inod];
-      }
-    }
-
-    if(fp.part.recvRank[inod]==irank){
-      correctNumDens[inod] += pd[fp.part.recvNodeIdx[inod]].numDens;
-      correctDiam[inod] += pd[fp.part.recvNodeIdx[inod]].avgDiam*correctNumDens[inod];
-      correctStdDiam[inod] += pd[fp.part.recvNodeIdx[inod]].stdDiam*correctNumDens[inod];
-      correctRespTime[inod] += pd[fp.part.recvNodeIdx[inod]].avgRespTime*correctNumDens[inod];
-      for(idim=0; idim<fp.numDim; idim++){
-        correctVel[fp.numDim*inod+idim] += pd[fp.part.recvNodeIdx[inod]].avgVel[idim]*correctNumDens[inod];
-        correctStdVel[fp.numDim*inod+idim] += pd[fp.part.recvNodeIdx[inod]].stdVel[idim]*correctNumDens[inod];
-        correctVolFracDx[fp.numDim*inod+idim] += pd[fp.part.recvNodeIdx[inod]].volFracDx[idim]*correctNumDens[inod];
-      }
-    }
-  }
-
-  //***Sum phase data on partition boundaries***//
-
-  if(fp.part.numNodPairs){
-    plas_MpiAllSumIntArray(correctNumDens,fp.part.numNodPairs);
-    plas_MpiAllSumDoubleArray(correctDiam,fp.part.numNodPairs);
-    plas_MpiAllSumDoubleArray(correctStdDiam,fp.part.numNodPairs);
-    plas_MpiAllSumDoubleArray(correctRespTime,fp.part.numNodPairs);
-    plas_MpiAllSumDoubleArray(correctVel,fp.numDim*fp.part.numNodPairs);
-    plas_MpiAllSumDoubleArray(correctStdVel,fp.numDim*fp.part.numNodPairs);
-    plas_MpiAllSumDoubleArray(correctVolFracDx,fp.numDim*fp.part.numNodPairs);
-  }
-
-  //***Correct phase data on partition boundaries***//
-
-  for(inod=0; inod<fp.part.numNodPairs; inod++){
-
-    if(fp.part.sendRank[inod]==irank){
-      pd[fp.part.sendNodeIdx[inod]].numDens = correctNumDens[inod];
-      if(correctNumDens[inod]>0){
-        pd[fp.part.sendNodeIdx[inod]].avgDiam = correctDiam[inod]/correctNumDens[inod];
-        pd[fp.part.sendNodeIdx[inod]].stdDiam = correctStdDiam[inod]/correctNumDens[inod];
-        pd[fp.part.sendNodeIdx[inod]].avgRespTime = correctRespTime[inod]/correctNumDens[inod];
-        for(idim=0; idim<fp.numDim; idim++){
-          pd[fp.part.sendNodeIdx[inod]].avgVel[idim] = correctVel[fp.numDim*inod+idim]/correctNumDens[inod];
-          pd[fp.part.sendNodeIdx[inod]].stdVel[idim] = correctStdVel[fp.numDim*inod+idim]/correctNumDens[inod];
-          pd[fp.part.sendNodeIdx[inod]].volFracDx[idim] = correctVolFracDx[fp.numDim*inod+idim]/correctNumDens[inod];
-        }
-      }
-    }
-
-    if(fp.part.recvRank[inod]==irank){
-      pd[fp.part.recvNodeIdx[inod]].numDens = correctNumDens[inod];
-      if(correctNumDens[inod]>0){
-        pd[fp.part.recvNodeIdx[inod]].avgDiam = correctDiam[inod]/correctNumDens[inod];
-        pd[fp.part.recvNodeIdx[inod]].stdDiam = correctStdDiam[inod]/correctNumDens[inod];
-        pd[fp.part.recvNodeIdx[inod]].avgRespTime = correctRespTime[inod]/correctNumDens[inod];
-        for(idim=0; idim<fp.numDim; idim++){
-          pd[fp.part.recvNodeIdx[inod]].avgVel[idim] = correctVel[fp.numDim*inod+idim]/correctNumDens[inod];
-          pd[fp.part.recvNodeIdx[inod]].stdVel[idim] = correctStdVel[fp.numDim*inod+idim]/correctNumDens[inod];
-          pd[fp.part.recvNodeIdx[inod]].volFracDx[idim] = correctVolFracDx[fp.numDim*inod+idim]/correctNumDens[inod];
-        }
-      }
-    }
   }
 }
 
@@ -1226,7 +1024,6 @@ void plas::plas_CalcNodeImpactFactors(LOCAL_ENTITY_VARIABLES *ent, double *imp)
 
   for(idim=0; idim<ent->edata.numElmNodes; idim++){
     inod = ent->edata.elmNodes[idim];
-    if(fp.flowSolver==FLOWSOLVER_SFELES){inod %= fp.numNod;}
     for(jdim=0; jdim<fp.numDim; jdim++){
       distance[jdim] = getNodCoord(inod,jdim)-ent->pos[jdim];
     }
@@ -1868,31 +1665,25 @@ void plas::plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double 
 void plas::plas_CreateStatsFile(char *outpString)
 {
   FILE *outpFile;
-  if (!plas_MpiGetRank()) {
-    outpFile = fopen(outpString,"w");
-    if (outpFile==NULL)
-      return;
+  outpFile = fopen(outpString,"w");
+  if (outpFile==NULL)
+    return;
 
-    fprintf(outpFile,"Iter\tTime\tEnt\tIn\tOut\tBounc\tColl\tPer\tPass\tLost\tRe_disp\tNu_disp\tdt_Lagr\tsubit\n");
-    fclose(outpFile);
-  }
+  fprintf(outpFile,"Iter\tTime\tEnt\tIn\tOut\tBounc\tColl\tPer\tPass\tLost\tRe_disp\tNu_disp\tdt_Lagr\tsubit\n");
+  fclose(outpFile);
 }
 
 
 void plas::plas_CreateTecplotFile(char *outpString)
 {
-  if (!plas_MpiGetRank()) {
-
-    FILE* outpFile;
-    outpFile = fopen(outpString,"w");
-    if (fp.numDim==2) {
-      fprintf(outpFile,"VARIABLES = \"X\" \"Y\" \"U\" \"V\" \"d\" \"T\" \"theta\"\n");
-    } else if(fp.numDim==3) {
-      fprintf(outpFile,"VARIABLES = \"X\" \"Y\" \"Z\" \"U\" \"V\" \"W\" \"d\" \"T\" \"theta\"\n");
-    }
-    fclose(outpFile);
-
+  FILE* outpFile;
+  outpFile = fopen(outpString,"w");
+  if (fp.numDim==2) {
+    fprintf(outpFile,"VARIABLES = \"X\" \"Y\" \"U\" \"V\" \"d\" \"T\" \"theta\"\n");
+  } else if(fp.numDim==3) {
+    fprintf(outpFile,"VARIABLES = \"X\" \"Y\" \"Z\" \"U\" \"V\" \"W\" \"d\" \"T\" \"theta\"\n");
   }
+  fclose(outpFile);
 }
 
 
@@ -1994,8 +1785,6 @@ int plas::plas_FindNearestElementNode(LOCAL_ENTITY_VARIABLES *ent)
     }
   }
 
-  if(fp.flowSolver==FLOWSOLVER_SFELES){node %= fp.numNod;}
-
   return node;
 }
 
@@ -2004,58 +1793,29 @@ void plas::plas_ImposeExternal()
 {
   LOCAL_ENTITY_VARIABLES ent;
   LOCAL_FLOW_VARIABLES flow;
-  int numProc = plas_MpiGetNumProc();
-  int *disps  = new int[numProc];
-  int *recs   = new int[numProc];
-  int ient,idim,totNewEnt;
+  int ient,idim;
   double *newPos,*newVel,*newDiam,*newTemp;
 
-#ifdef MPI
-  int iproc;
-  int *dispsArr = new int[numProc];
-  int *recsArr  = new int[numProc];
-#endif
 
   //***Allocation of local data structure***//
-
   plas_AllocateLocalEntityVar(fp.numDim,&ent);
   plas_AllocateLocalFlowVar(fp.numDim,&flow);
 
+
   //***Broadcast entity data***//
+  newDiam = new double[numExtEnt];
+  newTemp = new double[numExtEnt];
+  newPos  = new double[numExtEnt*fp.numDim];
+  newVel  = new double[numExtEnt*fp.numDim];
 
-  totNewEnt = plas_MpiAllSumInt(numExtEnt);
-  newDiam = new double[totNewEnt];
-  newTemp = new double[totNewEnt];
-  newPos  = new double[totNewEnt*fp.numDim];
-  newVel  = new double[totNewEnt*fp.numDim];
-
-#ifdef MPI
-  MPI_Allgather(&numExtEnt,1,MPI_INT,recs,1,MPI_INT,MPI_COMM_WORLD);
-
-  disps[0] = 0;
-  for(iproc=1; iproc<numProc; iproc++){
-    disps[iproc] = disps[iproc-1] + recs[iproc-1];
-  }
-
-  for(iproc=0; iproc<numProc; iproc++){
-    recsArr[iproc] = fp.numDim*recs[iproc];
-    dispsArr[iproc] = fp.numDim*disps[iproc];
-  }
-
-  MPI_Allgatherv(extEntDiam,numExtEnt,MPI_DOUBLE,newDiam,recs,disps,MPI_DOUBLE,MPI_COMM_WORLD);
-  MPI_Allgatherv(extEntTemp,numExtEnt,MPI_DOUBLE,newTemp,recs,disps,MPI_DOUBLE,MPI_COMM_WORLD);
-  MPI_Allgatherv(extEntPos,numExtEnt*fp.numDim,MPI_DOUBLE,newPos,recsArr,dispsArr,MPI_DOUBLE,MPI_COMM_WORLD);
-  MPI_Allgatherv(extEntVel,numExtEnt*fp.numDim,MPI_DOUBLE,newVel,recsArr,dispsArr,MPI_DOUBLE,MPI_COMM_WORLD);
-#else
   newDiam = extEntDiam;
   newTemp = extEntTemp;
   newPos = extEntPos;
   newVel = extEntVel;
-#endif
 
   //***Loop over entities to generate***//
 
-  for(ient=0; ient<totNewEnt; ient++){
+  for(ient=0; ient<numExtEnt; ient++){
 
     for(idim=0; idim<fp.numDim; idim++){
       ent.pos[idim] = newPos[fp.numDim*ient+idim];
@@ -2068,7 +1828,7 @@ void plas::plas_ImposeExternal()
 
     //***Element search***//
 
-    plas_SearchDomainParallel(&ent);
+    plas_SearchSuccessive(&ent);
 
     //***Initialize entity***//
 
@@ -2100,8 +1860,6 @@ void plas::plas_ImposeExternal()
   delete[] newTemp;
   delete[] newPos;
   delete[] newVel;
-  delete[] disps;
-  delete[] recs;
 }
 
 
@@ -2122,105 +1880,95 @@ void plas::plas_ImposeProductionDomains()
   newDiam = new double[ip.numMaxEnt];
   newPos  = new double[ip.numMaxEnt*fp.numDim];
 
-  //***Creation of bubbles is performed only by the master process***//
 
-  if(plas_MpiGetRank()==0){
+  //***Creation of bubbles***//
+  bCtr = 0;
 
-    bCtr = 0;
+  //***Loop over production domains***//
 
-    //***Loop over production domains***//
+  for(ipd=0; ipd<ip.numProdDom; ipd++){
 
-    for(ipd=0; ipd<ip.numProdDom; ipd++){
+    if(ip.prodDom[ipd]==0){continue;}
 
-      if(ip.prodDom[ipd]==0){continue;}
+    //***Accumulate produced secondary phase mass***//
 
-      //***Accumulate produced secondary phase mass***//
+    rp.massResid[ipd] += ip.massFluxes[ipd]*fp.dtEul;
+    if(rp.massResid[ipd]<=0.0){continue;}
 
-      rp.massResid[ipd] += ip.massFluxes[ipd]*fp.dtEul;
-      if(rp.massResid[ipd]<=0.0){continue;}
+    //***Copy production parameters to local data structure***//
 
-      //***Copy production parameters to local data structure***//
+    for(idim=0; idim<3; idim++){
+      p1[idim] = ip.prodParam[ipd][idim];
+      p2[idim] = ip.prodParam[ipd][idim+3];
+    }
 
-      for(idim=0; idim<3; idim++){
-        p1[idim] = ip.prodParam[ipd][idim];
-        p2[idim] = ip.prodParam[ipd][idim+3];
+    //***Iteratively generate entities according to mass flux***//
+
+    iterate = 1;
+    do{
+
+      //***Check if maximum number of entities is not exceedes***//
+
+      if(bCtr==ip.numMaxEnt){break;}
+
+      //***Set diameter***//
+
+      newDiam[bCtr] = plas_SetDiameter();
+
+      //***Calculate mass of generated entity***//
+
+      if(fp.numDim==2){
+        mass = md.rhoDisp*PI*newDiam[bCtr]*newDiam[bCtr]/4.0;
+      } else if(fp.numDim==3){
+        mass = md.rhoDisp*PI*newDiam[bCtr]*newDiam[bCtr]*newDiam[bCtr]/6.0;
       }
 
-      //***Iteratively generate entities according to mass flux***//
+      rp.massResid[ipd] -= mass;
+      if(rp.massResid[ipd]<=0.0){iterate = 0;}
 
-      iterate = 1;
-      do{
+      //***Compute position***//
 
-        //***Check if maximum number of entities is not exceedes***//
+      if(ip.prodDom[ipd]==1){
 
-        if(bCtr==ip.numMaxEnt){break;}
+        //***Line production domain***//
 
-        //***Set diameter***//
-
-        newDiam[bCtr] = plas_SetDiameter();
-
-        //***Calculate mass of generated entity***//
-
-        if(fp.numDim==2){
-          mass = md.rhoDisp*PI*newDiam[bCtr]*newDiam[bCtr]/4.0;
-        } else if(fp.numDim==3){
-          mass = md.rhoDisp*PI*newDiam[bCtr]*newDiam[bCtr]*newDiam[bCtr]/6.0;
+        s = plas_RandomDouble();
+        for(idim=0; idim<fp.numDim; idim++){
+          newPos[fp.numDim*bCtr+idim] = p1[idim]+s*(p2[idim]-p1[idim]);
         }
 
-        rp.massResid[ipd] -= mass;
-        if(rp.massResid[ipd]<=0.0){iterate = 0;}
+      } else if(ip.prodDom[ipd]==2){
 
-        //***Compute position***//
+        //***Rectangle production domain***//
 
-        if(ip.prodDom[ipd]==1){
-
-          //***Line production domain***//
-
+        for(idim=0; idim<fp.numDim; idim++){
           s = plas_RandomDouble();
-          for(idim=0; idim<fp.numDim; idim++){
-            newPos[fp.numDim*bCtr+idim] = p1[idim]+s*(p2[idim]-p1[idim]);
-          }
-
-        } else if(ip.prodDom[ipd]==2){
-
-          //***Rectangle production domain***//
-
-          for(idim=0; idim<fp.numDim; idim++){
-            s = plas_RandomDouble();
-            newPos[fp.numDim*bCtr+idim] = p1[idim]+s*(p2[idim]-p1[idim]);
-          }
-
-        } else if(ip.prodDom[ipd]==3){
-
-          //***Ellipse production domain***//
-
-          do{
-            p = 0.0;
-            for(idim=0; idim<fp.numDim; idim++){
-              s = 2.0*plas_RandomDouble()-1.0;
-              newPos[fp.numDim*bCtr+idim] = p1[idim]+s*p2[idim];
-              if(p2[idim]>rp.errTol){
-                p += (newPos[fp.numDim*bCtr+idim]-p1[idim])*(newPos[fp.numDim*bCtr+idim]-p1[idim])/(p2[idim]*p2[idim]);
-              }
-            }
-          } while(p>1.0);
+          newPos[fp.numDim*bCtr+idim] = p1[idim]+s*(p2[idim]-p1[idim]);
         }
 
-        bCtr++;
+      } else if(ip.prodDom[ipd]==3){
 
-      } while(iterate);
-    }
+        //***Ellipse production domain***//
+
+        do{
+          p = 0.0;
+          for(idim=0; idim<fp.numDim; idim++){
+            s = 2.0*plas_RandomDouble()-1.0;
+            newPos[fp.numDim*bCtr+idim] = p1[idim]+s*p2[idim];
+            if(p2[idim]>rp.errTol){
+              p += (newPos[fp.numDim*bCtr+idim]-p1[idim])*(newPos[fp.numDim*bCtr+idim]-p1[idim])/(p2[idim]*p2[idim]);
+            }
+          }
+        } while(p>1.0);
+      }
+
+      bCtr++;
+
+    } while(iterate);
   }
 
-  //***Broadcast entity data***//
 
-  plas_MpiBroadcastInt(&bCtr,1,0);
-  plas_MpiBroadcastDouble(newDiam,ip.numMaxEnt,0);
-  plas_MpiBroadcastDouble(newPos,fp.numDim*ip.numMaxEnt,0);
-  plas_MpiBroadcastDouble(rp.massResid,ip.numProdDom,0);
-
-  //***Generate entities//
-
+  //***Generate entities***//
   for(ient=0; ient<bCtr; ient++){
 
     ent.diam = newDiam[ient];
@@ -2232,7 +1980,7 @@ void plas::plas_ImposeProductionDomains()
 
     //***Element search***//
 
-    plas_SearchDomainParallel(&ent);
+    plas_SearchSuccessive(&ent);
 
     //***Initialize entity***//
 
@@ -2314,17 +2062,14 @@ void plas::plas_InterpolatePressure(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARI
 
 void plas::plas_InterpolateTemperature(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step)
 {
-  int idim;
   double impFac[ent->edata.numElmNodes];
 
-  //***Compute impact factors of element nodes***//
-
+  // compute impact factors of element nodes
   plas_CalcNodeImpactFactors(ent,impFac);
 
-  //***Flow temperature***//
-
-  flow->temp = 0.0;
-  for(idim=0; idim<ent->edata.numElmNodes; idim++){
+  // flow temperature
+  flow->temp = 0.;
+  for (int idim=0; idim<ent->edata.numElmNodes; ++idim) {
     flow->temp += impFac[idim]*((1.0-step)*getTemperatureOld(ent->edata.elmNodes[idim])
                                     + step*getTemperature(ent->edata.elmNodes[idim]));
   }
@@ -2336,22 +2081,20 @@ void plas::plas_InterpolateVelocity(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARI
   int idim,jdim,kdim;
   double impFac[ent->edata.numElmNodes];
 
-  //***Compute impact factors of element nodes***//
-
+  // compute impact factors of element nodes
   plas_CalcNodeImpactFactors(ent,impFac);
 
-  //***Flow velocity***//
-
+  // flow velocity
   for(idim=0; idim<fp.numDim; idim++){
     flow->vel[idim] = 0.0;
     for(jdim=0; jdim<ent->edata.numElmNodes; jdim++){
-      flow->vel[idim] += impFac[jdim]*((1.0-step)*getVelocityCompOld(ent->edata.elmNodes[jdim],idim)
-                                           + step*getVelocityComp(ent->edata.elmNodes[jdim],idim));
+      flow->vel[idim] += impFac[jdim] * (
+        (1. - step) * getVelocityCompOld(ent->edata.elmNodes[jdim],idim)
+            + step  * getVelocityComp(ent->edata.elmNodes[jdim],idim) );
     }
   }
 
-  //***Flow velocity space derivatives***//
-
+  // flow velocity space derivatives
   for(idim=0; idim<fp.numDim; idim++){
     for(jdim=0; jdim<fp.numDim; jdim++){
       flow->velDx[idim][jdim] = 0.0;
@@ -2362,8 +2105,7 @@ void plas::plas_InterpolateVelocity(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARI
     }
   }
 
-  //***Flow velocity time derivative***//
-
+  // flow velocity time derivative
   for(idim=0; idim<fp.numDim; idim++){
     flow->velDt[idim] = 0.0;
     if (fp.dtEul>1.e-20) {
@@ -2431,7 +2173,7 @@ void plas::plas_LoadInitialDistribution(char *inpString)
 
     //***Perform element search***//
 
-    plas_SearchDomainParallel(&ent);
+    plas_SearchSuccessive(&ent);
 
     //***Initialize entity***//
 
@@ -2457,148 +2199,6 @@ void plas::plas_LoadInitialDistribution(char *inpString)
 }
 
 
-void plas::plas_MpiAllMaxIntArray(int *val, int size)
-{
-#ifdef MPI
-  int i,sendval[size],recval[size];
-  for(i=0; i<size; i++){sendval[i] = val[i];}
-  MPI_Allreduce(sendval,recval,size,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-  for(i=0; i<size; i++){val[i] = recval[i];}
-#else
-  return;
-#endif
-}
-
-
-int plas::plas_MpiAllMaxInt(int val)
-{
-#ifdef MPI
-  int recval;
-  MPI_Allreduce(&val,&recval,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-  return recval;
-#else
-  return val;
-#endif
-}
-
-
-int plas::plas_MpiAllMinInt(int val)
-{
-#ifdef MPI
-  int recval;
-  MPI_Allreduce(&val,&recval,1,MPI_INT,MPI_MIN,MPI_COMM_WORLD);
-  return recval;
-#else
-  return val;
-#endif
-}
-
-
-void plas::plas_MpiAllSumDoubleArray(double *val, int size)
-{
-#ifdef MPI
-  int i;
-  double sendval[size],recval[size];
-  for(i=0; i<size; i++){sendval[i] = val[i];}
-  MPI_Allreduce(sendval,recval,size,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  for(i=0; i<size; i++){val[i] = recval[i];}
-#else
-  return;
-#endif
-}
-
-
-double plas::plas_MpiAllSumDouble(double val)
-{
-#ifdef MPI
-  double recval;
-  MPI_Allreduce(&val,&recval,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  return recval;
-#else
-  return val;
-#endif
-}
-
-
-void plas::plas_MpiAllSumIntArray(int *val, int size)
-{
-#ifdef MPI
-  int i,sendval[size],recval[size];
-  for(i=0; i<size; i++){sendval[i] = val[i];}
-  MPI_Allreduce(sendval,recval,size,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-  for(i=0; i<size; i++){val[i] = recval[i];}
-#else
-  return;
-#endif
-}
-
-
-int plas::plas_MpiAllSumInt(int val)
-{
-#ifdef MPI
-  int recval;
-  MPI_Allreduce(&val,&recval,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-  return recval;
-#else
-  return val;
-#endif
-}
-
-
-void plas::plas_MpiBarrier()
-{
-#ifdef MPI
-  MPI_Barrier(MPI_COMM_WORLD);
-#else
-  return;
-#endif
-}
-
-
-void plas::plas_MpiBroadcastDouble(double *variable, int size, int root)
-{
-#ifdef MPI
-  MPI_Bcast(variable,size,MPI_DOUBLE,root,MPI_COMM_WORLD);
-#else
-  return;
-#endif
-}
-
-
-void plas::plas_MpiBroadcastInt(int *variable, int size, int root)
-{
-#ifdef MPI
-  MPI_Bcast(variable,size,MPI_INT,root,MPI_COMM_WORLD);
-#else
-  return;
-#endif
-}
-
-
-int plas::plas_MpiGetNumProc()
-{
-#ifdef MPI
-  int numProc;
-  MPI_Comm_size(MPI_COMM_WORLD,&numProc);
-  return numProc;
-#else
-  return 1;
-#endif
-}
-
-
-int plas::plas_MpiGetRank()
-{
-#ifdef MPI
-  int irank;
-  MPI_Comm_rank(MPI_COMM_WORLD,&irank);
-  return irank;
-#else
-  return 0;
-#endif
-}
-
-
 void plas::plas_NormalizeVector(int numDim, double *a)
 {
   int idim;
@@ -2613,31 +2213,22 @@ void plas::plas_NormalizeVector(int numDim, double *a)
 void plas::plas_PassEntities()
 {
   LOCAL_ENTITY_VARIABLES ent;
-  int numProc        = plas_MpiGetNumProc();
-  int irank          = plas_MpiGetRank();
-  int *disps         = new int[numProc];
-  int *recs          = new int[numProc];
+  int *disps         = new int[1];
+  int *recs          = new int[1];
   int leftCtrOneProc = sd.leftproc;
-  int leftCtrAllProc = plas_MpiAllSumInt(sd.leftproc);
-  int *foundProc     = new int[leftCtrAllProc];
-  int *foundElm      = new int[leftCtrAllProc];
-  int *foundNode     = new int[leftCtrAllProc];
+  int *foundProc     = new int[leftCtrOneProc];
+  int *foundElm      = new int[leftCtrOneProc];
+  int *foundNode     = new int[leftCtrOneProc];
   int idim,jdim,ient,jent,ielm,inod;
-  char errMessage[100];
 
   double *leftDataOneProc = new double[(2*fp.numDim+1)*leftCtrOneProc];
-#ifdef MPI
-  double *leftDataAllProc = new double[(2*fp.numDim+1)*leftCtrAllProc];
-#else
-  double *leftDataAllProc = leftDataOneProc;
-#endif
+
 
   //***Allocation of local data structure***//
-
   plas_AllocateLocalEntityVar(fp.numDim,&ent);
 
-  //***Collect all entities that left a process***//
 
+  //***Collect all entities that left a process***//
   jdim = 0;
   for(ient=0; ient<ip.numMaxEnt; ient++){
     if(ed[ient].flag==DFLAG_PASS){
@@ -2655,39 +2246,21 @@ void plas::plas_PassEntities()
     }
   }
 
-  //***Gather all entities that left any process***//
-
-#ifdef MPI
-  MPI_Allgather(&leftCtrOneProc,1,MPI_INT,recs,1,MPI_INT,MPI_COMM_WORLD);
-
-  disps[0] = 0;
-  for (int iproc=1; iproc<numProc; iproc++){
-    disps[iproc] = disps[iproc-1] + recs[iproc-1];
-  }
-
-  for (int iproc=0; iproc<numProc; iproc++){
-    recs[iproc] *= (2*fp.numDim+1);
-    disps[iproc] *= (2*fp.numDim+1);
-  }
-
-  MPI_Allgatherv(leftDataOneProc,(2*fp.numDim+1)*leftCtrOneProc,MPI_DOUBLE,leftDataAllProc,recs,disps,MPI_DOUBLE,MPI_COMM_WORLD);
-#endif
 
   //***Search for all free entities on all processes***//
-
   idim = 0;
-  for(ient=0; ient<leftCtrAllProc; ient++){
+  for(ient=0; ient<leftCtrOneProc; ient++){
 
     for(jdim=0; jdim<fp.numDim; jdim++){
-      ent.pos[jdim] = leftDataAllProc[idim+jdim];
+      ent.pos[jdim] = leftDataOneProc[idim+jdim];
     }
 
-    //***Element search***//
 
-    plas_SearchDomainParallel(&ent);
+    //***Element search***//
+    plas_SearchSuccessive(&ent);
 
     if(ent.flag==DFLAG_ENABLED){
-      foundProc[ient] = irank;
+      foundProc[ient] = 0;
       foundElm[ient] = ent.elm;
       foundNode[ient] = ent.node;
     } else{
@@ -2696,69 +2269,58 @@ void plas::plas_PassEntities()
     idim += 2*fp.numDim+1;
   }
 
-  //***Determine a definite process on which an entity is found***//
-
-  plas_MpiAllMaxIntArray(foundProc,leftCtrAllProc);
 
   //***Broadcast information of found entities***//
-
   idim = 0;
   jent = 0;
 
-  for(ient=0; ient<leftCtrAllProc; ient++){
+  for(ient=0; ient<leftCtrOneProc; ient++){
 
     if(foundProc[ient]>-1){
       ielm = foundElm[ient];
-      plas_MpiBroadcastInt(&ielm,1,foundProc[ient]);
       inod = foundNode[ient];
-      plas_MpiBroadcastInt(&inod,1,foundProc[ient]);
     }
 
-    if(foundProc[ient]!=irank){
+    if(foundProc[ient]!=0){
       idim += 2*fp.numDim+1;
       continue;
     }
 
     while(ed[jent].flag==DFLAG_ENABLED){
       jent++;
-      if(jent==ip.numMaxEnt){
-        sprintf(errMessage,"Memory exceeded when passing trajectory information.");
-        plas_TerminateOnError(errMessage);
-      }
+      if(jent>=ip.numMaxEnt)
+        plas_TerminateOnError("memory exceeded when passing trajectory information");
     }
 
-    //***Generate entity on the new process***//
 
+    //***Generate entity on the new process***//
     sd.passed++;
     ed[jent].flag = DFLAG_ENABLED;
     ed[jent].element = ielm;
     ed[jent].node = inod;
 
     for(jdim=0; jdim<fp.numDim; jdim++){
-      ed[jent].position[jdim] = leftDataAllProc[idim];
+      ed[jent].position[jdim] = leftDataOneProc[idim];
       idim++;
     }
 
     for(jdim=0; jdim<fp.numDim; jdim++){
-      ed[jent].velocity[jdim] = leftDataAllProc[idim];
+      ed[jent].velocity[jdim] = leftDataOneProc[idim];
       idim++;
     }
 
-    ed[jent].diameter = leftDataAllProc[idim];
+    ed[jent].diameter = leftDataOneProc[idim];
     idim++;
   }
 
-  //***De-allocation of local data structure***//
 
+  //***De-allocation of local data structure***//
   plas_DeallocateLocalEntityVar(&ent);
 
   delete[] foundProc;
   delete[] foundElm;
   delete[] foundNode;
   delete[] leftDataOneProc;
-#ifdef MPI
-  delete[] leftDataAllProc;
-#endif
   delete[] disps;
   delete[] recs;
 }
@@ -2766,9 +2328,8 @@ void plas::plas_PassEntities()
 
 double plas::plas_RandomDouble()
 {
-  int r = plas_RandomInteger(0,(int)1e5);
-
-  return (double)(r/1e5);
+  int r = plas_RandomInteger(0,100000);
+  return (double)(r/100000.);
 }
 
 
@@ -2802,8 +2363,8 @@ void plas::plas_RandomInitialDistribution()
 {
   LOCAL_ENTITY_VARIABLES ent;
   LOCAL_FLOW_VARIABLES flow;
-  int ient,idim,numIni;
-  double p,q,rand1,rand2,rand3,rand4,setDiam,partVolume,totalVolume,elmVolume;
+  int ient,idim;
+  double p,q,rand1,rand2,rand3,rand4,setDiam,elmVolume;
 
   //***Allocation of local data structure***//
 
@@ -2811,15 +2372,12 @@ void plas::plas_RandomInitialDistribution()
   plas_AllocateLocalFlowVar(fp.numDim,&flow);
 
   //***Initializations***//
+  ip.numIniEnt = (ip.numIniEnt>ip.numMaxEnt? ip.numMaxEnt : ip.numIniEnt);
 
-  partVolume = fp.domainVolume;
-  totalVolume = plas_MpiAllSumDouble(partVolume);
-  numIni = (int)(ip.numIniEnt*partVolume/totalVolume);
-  if(numIni>ip.numMaxEnt){numIni = ip.numMaxEnt;}
 
   //***Loop over entities to generate***//
 
-  for(ient=0; ient<numIni; ient++){
+  for(ient=0; ient<ip.numIniEnt; ient++){
 
     //***Generate entity in a random element***//
 
@@ -2875,11 +2433,11 @@ void plas::plas_RandomInitialDistribution()
 
       for(idim=0; idim<fp.numDim; idim++){
         ent.pos[idim] = rand3*(getNodCoord(ent.edata.elmNodes[0],idim)
-                               + rand1*(getNodCoord(ent.edata.elmNodes[1],idim)
-                                        - getNodCoord(ent.edata.elmNodes[0],idim)))
+                      + rand1*(getNodCoord(ent.edata.elmNodes[1],idim)
+                             - getNodCoord(ent.edata.elmNodes[0],idim)))
           + (1.0-rand3)*(getNodCoord(ent.edata.elmNodes[2],idim)
-                         + rand2*(getNodCoord(ent.edata.elmNodes[3],idim)
-                                  - getNodCoord(ent.edata.elmNodes[2],idim)));
+                + rand2*(getNodCoord(ent.edata.elmNodes[3],idim)
+                       - getNodCoord(ent.edata.elmNodes[2],idim)));
       }
 
     } else if(getElementType(ent.elm)==ELM_HEX){
@@ -2891,17 +2449,17 @@ void plas::plas_RandomInitialDistribution()
 
       for(idim=0; idim<fp.numDim; idim++){
         ent.pos[idim] = rand4*(rand3*(getNodCoord(ent.edata.elmNodes[0],idim)
-                                      + rand1*(getNodCoord(ent.edata.elmNodes[4],idim)
-                                               - getNodCoord(ent.edata.elmNodes[0],idim)))
-                               + (1.0-rand3)*(getNodCoord(ent.edata.elmNodes[1],idim)
-                                              + rand2*(getNodCoord(ent.edata.elmNodes[5],idim)
-                                                       - getNodCoord(ent.edata.elmNodes[1],idim))))
+                      + rand1*(getNodCoord(ent.edata.elmNodes[4],idim)
+                             - getNodCoord(ent.edata.elmNodes[0],idim)))
+                + (1.0-rand3)*(getNodCoord(ent.edata.elmNodes[1],idim)
+                      + rand2*(getNodCoord(ent.edata.elmNodes[5],idim)
+                             - getNodCoord(ent.edata.elmNodes[1],idim))))
           +(1.0-rand4)*(rand3*(getNodCoord(ent.edata.elmNodes[2],idim)
-                              + rand1*(getNodCoord(ent.edata.elmNodes[6],idim)
-                                       - getNodCoord(ent.edata.elmNodes[2],idim)))
-                       + (1.0-rand3)*(getNodCoord(ent.edata.elmNodes[3],idim)
-                         + rand2*(getNodCoord(ent.edata.elmNodes[7],idim)
-                                  - getNodCoord(ent.edata.elmNodes[3],idim))));
+                      + rand1*(getNodCoord(ent.edata.elmNodes[6],idim)
+                             - getNodCoord(ent.edata.elmNodes[2],idim)))
+                + (1.0-rand3)*(getNodCoord(ent.edata.elmNodes[3],idim)
+                      + rand2*(getNodCoord(ent.edata.elmNodes[7],idim)
+                             - getNodCoord(ent.edata.elmNodes[3],idim))));
       }
 
     } else if(getElementType(ent.elm)==ELM_PYRAMID){
@@ -2913,12 +2471,12 @@ void plas::plas_RandomInitialDistribution()
 
       for(idim=0; idim<fp.numDim; idim++){
         ent.pos[idim] = rand4*getNodCoord(ent.edata.elmNodes[4],idim)
-          + (1.0-rand4)*(rand3*(getNodCoord(ent.edata.elmNodes[0],idim)
-                                + rand1*(getNodCoord(ent.edata.elmNodes[1],idim)
-                                         - getNodCoord(ent.edata.elmNodes[0],idim)))
-                         + (1.0-rand3)*(getNodCoord(ent.edata.elmNodes[2],idim)
-                                        + rand2*(getNodCoord(ent.edata.elmNodes[3],idim)
-                                                 - getNodCoord(ent.edata.elmNodes[2],idim))));
+        + (1.0-rand4)*(rand3*(getNodCoord(ent.edata.elmNodes[0],idim)
+                     + rand1*(getNodCoord(ent.edata.elmNodes[1],idim)
+                            - getNodCoord(ent.edata.elmNodes[0],idim)))
+               + (1.0-rand3)*(getNodCoord(ent.edata.elmNodes[2],idim)
+                     + rand2*(getNodCoord(ent.edata.elmNodes[3],idim)
+                            - getNodCoord(ent.edata.elmNodes[2],idim))));
       }
     }
 
@@ -3234,68 +2792,6 @@ void plas::plas_ReadParameters()
 }
 
 
-void plas::plas_SearchDomainParallel(LOCAL_ENTITY_VARIABLES *ent)
-{
-  int bfCtr = 0;
-  int elmFoundAnyProc = 0;
-  int idx,elmFound,procFound;
-  double dist;
-
-  //***Perform a successive neighbour search (find by chance)***//
-
-  do{
-    ent->elm = plas_RandomInteger(0,fp.numElm-1);
-    bfCtr++;
-    plas_SearchSuccessive(ent);
-    if(ent->flag==DFLAG_ENABLED){
-      elmFound = 1;
-      procFound = plas_MpiGetRank();
-    }else{
-      elmFound = 0;
-      procFound = plas_MpiGetNumProc();
-    }
-
-  } while(!elmFound && bfCtr<5);
-
-  //***Determins if an element has been found on any process***//
-
-  elmFoundAnyProc = plas_MpiAllMaxInt(elmFound);
-
-  //***Brute force search (relevant elements given by flow solver)***//
-
-  if(!elmFoundAnyProc){
-    ent->elm = StartElementSearch(ent->pos);
-    do{
-      plas_SetElementGeometry(fp.numDim,ent);
-      plas_FindMinimumElementFaceDistance(fp.numDim,ent,&idx,&dist);
-      if(dist>(0.0-rp.errTol)){
-        elmFound = 1;
-        procFound = plas_MpiGetRank();
-      }else{
-        elmFound = 0;
-        procFound = plas_MpiGetNumProc();
-        ent->elm++;
-      }
-    } while(!elmFound && ent->elm<=EndElementSearch(ent->pos));
-  }
-
-  //***In case an element is found on more than opne process, take the minimum one***//
-
-  procFound = plas_MpiAllMinInt(procFound);
-
-  //***Disable entity in case of not found***//
-
-  if(elmFound && plas_MpiGetRank()==procFound){
-    ent->flag = DFLAG_ENABLED;
-    ent->node = plas_FindNearestElementNode(ent);
-  } else{
-    ent->flag = DFLAG_DISABLED;
-    ent->elm = -1;
-    ent->node = -1;
-  }
-}
-
-
 void plas::plas_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent)
 {
   int elmFound = 0;
@@ -3305,27 +2801,26 @@ void plas::plas_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent)
   int neighbourElm,idx;
   double dist;
 
-  //***Successive neighbour search***//
 
+  //***Successive neighbour search***//
   do{
 
-    //***Set geometry of current element***//
 
+    //***Set geometry of current element***//
     plas_SetElementGeometry(fp.numDim,ent);
 
-    //***Find the face with the minimum distance to the entity***//
 
+    //***Find the face with the minimum distance to the entity***//
     plas_FindMinimumElementFaceDistance(fp.numDim,ent,&idx,&dist);
 
     if(dist>(0.0-rp.errTol)){
 
       //***In case the minimum distance is positive, the element is found***//
-
       elmFound = 1;
     } else{
 
-      //***Search the neighbour element in directin of the minimum face distance***//
 
+      //***Search the neighbour element in directin of the minimum face distance***//
       neighbourElm = getElmNeighbour(ent->elm,idx);
 
       if(neighbourElm==-1){
@@ -3339,14 +2834,14 @@ void plas::plas_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent)
     }
   } while(!elmFound && !leftDomain);
 
-  //***Disable entity in case of not found***//
 
+  //***Disable entity in case of not found***//
   if(elmFound){
     ent->flag = DFLAG_ENABLED;
     ent->node = plas_FindNearestElementNode(ent);
   } else{
     ent->flag = DFLAG_LEFT;
-    ent->elm = lastElm;
+    ent->elm  = lastElm;
     ent->node = lastNode;
   }
 }
@@ -3533,7 +3028,6 @@ void plas::plas_WallBounce(int numDim, double elasticity, LOCAL_ENTITY_VARIABLES
 void plas::plas_WriteStatsFile(char *outpString, int iter, double time)
 {
   FILE *outpFile;
-  if (!plas_MpiGetRank()) {
     outpFile = fopen(outpString,"a");
     if (outpFile==NULL)
       return;
@@ -3544,46 +3038,35 @@ void plas::plas_WriteStatsFile(char *outpString, int iter, double time)
     sd.periodic,sd.passed,sd.lost,sd.reynoldsAvg,sd.nusseltAvg,
     sd.dtLagrAvg,sd.subIterAvg);
     fclose(outpFile);
-  }
 }
 
 
 void plas::plas_WriteTecplotFile(char *outpString, int iter, double time)
 {
   FILE *outpFile;
-  int ient, iproc, idim;
-  const int numProc = plas_MpiGetNumProc();
-  const int irank   = plas_MpiGetRank();
+  int ient, idim;
 
-  for (iproc=0; iproc<numProc; ++iproc) {
-    if (iproc==irank) {
-      outpFile = fopen(outpString,"a");
-      if (irank==0) {
+  outpFile = fopen(outpString,"a");
 
-        // write header (if no entities are active, write dummy)
-        fprintf(outpFile,"ZONE T=\"Entities (dispersed)\" I=%d AUXDATA ITER=\"%d\" SOLUTIONTIME=%12.6f DATAPACKING=POINT\n",sd.enabled? sd.enabled:1,iter,time);
-        if (!sd.enabled) {
-          for (idim=0; idim<fp.numDim*2+3; ++idim)
-            fprintf(outpFile,"0 ");
-          fprintf(outpFile,"\n");
-        }
-
-      }
-      for (ient=0; ient<ip.numMaxEnt && sd.enabled; ++ient) {
-        if (ed[ient].flag==DFLAG_ENABLED || ed[ient].flag==DFLAG_CREATED) {
-
-          PLAS_ENTITY_DATA *e = &(ed[ient]);
-          for (idim=0; idim<fp.numDim; ++idim)
-            fprintf(outpFile,"%.12f ",e->position[idim]);
-          for (idim=0; idim<fp.numDim; ++idim)
-            fprintf(outpFile,"%.12f ",e->velocity[idim]);
-          fprintf(outpFile,"%.12f %.12f %.12f\n",e->diameter,e->temperature,0.);
-
-        }
-      }
-      fclose(outpFile);
-    }
-    plas_MpiBarrier();
+  // write header (if no entities are active, write dummy)
+  fprintf(outpFile,"ZONE T=\"Entities (dispersed)\" I=%d AUXDATA ITER=\"%d\" SOLUTIONTIME=%12.6f DATAPACKING=POINT\n",sd.enabled? sd.enabled:1,iter,time);
+  if (!sd.enabled) {
+    for (idim=0; idim<fp.numDim*2+3; ++idim)
+      fprintf(outpFile,"0 ");
+    fprintf(outpFile,"\n");
   }
-}
 
+  for (ient=0; ient<ip.numMaxEnt && sd.enabled; ++ient) {
+    if (ed[ient].flag==DFLAG_ENABLED || ed[ient].flag==DFLAG_CREATED) {
+
+      PLAS_ENTITY_DATA *e = &(ed[ient]);
+      for (idim=0; idim<fp.numDim; ++idim)
+        fprintf(outpFile,"%.12f ",e->position[idim]);
+      for (idim=0; idim<fp.numDim; ++idim)
+        fprintf(outpFile,"%.12f ",e->velocity[idim]);
+      fprintf(outpFile,"%.12f %.12f %.12f\n",e->diameter,e->temperature,0.);
+
+    }
+  }
+  fclose(outpFile);
+}

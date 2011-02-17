@@ -7,39 +7,35 @@
 
 
 /// Preprocessor constants
-#define DFLAG_DISABLED       0
-#define DFLAG_ENABLED        1
-#define DFLAG_CREATED        2
-#define DFLAG_LEFT           3
-#define DFLAG_PASS           4
-#define FLOW_PARTIC          1
-#define FLOW_DROPLET         2
-#define FLOW_BUBBLY          3
-#define MAT_COPPER           1
-#define MAT_POLY             2
-#define MAT_WATER            3
-#define MAT_NHEPTANE         4
-#define MAT_HYDROGEN         5
-#define MAT_OXYGEN           6
-#define MAT_AIR              7
-#define MAXELMFACES          6
-#define MAXELMNODES          8
-#define MAXELMNORMS          6
-#define FORCE_PIC            1
-#define FORCE_PROJ           2
-#define COLL_UNCORRELATED    1
-#define COLL_CORRELATED      2
-#define ELM_SIMPLEX          1
-#define ELM_PRISM            2
-#define ELM_QUAD             3
-#define ELM_HEX              4
-#define ELM_PYRAMID          5
-#define FLOWSOLVER_DRIVER    1
-#define FLOWSOLVER_MORPHEUS  2
-#define FLOWSOLVER_SFELES    3
-#define FLOWSOLVER_COOLFLUID 4
-#define SEARCH_ONEPROC       1
-#define SEARCH_PARALLEL      2
+#define DFLAG_DISABLED    0
+#define DFLAG_ENABLED     1
+#define DFLAG_CREATED     2
+#define DFLAG_LEFT        3
+#define DFLAG_PASS        4
+#define FLOW_PARTIC       1
+#define FLOW_DROPLET      2
+#define FLOW_BUBBLY       3
+#define MAT_COPPER        1
+#define MAT_POLY          2
+#define MAT_WATER         3
+#define MAT_NHEPTANE      4
+#define MAT_HYDROGEN      5
+#define MAT_OXYGEN        6
+#define MAT_AIR           7
+#define MAXELMFACES       6
+#define MAXELMNODES       8
+#define MAXELMNORMS       6
+#define FORCE_PIC         1
+#define FORCE_PROJ        2
+#define COLL_UNCORRELATED 1
+#define COLL_CORRELATED   2
+
+#define ELM_SIMPLEX       1
+#define ELM_PRISM         2
+#define ELM_QUAD          3
+#define ELM_HEX           4
+#define ELM_PYRAMID       5
+
 #ifndef PI
 #define PI 3.14159265
 #endif
@@ -144,22 +140,10 @@ typedef struct _plas_input_param{
 } PLAS_INPUT_PARAM;
 
 
-/// Partitioning data
-typedef struct _plas_part_data{
-  int numNodPairs;   // Number of updatable/ghost node pairs
-  int *sendRank;     // Sending ranks
-  int *sendNodeIdx;  // Sending rank local node numbers
-  int *recvRank;     // Receiving ranks
-  int *recvNodeIdx;  // Receiving rank local node numbers
-} PLAS_PART_DATA;
-
-
 /// Data to be set by the flow solver
 typedef struct _plas_flowsolver_param{
 
   //***To be set on initialization (see interface function below)***//
-
-  int flowSolver;       // Flag for the flow solver used
   int numDim;           // Number of space dimensions
   int numUnk;           // Number of unknown variables for the primary phase flow
   int numNod;           // Number of nodes
@@ -171,13 +155,10 @@ typedef struct _plas_flowsolver_param{
   double cpCont;        // Specific heat coefficient of the flow medium
   double kCont;         // Thermal conductivity of the flow medium
   double dtEul;         // Eulerian time scale
-  double domainVolume;  // Total volume (in 2D: area) of the domain
   double minElmVolume;  // Smallest element volume (in 2D: area) in the domain
   double maxElmVolume;  // Largest element volume (in 2D: area) in the domain
-  PLAS_PART_DATA part;  // Partitioning data structure
 
   //***To be set on every iteration (see interface function below)***//
-
   int iter;             // Current iteration
   double time;          // Current time
   int writeOutput;      // Flag whether the flow solver writes outputs
@@ -288,12 +269,6 @@ class plas {
    * @param[in] fp pointer to PLaS data structure
    */
   virtual void setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp) = 0;
-
-  /**
-   * Set partitioning data
-   * @param[in] part partitioning data structure
-   */
-  virtual void setPartitioningData(PLAS_PART_DATA *part) = 0;
 
   /**
    * Provide node of an element to PLaS
@@ -571,15 +546,6 @@ class plas {
    * velocity and its derivatives at the entity position.
    */
   void plas_AllocateLocalFlowVar(int numDim, LOCAL_FLOW_VARIABLES *flow);
-
-  /**
-   * This file contains all functionality to read in data from
-   * the PLaS.conf data file.
-   *
-   * This function broadcasts input data for a multi=processor
-   * environment by the MPI Broadcast command.
-   */
-  void plas_BroadcastParameters();
 
   /**
    * This file includes the computation of back-coupling terms
@@ -949,109 +915,6 @@ class plas {
   void plas_LoadInitialDistribution(char *inpString);
 
   /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * MPI Allreduce of the data type MPI_INT with MPI_MAX as an
-   * operator, extended to arrays.
-   */
-  void plas_MpiAllMaxIntArray(int *val, int size);
-
-  /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * MPI Allreduce of the data type MPI_INT with MPI_MAX as an
-   * operator, applicable for scalar data.
-   */
-  int plas_MpiAllMaxInt(int val);
-
-  /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * MPI Allreduce of the data type MPI_INT with MPI_MIN as an
-   * operator, applicable for scalar data.
-   */
-  int plas_MpiAllMinInt(int val);
-
-  /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * MPI Allreduce of the data type MPI_DOUBLE with MPI_SUM as
-   * an operator, extended to arrays.
-   */
-  void plas_MpiAllSumDoubleArray(double *val, int size);
-
-  /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * MPI Allreduce of the data type MPI_DOUBLE with MPI_SUM as
-   * an operator, applicable for scalar data.
-   */
-  double plas_MpiAllSumDouble(double val);
-
-  /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * MPI Allreduce of the data type MPI_INT with MPI_SUM as an
-   * operator, extended to arrays.
-   */
-  void plas_MpiAllSumIntArray(int *val, int size);
-
-  /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * MPI Allreduce of the data type MPI_INT with MPI_SUM as an
-   * operator, applicable for scalar data.
-   */
-  int plas_MpiAllSumInt(int val);
-
-  /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * MPI Barrier
-   */
-  void plas_MpiBarrier();
-
-  /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * MPI Broadcast of the data type MPI_DOUBLE
-   */
-  void plas_MpiBroadcastDouble(double *variable, int size, int root);
-
-  /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * MPI Broadcast of the data type MPI_INT
-   */
-  void plas_MpiBroadcastInt(int *variable, int size, int root);
-
-  /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * This function returns the number of processes.
-   */
-  int plas_MpiGetNumProc();
-
-  /**
-   * This file contains MPI functionality for parallel
-   * computation of dispersed two-phase flow.
-   *
-   * This function returns the rank of the calling process.
-   */
-  int plas_MpiGetRank();
-
-  /**
    * This function normalizes a vector to length one.
    */
   void plas_NormalizeVector(int numDim, double *a);
@@ -1109,12 +972,6 @@ class plas {
    * This function reads the PLaS.conf data file.
    */
   void plas_ReadParameters();
-
-  /**
-   * This file includes all functinality to perform an element
-   * search for a dispersed entity.
-   */
-  void plas_SearchDomainParallel(LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * This file includes all functinality to perform an element

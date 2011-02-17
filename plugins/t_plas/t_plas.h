@@ -11,94 +11,35 @@
 #define NITROGEN 3
 
 
-// Driver input parameters for drivers.conf file
-typedef struct driver_parameters{
-  int
-    iter,
-    numIter,
-    numUnk,
-    numBnd,
-    *bnd,
-    material;
-  double dtEul;
-  char gridString[100];
-} DRIVER_PARAMETERS;
-
-
-// Mesh paramaters data structure
-typedef struct driver_gambit_mesh{
-  int
-    numNod,
-    numElm,
-    numBnd,
-    numDim,
-    *elmTypes,
-    *bndTypes,
-    *numElmNodes,
-    **elmNodes,
-    *numBndFaces,
-    **bndFaces,
-    **bndDomElms,
-    *numNodElms,
-    **nodElms,
-    *numElmFaces,
-    **elmNeighbs;
-  double
-    **coords,
-    ***elmNorms,
-    *nodVolumes,
-    *elmVolumes,
-    domainVolume,
-    minElmVolume,
-    maxElmVolume;
-} DRIVER_GAMBIT_MESH;
-
-
-// Flow field data structure
-typedef struct driver_flow_field{
-  double
-    rho,
-    mu,
-    cp,
-    k,
-    *p,
-    **u,
-    *T;
-} DRIVER_FLOW_FIELD;
-
-
 // module to use the Particle Lagrangian Solver (PLaS)
 class t_plas : public m::mtransform,
                public plas {
  public:
   void transform(GetPot& o, m::mmesh& m);
 
-  // member functions
- private:
+ private:  // member functions
   double plasdriver_CalcAreaTriangle(double c[3][2]);
-  void   plasdriver_CalcElementNeighbours(DRIVER_GAMBIT_MESH *dmesh);
-  void   plasdriver_CalcElementNormals(DRIVER_GAMBIT_MESH *dmesh);
-  void   plasdriver_CalcElementVolumes(DRIVER_GAMBIT_MESH *dmesh);
-  void   plasdriver_CalcElmsAroundNode(DRIVER_GAMBIT_MESH *dmesh);
-  void   plasdriver_CalcNodalVolumes(DRIVER_GAMBIT_MESH *dmesh);
+  void   plasdriver_CalcElementNeighbours();
+  void   plasdriver_CalcElementNormals();
+  void   plasdriver_CalcElementVolumes();
+  void   plasdriver_CalcElmsAroundNode();
+  void   plasdriver_CalcNodalVolumes();
   double plasdriver_CalcVolumeTetra(double c[4][3]);
-  void   plasdriver_FreeGambitMemory(DRIVER_GAMBIT_MESH *dmesh);
-  void   plasdriver_InitFlowField(DRIVER_GAMBIT_MESH *dmesh, int material, DRIVER_FLOW_FIELD *dflow);
-  void   plasdriver_ReadDriverDataFile(DRIVER_PARAMETERS *dparam);
+  void   plasdriver_InitFlowField(int material);
+  void   plasdriver_ReadDriverDataFile();
   void   plasdriver_ReadGambitNeutralFile();
-  void   plasdriver_WriteTecplot(DRIVER_GAMBIT_MESH *dmesh, DRIVER_PARAMETERS *dparam, DRIVER_FLOW_FIELD *dflow);
-  void   plasdriver_GetFaceNodes(DRIVER_GAMBIT_MESH *dmesh, int elm, int face, int *nodes);
+  void   plasdriver_GetFaceNodes(int elm, int face, int *nodes);
 
  private:  // plas interface functions
    void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp);
    void setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp);
-   double getBndFaceRefCoord(int bnd, int bface, int dim);
-   double getElmFaceMiddlePoint(int elm, int eface, int dim);
+   double getBndFaceRefCoord           (int bnd, int bface, int dim);
+   double getElmFaceMiddlePoint        (int elm, int eface, int dim);
    double getBndFaceNormComp           (int bnd, int face, int dim)    { return dmesh.elmNorms[dmesh.bndDomElms[bnd][face]][dmesh.bndFaces[bnd][face]][dim]; }
    double getElmNormComp               (int elm, int eface, int dim)   { return dmesh.elmNorms[elm][eface][dim]; }
    double getElmVol                    (int elm)                       { return dmesh.elmVolumes[elm]; }
    double getEulerianTimeScale         (int nod)                       { return 0.; }
-   double getNodCoord                  (int nod, int dim)              { return dmesh.coords[nod][dim]; }
+   double getNodCoord                  (int nod, int dim)              { return M->vv[dim][nod]; }
    double getNodVol                    (int nod)                       { return dmesh.nodVolumes[nod]; }
    double getPerBndOffset              (int bnd, int dim)              { return 0.; }  // TODO: implement
    double getPressure                  (int nod)                       { return dflow.p[nod]; }
@@ -118,15 +59,71 @@ class t_plas : public m::mtransform,
    int    getWallBndFlag               (int bnd)                       { return dmesh.bndTypes[bnd]==1? 1:0; }
    int    EndElementSearch             (double *pos)                   { return dmesh.numElm-1; }
    int    StartElementSearch           (double *pos)                   { return 0; }
-   void   setPartitioningData          (PLAS_PART_DATA *part)          { part->numNodPairs = 0; }
    void   screenOutput                 (const std::string& text)                    { std::cout << "t_plas: info: " << text << std::endl; }
    void   screenWarning                (const std::string& text)                    { std::cout << "t_plas: warn: " << text << std::endl; }
 
  private:  // member variables
-  DRIVER_PARAMETERS  dparam;
-  DRIVER_GAMBIT_MESH dmesh;
-  DRIVER_FLOW_FIELD  dflow;
-  m::mmesh M;
+  m::mmesh *M;
+
+#if 0
+  struct s_zoneprops {
+    s_zoneprops() : nelem(0), etype(m::ORDERED) {}
+    unsigned nelem;
+    m::mtype etype;
+  };
+  std::vector< s_zoneprops >
+    m_zinner,
+    m_zbound;
+#endif
+
+
+  // mesh paramaters data structure
+  struct {
+    int
+      numElm,
+      *elmTypes,
+      *numElmNodes,
+      **elmNodes,
+      *numNodElms,
+      **nodElms,
+      *numElmFaces,
+      **elmNeighbs,
+      *bndTypes,
+      *numBndFaces,
+      **bndFaces,
+      **bndDomElms;
+    double
+      ***elmNorms,
+      *nodVolumes,
+      *elmVolumes,
+      minElmVolume,
+      maxElmVolume;
+  } dmesh;
+
+  // flow field data structure
+  struct {
+    double
+      rho,
+      mu,
+      cp,
+      k,
+      *p,
+      **u,
+      *T;
+  } dflow;
+
+  // input parameters from drivers.conf file
+  struct {
+    int
+      iter,
+      numIter,
+      numUnk,
+      numBnd,
+      *bnd,
+      material;
+    double dtEul;
+  } dparam;
+
 };
 
 
