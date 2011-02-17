@@ -502,11 +502,9 @@ void t_plas::plasdriver_FreeGambitMemory(DRIVER_GAMBIT_MESH *dmesh)
   delete[] dmesh->elmNorms;
 
   for(ibnd=0; ibnd<dmesh->numBnd; ibnd++){
-    delete[] dmesh->bndNames[ibnd];
     delete[] dmesh->bndFaces[ibnd];
     delete[] dmesh->bndDomElms[ibnd];
   }
-  delete[] dmesh->bndNames;
   delete[] dmesh->bndFaces;
   delete[] dmesh->bndDomElms;
   delete[] dmesh->numNodElms;
@@ -788,51 +786,7 @@ void t_plas::plasdriver_ReadDriverDataFile(DRIVER_PARAMETERS *dparam)
 // This function reads a Gambit mesh.
 void t_plas::plasdriver_ReadGambitNeutralFile()
 {
-  /*
-    typedef struct driver_gambit_mesh{
-      int
-        numNod,
-        numElm,
-        numBnd,
-        numDim,
-        *elmTypes,
-        *bndTypes,
-        *numElmNodes,
-        **elmNodes,
-        *numBndFaces,
-        **bndFaces,
-        **bndDomElms,
-        *numNodElms,
-        **nodElms,
-        *numElmFaces,
-        **elmNeighbs;
-      double
-        **coords,
-        ***elmNorms,
-        *nodVolumes,
-        *elmVolumes,
-        domainVolume,
-        minElmVolume,
-        maxElmVolume;
-      char
-        **bndNames,
-        text[100][100];
-    } DRIVER_GAMBIT_MESH;
-  */
-    /*
-    M.vn.clear();
-    for (int d=0; d<dmesh.numDim; ++d) M.vn.push_back(    std::string(1,char('x'+d)));
-    for (int d=0; d<dmesh.numDim; ++d) M.vn.push_back("v"+std::string(1,char('x'+d)));
-    M.vn.push_back("p");
-    M.vn.push_back("T");
-    M.vv.assign(M.v(),std::vector< double >(dmesh.numNod,0.));
-    */
-
-  int i,j,idim,ielm,ifac,ibnd,jbnd,dummy,ignore_i,ctr_tri,ctr_tet,ctr_qua,ctr_hex,ctr_pri,ctr_pyr;
-  char dummyString[100],*ignore_cp,text[100][100];
-  FILE *inpFile = NULL;
-
-
+  // general information
   dmesh.numNod = (int) M.n();
   dmesh.numDim = (int) M.d();
   dmesh.numElm = 0;
@@ -841,9 +795,11 @@ void t_plas::plasdriver_ReadGambitNeutralFile()
     dmesh.numElm += M.d(i)==M.d()?   M.e(i):0;
     dmesh.numBnd += M.d(i)==M.d()-1?      1:0;
   }
+  if (dparam.numBnd!=dmesh.numBnd)
+    plas_TerminateOnError("number of boundaries mismatch between driver.conf and mesh");
 
 
-  //***Read nodes***//
+  // read nodes
   dmesh.coords = new double*[M.n()];
   for (unsigned i=0; i<M.n(); ++i) {
     dmesh.coords[i] = new double[M.d()];
@@ -852,130 +808,66 @@ void t_plas::plasdriver_ReadGambitNeutralFile()
   }
 
 
-  //OK up to here
-
-
-  //***Read elements***//
-  ctr_tri = ctr_tet = ctr_qua = ctr_hex = ctr_pri = ctr_pyr = 0;
+  // read elements
   dmesh.elmTypes    = new int     [dmesh.numElm];
   dmesh.numElmNodes = new int     [dmesh.numElm];
   dmesh.elmNodes    = new int*    [dmesh.numElm];
   dmesh.numElmFaces = new int     [dmesh.numElm];
   dmesh.elmNorms    = new double**[dmesh.numElm];
-
-  for(i=8; i<10; i++){ignore_cp = fgets(text[i],100,inpFile);}
-
-  for(ielm=0; ielm<dmesh.numElm; ielm++){
-
-    ignore_i  = fscanf(inpFile,"%d",&dummy);
-    ignore_i  = fscanf(inpFile,"%d",&dummy);
-
-    if(dummy==1 || dummy==3 || dummy==6){
-      dmesh.elmTypes[ielm] = ELM_SIMPLEX;
-      if(dmesh.numDim==2){
-        dmesh.numElmFaces[ielm] = 3;
-        ctr_tri++;
-      } else if(dmesh.numDim==3){
-        dmesh.numElmFaces[ielm] = 4;
-        ctr_tet++;
+  for (unsigned iz=0, ie=0; iz<M.z(); ++iz) {
+    if (M.d(iz)==M.d()) {
+      for (unsigned i=ie; i<M.e(iz)+ie; ++i) {
+        switch(M.vz[iz].t) {
+          case (FETRIANGLE):      dmesh.elmTypes[i] = ELM_SIMPLEX; dmesh.numElmFaces[i] = 3; dmesh.numElmNodes[i] = 3; break;
+          case (FEQUADRILATERAL): dmesh.elmTypes[i] = ELM_QUAD;    dmesh.numElmFaces[i] = 4; dmesh.numElmNodes[i] = 4; break;
+          case (FETETRAHEDRON):   dmesh.elmTypes[i] = ELM_SIMPLEX; dmesh.numElmFaces[i] = 4; dmesh.numElmNodes[i] = 4; break;
+          case (FEBRICK):         dmesh.elmTypes[i] = ELM_HEX;     dmesh.numElmFaces[i] = 6; dmesh.numElmNodes[i] = 8; break;
+          case (PRISM3):          dmesh.elmTypes[i] = ELM_PRISM;   dmesh.numElmFaces[i] = 5; dmesh.numElmNodes[i] = 5; break;
+          case (PYRAMID4):        dmesh.elmTypes[i] = ELM_PYRAMID; dmesh.numElmFaces[i] = 5; dmesh.numElmNodes[i] = 5; break;
+          default:                dmesh.elmTypes[i] = 0;
+        }
+        if (dmesh.elmTypes[i]) {
+          dmesh.elmNorms[i] = new double*[dmesh.numElmFaces[i]]; for (int j=0; j<dmesh.numElmFaces[i]; ++j) dmesh.elmNorms[i][j] = new double[dmesh.numDim];
+          dmesh.elmNodes[i] = new int    [dmesh.numElmNodes[i]]; for (int j=0; j<dmesh.numElmNodes[i]; ++j) dmesh.elmNodes[i][j] = M.vz[iz].e2n[i-ie].n[j];
+        }
       }
-    } else if(dummy==2){
-      dmesh.elmTypes[ielm] = ELM_QUAD;
-      dmesh.numElmFaces[ielm] = 4;
-      ctr_qua++;
-    } else if(dummy==4){
-      dmesh.elmTypes[ielm] = ELM_HEX;
-      dmesh.numElmFaces[ielm] = 6;
-      ctr_hex++;
-    } else if(dummy==5){
-      dmesh.elmTypes[ielm] = ELM_PRISM;
-      dmesh.numElmFaces[ielm] = 5;
-      ctr_pri++;
-    } else if(dummy==7){
-      dmesh.elmTypes[ielm] = ELM_PYRAMID;
-      dmesh.numElmFaces[ielm] = 5;
-      ctr_pyr++;
+      ie += M.e(iz);
     }
-
-    dmesh.elmNorms[ielm] = new double*[dmesh.numElmFaces[ielm]];
-    for(ifac=0; ifac<dmesh.numElmFaces[ielm]; ifac++){
-      dmesh.elmNorms[ielm][ifac] = new double[dmesh.numDim];
-    }
-
-    ignore_i  = fscanf(inpFile,"%d",&dmesh.numElmNodes[ielm]);
-    dmesh.elmNodes[ielm] = new int[dmesh.numElmNodes[ielm]];
-    for(idim=0; idim<dmesh.numElmNodes[ielm]; idim++){
-      ignore_i  = fscanf(inpFile,"%d",&dmesh.elmNodes[ielm][idim]);
-      dmesh.elmNodes[ielm][idim]--;
-    }
-    ignore_cp = fgets(dummyString,100,inpFile);
   }
+
+
+  // OK up to here
 
 
   //***Read boundary information***//
-  dmesh.bndNames    = new char*[dmesh.numBnd];
-  dmesh.numBndFaces = new int  [dmesh.numBnd];
-  dmesh.bndFaces    = new int* [dmesh.numBnd];
-  dmesh.bndDomElms  = new int* [dmesh.numBnd];
-  dmesh.bndTypes    = new int  [dmesh.numBnd];
-  if (dparam.numBnd!=dmesh.numBnd)
-    plas_TerminateOnError("Number of boundary mismatch between driver.conf and Gambit mesh file");
-  for(i=0; i<dmesh.numBnd; i++){
+  dmesh.numBndFaces = new int [dmesh.numBnd];
+  dmesh.bndFaces    = new int*[dmesh.numBnd];
+  dmesh.bndDomElms  = new int*[dmesh.numBnd];
+  dmesh.bndTypes    = new int [dmesh.numBnd];
+  for (int i=0; i<dmesh.numBnd; i++)
     dmesh.bndTypes[i] = dparam.bnd[i];
-  }
   delete[] dparam.bnd;
 
-  for(ibnd=0; ibnd<dmesh.numBnd; ibnd++){
-    ignore_cp = fgets(text[i],100,inpFile);
-    i++;
-    dmesh.bndNames[ibnd] = new char[33];
-    for(j=0; j<32; j++){
-      ignore_i  = fscanf(inpFile,"%c",&dmesh.bndNames[ibnd][j]);
+  for (int ib=0; ib<dmesh.numBnd; ib++) {
+    for(int j=0; j<dmesh.numBndFaces[ib]; j++){
+      dmesh.bndDomElms[ib][j]--;
+      dmesh.bndFaces[ib][j]--;
     }
-
-
-    //***Align boundary name***//
-    i = 0;
-    while(dmesh.bndNames[ibnd][i]==32){
-      i++;
-    }
-    j = 0;
-    while(i<32){
-      dmesh.bndNames[ibnd][j] = dmesh.bndNames[ibnd][i];
-      i++;
-      j++;
-    }
-    dmesh.bndNames[ibnd][j] = '\0';
-
-    ignore_i  = fscanf(inpFile,"%d",&dummy);
-
-    if (dummy!=1)
-      plas_TerminateOnError("Neutral file reader error: Boundary ITYPE is not element/cell");
-
-    ignore_i  = fscanf(inpFile,"%d",&dmesh.numBndFaces[ibnd]);
-    ignore_i  = fscanf(inpFile,"%d",&dummy);
-    ignore_i  = fscanf(inpFile,"%d",&dummy);
-    ignore_cp = fgets(dummyString,100,inpFile);
-    dmesh.bndFaces[ibnd]   = new int[dmesh.numBndFaces[ibnd]];
-    dmesh.bndDomElms[ibnd] = new int[dmesh.numBndFaces[ibnd]];
-    for(jbnd=0; jbnd<dmesh.numBndFaces[ibnd]; jbnd++){
-      ignore_i  = fscanf(inpFile,"%d",&dmesh.bndDomElms[ibnd][jbnd]);
-      dmesh.bndDomElms[ibnd][jbnd]--;
-      ignore_i  = fscanf(inpFile,"%d",&dummy);
-      ignore_i  = fscanf(inpFile,"%d",&dmesh.bndFaces[ibnd][jbnd]);
-      dmesh.bndFaces[ibnd][jbnd]--;
-      ignore_cp = fgets(dummyString,100,inpFile);
-    }
-    ignore_cp = fgets(text[i],100,inpFile);
-    i++;
   }
-
-  fclose(inpFile);
+  for (unsigned iz=0, ib=0; iz<M.z(); ++iz) {
+    if (M.d(iz)==M.d()-1) {
+      dmesh.numBndFaces[ib] = M.e(iz);
+      dmesh.bndDomElms[ib]  = new int[M.e(iz)];
+      dmesh.bndFaces[ib]    = new int[M.e(iz)];
+      for (unsigned i=0; i<M.e(iz); ++i) {
+      }
+      ++ib;
+    }
+  }
 }
 
 
-// This file contains read and write routines of the PLaS
-// driver program.
+// This file contains read and write routines of the PLaS driver program.
 // This function writes a Tecplot output of the flow field.
 void t_plas::plasdriver_WriteTecplot(DRIVER_GAMBIT_MESH *dmesh, DRIVER_PARAMETERS *dparam, DRIVER_FLOW_FIELD *dflow)
 {

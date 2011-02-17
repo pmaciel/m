@@ -51,7 +51,6 @@ typedef struct driver_gambit_mesh{
     domainVolume,
     minElmVolume,
     maxElmVolume;
-  char **bndNames;
 } DRIVER_GAMBIT_MESH;
 
 
