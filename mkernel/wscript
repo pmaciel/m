@@ -20,11 +20,13 @@ def configure(conf):
 
 
 def build(bld):
+  from sys import platform
 
   # mkernel library
   bld.shlib(
     target   = 'mkernel',
     includes = ['.'],
+    defines  = ['FP_NO_SUPPORT_OPTIMIZER'] if platform=='darwin' else [],
     source   = [
       'ext/fparser.cc','ext/fpoptimizer.cc',  # function parser
       'ext/xmlParser.cpp',                    # xml parser
