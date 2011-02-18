@@ -6,10 +6,9 @@
 #include "plas.h"
 
 
-void plas::initialize()
+void plas::initialize(const XMLNode& x)
 {
   int ient,inod;
-  FILE *inpFile;
 
 
   //***Flow solver parameters that have to be set only once***//
@@ -17,7 +16,7 @@ void plas::initialize()
 
 
   //***Read parameters from input file***//
-  plas_ReadParameters();
+  plas_ReadParameters(x);
 
 
   //***Allocate memory for dispersed phase data***//
@@ -58,14 +57,14 @@ void plas::initialize()
   //***Initial entity distribution***//
 
   /* set output files */
-  inpFile = fopen(ip.writeTecplotFilename,"r");
+  FILE *inpFile = fopen(ip.writeTecplotFilename.c_str(),"r");
   if (inpFile==NULL || !ip.restart) {
     ip.restart = 0;
     plas_CreateTecplotFile(ip.writeTecplotFilename);
   }
   else
     fclose(inpFile);
-  inpFile = fopen(ip.writeStatsFilename,"r");
+  inpFile = fopen(ip.writeStatsFilename.c_str(),"r");
   if (inpFile==NULL) {
     plas_CreateStatsFile(ip.writeStatsFilename);
   }
@@ -86,7 +85,7 @@ void plas::run()
   LOCAL_FLOW_VARIABLES flow;
   char errMessage[100];
   int idx,ient,jent,inod,idim,iunk,ibnd,ifac,subIter,facFound,avgctr;
-  double cellSize,minCellSize,entVel,dtLagr,dtRemaining,unitVec[fp.numDim];
+  double cellSize,minCellSize,entVel,dtLagr,dtRemaining;
 
 
   //***Flow solver parameters that have to be set at every time step***//
@@ -273,19 +272,6 @@ void plas::run()
               plas_WallBounce(fp.numDim,rp.wallElasticity,&ent,ibnd,ifac);
               sd.bounce++;
               ent.flag = DFLAG_ENABLED;
-
-
-            } else if(ip.perBnd && getPerBndFlag(ibnd)){
-
-              //***Pass entity through periodic boundary***//
-
-              plas_CalcBoundaryUnitNormal(fp.numDim,ibnd,ifac,unitVec);
-              for(idim=0; idim<fp.numDim; idim++){
-                ent.pos[idim] += getPerBndOffset(ibnd,idim);
-              }
-              ent.flag = DFLAG_PASS;
-              sd.leftproc++;
-              sd.periodic++;
 
 
             } else{
@@ -1662,10 +1648,10 @@ void plas::plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double 
 }
 
 
-void plas::plas_CreateStatsFile(char *outpString)
+void plas::plas_CreateStatsFile(const std::string &outpString)
 {
   FILE *outpFile;
-  outpFile = fopen(outpString,"w");
+  outpFile = fopen(outpString.c_str(),"w");
   if (outpFile==NULL)
     return;
 
@@ -1674,10 +1660,10 @@ void plas::plas_CreateStatsFile(char *outpString)
 }
 
 
-void plas::plas_CreateTecplotFile(char *outpString)
+void plas::plas_CreateTecplotFile(const std::string &outpString)
 {
   FILE* outpFile;
-  outpFile = fopen(outpString,"w");
+  outpFile = fopen(outpString.c_str(),"w");
   if (fp.numDim==2) {
     fprintf(outpFile,"VARIABLES = \"X\" \"Y\" \"U\" \"V\" \"d\" \"T\" \"theta\"\n");
   } else if(fp.numDim==3) {
@@ -2118,7 +2104,7 @@ void plas::plas_InterpolateVelocity(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARI
 }
 
 
-void plas::plas_LoadInitialDistribution(char *inpString)
+void plas::plas_LoadInitialDistribution(const std::string &inpString)
 {
   LOCAL_ENTITY_VARIABLES ent;
   int ient,jent,idim,numIni;
@@ -2128,7 +2114,7 @@ void plas::plas_LoadInitialDistribution(char *inpString)
 
   //***Read data file***//
 
-  inpFile = fopen(inpString,"r");
+  inpFile = fopen(inpString.c_str(),"r");
 
   /* locate zone starting position ("^ZONE.+(dispersed)")) */
   /* set numIni (I) and fp.time (SOLUTIONTIME) */
@@ -2509,286 +2495,83 @@ int plas::plas_RandomInteger(int min, int max)
 }
 
 
-double plas::plas_ReadDoubleParam(FILE *inpFile)
+void plas::plas_ReadParameters(const XMLNode& x)
 {
-  double d;
-  int ignore_i;
-  char text[100],*ignore_cp;
+  // read parameters
+  ip.numMaxEnt  = std::max(0, x.getAttribute< int    >("entities.max",1000));
+  ip.numIniEnt  = std::max(0, x.getAttribute< int    >("entities.init",0));
+  ip.iniDiam    = std::max(0.,x.getAttribute< double >("entities.production.diameter.mean",1.));
+  ip.iniDiamStd = std::max(0.,x.getAttribute< double >("entities.production.diameter.std", 0.));
 
-  ignore_cp = fgets(text,100,inpFile);
-  ignore_i = fscanf(inpFile,"%lf",&d);
-  ignore_cp = fgets(text,100,inpFile);
+  ip.iniVel[0] = x.getAttribute< double >("entities.production.velocity.x",0.);
+  ip.iniVel[1] = x.getAttribute< double >("entities.production.velocity.y",0.);
+  ip.iniVel[2] = x.getAttribute< double >("entities.production.velocity.z",0.);
+  ip.iniTempDisp = std::max(0.,x.getAttribute< double >("entities.production.temperature",293.15));
 
-  return d;
-}
+  const std::string
+    e_material  = x.getAttribute< std::string >("entities.material","air"),
+    e_ddist     = x.getAttribute< std::string >("entities.production.diameter.distribution","constant"),
+    c_momentum  = x.getAttribute< std::string >("couple.momentum","no"),
+    c_energy    = x.getAttribute< std::string >("couple.energy","no"),
+    m_collision = x.getAttribute< std::string >("model.collision","no");
+
+  ip.volfracCoupl = (x.getAttribute< std::string >("couple.volumefraction","no")=="yes");
+  ip.evapModel    = (x.getAttribute< std::string >("model.droplets.thinfilmevaporation","no")=="yes");
+  ip.saturModel   = (x.getAttribute< std::string >("model.bubbles.saturation","no")=="yes");
+  ip.liftForce    = (x.getAttribute< std::string >("model.bubbles.slip-shearliftforce","no")=="yes");
+
+  ip.gravVec[0] = x.getAttribute< double >("gravity.x",0.);
+  ip.gravVec[1] = x.getAttribute< double >("gravity.y",0.);
+  ip.gravVec[2] = x.getAttribute< double >("gravity.z",0.);
+
+  ip.restart = (x.getAttribute< std::string >("restart","no")=="yes");
+  ip.writeStatsFilename   = x.getAttribute< std::string >("output.statistics","plas.txt");
+  ip.writeTecplotFilename = x.getAttribute< std::string >("output.results","plas.plt");
 
 
-int plas::plas_ReadIntParam(FILE *inpFile)
-{
-  int i,ignore_i;
-  char text[100],*ignore_cp;
+  // apply corrections and set additional paramters
+  ip.material = (e_material=="Cu"  || e_material=="copper"?     MAT_COPPER   :
+                (e_material=="C8H8"?                            MAT_POLY     :
+                (e_material=="H2O" || e_material=="water"?      MAT_WATER    :
+                (                     e_material=="n-Heptane"?  MAT_NHEPTANE :
+                (e_material=="H2"  || e_material=="hydrogen"?   MAT_HYDROGEN :
+                (e_material=="O2"  || e_material=="oxygen"?     MAT_OXYGEN   :
+                (                     e_material=="air"?        MAT_AIR      :
+                                                                MAT_AIR )))))));
+  rp.flowType = (ip.material==MAT_COPPER   || ip.material==MAT_POLY?                           FLOW_PARTIC  :
+                (ip.material==MAT_WATER    || ip.material==MAT_NHEPTANE?                       FLOW_DROPLET :
+                (ip.material==MAT_HYDROGEN || ip.material==MAT_OXYGEN || ip.material==MAT_AIR? FLOW_BUBBLY :
+                  FLOW_BUBBLY )));
+  ip.iniDiamType = (e_ddist=="constant"?   0 :
+                   (e_ddist=="normal"?     1 :
+                   (e_ddist=="log-normal"? 2 : 0 )));
 
-  ignore_cp = fgets(text,100,inpFile);
-  ignore_i  = fscanf(inpFile,"%d",&i);
-  ignore_cp = fgets(text,100,inpFile);
+  ip.momentumCoupl  = (c_momentum=="PIC"?        1 :
+                      (c_momentum=="projection"? 2 : 0 ));
+  ip.energyCoupl    = (c_energy=="yes" || c_energy=="one-way");
+  ip.collisionModel = (m_collision=="uncorrelated"? 1 :
+                      (m_collision=="correlated"?   2 : 0 ));
 
-  return i;
-}
-
-
-void plas::plas_ReadParameters()
-{
-  int i,j,ignore_i;
-  char inpText[200],fileString[200],errMessage[200],*ignore_cp;
-  FILE *inpFile;
-
-  //***Open input file***//
-
-  inpFile = NULL;
-  if (ip.confFilename!=NULL) {
-    if (strlen(ip.confFilename)) {
-      inpFile = fopen(ip.confFilename,"r");
-      if (inpFile==NULL) {
-        sprintf(errMessage,"Configuration file: \"%s\" was not found.\n",ip.confFilename);
-        screenOutput(errMessage);
-      }
-    }
-  }
-  if (inpFile==NULL) {
-    sprintf(fileString,"./plas.conf");
-    inpFile = fopen(fileString,"r");
-    if (inpFile==NULL) {
-      sprintf(errMessage,"Configuration file: \"%s\" was not found.",fileString);
-      plas_TerminateOnError(errMessage);
-    }
-  }
-
-  //***Read maximum number of entities***//
-
-  ip.numMaxEnt = plas_ReadIntParam(inpFile);
-  if(ip.numMaxEnt<0){
-    sprintf(errMessage,"Bad value for maximum number of dispersed entities.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read number of initially distributed entities***//
-
-  ip.numIniEnt = plas_ReadIntParam(inpFile);
-  if(ip.numIniEnt<0){
-    sprintf(errMessage,"Bad value for number of initially distributed dispersed entities.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read production domains and mass fluxes***//
-
-  ip.numProdDom = plas_ReadIntParam(inpFile);
-  if(ip.numProdDom<0){
-    sprintf(errMessage,"Invalid number of production domains.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  ignore_cp = fgets(inpText,200,inpFile);
-  ignore_cp = fgets(inpText,200,inpFile);
-
-  if(ip.numProdDom>0){
-
-    ip.prodDom = new int[ip.numProdDom];
-    if (ip.numProdDom>0) {
-      ip.prodParam  = new double*[ip.numProdDom];
-      ip.massFluxes = new double [ip.numProdDom];
-    }
-
-    for(i=0; i<ip.numProdDom; i++){
-      ignore_i = fscanf(inpFile,"%d",&ip.prodDom[i]);
-      if(ip.prodDom[i]<1 || ip.prodDom[i]>3){
-        sprintf(errMessage,"Bad value for production domain type #%d.",i);
-        plas_TerminateOnError(errMessage);
-      }
+  if ((ip.numProdDom = x.nChildNode("production"))) {
+    ip.prodDom    = new int    [ip.numProdDom];
+    ip.massFluxes = new double [ip.numProdDom];
+    ip.prodParam  = new double*[ip.numProdDom];
+    for (int i=0; i<ip.numProdDom; ++i)
       ip.prodParam[i] = new double[6];
-      for(j=0; j<6; j++){
-        ignore_i = fscanf(inpFile,"%lf",&ip.prodParam[i][j]);
-      }
-      ignore_i = fscanf(inpFile,"%lf",&ip.massFluxes[i]);
-      if(ip.massFluxes[i]<0.0){
-        sprintf(errMessage,"Bad value for mass flux #%d.",i);
-        plas_TerminateOnError(errMessage);
-      }
-      ignore_cp = fgets(inpText,200,inpFile);
-    }
   }
-
-  //***Read diameter spectrum of dispersed entities***//
-
-  ignore_cp = fgets(inpText,200,inpFile);
-  ignore_cp = fgets(inpText,200,inpFile);
-  ignore_i  = fscanf(inpFile,"%d",&ip.iniDiamType);
-  if(ip.iniDiamType<0 || ip.iniDiamType>2){
-    sprintf(errMessage,"Bad value for initial diameter distribution type.");
-    plas_TerminateOnError(errMessage);
+  for (int i=0; i<ip.numProdDom; ++i) {
+    XMLNode p = x.getChildNode("production",i);
+    ip.prodDom[i] = (p.getAttribute< std::string >("type")=="line"?      1 :
+                    (p.getAttribute< std::string >("type")=="rectangle"? 2 :
+                    (p.getAttribute< std::string >("type")=="ellipse"?   3 : 0)));
+    ip.massFluxes[i] = std::max(p.getAttribute< double >("massflux",0.),0.);
+    ip.prodParam[i][0] = p.getAttribute< double >("x0",0.);
+    ip.prodParam[i][1] = p.getAttribute< double >("y0",0.);
+    ip.prodParam[i][2] = p.getAttribute< double >("z0",0.);
+    ip.prodParam[i][3] = p.getAttribute< double >("x1",0.);
+    ip.prodParam[i][4] = p.getAttribute< double >("y1",0.);
+    ip.prodParam[i][5] = p.getAttribute< double >("z1",0.);
   }
-  ignore_i = fscanf(inpFile,"%lf",&ip.iniDiam);
-  if(ip.iniDiam<1e-6){
-    sprintf(errMessage,"Bad value for entity diameter.");
-    plas_TerminateOnError(errMessage);
-  }
-  ignore_i = fscanf(inpFile,"%lf",&ip.iniDiamStd);
-  if(ip.iniDiamStd<0.0){
-    sprintf(errMessage,"Negative value for entity diameter standard deviation.");
-    plas_TerminateOnError(errMessage);
-  }
-  ignore_cp = fgets(inpText,200,inpFile);
-
-  //***Read initial velocity of dispersed entities***//
-
-  ignore_cp = fgets(inpText,200,inpFile);
-  ignore_cp = fgets(inpText,200,inpFile);
-  for(i=0; i<3; i++){
-    ignore_i = fscanf(inpFile,"%lf",&ip.iniVel[i]);
-  }
-  ignore_cp = fgets(inpText,200,inpFile);
-
-  //***Read temperature of dispersed entities***//
-
-  ip.iniTempDisp = plas_ReadDoubleParam(inpFile);
-  if(ip.iniTempDisp<0.0){
-    sprintf(errMessage,"Bad value for dispersed phase temperature.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read entity material***//
-
-  ip.material = plas_ReadIntParam(inpFile);
-
-  if(ip.material==MAT_COPPER
-     || ip.material==MAT_POLY){rp.flowType = FLOW_PARTIC;}
-  else if(ip.material==MAT_WATER
-     || ip.material==MAT_NHEPTANE){rp.flowType = FLOW_DROPLET;}
-  else if(ip.material==MAT_HYDROGEN
-     || ip.material==MAT_OXYGEN
-     || ip.material==MAT_AIR){rp.flowType = FLOW_BUBBLY;}
-  else{
-    sprintf(errMessage,"No match in the entity material database.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read momentum back-coupling option***//
-
-  ip.momentumCoupl = plas_ReadIntParam(inpFile);
-  if(ip.momentumCoupl<0 && ip.momentumCoupl>2){
-    sprintf(errMessage,"Bad value for momentum coupling parameter.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read volume fraction back-coupling option***//
-
-  ip.volfracCoupl = plas_ReadIntParam(inpFile);
-  if(ip.volfracCoupl!=0 && ip.volfracCoupl!=1){
-    sprintf(errMessage,"Bad value for mass coupling parameter.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read energy coupling option***//
-
-  ip.energyCoupl = plas_ReadIntParam(inpFile);
-  if(ip.energyCoupl!=0 && ip.energyCoupl!=1){
-    sprintf(errMessage,"Bad value for energy coupling parameter.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read collision model option***//
-
-  ip.collisionModel = plas_ReadIntParam(inpFile);
-  if(ip.collisionModel<0 || ip.collisionModel>2){
-    sprintf(errMessage,"Bad value for collision model parameter.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read slip-shear lift force option***//
-
-  ip.liftForce = plas_ReadIntParam(inpFile);
-  if(ip.liftForce!=0 && ip.liftForce!=1){
-    sprintf(errMessage,"Bad value for lift force parameter.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read evaporation model option***//
-
-  ip.evapModel = plas_ReadIntParam(inpFile);
-  if(ip.evapModel!=0 && ip.evapModel!=1){
-    sprintf(errMessage,"Bad value for evaporation model parameter.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read saturation model option***//
-
-  ip.saturModel = plas_ReadIntParam(inpFile);
-  if(ip.saturModel!=0 && ip.saturModel!=1){
-    sprintf(errMessage,"Bad value for saturation model parameter.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read periodic boundaries option***//
-
-  ip.perBnd = plas_ReadIntParam(inpFile);
-  if(ip.perBnd!=0 && ip.perBnd!=1){
-    sprintf(errMessage,"Bad value for periodic boundary parameter.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read gravity vector***//
-
-  ignore_cp = fgets(inpText,200,inpFile);
-  ignore_cp = fgets(inpText,200,inpFile);
-  for(i=0; i<3; i++){
-    ignore_i = fscanf(inpFile,"%lf",&ip.gravVec[i]);
-  }
-  ignore_cp = fgets(inpText,200,inpFile);
-
-  //***Read restart flag***//
-
-  ip.restart = plas_ReadIntParam(inpFile);
-  if(ip.restart!=0 && ip.restart!=1){
-    sprintf(errMessage,"Bad value for restart flag.");
-    plas_TerminateOnError(errMessage);
-  }
-
-  //***Read the output statistics filename***//
-
-  ip.writeStatsFilename = new char[200];
-  ignore_cp = fgets(inpText,200,inpFile);
-  ignore_i  = fscanf(inpFile,"%s",inpText);
-  strncpy(ip.writeStatsFilename,inpText,200);
-  ignore_cp = fgets(inpText,200,inpFile);
-  {
-    sprintf(errMessage,"Output statistics filename: \"%s\"\n",ip.writeStatsFilename);
-    screenOutput(errMessage);
-  }
-
-  //***Read the output tecplot filename***//
-
-  ip.writeTecplotFilename = new char[200];
-  ignore_cp = fgets(inpText,200,inpFile);
-  ignore_i  = fscanf(inpFile,"%s",inpText);
-  strncpy(ip.writeTecplotFilename,inpText,200);
-  ignore_cp = fgets(inpText,200,inpFile);
-  {
-    sprintf(errMessage,"Output tecplot filename: \"%s\"\n",ip.writeTecplotFilename);
-    screenOutput(errMessage);
-  }
-
-  //***Read the configuration filename***//
-
-  ip.confFilename = new char[200];
-  ignore_cp = fgets(inpText,200,inpFile);
-  ignore_i  = fscanf(inpFile,"%s",inpText);
-  strncpy(ip.confFilename,inpText,200);
-  ignore_cp = fgets(inpText,200,inpFile);
-  {
-    sprintf(errMessage,"Configuration filename: \"%s\"\n",ip.confFilename);
-    screenOutput(errMessage);
-  }
-
-  fclose(inpFile);
 }
 
 
@@ -3025,10 +2808,10 @@ void plas::plas_WallBounce(int numDim, double elasticity, LOCAL_ENTITY_VARIABLES
 }
 
 
-void plas::plas_WriteStatsFile(char *outpString, int iter, double time)
+void plas::plas_WriteStatsFile(const std::string &outpString, int iter, double time)
 {
   FILE *outpFile;
-    outpFile = fopen(outpString,"a");
+    outpFile = fopen(outpString.c_str(),"a");
     if (outpFile==NULL)
       return;
 
@@ -3041,12 +2824,12 @@ void plas::plas_WriteStatsFile(char *outpString, int iter, double time)
 }
 
 
-void plas::plas_WriteTecplotFile(char *outpString, int iter, double time)
+void plas::plas_WriteTecplotFile(const std::string &outpString, int iter, double time)
 {
   FILE *outpFile;
   int ient, idim;
 
-  outpFile = fopen(outpString,"a");
+  outpFile = fopen(outpString.c_str(),"a");
 
   // write header (if no entities are active, write dummy)
   fprintf(outpFile,"ZONE T=\"Entities (dispersed)\" I=%d AUXDATA ITER=\"%d\" SOLUTIONTIME=%12.6f DATAPACKING=POINT\n",sd.enabled? sd.enabled:1,iter,time);

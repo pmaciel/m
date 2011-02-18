@@ -4,6 +4,7 @@
 
 /// Included files
 #include <string>
+#include "ext/xmlParser.h"
 
 
 /// Preprocessor constants
@@ -15,6 +16,7 @@
 #define FLOW_PARTIC       1
 #define FLOW_DROPLET      2
 #define FLOW_BUBBLY       3
+
 #define MAT_COPPER        1
 #define MAT_POLY          2
 #define MAT_WATER         3
@@ -22,6 +24,7 @@
 #define MAT_HYDROGEN      5
 #define MAT_OXYGEN        6
 #define MAT_AIR           7
+
 #define MAXELMFACES       6
 #define MAXELMNODES       8
 #define MAXELMNORMS       6
@@ -131,11 +134,10 @@ typedef struct _plas_input_param{
   int liftForce;               // Flag: Lift force (only for bubbly flow)
   int evapModel;               // Flag: Evaporation model (only for droplet flow)
   int saturModel;              // Flag: Saturation model (only for bubbly flow)
-  int perBnd;                  // Flag: Periodic boundaries for dispersed entities
   double gravVec[3];           // Gravity vector
   int restart;                 // Restart flag
-  char* writeStatsFilename;    // Write output statistics filename
-  char* writeTecplotFilename;  // Write output tecplot filename
+  std::string writeStatsFilename;    // Write output statistics filename
+  std::string writeTecplotFilename;  // Write output tecplot filename
   char* confFilename;          // Configuration filename
 } PLAS_INPUT_PARAM;
 
@@ -241,7 +243,7 @@ class plas {
    * called before doing any run of PLaS from the driving flow
    * solver.
    */
-  void initialize();
+  void initialize(const XMLNode& x);
 
   /**
    * This is the main routine of the PLaS solver. It has to be
@@ -505,22 +507,6 @@ class plas {
     * writes out an error message.
     */
    void plas_TerminateOnError(const std::string& errMessage);
-
-   /**
-    * This file contains all functionality to read in data from
-    * the PLaS.conf data file.
-    *
-    * This function reads integer parameters.
-    */
-   int plas_ReadIntParam(FILE *inpFile);
-
-   /**
-    * This file contains all functionality to read in data from
-    * the PLaS.conf data file.
-    *
-    * This function reads double parameters.
-    */
-   double plas_ReadDoubleParam(FILE *inpFile);
 
 
  private:  // internal methods
@@ -803,7 +789,7 @@ class plas {
    *
    * This function writes the PLaS statistics to a file.
    */
-  void plas_CreateStatsFile(char *outpString);
+  void plas_CreateStatsFile(const std::string &outpString);
 
   /**
    * This file contains all write functionality, to the screen,
@@ -812,7 +798,7 @@ class plas {
    * This function creates a Tecplot file of the dispersed
    * phase entities.
    */
-  void plas_CreateTecplotFile(char *outpString);
+  void plas_CreateTecplotFile(const std::string &outpString);
 
   /**
    * This file includes allocation and deallocation routines
@@ -912,7 +898,7 @@ class plas {
    *
    * This function loads a distribution of entities from a file.
    */
-  void plas_LoadInitialDistribution(char *inpString);
+  void plas_LoadInitialDistribution(const std::string &inpString);
 
   /**
    * This function normalizes a vector to length one.
@@ -971,7 +957,7 @@ class plas {
    *
    * This function reads the PLaS.conf data file.
    */
-  void plas_ReadParameters();
+  void plas_ReadParameters(const XMLNode& x);
 
   /**
    * This file includes all functinality to perform an element
@@ -1035,7 +1021,7 @@ class plas {
    *
    * This function writes the PLaS statistics to a file.
    */
-  void plas_WriteStatsFile(char *outpString, int iter, double time);
+  void plas_WriteStatsFile(const std::string &outpString, int iter, double time);
 
   /**
    * This file contains all write functionality, to the screen,
@@ -1044,7 +1030,7 @@ class plas {
    * This function appends Tecplot output of the dispersed
    * phase entities into the previously created file
    */
-  void plas_WriteTecplotFile(char *outpString, int iter, double time);
+  void plas_WriteTecplotFile(const std::string &outpString, int iter, double time);
 
 
  public: // internal data (PLAS_DATA)

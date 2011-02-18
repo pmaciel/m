@@ -1,48 +1,87 @@
 
+#include "ext/xmlParser.h"
 #include "mfactory.h"
 #include "t_plas.h"
 
 using namespace m;
 
 
-Register< mtransform,t_plas > mt_plas("-tplas","Particle Lagrangian Solver (PLaS)");
+Register< mtransform,t_plas > mt_plas( 7,
+  "-tplas", "[str] filename or string with xml formatted as:",
+  "", "<plas",
+  "", " iterations=\"[int]\" (default 1)",
+  "", " dt=\"[real]\" (default 1.)",
+  "", " material.continuum=\"(air|water|nitrogen)\" (default water)",
+  "", " <wall zone=\"[str]\"/> (walls, 1 or more)",
+  "", "</plas>" );
+
+
+namespace t_plas_aux {
+
+
+  unsigned getzoneidx(const std::string& n, const m::mmesh& m)
+  {
+    for (unsigned r=0; r!=m.z(); ++r)
+      if (m.vz[r].n==n)
+        return r;
+    std::cerr << "error: zone \"" << n << "\" not present!" << std::endl;
+    throw 42;
+    return 0;
+  }
+
+
+  std::vector< m::mzone >::const_iterator getzoneit(const std::string& n, const m::mmesh& m)
+  {
+    return m.vz.begin() + getzoneidx(n,m);
+  }
+
+
+}  // namespace t_plas_aux
 
 
 void t_plas::transform(GetPot& o, mmesh& m)
 {
-  screenOutput("read driver parameters (driver.conf)");
-  plasdriver_ReadDriverDataFile();
+  using std::cout;
+  using std::endl;
+
+
+  cout << "info: setup plas xml..." << endl;
+  const std::string o_xml = o.get(o.inc_cursor(),"");
+  XMLNode x = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"plas")
+                                                 : XMLNode::openFileHelper(o_xml.c_str(),"plas");
+
+  dparam.numIter =  x.getAttribute< int    >("iterations",1 );
+  dparam.dt      =  x.getAttribute< double >("dt",        1.);
+  const std::string mat =  x.getAttribute< std::string >("continuum.material","water");
+
+  dparam.numIter  = dparam.numIter<0? 0      : dparam.numIter;
+  dparam.dt       = dparam.dt<=0.?    1.e-12 : dparam.dt;
+  dparam.material = (mat=="air"?      AIR      :
+                    (mat=="water"?    WATER    :
+                    (mat=="nitrogen"? NITROGEN : WATER    )));
+
+  m_ziswall.assign(m.z(),false);
+  for (int i=0; i<x.nChildNode("wall"); ++i)
+    m_ziswall[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),m) ]
+      = true;
+  cout << "info: setup plas xml." << endl;
 
 
   screenOutput("converting m::mmesh to dmesh...");
   M = &m;
   plasdriver_ReadGambitNeutralFile();
-
-
-  screenOutput("performing geometry calculations: elements around nodes...");
   plasdriver_CalcElmsAroundNode();
-  screenOutput("performing geometry calculations: element neighbours...");
   plasdriver_CalcElementNeighbours();
-  screenOutput("performing geometry calculations: element normals...");
   plasdriver_CalcElementNormals();
-  screenOutput("performing geometry calculations: element volumes...");
   plasdriver_CalcElementVolumes();
-  screenOutput("performing geometry calculations: nodal volumes...");
   plasdriver_CalcNodalVolumes();
 
 
+  dmesh.minElmVolume = dmesh.elmVolumes[0];
+  dmesh.maxElmVolume = dmesh.elmVolumes[0];
   for (int i=0; i<dmesh.numElm; ++i){
-    if(i==0){
-      dmesh.minElmVolume = dmesh.elmVolumes[i];
-      dmesh.maxElmVolume = dmesh.elmVolumes[i];
-    } else{
-      if(dmesh.elmVolumes[i]<dmesh.minElmVolume){
-        dmesh.minElmVolume = dmesh.elmVolumes[i];
-      }
-      if(dmesh.elmVolumes[i]>dmesh.maxElmVolume){
-        dmesh.maxElmVolume = dmesh.elmVolumes[i];
-      }
-    }
+    if (dmesh.elmVolumes[i]<dmesh.minElmVolume) dmesh.minElmVolume = dmesh.elmVolumes[i];
+    if (dmesh.elmVolumes[i]>dmesh.maxElmVolume) dmesh.maxElmVolume = dmesh.elmVolumes[i];
   }
 
 
@@ -59,7 +98,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
 
 
   screenOutput("initializing PLaS...");
-  plas::initialize();
+  plas::initialize(x);
   screenOutput("initializing PLaS.");
 
 
@@ -96,6 +135,8 @@ double t_plas::plasdriver_CalcAreaTriangle(double c[3][2])
 // This function computes element neighbours.
 void t_plas::plasdriver_CalcElementNeighbours()
 {
+  screenOutput("performing geometry calculations: element neighbours...");
+
   int neighbourFound,jnod,knod,lnod,ielm,jelm,kelm,lelm,ifac,faceNodes[4];
 
   dmesh.elmNeighbs = new int*[dmesh.numElm];
@@ -136,6 +177,8 @@ void t_plas::plasdriver_CalcElementNeighbours()
 // This function computes element normals.
 void t_plas::plasdriver_CalcElementNormals()
 {
+  screenOutput("performing geometry calculations: element normals...");
+
   int ielm,ifac,fnodes[4];
 
   for(ielm=0; ielm<dmesh.numElm; ielm++){
@@ -202,6 +245,8 @@ void t_plas::plasdriver_CalcElementNormals()
 // This function computes element volumes.
 void t_plas::plasdriver_CalcElementVolumes()
 {
+  screenOutput("performing geometry calculations: element volumes...");
+
   int ielm;
   double c2[3][2],c3[4][3];
 
@@ -391,6 +436,8 @@ void t_plas::plasdriver_CalcElementVolumes()
 // This function computes the elements around a node.
 void t_plas::plasdriver_CalcElmsAroundNode()
 {
+  screenOutput("performing geometry calculations: elements around nodes...");
+
 #define MAXNODELMS 50
   int inod,ielm;
 
@@ -416,6 +463,8 @@ void t_plas::plasdriver_CalcElmsAroundNode()
 // This function computes the nodal dual cell volumes.
 void t_plas::plasdriver_CalcNodalVolumes()
 {
+  screenOutput("performing geometry calculations: nodal volumes...");
+
   int ielm;
 
   dmesh.nodVolumes = new double[M->n()];
@@ -660,64 +709,6 @@ void t_plas::plasdriver_InitFlowField(int material)
 }
 
 
-// This file contains read and write routines of the PLaS
-// driver program.
-// This function reads the driver data from an input file.
-void t_plas::plasdriver_ReadDriverDataFile()
-{
-  int ignore_i;
-  char text[100],*ignore_cp;
-  FILE *inpFile;
-
-
-  screenOutput("check if file \"plas.driver\" exists...");
-  if (!fopen("plas.driver","r"))
-    plas_TerminateOnError("file \"plas.driver\" was not found");
-
-
-  screenOutput("open file...");
-  inpFile = fopen("plas.driver","r");
-
-
-  screenOutput("read case name...");
-  ignore_cp = fgets(text,100,inpFile);
-  ignore_cp = fgets(text,100,inpFile); //ignore_i  = fscanf(inpFile,"%s",dparam.gridString);
-  ignore_cp = fgets(text,100,inpFile);
-
-
-  screenOutput("read boundaries...");
-  ignore_cp = fgets(text,100,inpFile);
-  ignore_i  = fscanf(inpFile,"%d",&dparam.numBnd);
-  dparam.bnd = new int[dparam.numBnd];
-  ignore_cp  = fgets(text,100,inpFile);
-  for (int i=0; i<dparam.numBnd; ++i)
-    ignore_i = fscanf(inpFile,"%d",&dparam.bnd[i]);
-  ignore_cp = fgets(text,100,inpFile);
-
-
-  screenOutput("read number of iterations...");
-  dparam.numIter = plas_ReadIntParam(inpFile);
-  if (dparam.numIter<0)
-    plas_TerminateOnError("bad value for numer of iterations.");
-
-
-  screenOutput("read Eulerian time step size...");
-  dparam.dtEul = plas_ReadDoubleParam(inpFile);
-  if (dparam.dtEul<=0.)
-    plas_TerminateOnError("bad value for Eulerian time step size");
-
-
-  screenOutput("read flow medium...");
-  dparam.material = plas_ReadDoubleParam(inpFile);
-  if (dparam.material!=AIR && dparam.material!=WATER && dparam.material!=NITROGEN)
-    plas_TerminateOnError("bad value for material identifier.");
-
-
-  screenOutput("close file...");
-  fclose(inpFile);
-}
-
-
 // This file contains routines to compute the geometry of the
 // mesh used for the steady-state flow solution.
 // This function reads a Gambit mesh.
@@ -913,7 +904,7 @@ void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
   fp->nuCont       = dflow.mu/dflow.rho;
   fp->cpCont       = dflow.cp;
   fp->kCont        = dflow.k;
-  fp->dtEul        = dparam.dtEul;
+  fp->dtEul        = dparam.dt;
   fp->minElmVolume = dmesh.minElmVolume;
   fp->maxElmVolume = dmesh.maxElmVolume;
   fp->writeOutput  = 1;
@@ -925,7 +916,7 @@ void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
 
 void t_plas::setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp)
 {
-  fp->time += dparam.dtEul;
+  fp->time += dparam.dt;
   fp->iter =  dparam.iter;
 }
 

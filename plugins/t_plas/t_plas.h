@@ -19,16 +19,16 @@ class t_plas : public m::mtransform,
 
  private:  // member functions
   double plasdriver_CalcAreaTriangle(double c[3][2]);
+  double plasdriver_CalcVolumeTetra(double c[4][3]);
+  void   plasdriver_InitFlowField(int material);
+  void   plasdriver_GetFaceNodes(int elm, int face, int *nodes);
+
+  void   plasdriver_ReadGambitNeutralFile();
+  void   plasdriver_CalcElmsAroundNode();
   void   plasdriver_CalcElementNeighbours();
   void   plasdriver_CalcElementNormals();
   void   plasdriver_CalcElementVolumes();
-  void   plasdriver_CalcElmsAroundNode();
   void   plasdriver_CalcNodalVolumes();
-  double plasdriver_CalcVolumeTetra(double c[4][3]);
-  void   plasdriver_InitFlowField(int material);
-  void   plasdriver_ReadDriverDataFile();
-  void   plasdriver_ReadGambitNeutralFile();
-  void   plasdriver_GetFaceNodes(int elm, int face, int *nodes);
 
  private:  // plas interface functions
    void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp);
@@ -64,6 +64,8 @@ class t_plas : public m::mtransform,
 
  private:  // member variables
   m::mmesh *M;
+
+  std::vector< bool > m_ziswall;
 
 #if 0
   struct s_zoneprops {
@@ -118,10 +120,9 @@ class t_plas : public m::mtransform,
       iter,
       numIter,
       numUnk,
-      numBnd,
       *bnd,
       material;
-    double dtEul;
+    double dt;
   } dparam;
 
 };
