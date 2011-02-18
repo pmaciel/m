@@ -16,7 +16,6 @@ def build(bld):
       't_flip.cpp',
       't_geo.cpp',
       't_info.cpp',
-      't_lap2d.cpp',
       't_manip.cpp',
       't_math.cpp',
       't_minmax.cpp',

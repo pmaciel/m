@@ -4,31 +4,32 @@
 #include "boost/progress.hpp"
 #include "mfactory.h"
 #include "mlinearsystem.h"
-#include "t_lap2d.h"
+#include "t_laplace.h"
 
 using namespace std;
 using namespace m;
 
 
-Register< mtransform,t_lap2d > mt_lap2d(19,"-tlap2d","[str] 2d laplace equation solver, with",
-                                           "",       "[str] filename or string with xml formatted as:",
-                                           "",       "<lap2d",
-                                           "",       " ls=\"\" linear system solver (default ls_gauss)",
-                                           "",       " Nb=\"\" block size (default 1)",
-                                           "",       ">",
-                                           "",       " <ls",
-                                           "",       "  mtype=\"\"    (default msr)",
-                                           "",       "  output=\"\"   (default 1)",
-                                           "",       "  precond=\"\"  (default none)",
-                                           "",       "  overlap=\"\"  (default 0)",
-                                           "",       "  solver=\"\"   (default gmres)",
-                                           "",       "  max_iter=\"\" (default 500)",
-                                           "",       "  kspace=\"\"   (default 30)",
-                                           "",       "  tol=\"\"      (default 1.e-6)",
-                                           "",       " />",
-                                           "",       " <i zone=\"\" (no default) conductivity=\"\" (default 1.)/> (inner zone, 1 or more)",
-                                           "",       " <b zone=\"\" (no default) value=\"\" (default 0)/> (boundary zone, 1 or more)",
-                                           "",       "</lap2d>");
+Register< mtransform,t_laplace > mt_laplace( 19,
+  "-tlaplace","[str] 2D Laplace equation solver, with",
+  "", "[str] filename or string with xml formatted as:",
+  "", "<laplace",
+  "", " ls=\"\" linear system solver (default ls_gauss)",
+  "", " Nb=\"\" block size (default 1)",
+  "", ">",
+  "", " <ls",
+  "", "  mtype=\"\"    (default msr)",
+  "", "  output=\"\"   (default 1)",
+  "", "  precond=\"\"  (default none)",
+  "", "  overlap=\"\"  (default 0)",
+  "", "  solver=\"\"   (default gmres)",
+  "", "  max_iter=\"\" (default 500)",
+  "", "  kspace=\"\"   (default 30)",
+  "", "  tol=\"\"      (default 1.e-6)",
+  "", " />",
+  "", " <i zone=\"\" (no default) conductivity=\"\" (default 1.)/> (inner zone, 1 or more)",
+  "", " <b zone=\"\" (no default) value=\"\" (default 0)/> (boundary zone, 1 or more)",
+  "", "</laplace>" );
 
 
 namespace aux {
@@ -57,17 +58,17 @@ struct AElement {
 }
 
 
-void t_lap2d::transform(GetPot& o, mmesh& m)
+void t_laplace::transform(GetPot& o, mmesh& m)
 {
   if (m.d()!=2 || !m.z())
     return;
   using namespace aux;
 
-  cout << "info: setup lap2d xml..." << endl;
+  cout << "info: setup laplace xml..." << endl;
   const string o_xml = o.get(o.inc_cursor(),"");
-  XMLNode x = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"lap2d")
-                                                 : XMLNode::openFileHelper(o_xml.c_str(),"lap2d");
-  cout << "info: setup lap2d xml." << endl;
+  XMLNode x = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"laplace")
+                                                 : XMLNode::openFileHelper(o_xml.c_str(),"laplace");
+  cout << "info: setup laplace xml." << endl;
 
 
   // set block size
@@ -190,7 +191,7 @@ void t_lap2d::transform(GetPot& o, mmesh& m)
 }
 
 
-vector< double > t_lap2d::getvvalues(const string& s)
+vector< double > t_laplace::getvvalues(const string& s)
 {
   vector< double > r;
 
@@ -210,13 +211,13 @@ vector< double > t_lap2d::getvvalues(const string& s)
 }
 
 
-vector< mzone >::const_iterator t_lap2d::getzoneit(const string& n, const mmesh& m)
+vector< mzone >::const_iterator t_laplace::getzoneit(const string& n, const mmesh& m)
 {
   return m.vz.begin() + getzoneidx(n,m);
 }
 
 
-unsigned t_lap2d::getzoneidx(const string& n, const mmesh& m)
+unsigned t_laplace::getzoneidx(const string& n, const mmesh& m)
 {
   for (unsigned r=0; r!=m.z(); ++r)
     if (m.vz[r].n==n)

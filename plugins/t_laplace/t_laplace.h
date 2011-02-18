@@ -1,11 +1,11 @@
-#ifndef t_lap2d_h
-#define t_lap2d_h
+#ifndef t_laplace_h
+#define t_laplace_h
 
 #include "mkernel.h"
 
 
-// module with a 2d laplace equation solver
-class t_lap2d : public m::mtransform {
+// module with a 2D Laplace equation solver
+class t_laplace : public m::mtransform {
  public:
   void transform(GetPot& o, m::mmesh& m);
  private:
