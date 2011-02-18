@@ -8,6 +8,7 @@ def configure(conf):
 def build(bld):
   bld.shlib(
     target   = 'collection_t',
+    use      = ['io_smurf'],
     includes = ['.','../../mkernel','../format_smurf'],
     source   = [
       't_avgsolution.cpp',

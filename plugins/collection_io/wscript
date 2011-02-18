@@ -8,6 +8,7 @@ def configure(conf):
 def build(bld):
   bld.shlib(
     target   = 'collection_io',
+    use      = ['mkernel'],
     includes = ['.','../../mkernel'],
     source   = [
       'f_cfmesh.cpp',

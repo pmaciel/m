@@ -25,5 +25,5 @@ def build(bld):
     target   = 'io_smurf',
     includes = ['.','../../mkernel'],
     source   = ['f_smurf.cpp','f_plt.cpp'],
-    use      = ['smurf'] )
+    use      = ['mkernel','smurf'] )
 
