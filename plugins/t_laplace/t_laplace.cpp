@@ -11,7 +11,7 @@ using namespace m;
 
 
 Register< mtransform,t_laplace > mt_laplace( 19,
-  "-tlaplace","[str] 2D Laplace equation solver, with",
+  "-tlaplace", "[str] 2D Laplace equation solver, with",
   "", "[str] filename or string with xml formatted as:",
   "", "<laplace",
   "", " ls=\"\" linear system solver (default ls_gauss)",
