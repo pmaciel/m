@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE c [
+ <!ENTITY year "2011">
+ <!ENTITY author "Vrije Universiteit Brussel">
+ <!ENTITY author-note "&author;, &year;">
+]>
+<plas label="longchannel"
+
+  iterations="100"
+  dt="0.01"
+  continuum.material="water"
+
+  restart="no"
+  entities.max="10000"
+  entities.init="0"
+  entities.material="air"
+  entities.production.diameter.distribution="constant"
+  entities.production.diameter.mean="1.e-5"
+  entities.production.diameter.std="7.55e-5"
+  entities.production.velocity.x="0."
+  entities.production.velocity.y="0."
+  entities.production.velocity.z="0."
+  entities.production.temperature="293.15"
+  couple.momentum="no"
+  couple.volumefraction="no"
+  couple.energy="no"
+  model.collision="no"
+  model.droplets.thinfilmevaporation="no"
+  model.bubbles.saturation="yes"
+  model.bubbles.slip-shearliftforce="no"
+  gravity.x="0."
+  gravity.y="0."
+  gravity.z="0."
+  output.statistics="PLaS_Statistics.txt"
+  output.results="PLaS_Positions.txt"
+
+  >
+
+  <wall zone="wall"/>
+
+  <production type="rectangle" x0="0.0" y0="-0.2" z0="-0.2" x1="0.0" y1="-0.1" z1="-0.1" massflux="1.e-15" />
+  <production type="rectangle" x0="0.0" y0=" 0.2" z0=" 0.1" x1="0.0" y1=" 0.1" z1=" 0.2" massflux="1.e-15" />
+
+</plas>
