@@ -100,7 +100,6 @@ typedef struct _plas_stats{
   int in;              // Number of entities added
   int out;             // Number of entities removed
   int bounce;          // Number of wall bounces
-  int periodic;        // Number of entities passing periodic boundaries
   int passed;          // Number of entities passing process borders
   int lost;            // Number of lost entities (should be zero)
   int coll;            // Number of particle or bubble collisions
@@ -115,30 +114,30 @@ typedef struct _plas_stats{
 
 /// PLaS input parameters (read from PLaS input file)
 typedef struct _plas_input_param{
-  int numMaxEnt;               // Maximum number of entities per process
-  int numIniEnt;               // Number of initially distributed entities:
-  int numProdDom;              // Number of entity production zones
-  int *prodDom;                // Geometrical shape of entity inlets
-  double **prodParam;          // Coordinates of entity inlets
-  double *massFluxes;          // Secondary phase mass flux of entity inlets
-  int iniDiamType;             // Type of diameter distribution
-  double iniDiam;              // Diameter of dispersed entities
-  double iniDiamStd;           // Diameter standard deviation
-  double iniVel[3];            // Initial velocity of dispersed entities
-  double iniTempDisp;          // Temperature of dispersed entities
-  int material;                // Flag: Entity material (defines flow type)
-  int momentumCoupl;           // Flag: Momentum coupling
-  int volfracCoupl;            // Flag: Volume fraction coupling
-  int energyCoupl;             // Flag: Energy coupling
-  int collisionModel;          // Flag: Collision model
-  int liftForce;               // Flag: Lift force (only for bubbly flow)
-  int evapModel;               // Flag: Evaporation model (only for droplet flow)
-  int saturModel;              // Flag: Saturation model (only for bubbly flow)
-  double gravVec[3];           // Gravity vector
-  int restart;                 // Restart flag
-  std::string writeStatsFilename;    // Write output statistics filename
-  std::string writeTecplotFilename;  // Write output tecplot filename
-  char* confFilename;          // Configuration filename
+  int numMaxEnt;           // Maximum number of entities per process
+  int numIniEnt;           // Number of initially distributed entities:
+  int numProdDom;          // Number of entity production zones
+  int *prodDom;            // Geometrical shape of entity inlets
+  double **prodParam;      // Coordinates of entity inlets
+  double *massFluxes;      // Secondary phase mass flux of entity inlets
+  int iniDiamType;         // Type of diameter distribution
+  double iniDiam;          // Diameter of dispersed entities
+  double iniDiamStd;       // Diameter standard deviation
+  double iniVel[3];        // Initial velocity of dispersed entities
+  double iniTempDisp;      // Temperature of dispersed entities
+  int material;            // Flag: Entity material (defines flow type)
+  int momentumCoupl;       // Flag: Momentum coupling
+  int volfracCoupl;        // Flag: Volume fraction coupling
+  int energyCoupl;         // Flag: Energy coupling
+  int collisionModel;      // Flag: Collision model
+  int liftForce;           // Flag: Lift force (only for bubbly flow)
+  int evapModel;           // Flag: Evaporation model (only for droplet flow)
+  int saturModel;          // Flag: Saturation model (only for bubbly flow)
+  double gravVec[3];       // Gravity vector
+  int restart;             // Restart flag
+  std::string
+    writeStatsFilename,    // Write output statistics filename
+    writeTecplotFilename;  // Write output tecplot filename
 } PLAS_INPUT_PARAM;
 
 
@@ -215,20 +214,18 @@ typedef struct _local_entity_variables{
   double pressBubble;         // Bubble interal pressure
   double rhoBubble;           // Bubble internal density
   double concInterf;          // Bubble surface concentration
-  double concDelta;           // Bubble concentration boundary layer
   ENTITY_ELEMENT_DATA edata;  // Corresponding grid element data
 } LOCAL_ENTITY_VARIABLES;
 
 
 /// Local flow variables data structure
 typedef struct _local_flow_variables{
-  double *vel;           // Local instantaneous flow velocity
-  double *velDt;         // Flow velocity time derivative
-  double **velDx;        // Flow velocity space derivative
-  double *vort;          // Local instantaneous flow vorticity
-  double pressure;       // Local instantaneous flow pressure
-  //double concentration;  // Local instanteneous flow (solvent) concentration
-  double temp;           // Local instantaneous flow temperature
+  double *vel;      // Local instantaneous flow velocity
+  double *velDt;    // Flow velocity time derivative
+  double **velDx;   // Flow velocity space derivative
+  double *vort;     // Local instantaneous flow vorticity
+  double pressure;  // Local instantaneous flow pressure
+  double temp;      // Local instantaneous flow temperature
 } LOCAL_FLOW_VARIABLES;
 
 
@@ -301,10 +298,9 @@ class plas {
    * Provide domain element associated to boundary face to PLaS
    * @param[in] bnd boundary index
    * @param[in] bface face of the boundary
-   * @param[in] dummy not needed
    * @return element index
    */
-  virtual int getBndDomElm(int bnd, int bface, int dummy) = 0;
+  virtual int getBndDomElm(int bnd, int bface) = 0;
 
   /**
    * Provide node coordinate to PLaS
@@ -368,21 +364,6 @@ class plas {
    * @return non-zero if boundary is a wall, else zero
    */
   virtual int getWallBndFlag(int bnd) = 0;
-
-  /**
-   * Provide information about which boundary is periodic
-   * @param[in] bnd boundary index
-   * @return non-zero if boundary is periodic, else zero
-   */
-  virtual int getPerBndFlag(int bnd) = 0;
-
-  /**
-   * Provide information about periodic boundary offset to PLaS
-   * @param[in] bnd boundary index
-   * @param[in] dim coordinate index
-   * @return periodic boundary offset
-   */
-  virtual double getPerBndOffset(int bnd, int dim) = 0;
 
   /**
    * Provide type of an element to PLaS
@@ -452,20 +433,6 @@ class plas {
    * @return pressure at time step n-1
    */
   virtual double getPressureOld(int nod) = 0;
-
-  /**
-   * Provide starting element for local brute force search
-   * @param[in] pos position vector (xyz)
-   * @return lowest element for BF search (0)
-   */
-  virtual int StartElementSearch(double *pos) = 0;
-
-  /**
-   * Provide ending element for local brute force search
-   * @param[in] pos position vector (xyz)
-   * @return highest element for BF search (numElm-1)
-   */
-  virtual int EndElementSearch(double *pos) = 0;
 
   /**
    * Provide Eulerian time scale (tke/disspation) for a node

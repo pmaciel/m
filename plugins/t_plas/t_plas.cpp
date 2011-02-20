@@ -36,7 +36,7 @@ namespace t_plas_aux {
   }
 
 
-}  // namespace t_plas_aux
+}
 
 
 void t_plas::transform(GetPot& o, mmesh& m)
@@ -59,33 +59,17 @@ void t_plas::transform(GetPot& o, mmesh& m)
   dparam.material = (mat=="air"?      AIR      :
                     (mat=="water"?    WATER    :
                     (mat=="nitrogen"? NITROGEN : WATER    )));
-
-  m_ziswall.assign(m.z(),false);
-  for (int i=0; i<x.nChildNode("wall"); ++i)
-    m_ziswall[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),m) ]
-      = true;
   cout << "info: setup plas xml." << endl;
 
 
   screenOutput("converting m::mmesh to dmesh...");
   M = &m;
-  plasdriver_ReadGambitNeutralFile();
+  plasdriver_ReadGambitNeutralFile(x);
   plasdriver_CalcElmsAroundNode();
   plasdriver_CalcElementNeighbours();
   plasdriver_CalcElementNormals();
   plasdriver_CalcElementVolumes();
   plasdriver_CalcNodalVolumes();
-
-
-  dmesh.minElmVolume = dmesh.elmVolumes[0];
-  dmesh.maxElmVolume = dmesh.elmVolumes[0];
-  for (int i=0; i<dmesh.numElm; ++i){
-    if (dmesh.elmVolumes[i]<dmesh.minElmVolume) dmesh.minElmVolume = dmesh.elmVolumes[i];
-    if (dmesh.elmVolumes[i]>dmesh.maxElmVolume) dmesh.maxElmVolume = dmesh.elmVolumes[i];
-  }
-
-
-  dparam.numUnk = M->d()+2;
 
 
   screenOutput("initializing flow field...");
@@ -139,9 +123,9 @@ void t_plas::plasdriver_CalcElementNeighbours()
 
   int neighbourFound,jnod,knod,lnod,ielm,jelm,kelm,lelm,ifac,faceNodes[4];
 
-  dmesh.elmNeighbs = new int*[dmesh.numElm];
+  dmesh.elmNeighbs.resize(dmesh.numElm);
   for(ielm=0; ielm<dmesh.numElm; ielm++){
-    dmesh.elmNeighbs[ielm] = new int[dmesh.numElmFaces[ielm]];
+    dmesh.elmNeighbs[ielm].assign(dmesh.numElmFaces[ielm],0);
     for(ifac=0; ifac<dmesh.numElmFaces[ielm]; ifac++){
       plasdriver_GetFaceNodes(ielm,ifac,faceNodes);
       neighbourFound = 0;
@@ -250,183 +234,188 @@ void t_plas::plasdriver_CalcElementVolumes()
   int ielm;
   double c2[3][2],c3[4][3];
 
-  dmesh.elmVolumes = new double[dmesh.numElm];
+  dmesh.elmVolumes.assign(dmesh.numElm,0.);
 
   for(ielm=0; ielm<dmesh.numElm; ielm++){
 
-    if(dmesh.elmTypes[ielm]==ELM_SIMPLEX){
-      if(M->d()==2){
-        c2[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-        c2[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-        c2[1][0] = M->vv[0][dmesh.elmNodes[ielm][1]];
-        c2[1][1] = M->vv[1][dmesh.elmNodes[ielm][1]];
-        c2[2][0] = M->vv[0][dmesh.elmNodes[ielm][2]];
-        c2[2][1] = M->vv[1][dmesh.elmNodes[ielm][2]];
-        dmesh.elmVolumes[ielm] = plasdriver_CalcAreaTriangle(c2);
-      } else if(M->d()==3){
-        c3[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-        c3[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-        c3[0][2] = M->vv[2][dmesh.elmNodes[ielm][0]];
-        c3[1][0] = M->vv[0][dmesh.elmNodes[ielm][1]];
-        c3[1][1] = M->vv[1][dmesh.elmNodes[ielm][1]];
-        c3[1][2] = M->vv[2][dmesh.elmNodes[ielm][1]];
-        c3[2][0] = M->vv[0][dmesh.elmNodes[ielm][2]];
-        c3[2][1] = M->vv[1][dmesh.elmNodes[ielm][2]];
-        c3[2][2] = M->vv[2][dmesh.elmNodes[ielm][2]];
-        c3[3][0] = M->vv[0][dmesh.elmNodes[ielm][3]];
-        c3[3][1] = M->vv[1][dmesh.elmNodes[ielm][3]];
-        c3[3][2] = M->vv[2][dmesh.elmNodes[ielm][3]];
-        dmesh.elmVolumes[ielm] = plasdriver_CalcVolumeTetra(c3);
-      }
-    } else if(dmesh.elmTypes[ielm]==ELM_QUAD){
-      c2[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-      c2[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-      c2[1][0] = M->vv[0][dmesh.elmNodes[ielm][1]];
-      c2[1][1] = M->vv[1][dmesh.elmNodes[ielm][1]];
-      c2[2][0] = M->vv[0][dmesh.elmNodes[ielm][2]];
-      c2[2][1] = M->vv[1][dmesh.elmNodes[ielm][2]];
+    if(dmesh.elmTypes[ielm]==ELM_SIMPLEX && M->d()==2){
+      c2[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c2[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c2[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
+      c2[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
+      c2[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
+      c2[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
       dmesh.elmVolumes[ielm] = plasdriver_CalcAreaTriangle(c2);
-      c2[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-      c2[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-      c2[1][0] = M->vv[0][dmesh.elmNodes[ielm][2]];
-      c2[1][1] = M->vv[1][dmesh.elmNodes[ielm][2]];
-      c2[2][0] = M->vv[0][dmesh.elmNodes[ielm][3]];
-      c2[2][1] = M->vv[1][dmesh.elmNodes[ielm][3]];
+    } else if(dmesh.elmTypes[ielm]==ELM_SIMPLEX && M->d()==3){
+      c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
+      c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
+      c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
+      c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[1] ];
+      c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
+      c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
+      c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[2] ];
+      c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
+      c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
+      c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
+      dmesh.elmVolumes[ielm] = plasdriver_CalcVolumeTetra(c3);
+    } else if(dmesh.elmTypes[ielm]==ELM_QUAD){
+      c2[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c2[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c2[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
+      c2[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
+      c2[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
+      c2[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
+      dmesh.elmVolumes[ielm] = plasdriver_CalcAreaTriangle(c2);
+      c2[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c2[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c2[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
+      c2[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
+      c2[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
+      c2[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
       dmesh.elmVolumes[ielm] += plasdriver_CalcAreaTriangle(c2);
     } else if(dmesh.elmTypes[ielm]==ELM_HEX){
-      c3[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-      c3[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-      c3[0][2] = M->vv[2][dmesh.elmNodes[ielm][0]];
-      c3[1][0] = M->vv[0][dmesh.elmNodes[ielm][1]];
-      c3[1][1] = M->vv[1][dmesh.elmNodes[ielm][1]];
-      c3[1][2] = M->vv[2][dmesh.elmNodes[ielm][1]];
-      c3[2][0] = M->vv[0][dmesh.elmNodes[ielm][3]];
-      c3[2][1] = M->vv[1][dmesh.elmNodes[ielm][3]];
-      c3[2][2] = M->vv[2][dmesh.elmNodes[ielm][3]];
-      c3[3][0] = M->vv[0][dmesh.elmNodes[ielm][5]];
-      c3[3][1] = M->vv[1][dmesh.elmNodes[ielm][5]];
-      c3[3][2] = M->vv[2][dmesh.elmNodes[ielm][5]];
+      c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
+      c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
+      c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
+      c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[1] ];
+      c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
+      c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
+      c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
+      c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
+      c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
+      c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
       dmesh.elmVolumes[ielm] = plasdriver_CalcVolumeTetra(c3);
-      c3[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-      c3[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-      c3[0][2] = M->vv[2][dmesh.elmNodes[ielm][0]];
-      c3[1][0] = M->vv[0][dmesh.elmNodes[ielm][3]];
-      c3[1][1] = M->vv[1][dmesh.elmNodes[ielm][3]];
-      c3[1][2] = M->vv[2][dmesh.elmNodes[ielm][3]];
-      c3[2][0] = M->vv[0][dmesh.elmNodes[ielm][6]];
-      c3[2][1] = M->vv[1][dmesh.elmNodes[ielm][6]];
-      c3[2][2] = M->vv[2][dmesh.elmNodes[ielm][6]];
-      c3[3][0] = M->vv[0][dmesh.elmNodes[ielm][5]];
-      c3[3][1] = M->vv[1][dmesh.elmNodes[ielm][5]];
-      c3[3][2] = M->vv[2][dmesh.elmNodes[ielm][5]];
+      c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
+      c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
+      c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
+      c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
+      c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[6] ];
+      c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[6] ];
+      c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[6] ];
+      c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
+      c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
+      c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
       dmesh.elmVolumes[ielm] += plasdriver_CalcVolumeTetra(c3);
-      c3[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-      c3[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-      c3[0][2] = M->vv[2][dmesh.elmNodes[ielm][0]];
-      c3[1][0] = M->vv[0][dmesh.elmNodes[ielm][3]];
-      c3[1][1] = M->vv[1][dmesh.elmNodes[ielm][3]];
-      c3[1][2] = M->vv[2][dmesh.elmNodes[ielm][3]];
-      c3[2][0] = M->vv[0][dmesh.elmNodes[ielm][2]];
-      c3[2][1] = M->vv[1][dmesh.elmNodes[ielm][2]];
-      c3[2][2] = M->vv[2][dmesh.elmNodes[ielm][2]];
-      c3[3][0] = M->vv[0][dmesh.elmNodes[ielm][6]];
-      c3[3][1] = M->vv[1][dmesh.elmNodes[ielm][6]];
-      c3[3][2] = M->vv[2][dmesh.elmNodes[ielm][6]];
+      c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
+      c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
+      c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
+      c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
+      c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
+      c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
+      c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[2] ];
+      c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[6] ];
+      c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[6] ];
+      c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[6] ];
       dmesh.elmVolumes[ielm] += plasdriver_CalcVolumeTetra(c3);
-      c3[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-      c3[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-      c3[0][2] = M->vv[2][dmesh.elmNodes[ielm][0]];
-      c3[1][0] = M->vv[0][dmesh.elmNodes[ielm][5]];
-      c3[1][1] = M->vv[1][dmesh.elmNodes[ielm][5]];
-      c3[1][2] = M->vv[2][dmesh.elmNodes[ielm][5]];
-      c3[2][0] = M->vv[0][dmesh.elmNodes[ielm][6]];
-      c3[2][1] = M->vv[1][dmesh.elmNodes[ielm][6]];
-      c3[2][2] = M->vv[2][dmesh.elmNodes[ielm][6]];
-      c3[3][0] = M->vv[0][dmesh.elmNodes[ielm][4]];
-      c3[3][1] = M->vv[1][dmesh.elmNodes[ielm][4]];
-      c3[3][2] = M->vv[2][dmesh.elmNodes[ielm][4]];
+      c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
+      c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
+      c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
+      c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
+      c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[6] ];
+      c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[6] ];
+      c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[6] ];
+      c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[4] ];
+      c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[4] ];
+      c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[4] ];
       dmesh.elmVolumes[ielm] += plasdriver_CalcVolumeTetra(c3);
-      c3[0][0] = M->vv[0][dmesh.elmNodes[ielm][3]];
-      c3[0][1] = M->vv[1][dmesh.elmNodes[ielm][3]];
-      c3[0][2] = M->vv[2][dmesh.elmNodes[ielm][3]];
-      c3[1][0] = M->vv[0][dmesh.elmNodes[ielm][6]];
-      c3[1][1] = M->vv[1][dmesh.elmNodes[ielm][6]];
-      c3[1][2] = M->vv[2][dmesh.elmNodes[ielm][6]];
-      c3[2][0] = M->vv[0][dmesh.elmNodes[ielm][5]];
-      c3[2][1] = M->vv[1][dmesh.elmNodes[ielm][5]];
-      c3[2][2] = M->vv[2][dmesh.elmNodes[ielm][5]];
-      c3[3][0] = M->vv[0][dmesh.elmNodes[ielm][7]];
-      c3[3][1] = M->vv[1][dmesh.elmNodes[ielm][7]];
-      c3[3][2] = M->vv[2][dmesh.elmNodes[ielm][7]];
+      c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
+      c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
+      c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
+      c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[6] ];
+      c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[6] ];
+      c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[6] ];
+      c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
+      c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
+      c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
+      c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[7] ];
+      c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[7] ];
+      c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[7] ];
       dmesh.elmVolumes[ielm] += plasdriver_CalcVolumeTetra(c3);
     } else if(dmesh.elmTypes[ielm]==ELM_PRISM){
-      c3[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-      c3[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-      c3[0][2] = M->vv[2][dmesh.elmNodes[ielm][0]];
-      c3[1][0] = M->vv[0][dmesh.elmNodes[ielm][1]];
-      c3[1][1] = M->vv[1][dmesh.elmNodes[ielm][1]];
-      c3[1][2] = M->vv[2][dmesh.elmNodes[ielm][1]];
-      c3[2][0] = M->vv[0][dmesh.elmNodes[ielm][2]];
-      c3[2][1] = M->vv[1][dmesh.elmNodes[ielm][2]];
-      c3[2][2] = M->vv[2][dmesh.elmNodes[ielm][2]];
-      c3[3][0] = M->vv[0][dmesh.elmNodes[ielm][5]];
-      c3[3][1] = M->vv[1][dmesh.elmNodes[ielm][5]];
-      c3[3][2] = M->vv[2][dmesh.elmNodes[ielm][5]];
+      c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
+      c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
+      c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
+      c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[1] ];
+      c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
+      c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
+      c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[2] ];
+      c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
+      c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
+      c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
       dmesh.elmVolumes[ielm] = plasdriver_CalcVolumeTetra(c3);
-      c3[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-      c3[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-      c3[0][2] = M->vv[2][dmesh.elmNodes[ielm][0]];
-      c3[1][0] = M->vv[0][dmesh.elmNodes[ielm][1]];
-      c3[1][1] = M->vv[1][dmesh.elmNodes[ielm][1]];
-      c3[1][2] = M->vv[2][dmesh.elmNodes[ielm][1]];
-      c3[2][0] = M->vv[0][dmesh.elmNodes[ielm][5]];
-      c3[2][1] = M->vv[1][dmesh.elmNodes[ielm][5]];
-      c3[2][2] = M->vv[2][dmesh.elmNodes[ielm][5]];
-      c3[3][0] = M->vv[0][dmesh.elmNodes[ielm][4]];
-      c3[3][1] = M->vv[1][dmesh.elmNodes[ielm][4]];
-      c3[3][2] = M->vv[2][dmesh.elmNodes[ielm][4]];
+      c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
+      c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
+      c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
+      c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[1] ];
+      c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
+      c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
+      c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
+      c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[4] ];
+      c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[4] ];
+      c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[4] ];
       dmesh.elmVolumes[ielm] += plasdriver_CalcVolumeTetra(c3);
-      c3[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-      c3[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-      c3[0][2] = M->vv[2][dmesh.elmNodes[ielm][0]];
-      c3[1][0] = M->vv[0][dmesh.elmNodes[ielm][4]];
-      c3[1][1] = M->vv[1][dmesh.elmNodes[ielm][4]];
-      c3[1][2] = M->vv[2][dmesh.elmNodes[ielm][4]];
-      c3[2][0] = M->vv[0][dmesh.elmNodes[ielm][5]];
-      c3[2][1] = M->vv[1][dmesh.elmNodes[ielm][5]];
-      c3[2][2] = M->vv[2][dmesh.elmNodes[ielm][5]];
-      c3[3][0] = M->vv[0][dmesh.elmNodes[ielm][3]];
-      c3[3][1] = M->vv[1][dmesh.elmNodes[ielm][3]];
-      c3[3][2] = M->vv[2][dmesh.elmNodes[ielm][3]];
+      c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
+      c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[4] ];
+      c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[4] ];
+      c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[4] ];
+      c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
+      c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
+      c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
+      c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
+      c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
+      c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
       dmesh.elmVolumes[ielm] += plasdriver_CalcVolumeTetra(c3);
     } else if(dmesh.elmTypes[ielm]==ELM_PYRAMID){
-      c3[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-      c3[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-      c3[0][2] = M->vv[2][dmesh.elmNodes[ielm][0]];
-      c3[1][0] = M->vv[0][dmesh.elmNodes[ielm][1]];
-      c3[1][1] = M->vv[1][dmesh.elmNodes[ielm][1]];
-      c3[1][2] = M->vv[2][dmesh.elmNodes[ielm][1]];
-      c3[2][0] = M->vv[0][dmesh.elmNodes[ielm][3]];
-      c3[2][1] = M->vv[1][dmesh.elmNodes[ielm][3]];
-      c3[2][2] = M->vv[2][dmesh.elmNodes[ielm][3]];
-      c3[3][0] = M->vv[0][dmesh.elmNodes[ielm][4]];
-      c3[3][1] = M->vv[1][dmesh.elmNodes[ielm][4]];
-      c3[3][2] = M->vv[2][dmesh.elmNodes[ielm][4]];
+      c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
+      c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
+      c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
+      c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[1] ];
+      c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
+      c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
+      c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
+      c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[4] ];
+      c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[4] ];
+      c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[4] ];
       dmesh.elmVolumes[ielm] = plasdriver_CalcVolumeTetra(c3);
-      c3[0][0] = M->vv[0][dmesh.elmNodes[ielm][0]];
-      c3[0][1] = M->vv[1][dmesh.elmNodes[ielm][0]];
-      c3[0][2] = M->vv[2][dmesh.elmNodes[ielm][0]];
-      c3[1][0] = M->vv[0][dmesh.elmNodes[ielm][3]];
-      c3[1][1] = M->vv[1][dmesh.elmNodes[ielm][3]];
-      c3[1][2] = M->vv[2][dmesh.elmNodes[ielm][3]];
-      c3[2][0] = M->vv[0][dmesh.elmNodes[ielm][2]];
-      c3[2][1] = M->vv[1][dmesh.elmNodes[ielm][2]];
-      c3[2][2] = M->vv[2][dmesh.elmNodes[ielm][2]];
-      c3[3][0] = M->vv[0][dmesh.elmNodes[ielm][4]];
-      c3[3][1] = M->vv[1][dmesh.elmNodes[ielm][4]];
-      c3[3][2] = M->vv[2][dmesh.elmNodes[ielm][4]];
+      c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
+      c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
+      c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
+      c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
+      c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
+      c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
+      c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
+      c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[2] ];
+      c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[4] ];
+      c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[4] ];
+      c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[4] ];
       dmesh.elmVolumes[ielm] += plasdriver_CalcVolumeTetra(c3);
     }
+  }
+
+  dmesh.minElmVolume = dmesh.elmVolumes[0];
+  dmesh.maxElmVolume = dmesh.elmVolumes[0];
+  for (int i=0; i<dmesh.numElm; ++i){
+    if (dmesh.elmVolumes[i]<dmesh.minElmVolume) dmesh.minElmVolume = dmesh.elmVolumes[i];
+    if (dmesh.elmVolumes[i]>dmesh.maxElmVolume) dmesh.maxElmVolume = dmesh.elmVolumes[i];
   }
 }
 
@@ -438,23 +427,15 @@ void t_plas::plasdriver_CalcElmsAroundNode()
 {
   screenOutput("performing geometry calculations: elements around nodes...");
 
-#define MAXNODELMS 50
-  int inod,ielm;
+  dmesh.numNodElms.assign(M->n(),0);
+  dmesh.nodElms   .assign(M->n(),std::vector< int >(50,0));  // FIXME
 
-  dmesh.numNodElms = new int[M->n()];
-
-  dmesh.nodElms = new int*[M->n()];
-  for (unsigned inod=0; inod<M->n(); inod++) {
-    dmesh.nodElms[inod] = new int[MAXNODELMS];
-  }
-
-  for(ielm=0; ielm<dmesh.numElm; ielm++){
-    for(inod=0; inod<dmesh.numElmNodes[ielm]; inod++){
-      dmesh.nodElms[dmesh.elmNodes[ielm][inod]][dmesh.numNodElms[dmesh.elmNodes[ielm][inod]]] = ielm;
-      dmesh.numNodElms[dmesh.elmNodes[ielm][inod]]++;
+  for (int ielm=0; ielm<dmesh.numElm; ++ielm) {
+    for (int inod=0; inod<dmesh.numElmNodes[ielm]; ++inod) {
+      dmesh.nodElms[M->vz[0].e2n[ielm].n[inod]][dmesh.numNodElms[M->vz[0].e2n[ielm].n[inod]]] = ielm;
+      dmesh.numNodElms[M->vz[0].e2n[ielm].n[inod]]++;
     }
   }
-#undef MAXNODELMS
 }
 
 
@@ -465,15 +446,10 @@ void t_plas::plasdriver_CalcNodalVolumes()
 {
   screenOutput("performing geometry calculations: nodal volumes...");
 
-  int ielm;
-
-  dmesh.nodVolumes = new double[M->n()];
-
-  for (unsigned inod=0; inod<M->n(); inod++) {
-    for(ielm=0; ielm<dmesh.numNodElms[inod]; ielm++){
-      dmesh.nodVolumes[inod] += dmesh.elmVolumes[dmesh.nodElms[inod][ielm]]/dmesh.numNodElms[inod];
-    }
-  }
+  dmesh.nodVolumes.assign(M->n(),0.);
+  for (unsigned n=0; n<M->n(); ++n)
+    for (int e=0; e<dmesh.numNodElms[n]; ++e)
+      dmesh.nodVolumes[n] += dmesh.elmVolumes[dmesh.nodElms[n][e]]/dmesh.numNodElms[n];
 }
 
 
@@ -506,153 +482,151 @@ double t_plas::plasdriver_CalcVolumeTetra(double c[4][3])
 // This function gets the nodes of a boundary face.
 void t_plas::plasdriver_GetFaceNodes(int elm, int face, int *nodes)
 {
-  if(dmesh.elmTypes[elm]==ELM_SIMPLEX){
-    if(M->d()==2){
-      if(face==0){
-        nodes[0] = dmesh.elmNodes[elm][0];
-        nodes[1] = dmesh.elmNodes[elm][1];
-        nodes[2] = -1;
-        nodes[3] = -1;
-      } else if(face==1){
-        nodes[0] = dmesh.elmNodes[elm][1];
-        nodes[1] = dmesh.elmNodes[elm][2];
-        nodes[2] = -1;
-        nodes[3] = -1;
-      } else if(face==2){
-        nodes[0] = dmesh.elmNodes[elm][2];
-        nodes[1] = dmesh.elmNodes[elm][0];
-        nodes[2] = -1;
-        nodes[3] = -1;
-      }
-    } else if(M->d()==3){
-      if(face==0){
-        nodes[0] = dmesh.elmNodes[elm][1];
-        nodes[1] = dmesh.elmNodes[elm][0];
-        nodes[2] = dmesh.elmNodes[elm][2];
-        nodes[3] = -1;
-      } else if(face==1){
-        nodes[0] = dmesh.elmNodes[elm][0];
-        nodes[1] = dmesh.elmNodes[elm][1];
-        nodes[2] = dmesh.elmNodes[elm][3];
-        nodes[3] = -1;
-      } else if(face==2){
-        nodes[0] = dmesh.elmNodes[elm][1];
-        nodes[1] = dmesh.elmNodes[elm][2];
-        nodes[2] = dmesh.elmNodes[elm][3];
-        nodes[3] = -1;
-      } else if(face==3){
-        nodes[0] = dmesh.elmNodes[elm][2];
-        nodes[1] = dmesh.elmNodes[elm][0];
-        nodes[2] = dmesh.elmNodes[elm][3];
-        nodes[3] = -1;
-      }
-    }
-  } else if(dmesh.elmTypes[elm]==ELM_QUAD){
+  if(dmesh.elmTypes[elm]==ELM_SIMPLEX && M->d()==2){
     if(face==0){
-      nodes[0] = dmesh.elmNodes[elm][0];
-      nodes[1] = dmesh.elmNodes[elm][1];
+      nodes[0] = M->vz[0].e2n[elm].n[0];
+      nodes[1] = M->vz[0].e2n[elm].n[1];
       nodes[2] = -1;
       nodes[3] = -1;
     } else if(face==1){
-      nodes[0] = dmesh.elmNodes[elm][1];
-      nodes[1] = dmesh.elmNodes[elm][2];
+      nodes[0] = M->vz[0].e2n[elm].n[1];
+      nodes[1] = M->vz[0].e2n[elm].n[2];
       nodes[2] = -1;
       nodes[3] = -1;
     } else if(face==2){
-      nodes[0] = dmesh.elmNodes[elm][2];
-      nodes[1] = dmesh.elmNodes[elm][3];
+      nodes[0] = M->vz[0].e2n[elm].n[2];
+      nodes[1] = M->vz[0].e2n[elm].n[0];
+      nodes[2] = -1;
+      nodes[3] = -1;
+    }
+  } else if(dmesh.elmTypes[elm]==ELM_SIMPLEX && M->d()==3){
+    if(face==0){
+      nodes[0] = M->vz[0].e2n[elm].n[1];
+      nodes[1] = M->vz[0].e2n[elm].n[0];
+      nodes[2] = M->vz[0].e2n[elm].n[2];
+      nodes[3] = -1;
+    } else if(face==1){
+      nodes[0] = M->vz[0].e2n[elm].n[0];
+      nodes[1] = M->vz[0].e2n[elm].n[1];
+      nodes[2] = M->vz[0].e2n[elm].n[3];
+      nodes[3] = -1;
+    } else if(face==2){
+      nodes[0] = M->vz[0].e2n[elm].n[1];
+      nodes[1] = M->vz[0].e2n[elm].n[2];
+      nodes[2] = M->vz[0].e2n[elm].n[3];
+      nodes[3] = -1;
+    } else if(face==3){
+      nodes[0] = M->vz[0].e2n[elm].n[2];
+      nodes[1] = M->vz[0].e2n[elm].n[0];
+      nodes[2] = M->vz[0].e2n[elm].n[3];
+      nodes[3] = -1;
+    }
+  } else if(dmesh.elmTypes[elm]==ELM_QUAD){
+    if(face==0){
+      nodes[0] = M->vz[0].e2n[elm].n[0];
+      nodes[1] = M->vz[0].e2n[elm].n[1];
+      nodes[2] = -1;
+      nodes[3] = -1;
+    } else if(face==1){
+      nodes[0] = M->vz[0].e2n[elm].n[1];
+      nodes[1] = M->vz[0].e2n[elm].n[2];
+      nodes[2] = -1;
+      nodes[3] = -1;
+    } else if(face==2){
+      nodes[0] = M->vz[0].e2n[elm].n[2];
+      nodes[1] = M->vz[0].e2n[elm].n[3];
       nodes[2] = -1;
       nodes[3] = -1;
     } else if(face==3){
-      nodes[0] = dmesh.elmNodes[elm][3];
-      nodes[1] = dmesh.elmNodes[elm][0];
+      nodes[0] = M->vz[0].e2n[elm].n[3];
+      nodes[1] = M->vz[0].e2n[elm].n[0];
       nodes[2] = -1;
       nodes[3] = -1;
     }
   } else if(dmesh.elmTypes[elm]==ELM_HEX){
     if(face==0){
-      nodes[0] = dmesh.elmNodes[elm][0];
-      nodes[1] = dmesh.elmNodes[elm][1];
-      nodes[2] = dmesh.elmNodes[elm][5];
-      nodes[3] = dmesh.elmNodes[elm][4];
+      nodes[0] = M->vz[0].e2n[elm].n[0];
+      nodes[1] = M->vz[0].e2n[elm].n[1];
+      nodes[2] = M->vz[0].e2n[elm].n[5];
+      nodes[3] = M->vz[0].e2n[elm].n[4];
     } else if(face==1){
-      nodes[0] = dmesh.elmNodes[elm][1];
-      nodes[1] = dmesh.elmNodes[elm][3];
-      nodes[2] = dmesh.elmNodes[elm][7];
-      nodes[3] = dmesh.elmNodes[elm][5];
+      nodes[0] = M->vz[0].e2n[elm].n[1];
+      nodes[1] = M->vz[0].e2n[elm].n[3];
+      nodes[2] = M->vz[0].e2n[elm].n[7];
+      nodes[3] = M->vz[0].e2n[elm].n[5];
     } else if(face==2){
-      nodes[0] = dmesh.elmNodes[elm][3];
-      nodes[1] = dmesh.elmNodes[elm][2];
-      nodes[2] = dmesh.elmNodes[elm][6];
-      nodes[3] = dmesh.elmNodes[elm][7];
+      nodes[0] = M->vz[0].e2n[elm].n[3];
+      nodes[1] = M->vz[0].e2n[elm].n[2];
+      nodes[2] = M->vz[0].e2n[elm].n[6];
+      nodes[3] = M->vz[0].e2n[elm].n[7];
     } else if(face==3){
-      nodes[0] = dmesh.elmNodes[elm][2];
-      nodes[1] = dmesh.elmNodes[elm][0];
-      nodes[2] = dmesh.elmNodes[elm][4];
-      nodes[3] = dmesh.elmNodes[elm][6];
+      nodes[0] = M->vz[0].e2n[elm].n[2];
+      nodes[1] = M->vz[0].e2n[elm].n[0];
+      nodes[2] = M->vz[0].e2n[elm].n[4];
+      nodes[3] = M->vz[0].e2n[elm].n[6];
     } else if(face==4){
-      nodes[0] = dmesh.elmNodes[elm][1];
-      nodes[1] = dmesh.elmNodes[elm][0];
-      nodes[2] = dmesh.elmNodes[elm][2];
-      nodes[3] = dmesh.elmNodes[elm][3];
+      nodes[0] = M->vz[0].e2n[elm].n[1];
+      nodes[1] = M->vz[0].e2n[elm].n[0];
+      nodes[2] = M->vz[0].e2n[elm].n[2];
+      nodes[3] = M->vz[0].e2n[elm].n[3];
     } else if(face==5){
-      nodes[0] = dmesh.elmNodes[elm][4];
-      nodes[1] = dmesh.elmNodes[elm][5];
-      nodes[2] = dmesh.elmNodes[elm][7];
-      nodes[3] = dmesh.elmNodes[elm][6];
+      nodes[0] = M->vz[0].e2n[elm].n[4];
+      nodes[1] = M->vz[0].e2n[elm].n[5];
+      nodes[2] = M->vz[0].e2n[elm].n[7];
+      nodes[3] = M->vz[0].e2n[elm].n[6];
     }
   } else if(dmesh.elmTypes[elm]==ELM_PRISM){
     if(face==0){
-      nodes[0] = dmesh.elmNodes[elm][0];
-      nodes[1] = dmesh.elmNodes[elm][1];
-      nodes[2] = dmesh.elmNodes[elm][4];
-      nodes[3] = dmesh.elmNodes[elm][3];
+      nodes[0] = M->vz[0].e2n[elm].n[0];
+      nodes[1] = M->vz[0].e2n[elm].n[1];
+      nodes[2] = M->vz[0].e2n[elm].n[4];
+      nodes[3] = M->vz[0].e2n[elm].n[3];
     } else if(face==1){
-      nodes[0] = dmesh.elmNodes[elm][1];
-      nodes[1] = dmesh.elmNodes[elm][2];
-      nodes[2] = dmesh.elmNodes[elm][5];
-      nodes[3] = dmesh.elmNodes[elm][4];
+      nodes[0] = M->vz[0].e2n[elm].n[1];
+      nodes[1] = M->vz[0].e2n[elm].n[2];
+      nodes[2] = M->vz[0].e2n[elm].n[5];
+      nodes[3] = M->vz[0].e2n[elm].n[4];
     } else if(face==2){
-      nodes[0] = dmesh.elmNodes[elm][2];
-      nodes[1] = dmesh.elmNodes[elm][0];
-      nodes[2] = dmesh.elmNodes[elm][3];
-      nodes[3] = dmesh.elmNodes[elm][5];
+      nodes[0] = M->vz[0].e2n[elm].n[2];
+      nodes[1] = M->vz[0].e2n[elm].n[0];
+      nodes[2] = M->vz[0].e2n[elm].n[3];
+      nodes[3] = M->vz[0].e2n[elm].n[5];
     } else if(face==3){
-      nodes[0] = dmesh.elmNodes[elm][0];
-      nodes[1] = dmesh.elmNodes[elm][2];
-      nodes[2] = dmesh.elmNodes[elm][1];
+      nodes[0] = M->vz[0].e2n[elm].n[0];
+      nodes[1] = M->vz[0].e2n[elm].n[2];
+      nodes[2] = M->vz[0].e2n[elm].n[1];
       nodes[3] = -1;
     } else if(face==4){
-      nodes[0] = dmesh.elmNodes[elm][3];
-      nodes[1] = dmesh.elmNodes[elm][4];
-      nodes[2] = dmesh.elmNodes[elm][5];
+      nodes[0] = M->vz[0].e2n[elm].n[3];
+      nodes[1] = M->vz[0].e2n[elm].n[4];
+      nodes[2] = M->vz[0].e2n[elm].n[5];
       nodes[3] = -1;
     }
   } else if(dmesh.elmTypes[elm]==ELM_PYRAMID){
     if(face==0){
-      nodes[0] = dmesh.elmNodes[elm][0];
-      nodes[1] = dmesh.elmNodes[elm][2];
-      nodes[2] = dmesh.elmNodes[elm][3];
-      nodes[3] = dmesh.elmNodes[elm][1];
+      nodes[0] = M->vz[0].e2n[elm].n[0];
+      nodes[1] = M->vz[0].e2n[elm].n[2];
+      nodes[2] = M->vz[0].e2n[elm].n[3];
+      nodes[3] = M->vz[0].e2n[elm].n[1];
     } else if(face==1){
-      nodes[0] = dmesh.elmNodes[elm][0];
-      nodes[1] = dmesh.elmNodes[elm][1];
-      nodes[2] = dmesh.elmNodes[elm][4];
+      nodes[0] = M->vz[0].e2n[elm].n[0];
+      nodes[1] = M->vz[0].e2n[elm].n[1];
+      nodes[2] = M->vz[0].e2n[elm].n[4];
       nodes[3] = -1;
     } else if(face==2){
-      nodes[0] = dmesh.elmNodes[elm][1];
-      nodes[1] = dmesh.elmNodes[elm][3];
-      nodes[2] = dmesh.elmNodes[elm][4];
+      nodes[0] = M->vz[0].e2n[elm].n[1];
+      nodes[1] = M->vz[0].e2n[elm].n[3];
+      nodes[2] = M->vz[0].e2n[elm].n[4];
       nodes[3] = -1;
     } else if(face==3){
-      nodes[0] = dmesh.elmNodes[elm][3];
-      nodes[1] = dmesh.elmNodes[elm][2];
-      nodes[2] = dmesh.elmNodes[elm][4];
+      nodes[0] = M->vz[0].e2n[elm].n[3];
+      nodes[1] = M->vz[0].e2n[elm].n[2];
+      nodes[2] = M->vz[0].e2n[elm].n[4];
       nodes[3] = -1;
     } else if(face==4){
-      nodes[0] = dmesh.elmNodes[elm][2];
-      nodes[1] = dmesh.elmNodes[elm][0];
-      nodes[2] = dmesh.elmNodes[elm][4];
+      nodes[0] = M->vz[0].e2n[elm].n[2];
+      nodes[1] = M->vz[0].e2n[elm].n[0];
+      nodes[2] = M->vz[0].e2n[elm].n[4];
       nodes[3] = -1;
     }
   }
@@ -665,15 +639,15 @@ void t_plas::plasdriver_GetFaceNodes(int elm, int face, int *nodes)
 void t_plas::plasdriver_InitFlowField(int material)
 {
   // Define pressure, velocity and temperature
-  double p = 101325.0;
-  double u = 1.0;
-  double v = 0.0;
-  double w = 0.0;
-  double T = 373.124;
+  double
+    p = 101325.,
+    u =      1.,
+    v =      0.,
+    w =      0.,
+    T =    373.124;
 
   if (material==AIR) {
 
-    // Material properties of air
     dflow.rho = 1.225;
     dflow.mu  = 1.7894e-5;
     dflow.cp  = 1.006;
@@ -682,7 +656,6 @@ void t_plas::plasdriver_InitFlowField(int material)
   }
   else if (material==WATER) {
 
-    // Material properties of water
     dflow.rho = 998.2;
     dflow.mu  = 1.003e-3;
     dflow.cp  = 4.182;
@@ -691,11 +664,11 @@ void t_plas::plasdriver_InitFlowField(int material)
   }
   else if (material==NITROGEN) {
 
-    // Material properties of nitrogen
     dflow.rho = 1.25;
     dflow.mu  = (6.5592e-7*pow(T,0.6081))/(1.0+54.715/T);
     dflow.cp  = (6.50+0.001*T)*4.184/(28.01e-3);
     dflow.k   = 2.5*(6.5592e-7*pow(T,0.6081))/(1.0+54.715/T)*((6.50+0.001*T)*4.184/(28.01e-3)-8.314)/28.01;
+
   }
 
   // Impose flow variables
@@ -712,29 +685,19 @@ void t_plas::plasdriver_InitFlowField(int material)
 // This file contains routines to compute the geometry of the
 // mesh used for the steady-state flow solution.
 // This function reads a Gambit mesh.
-void t_plas::plasdriver_ReadGambitNeutralFile()
+void t_plas::plasdriver_ReadGambitNeutralFile(const XMLNode& x)
 {
-#if 0
-  m_zinner.resize(M->z());
-  m_zbound.resize(M->z());
-  for (unsigned i=0; i<M->z(); ++i) {
-    if      (M->d(i)==M->d())   { m_zinner[i].nelem = M->e(i); m_zinner[i].etype = M->vz[i].t; }
-    else if (M->d(i)==M->d()-1) { m_zbound[i].nelem = M->e(i); m_zbound[i].etype = M->vz[i].t; }
-  }
-#endif
-
-
   // general information
   dmesh.numElm = 0;
   for (unsigned i=0; i<M->z(); ++i)
-    dmesh.numElm += M->d(i)==M->d()?   M->e(i):0;
+    dmesh.numElm += M->d(i)==M->d()? M->e(i) : 0;
+
 
   // set volume elements
-  dmesh.elmTypes    = new int     [dmesh.numElm];
-  dmesh.numElmNodes = new int     [dmesh.numElm];
-  dmesh.elmNodes    = new int*    [dmesh.numElm];
-  dmesh.numElmFaces = new int     [dmesh.numElm];
-  dmesh.elmNorms    = new double**[dmesh.numElm];
+  dmesh.elmTypes   .assign(dmesh.numElm,0);
+  dmesh.numElmNodes.assign(dmesh.numElm,0);
+  dmesh.numElmFaces.assign(dmesh.numElm,0);
+  dmesh.elmNorms   .resize(dmesh.numElm);
   for (unsigned iz=0, ie=0; iz<M->z(); ++iz) {
     if (M->d(iz)==M->d()) {
       for (unsigned i=ie; i<M->e(iz)+ie; ++i) {
@@ -747,17 +710,25 @@ void t_plas::plasdriver_ReadGambitNeutralFile()
           case (PYRAMID4):        dmesh.elmTypes[i] = ELM_PYRAMID; dmesh.numElmFaces[i] = 5; dmesh.numElmNodes[i] = 5; break;
           default:                dmesh.elmTypes[i] = 0;
         }
-        if (dmesh.elmTypes[i]) {
-          dmesh.elmNorms[i] = new double*[dmesh.numElmFaces[i]]; for (int j=0; j<dmesh.numElmFaces[i]; ++j) dmesh.elmNorms[i][j] = new double[M->d()];
-          dmesh.elmNodes[i] = new int    [dmesh.numElmNodes[i]]; for (int j=0; j<dmesh.numElmNodes[i]; ++j) dmesh.elmNodes[i][j] = M->vz[iz].e2n[i-ie].n[j];
-        }
+        if (dmesh.elmTypes[i])
+          dmesh.elmNorms[i].assign(dmesh.numElmFaces[i],std::vector< double >(M->d(),0.));
       }
       ie += M->e(iz);
     }
   }
 
 
+  // set zones properties (if it's inner, if it's a wall)
+  m_zprops.resize(M->z());
+  for (unsigned i=0; i<M->z(); ++i)
+    m_zprops[i].isinner = (M->d(i)==M->d());
+  for (int i=0; i<x.nChildNode("wall"); ++i)
+    m_zprops[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),*M) ].iswall = true;
+
+
   // mark boundary nodes
+  {
+#if 0
   std::vector< bool > nod_isbnd(M->n(),false);
   for (unsigned iz=0; iz<M->z(); ++iz) if (M->d(iz)==M->d()-1) {
     for (unsigned ie=0; ie<M->e(iz); ++ie) {
@@ -768,7 +739,13 @@ void t_plas::plasdriver_ReadGambitNeutralFile()
   }
 
 
-#if 0
+  m_zinner.resize(M->z());
+  m_zbound.resize(M->z());
+  for (unsigned i=0; i<M->z(); ++i) {
+    if      (M->d(i)==M->d())   { m_zinner[i].nelem = M->e(i); m_zinner[i].etype = M->vz[i].t; }
+    else if (M->d(i)==M->d()-1) { m_zbound[i].nelem = M->e(i); m_zbound[i].etype = M->vz[i].t; }
+  }
+
   // mark boundary elements
   std::vector< std::vector< bool > > elm_isbnd(dmesh.numElm,std::vector< bool >(M->n(),false));
   for (unsigned iz=0, ib=0; iz<M->z(); ++iz) {
@@ -783,25 +760,14 @@ void t_plas::plasdriver_ReadGambitNeutralFile()
       ++ib;
     }
   }
-
-  // set number of boundary faces
-  dmesh.numBndFaces = new int[dmesh.numBnd];
-  for (unsigned iz=0, ib=0; iz<M->z(); ++iz) {
-    if (M->d(iz)==M->d()-1) {
-    }
-  }
 #endif
-
+  }
 
 
   // set boundary elements
-  dmesh.bndFaces    = new int*[M->z()];
-  dmesh.bndDomElms  = new int*[M->z()];
-  dmesh.bndTypes    = new int [M->z()];
-  for (unsigned i=0; i<M->z(); i++)
-    dmesh.bndTypes[i] = dparam.bnd[i];
-  delete[] dparam.bnd;
-
+  dmesh.numBndFaces.assign(M->z(),0);
+  dmesh.bndFaces   .resize(M->z());
+  dmesh.bndDomElms .resize(M->z());
   for (unsigned iz=0, ib=0; iz<M->z(); ++iz) {
     if (M->d(iz)==M->d()-1) {
 
@@ -811,80 +777,23 @@ void t_plas::plasdriver_ReadGambitNeutralFile()
       // (iterate over this boundary's elements)
       typedef std::vector< unsigned > t_element_nodes;
       for (unsigned be=0; be<M->e(iz); ++be) {
-        //t_element_nodes &elm_bnd = M->vz[iz].e2n[be].n;
-
-
-
+// t_element_nodes &elm_bnd = M->vz[iz].e2n[be].n;
+// FIXME ?
       }
 
       // set boundary faces "inner" element
-      dmesh.bndDomElms[ib] = new int[M->e(iz)];
+      dmesh.bndDomElms[ib].assign(M->e(iz),0);
       for (unsigned jz=0, ie=0; jz<M->z(); ++jz) {
         if (M->d(jz)==M->d()) {
-
-#if 0
-          t_element_nodes &a = M->vz[0].e2n[0].n;
-#endif
-              //        dmesh.bndDomElms[ib][i] = ?;
-
           ie += M->e(jz);
         }
       }
 
       // set boundary faces boundary face index (0-based)
-      dmesh.bndFaces[ib]   = new int[M->e(iz)];
+      dmesh.bndFaces[ib].assign(M->e(iz),0);
       for (unsigned i=0; i<M->e(iz); ++i) {
-// FIXME     dmesh.bndFaces  [ib][i] = ?;
+// FIXME dmesh.bndFaces  [ib][i] = ?;
       }
-
-#if 0
-/**
- * comparison of boundary element with "inner cells" connectivity, returning the
- * "inner cell" index and respective opposite node global/local indices.
- * note: it only checks cells which touch a boundary
- * @param[in] e2n "inner" connectivity
- * @param[in] e2n_isbnd marker for cells sitting on the boundary
- * @param[in] ben boundary element to compare
- * @param[out] bcell "inner" corresponding cell (0-based)
- * @param[out] bnode ... cell opposite node, global index (0-based)
- * @param[out] binc ... cell opposite node, local index (0-based)
- */
-{
-  const std::vector< m::melem > e2n;
-  const std::vector< unsigned > ben;
-  int *bcell, *bnode, *binc;
-{
-  const int Nvtfce = 9999;
-  bcell = bnode = binc = NULL;
-
-  bool match = false;
-  for (unsigned c=0; c<e2n.size() && !match; ++c) {
-    if (!elm_isbnd[ib][c])
-      continue;
-    const std::vector< unsigned >& cell = e2n[c].n;
-
-    // check for "inner" element matching all nodes from the boundary element
-    int n_match = 0;
-    for (unsigned i=0; i<ben.size(); ++i)
-      n_match += std::count(cell.begin(),cell.end(),ben[i])? 1:0;
-    match = n_match==Nvtfce;
-
-    // if found, locate which node index (local/global) is not contained
-    if (match) {
-      *bcell = (int) c;
-      for (unsigned i=0; i<cell.size(); ++i)
-        if (!std::count(ben.begin(),ben.end(),cell[i])) {
-          *bnode = (int) cell[i];
-          *binc  = (int)      i;
-          break;
-        }
-    }
-  }
-  if (!match)
-    plas_TerminateOnError("boundary element not found");
-}
-}
-#endif
 
       ++ib;
     }
@@ -895,7 +804,7 @@ void t_plas::plasdriver_ReadGambitNeutralFile()
 void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
 {
   fp->numDim       = M->d();
-  fp->numUnk       = dparam.numUnk;
+  fp->numUnk       = M->d()+2;
   fp->numNod       = M->n();
   fp->numElm       = dmesh.numElm;
   fp->numBnd       = M->z();
@@ -918,30 +827,4 @@ void t_plas::setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp)
 {
   fp->time += dparam.dt;
   fp->iter =  dparam.iter;
-}
-
-
-double t_plas::getBndFaceRefCoord(int bnd, int bface, int dim)
-{
-  int faceNodes[4];
-  plasdriver_GetFaceNodes(dmesh.bndDomElms[bnd][bface],dmesh.bndFaces[bnd][bface],faceNodes);
-  return M->vv[dim][faceNodes[0]];
-}
-
-
-double t_plas::getElmFaceMiddlePoint(int elm, int eface, int dim)
-{
-  int faceNodes[4];
-  plasdriver_GetFaceNodes(elm,eface,faceNodes);
-
-  int ctr = 0;
-  double coord = 0.;
-  for (int ifac=0; ifac<4; ++ifac)
-    if (faceNodes[ifac]!=-1) {
-      coord += M->vv[dim][faceNodes[ifac]];
-      ++ctr;
-    }
-  coord /= ctr;
-
-  return coord;
 }

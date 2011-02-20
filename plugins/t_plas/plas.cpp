@@ -103,7 +103,6 @@ void plas::run()
   sd.in          = 0;
   sd.out         = 0;
   sd.bounce      = 0;
-  sd.periodic    = 0;
   sd.passed      = 0;
   sd.lost        = 0;
   sd.coll        = 0;
@@ -1655,7 +1654,7 @@ void plas::plas_CreateStatsFile(const std::string &outpString)
   if (outpFile==NULL)
     return;
 
-  fprintf(outpFile,"Iter\tTime\tEnt\tIn\tOut\tBounc\tColl\tPer\tPass\tLost\tRe_disp\tNu_disp\tdt_Lagr\tsubit\n");
+  fprintf(outpFile,"Iter\tTime\tEnt\tIn\tOut\tBounc\tColl\tPass\tLost\tRe_disp\tNu_disp\tdt_Lagr\tsubit\n");
   fclose(outpFile);
 }
 
@@ -1711,7 +1710,7 @@ void plas::plas_FindExitFace(int numBnd, int numDim, LOCAL_ENTITY_VARIABLES *ent
   found = 0;
   for(ibnd=0; ibnd<numBnd; ibnd++){
     for(ifac=0; ifac<getNumBndFaces(ibnd); ifac++){
-      if(ent->elm==getBndDomElm(ibnd,ifac,ent->elm)){
+      if(ent->elm==getBndDomElm(ibnd,ifac)){
         d = plas_CalcWallFaceDistance(numDim,ent->pos,ibnd,ifac);
         if(d<0){found = 1;}
       }
@@ -2512,13 +2511,13 @@ void plas::plas_ReadParameters(const XMLNode& x)
     e_material  = x.getAttribute< std::string >("entities.material","air"),
     e_ddist     = x.getAttribute< std::string >("entities.production.diameter.distribution","constant"),
     c_momentum  = x.getAttribute< std::string >("couple.momentum","no"),
-    c_energy    = x.getAttribute< std::string >("couple.energy","no"),
+    c_energy    = x.getAttribute< std::string >("couple.energy",  "no"),
     m_collision = x.getAttribute< std::string >("model.collision","no");
 
-  ip.volfracCoupl = (x.getAttribute< std::string >("couple.volumefraction","no")=="yes");
+  ip.volfracCoupl = (x.getAttribute< std::string >("couple.volumefraction",             "no")=="yes");
   ip.evapModel    = (x.getAttribute< std::string >("model.droplets.thinfilmevaporation","no")=="yes");
-  ip.saturModel   = (x.getAttribute< std::string >("model.bubbles.saturation","no")=="yes");
-  ip.liftForce    = (x.getAttribute< std::string >("model.bubbles.slip-shearliftforce","no")=="yes");
+  ip.saturModel   = (x.getAttribute< std::string >("model.bubbles.saturation",          "no")=="yes");
+  ip.liftForce    = (x.getAttribute< std::string >("model.bubbles.slip-shearliftforce", "no")=="yes");
 
   ip.gravVec[0] = x.getAttribute< double >("gravity.x",0.);
   ip.gravVec[1] = x.getAttribute< double >("gravity.y",0.);
@@ -2530,17 +2529,17 @@ void plas::plas_ReadParameters(const XMLNode& x)
 
 
   // apply corrections and set additional paramters
-  ip.material = (e_material=="Cu"  || e_material=="copper"?     MAT_COPPER   :
-                (e_material=="C8H8"?                            MAT_POLY     :
-                (e_material=="H2O" || e_material=="water"?      MAT_WATER    :
-                (                     e_material=="n-Heptane"?  MAT_NHEPTANE :
-                (e_material=="H2"  || e_material=="hydrogen"?   MAT_HYDROGEN :
-                (e_material=="O2"  || e_material=="oxygen"?     MAT_OXYGEN   :
-                (                     e_material=="air"?        MAT_AIR      :
-                                                                MAT_AIR )))))));
+  ip.material = (e_material=="Cu" || e_material=="copper"?    MAT_COPPER   :
+                (e_material=="C8H8"?                          MAT_POLY     :
+                (e_material=="H2O"|| e_material=="water"?     MAT_WATER    :
+                (                    e_material=="n-Heptane"? MAT_NHEPTANE :
+                (e_material=="H2" || e_material=="hydrogen"?  MAT_HYDROGEN :
+                (e_material=="O2" || e_material=="oxygen"?    MAT_OXYGEN   :
+                (                    e_material=="air"?       MAT_AIR      :
+                                                              MAT_AIR )))))));
   rp.flowType = (ip.material==MAT_COPPER   || ip.material==MAT_POLY?                           FLOW_PARTIC  :
                 (ip.material==MAT_WATER    || ip.material==MAT_NHEPTANE?                       FLOW_DROPLET :
-                (ip.material==MAT_HYDROGEN || ip.material==MAT_OXYGEN || ip.material==MAT_AIR? FLOW_BUBBLY :
+                (ip.material==MAT_HYDROGEN || ip.material==MAT_OXYGEN || ip.material==MAT_AIR? FLOW_BUBBLY  :
                   FLOW_BUBBLY )));
   ip.iniDiamType = (e_ddist=="constant"?   0 :
                    (e_ddist=="normal"?     1 :
@@ -2815,10 +2814,10 @@ void plas::plas_WriteStatsFile(const std::string &outpString, int iter, double t
     if (outpFile==NULL)
       return;
 
-    fprintf(outpFile,"%5d\t%6.2f\t%6d\t%5d\t%5d\t%5d\t%5d\t%5d\t%5d\t%5d\t%11.4e\t%11.4e\t%11.4e\t%6.2f\n",
+    fprintf(outpFile,"%5d\t%6.2f\t%6d\t%5d\t%5d\t%5d\t%5d\t%5d\t%5d\t%11.4e\t%11.4e\t%11.4e\t%6.2f\n",
     iter,time,
     sd.enabled,sd.in,sd.out,sd.bounce,sd.coll,
-    sd.periodic,sd.passed,sd.lost,sd.reynoldsAvg,sd.nusseltAvg,
+    sd.passed,sd.lost,sd.reynoldsAvg,sd.nusseltAvg,
     sd.dtLagrAvg,sd.subIterAvg);
     fclose(outpFile);
 }
