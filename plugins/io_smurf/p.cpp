@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "ext/GetPot"
+#include "ext/GetPot.h"
 #include "ext/fparser.hh"
 #include "smurf.h"
 

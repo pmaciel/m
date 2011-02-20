@@ -16,8 +16,8 @@ def build(bld):
   # smurf filter (does not use m)
   bld.program(
     target   = 'p',
-    includes = ['.'],
-    source   = ['p.cpp','ext/fparser.cc','ext/fpoptimizer.cc'],
+    includes = ['.','../../mkernel'],
+    source   = ['p.cpp','../../mkernel/ext/fparser.cc','../../mkernel/ext/fpoptimizer.cc'],
     use      = ['smurf'] )
 
   # plugin
