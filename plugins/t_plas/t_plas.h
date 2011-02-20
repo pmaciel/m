@@ -86,6 +86,7 @@ class t_plas : public m::mtransform,
     bool iswall;
   };
   std::vector< s_zoneprops > m_zprops;
+  std::vector< int         > m_zinner_nelems;
 
   // mesh paramaters data structure
   struct {

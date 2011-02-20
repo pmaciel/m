@@ -1,4 +1,5 @@
 
+#include <numeric>
 #include "ext/xmlParser.h"
 #include "mfactory.h"
 #include "t_plas.h"
@@ -688,9 +689,10 @@ void t_plas::plasdriver_InitFlowField(int material)
 void t_plas::plasdriver_ReadGambitNeutralFile(const XMLNode& x)
 {
   // general information
-  dmesh.numElm = 0;
+  m_zinner_nelems.assign(M->z(),0);
   for (unsigned i=0; i<M->z(); ++i)
-    dmesh.numElm += M->d(i)==M->d()? M->e(i) : 0;
+    m_zinner_nelems[i] = (int)(M->d(i)==M->d()? M->e(i) : 0);
+  dmesh.numElm = std::accumulate(m_zinner_nelems.begin(),m_zinner_nelems.end(),0);
 
 
   // set volume elements
