@@ -67,7 +67,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
   M = &m;
 
 
-  cout << "info: recreating: inner zones..." << endl;
+  cout << "info: recreating: inner zones properties..." << endl;
   m_zinner_props.resize(M->z());
   int numElm = 0;  // total number of (inner) elements
   for (unsigned iz=0; iz<M->z(); ++iz) {
@@ -86,16 +86,17 @@ void t_plas::transform(GetPot& o, mmesh& m)
       numElm += z.nelems;
     }
   }
-  cout << "info: recreating: inner zones." << endl;
+  cout << "info: recreating: inner zones properties." << endl;
 
 
-  cout << "info: recreating: boundary zones..." << endl;
+  cout << "info: recreating: boundary zones properties..." << endl;
   m_zbound_props.resize(M->z());
   for (unsigned iz=0; iz<M->z(); ++iz)
     if (M->d(iz)==M->d()-1)
       m_zbound_props[iz].nelems = M->e(iz);
   for (int i=0; i<x.nChildNode("wall"); ++i)
     m_zbound_props[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),*M) ].iswall = true;
+  cout << "info: recreating: boundary zones properties." << endl;
 
 
   // set boundary elements
@@ -134,7 +135,6 @@ void t_plas::transform(GetPot& o, mmesh& m)
   }
 #endif
   exit(42);
-  cout << "info: recreating: boundary zones." << endl;
 
 
   cout << "info: recreating: node-to-element connectivity..." << endl;
@@ -155,9 +155,15 @@ void t_plas::transform(GetPot& o, mmesh& m)
     for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++ielm) {
       dmesh.elmNeighbs[ielm].assign(m_zinner_props[iz].e_nfaces,-1);
       for (int ifac=0; ifac<m_zinner_props[iz].e_nfaces; ++ifac) {
+
+        // get nodes in the face
         plasdriver_GetFaceNodes(ielm,ifac,&ifacenodes[0]);
         std::sort(ifacenodes.begin(),ifacenodes.end());
 
+        // get list of searcheable elements (sharing a node)
+        // TODO
+
+        // find the element with a face with the same nodes but different index
         for (size_t jz=0, jelm=0; jz<m_zinner_props.size(); ++jz) {
           for (int je=0; je<m_zinner_props[jz].nelems; ++je, ++jelm) {
             for (int jfac=0; jfac<m_zinner_props[jz].e_nfaces; ++jfac) {
@@ -180,11 +186,9 @@ void t_plas::transform(GetPot& o, mmesh& m)
 
   // allocate by number of (inner) elements, (inner) elements faces
   dmesh.elmNorms.resize(numElm);
-  for (size_t iz=0, e=0; iz<m_zinner_props.size(); ++iz) {
-    const int nfaces = m_zinner_props[iz].e_nfaces;
+  for (size_t iz=0, e=0; iz<m_zinner_props.size(); ++iz)
     for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++e)
-      dmesh.elmNorms[e].assign(nfaces,std::vector< double >(M->d(),0.));
-  }
+      dmesh.elmNorms[e].assign( m_zinner_props[iz].e_nfaces, std::vector< double >(M->d(),0.) );
 
   // calculate face normals
   int fnodes[4];
