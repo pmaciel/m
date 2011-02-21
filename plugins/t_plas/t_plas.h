@@ -11,6 +11,49 @@
 #define NITROGEN 3
 
 
+// mesh paramaters data structure
+struct s_driver_mesh {
+  std::vector< std::vector< int > > bndFaces;    // <---- remove!
+  std::vector< std::vector< int > > bndDomElms;  // <---- remove!
+
+  std::vector< std::vector< int > > nodElms;
+  std::vector< std::vector< int > > elmNeighbs;
+  std::vector< double > nodVolumes;
+  std::vector< double > elmVolumes;
+  std::vector< std::vector< std::vector< double > > > elmNorms;
+};
+
+
+// parameters and flow field data structure
+struct s_driver_param {
+  double
+    rho,
+    mu,
+    cp,
+    k,
+    *p,   // <---- remove!
+    **u,  // <---- remove!
+    *T,   // <---- remove!
+    dt;
+  int
+    iter,
+    numIter,
+    material;
+};
+
+
+// additional zone properties (for convenience)
+struct s_zoneprops {
+  s_zoneprops() : iswall(false), nelems(0), e_type(0), e_nnodes(0), e_nfaces(0) {}
+  bool iswall;
+  int
+    nelems,
+    e_type,
+    e_nnodes,
+    e_nfaces;
+};
+
+
 // module to use the Particle Lagrangian Solver (PLaS)
 class t_plas : public m::mtransform,
                public plas {
@@ -25,7 +68,6 @@ class t_plas : public m::mtransform,
 
   void   plasdriver_ReadGambitNeutralFile(const XMLNode& x);
   void   plasdriver_CalcElmsAroundNode();
-  void   plasdriver_CalcElementNeighbours();
   void   plasdriver_CalcElementNormals();
   void   plasdriver_CalcElementVolumes();
   void   plasdriver_CalcNodalVolumes();
@@ -54,81 +96,51 @@ class t_plas : public m::mtransform,
      return coord;
    }
 
-   double getBndFaceNormComp           (int bnd, int face, int dim)  { return dmesh.elmNorms[dmesh.bndDomElms[bnd][face]][dmesh.bndFaces[bnd][face]][dim]; }
+   double getBndFaceNormComp(int bnd, int face, int dim) {
+     return dmesh.elmNorms
+         [ dmesh.bndDomElms[bnd][face] ]
+         [ dmesh.bndFaces[bnd][face] ]
+         [ dim ];
+   }
    double getElmNormComp               (int elm, int eface, int dim) { return dmesh.elmNorms[elm][eface][dim]; }
    double getElmVol                    (int elm)                     { return dmesh.elmVolumes[elm]; }
    double getEulerianTimeScale         (int nod)                     { return 0.; }
    double getNodCoord                  (int nod, int dim)            { return M->vv[dim][nod]; }
    double getNodVol                    (int nod)                     { return dmesh.nodVolumes[nod]; }
-   double getPressure                  (int nod)                     { return dflow.p[nod]; }
-   double getPressureOld               (int nod)                     { return dflow.p[nod]; }
-   double getTemperature               (int nod)                     { return dflow.T[nod]; }
-   double getTemperatureOld            (int nod)                     { return dflow.T[nod]; }
-   double getVelocityComp              (int nod, int dim)            { return dflow.u[nod][dim]; }
-   double getVelocityCompOld           (int nod, int dim)            { return dflow.u[nod][dim]; }
+   double getPressure                  (int nod)                     { return dparam.p[nod]; }
+   double getPressureOld               (int nod)                     { return dparam.p[nod]; }
+   double getTemperature               (int nod)                     { return dparam.T[nod]; }
+   double getTemperatureOld            (int nod)                     { return dparam.T[nod]; }
+   double getVelocityComp              (int nod, int dim)            { return dparam.u[nod][dim]; }
+   double getVelocityCompOld           (int nod, int dim)            { return dparam.u[nod][dim]; }
    double getVelocityDerivativeComp    (int nod, int idim, int jdim) { return 0.; }
    double getVelocityDerivativeCompOld (int nod, int idim, int jdim) { return 0.; }
    int    getBndDomElm                 (int bnd, int bface)          { return dmesh.bndDomElms[bnd][bface]; }
-   int    getElementType               (int elm)                     { return dmesh.elmTypes[elm]; }
+   int    getElementType               (int elm) {
+     int nelems = 0;
+     for (std::vector< s_zoneprops >::const_iterator z=m_zinner_props.begin(); z!=m_zinner_props.end(); ++z) {
+       nelems += z->nelems;
+       if (elm<nelems)
+         return z->e_type;
+     }
+     return 0;
+   }
    int    getElmNeighbour              (int elm, int eface)          { return dmesh.elmNeighbs[elm][eface]; }
    int    getElmNode                   (int elm, int enod)           { return (int) M->vz[0].e2n[elm].n[enod]; }
-   int    getNumBndFaces               (int bnd)                     { return dmesh.numBndFaces[bnd]; }
-   int    getWallBndFlag               (int bnd)                     { return m_zprops[bnd].iswall? 1:0; }
+   int    getNumBndFaces               (int bnd)                     { return m_zbound_props[bnd].nelems; }
+   int    getWallBndFlag               (int bnd)                     { return m_zbound_props[bnd].iswall? 1:0; }
    void   screenOutput                 (const std::string& text)     { std::cout << "t_plas: info: " << text << std::endl; }
    void   screenWarning                (const std::string& text)     { std::cout << "t_plas: warn: " << text << std::endl; }
 
  private:  // member variables
   m::mmesh *M;
+  std::vector< s_zoneprops >
+    m_zinner_props,
+    m_zbound_props;
 
-  struct s_zoneprops {
-    s_zoneprops() : isinner(false), iswall(false) {}
-    bool isinner;
-    bool iswall;
-  };
-  std::vector< s_zoneprops > m_zprops;
-  std::vector< int         > m_zinner_nelems;
-
-  // mesh paramaters data structure
-  struct {
-    int numElm;
-    double minElmVolume, maxElmVolume;
-    std::vector< int >
-      elmTypes,
-      numElmNodes,
-      numNodElms,
-      numElmFaces,
-      numBndFaces;
-    std::vector< std::vector< int > >
-      nodElms,
-      elmNeighbs,
-      bndFaces,
-      bndDomElms;
-    std::vector< double >
-      nodVolumes,
-      elmVolumes;
-    std::vector< std::vector< std::vector< double > > > elmNorms;
-  } dmesh;
-
-  // flow field data structure
-  struct {
-    double
-      rho,
-      mu,
-      cp,
-      k,
-      *p,
-      **u,
-      *T;
-  } dflow;
-
-  // input parameters from drivers.conf file
-  struct {
-    int
-      iter,
-      numIter,
-      material;
-    double dt;
-  } dparam;
+  // FIXME refactor!
+  s_driver_mesh dmesh;
+  s_driver_param dparam;
 
 };
 
