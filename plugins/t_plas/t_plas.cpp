@@ -63,79 +63,128 @@ void t_plas::transform(GetPot& o, mmesh& m)
   cout << "info: setup plas xml." << endl;
 
 
-  screenOutput("converting m::mmesh to dmesh...");
+  cout << "info: recreating data structures from m::mmesh..." << endl;
   M = &m;
-  plasdriver_ReadGambitNeutralFile(x);
-  plasdriver_CalcElmsAroundNode();
-  plasdriver_CalcElementNormals();
-  plasdriver_CalcElementVolumes();
-  plasdriver_CalcNodalVolumes();
 
 
-  screenOutput("initializing flow field...");
-  dparam.p = new double [M->n()];
-  dparam.T = new double [M->n()];
-  dparam.u = new double*[M->n()];
-  for (unsigned i=0; i<M->n(); ++i)
-    dparam.u[i] = new double[M->d()];
-  plasdriver_InitFlowField(dparam.material);
-
-
-  screenOutput("initializing PLaS...");
-  plas::initialize(x);
-  screenOutput("initializing PLaS.");
-
-
-  screenOutput("perform PLaS iterations...");
-  for (dparam.iter=1; dparam.iter<=dparam.numIter; ++dparam.iter) {
-    screenOutput("iterate...");
-    plas::run();
+  cout << "info: recreating: inner zones..." << endl;
+  m_zinner_props.resize(M->z());
+  int numElm = 0;  // total number of (inner) elements
+  for (unsigned iz=0; iz<M->z(); ++iz) {
+    if (M->d(iz)==M->d()) {
+      s_zoneprops &z = m_zinner_props[iz];
+      z.nelems = M->e(iz);
+      switch(M->vz[iz].t) {
+      case (FETRIANGLE):      z.e_type = ELM_SIMPLEX; z.e_nfaces = 3; z.e_nnodes = 3; break;
+      case (FEQUADRILATERAL): z.e_type = ELM_QUAD;    z.e_nfaces = 4; z.e_nnodes = 4; break;
+      case (FETETRAHEDRON):   z.e_type = ELM_SIMPLEX; z.e_nfaces = 4; z.e_nnodes = 4; break;
+      case (FEBRICK):         z.e_type = ELM_HEX;     z.e_nfaces = 6; z.e_nnodes = 8; break;
+      case (PRISM3):          z.e_type = ELM_PRISM;   z.e_nfaces = 5; z.e_nnodes = 5; break;
+      case (PYRAMID4):        z.e_type = ELM_PYRAMID; z.e_nfaces = 5; z.e_nnodes = 5; break;
+      default: {}
+      }
+      numElm += z.nelems;
+    }
   }
-  screenOutput("perform PLaS iterations.");
+  cout << "info: recreating: inner zones." << endl;
 
 
-  screenOutput("terminating PLaS...");
-  ///plasdriver_FreeGambitMemory();
-  for (unsigned i=0; i<M->n(); ++i)
-    delete[] dparam.u[i];
-  delete[] dparam.p;
-  delete[] dparam.u;
-  delete[] dparam.T;
-  screenOutput("terminating PLaS.");
-}
+  cout << "info: recreating: boundary zones..." << endl;
+  m_zbound_props.resize(M->z());
+  for (unsigned iz=0; iz<M->z(); ++iz)
+    if (M->d(iz)==M->d()-1)
+      m_zbound_props[iz].nelems = M->e(iz);
+  for (int i=0; i<x.nChildNode("wall"); ++i)
+    m_zbound_props[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),*M) ].iswall = true;
 
 
-// This file contains routines to compute the geometry of the
-// mesh used for the steady-state flow solution.
-// This function computes the area of a triangle.
-double t_plas::plasdriver_CalcAreaTriangle(double c[3][2])
-{
-  return c[0][0]*(c[1][1]-c[2][1]) + c[1][0]*(c[2][1]-c[0][1]) + c[2][0]*(c[0][1]-c[1][1]);
-}
+  // set boundary elements
+#if 0
+  dmesh.bndFaces   .resize(M->z());
+  dmesh.bndDomElms .resize(M->z());
+  for (unsigned iz=0, ib=0; iz<M->z(); ++iz) {
+    if (M->d(iz)==M->d()-1) {
+
+      // set number of boundary faces
+      //FIXME dmesh.numBndFaces[ib] = M->e(iz);
+
+      // (iterate over this boundary's elements)
+      typedef std::vector< unsigned > t_element_nodes;
+      for (unsigned be=0; be<M->e(iz); ++be) {
+// t_element_nodes &elm_bnd = M->vz[iz].e2n[be].n;
+// FIXME ?
+      }
+
+      // set boundary faces "inner" element
+      dmesh.bndDomElms[ib].assign(M->e(iz),0);
+      for (unsigned jz=0, ie=0; jz<M->z(); ++jz) {
+        if (M->d(jz)==M->d()) {
+          ie += M->e(jz);
+        }
+      }
+
+      // set boundary faces boundary face index (0-based)
+      dmesh.bndFaces[ib].assign(M->e(iz),0);
+      for (unsigned i=0; i<M->e(iz); ++i) {
+// FIXME dmesh.bndFaces  [ib][i] = ?;
+      }
+
+      ++ib;
+    }
+  }
+#endif
+  exit(42);
+  cout << "info: recreating: boundary zones." << endl;
 
 
-// This file contains routines to compute the geometry of the
-// mesh used for the steady-state flow solution.
-// This function computes element normals.
-void t_plas::plasdriver_CalcElementNormals()
-{
-  screenOutput("performing geometry calculations: element normals...");
+  cout << "info: recreating: node-to-element connectivity..." << endl;
+  dmesh.nodElms.assign(M->n(),std::vector< int >());
+  for (size_t iz=0, ielm=0; iz<m_zinner_props.size(); ++iz)
+    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++ielm)
+      for (std::vector< unsigned >::const_iterator n=M->vz[iz].e2n[ie].n.begin(); n!=M->vz[iz].e2n[ie].n.end(); ++n)
+        dmesh.nodElms[ *n ].push_back(ielm);
+  cout << "info: recreating: node-to-element connectivity." << endl;
 
 
-  // allocate by number of (inner) elements
-  int numElm = 0;
-  for (size_t iz=0; iz<m_zinner_props.size(); ++iz)
-    numElm += m_zinner_props[iz].nelems;
+  cout << "info: recreating: element-to-element (sharing a face) connectivity..." << endl;
+  dmesh.elmNeighbs.resize(numElm);
+  std::vector< int >
+    ifacenodes(4,0),
+    jfacenodes(4,0);
+  for (size_t iz=0, ielm=0; iz<m_zinner_props.size(); ++iz) {
+    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++ielm) {
+      dmesh.elmNeighbs[ielm].assign(m_zinner_props[iz].e_nfaces,-1);
+      for (int ifac=0; ifac<m_zinner_props[iz].e_nfaces; ++ifac) {
+        plasdriver_GetFaceNodes(ielm,ifac,&ifacenodes[0]);
+        std::sort(ifacenodes.begin(),ifacenodes.end());
+
+        for (size_t jz=0, jelm=0; jz<m_zinner_props.size(); ++jz) {
+          for (int je=0; je<m_zinner_props[jz].nelems; ++je, ++jelm) {
+            for (int jfac=0; jfac<m_zinner_props[jz].e_nfaces; ++jfac) {
+              plasdriver_GetFaceNodes(jelm,jfac,&jfacenodes[0]);
+              std::sort(jfacenodes.begin(),jfacenodes.end());
+
+              dmesh.elmNeighbs[ielm][ifac] = (ielm!=jelm && ifacenodes==jfacenodes? jelm : -1);
+
+            }
+          }
+        }
+
+      }
+    }
+  }
+  cout << "info: recreating: element-to-element (sharing a face) connectivity." << endl;
+
+
+  cout << "info: recreating: inner element normals..." << endl;
+
+  // allocate by number of (inner) elements, (inner) elements faces
   dmesh.elmNorms.resize(numElm);
-
-
-  // allocate by number of (inner) elements faces
   for (size_t iz=0, e=0; iz<m_zinner_props.size(); ++iz) {
     const int nfaces = m_zinner_props[iz].e_nfaces;
     for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++e)
       dmesh.elmNorms[e].assign(nfaces,std::vector< double >(M->d(),0.));
   }
-
 
   // calculate face normals
   int fnodes[4];
@@ -197,22 +246,12 @@ void t_plas::plasdriver_CalcElementNormals()
       }
     }
   }
-}
+  cout << "info: recreating: inner element normals." << endl;
 
 
-// This file contains routines to compute the geometry of the
-// mesh used for the steady-state flow solution.
-// This function computes element volumes.
-void t_plas::plasdriver_CalcElementVolumes()
-{
-  screenOutput("performing geometry calculations: element volumes...");
-
-  int numElm = 0;
-  for (size_t i=0; i<m_zinner_props.size(); ++i)
-    numElm += m_zinner_props[i].nelems;
+  cout << "info: recreating: inner element volumes..." << endl;
   dmesh.elmVolumes.assign(numElm,0.);
-
-  double c2[3][2],c3[4][3];
+  double c2[3][2], c3[4][3];
   unsigned ielm = 0;
   for (std::vector< s_zoneprops >::const_iterator z=m_zinner_props.begin(); z!=m_zinner_props.end(); ++z) {
     for (int ie=0; ie<z->nelems; ++ie) {
@@ -418,72 +457,59 @@ void t_plas::plasdriver_CalcElementVolumes()
     }
     ielm += z->nelems;
   }
-}
+  cout << "info: recreating: inner element volumes." << endl;
 
 
-// This file contains routines to compute the geometry of the
-// mesh used for the steady-state flow solution.
-// This function computes the elements around a node and element neighbours.
-void t_plas::plasdriver_CalcElmsAroundNode()
-{
-  screenOutput("performing geometry calculations: elements around nodes...");
-
-
-  // count number of (inner) elements
-  int numElm = 0;
-  for (size_t i=0; i<m_zinner_props.size(); ++i)
-    numElm += m_zinner_props[i].nelems;
-
-
-  // set node-to-element connectivity
-  dmesh.nodElms.assign(M->n(),std::vector< int >());
-  for (size_t iz=0, ielm=0; iz<m_zinner_props.size(); ++iz)
-    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++ielm)
-      for (std::vector< unsigned >::const_iterator n=M->vz[iz].e2n[ie].n.begin(); n!=M->vz[iz].e2n[ie].n.end(); ++n)
-        dmesh.nodElms[ *n ].push_back(ielm);
-
-
-  // set element-to-element (sharing a face) connectivity
-  dmesh.elmNeighbs.resize(numElm);
-  std::vector< int >
-    ifacenodes(4,0),
-    jfacenodes(4,0);
-  for (size_t iz=0, ielm=0; iz<m_zinner_props.size(); ++iz) {
-    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++ielm) {
-      dmesh.elmNeighbs[ielm].assign(m_zinner_props[iz].e_nfaces,-1);
-      for (int ifac=0; ifac<m_zinner_props[iz].e_nfaces; ++ifac) {
-        plasdriver_GetFaceNodes(ielm,ifac,&ifacenodes[0]);
-        std::sort(ifacenodes.begin(),ifacenodes.end());
-
-        for (size_t jz=0, jelm=0; jz<m_zinner_props.size(); ++jz) {
-          for (int je=0; je<m_zinner_props[jz].nelems; ++je, ++jelm) {
-            for (int jfac=0; jfac<m_zinner_props[jz].e_nfaces; ++jfac) {
-              plasdriver_GetFaceNodes(jelm,jfac,&jfacenodes[0]);
-              std::sort(jfacenodes.begin(),jfacenodes.end());
-
-              dmesh.elmNeighbs[ielm][ifac] = (ielm!=jelm && ifacenodes==jfacenodes? jelm : -1);
-
-            }
-          }
-        }
-
-      }
-    }
-  }
-}
-
-
-// This file contains routines to compute the geometry of the
-// mesh used for the steady-state flow solution.
-// This function computes the nodal dual cell volumes.
-void t_plas::plasdriver_CalcNodalVolumes()
-{
-  screenOutput("performing geometry calculations: nodal volumes...");
-
+  cout << "info: recreating: nodal volumes (dual cell)..." << endl;
   dmesh.nodVolumes.assign(M->n(),0.);
   for (unsigned n=0; n<M->n(); ++n)
     for (size_t e=0; e<dmesh.nodElms[n].size(); ++e)
       dmesh.nodVolumes[n] += dmesh.elmVolumes[dmesh.nodElms[n][e]]/dmesh.nodElms[n].size();
+  cout << "info: recreating: nodal volumes (dual cell)." << endl;
+
+
+  cout << "info: recreating data structures from m::mmesh." << endl;
+
+
+  screenOutput("initializing flow field...");
+  dparam.p = new double [M->n()];
+  dparam.T = new double [M->n()];
+  dparam.u = new double*[M->n()];
+  for (unsigned i=0; i<M->n(); ++i)
+    dparam.u[i] = new double[M->d()];
+  plasdriver_InitFlowField(dparam.material);
+
+
+  screenOutput("initializing PLaS...");
+  plas::initialize(x);
+  screenOutput("initializing PLaS.");
+
+
+  screenOutput("perform PLaS iterations...");
+  for (dparam.iter=1; dparam.iter<=dparam.numIter; ++dparam.iter) {
+    screenOutput("iterate...");
+    plas::run();
+  }
+  screenOutput("perform PLaS iterations.");
+
+
+  screenOutput("terminating PLaS...");
+  ///plasdriver_FreeGambitMemory();
+  for (unsigned i=0; i<M->n(); ++i)
+    delete[] dparam.u[i];
+  delete[] dparam.p;
+  delete[] dparam.u;
+  delete[] dparam.T;
+  screenOutput("terminating PLaS.");
+}
+
+
+// This file contains routines to compute the geometry of the
+// mesh used for the steady-state flow solution.
+// This function computes the area of a triangle.
+double t_plas::plasdriver_CalcAreaTriangle(double c[3][2])
+{
+  return c[0][0]*(c[1][1]-c[2][1]) + c[1][0]*(c[2][1]-c[0][1]) + c[2][0]*(c[0][1]-c[1][1]);
 }
 
 
@@ -629,78 +655,6 @@ void t_plas::plasdriver_InitFlowField(int material)
     dparam.u[n][2] = w;
     dparam.T[n]    = T;
   }
-}
-
-
-// This file contains routines to compute the geometry of the
-// mesh used for the steady-state flow solution.
-// This function reads a Gambit mesh.
-void t_plas::plasdriver_ReadGambitNeutralFile(const XMLNode& x)
-{
-  // set inner zones properties
-  m_zinner_props.resize(M->z());
-  for (unsigned iz=0; iz<M->z(); ++iz) {
-    if (M->d(iz)==M->d()) {
-      s_zoneprops &z = m_zinner_props[iz];
-      z.nelems = M->e(iz);
-      switch(M->vz[iz].t) {
-      case (FETRIANGLE):      z.e_type = ELM_SIMPLEX; z.e_nfaces = 3; z.e_nnodes = 3; break;
-      case (FEQUADRILATERAL): z.e_type = ELM_QUAD;    z.e_nfaces = 4; z.e_nnodes = 4; break;
-      case (FETETRAHEDRON):   z.e_type = ELM_SIMPLEX; z.e_nfaces = 4; z.e_nnodes = 4; break;
-      case (FEBRICK):         z.e_type = ELM_HEX;     z.e_nfaces = 6; z.e_nnodes = 8; break;
-      case (PRISM3):          z.e_type = ELM_PRISM;   z.e_nfaces = 5; z.e_nnodes = 5; break;
-      case (PYRAMID4):        z.e_type = ELM_PYRAMID; z.e_nfaces = 5; z.e_nnodes = 5; break;
-      default: {}
-      }
-    }
-  }
-
-  // set boundary zones properties
-  m_zbound_props.resize(M->z());
-  for (unsigned iz=0; iz<M->z(); ++iz)
-    if (M->d(iz)==M->d()-1)
-      m_zbound_props[iz].nelems = M->e(iz);
-  for (int i=0; i<x.nChildNode("wall"); ++i)
-    m_zbound_props[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),*M) ].iswall = true;
-
-
-  // set boundary elements
-#if 0
-  dmesh.bndFaces   .resize(M->z());
-  dmesh.bndDomElms .resize(M->z());
-  for (unsigned iz=0, ib=0; iz<M->z(); ++iz) {
-    if (M->d(iz)==M->d()-1) {
-
-      // set number of boundary faces
-      //FIXME dmesh.numBndFaces[ib] = M->e(iz);
-
-      // (iterate over this boundary's elements)
-      typedef std::vector< unsigned > t_element_nodes;
-      for (unsigned be=0; be<M->e(iz); ++be) {
-// t_element_nodes &elm_bnd = M->vz[iz].e2n[be].n;
-// FIXME ?
-      }
-
-      // set boundary faces "inner" element
-      dmesh.bndDomElms[ib].assign(M->e(iz),0);
-      for (unsigned jz=0, ie=0; jz<M->z(); ++jz) {
-        if (M->d(jz)==M->d()) {
-          ie += M->e(jz);
-        }
-      }
-
-      // set boundary faces boundary face index (0-based)
-      dmesh.bndFaces[ib].assign(M->e(iz),0);
-      for (unsigned i=0; i<M->e(iz); ++i) {
-// FIXME dmesh.bndFaces  [ib][i] = ?;
-      }
-
-      ++ib;
-    }
-  }
-#endif
-  exit(42);
-
 }
 
 

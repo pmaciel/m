@@ -66,12 +66,6 @@ class t_plas : public m::mtransform,
   void   plasdriver_InitFlowField(int material);
   void   plasdriver_GetFaceNodes(int elm, int face, int *nodes);
 
-  void   plasdriver_ReadGambitNeutralFile(const XMLNode& x);
-  void   plasdriver_CalcElmsAroundNode();
-  void   plasdriver_CalcElementNormals();
-  void   plasdriver_CalcElementVolumes();
-  void   plasdriver_CalcNodalVolumes();
-
  private:  // plas interface functions
    void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp);
    void setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp);
