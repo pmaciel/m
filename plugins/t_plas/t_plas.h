@@ -129,7 +129,16 @@ class t_plas : public m::mtransform,
      return 0;
    }
    int    getElmNeighbour              (int elm, int eface)          { return dmesh.elmNeighbs[elm][eface]; }
-   int    getElmNode                   (int elm, int enod)           { return (int) M->vz[0].e2n[elm].n[enod]; }
+   int getElmNode(int elm, int enod) {
+     int nelems = 0;
+     for (size_t iz=0; iz<m_zinner_props.size(); ++iz) {
+       if (elm < nelems + m_zinner_props[iz].nelems)
+         return M->vz[iz].e2n[ elm-nelems ].n[enod];
+       else
+         nelems += m_zinner_props[iz].nelems;
+     }
+     return -1;
+   }
    int    getNumBndFaces               (int bnd)                     { return m_zbound_props[bnd].nelems; }
    int    getWallBndFlag               (int bnd)                     { return m_zbound_props[bnd].iswall? 1:0; }
    void   screenOutput                 (const std::string& text)     { std::cout << "t_plas: info: " << text << std::endl; }

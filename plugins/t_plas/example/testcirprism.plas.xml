@@ -4,7 +4,7 @@
  <!ENTITY author "Vrije Universiteit Brussel">
  <!ENTITY author-note "&author;, &year;">
 ]>
-<plas label="longchannel"
+<plas label="testcirprism"
 
   iterations="100"
   dt="0.01"
@@ -38,11 +38,8 @@
 
   <wall zone="wall"/>
 
-  <production type="rectangle" massflux="1.e-15"
+  <production type="ellipse" massflux="1.e-15"
     x0="0.0" y0="-0.2" z0="-0.2"
-    x1="0.0" y1="-0.1" z1="-0.1" />
-  <production type="rectangle" massflux="1.e-15"
-    x0="0.0" y0=" 0.2" z0=" 0.1"
-    x1="0.0" y1=" 0.1" z1=" 0.2" />
+    x1="0.0" y1=" 0.2" z1=" 0.2" />
 
 </plas>

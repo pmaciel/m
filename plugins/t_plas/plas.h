@@ -162,7 +162,6 @@ typedef struct _plas_flowsolver_param{
   //***To be set on every iteration (see interface function below)***//
   int iter;             // Current iteration
   double time;          // Current time
-  int writeOutput;      // Flag whether the flow solver writes outputs
 
 } PLAS_FLOWSOLVER_PARAM;
 

@@ -58,18 +58,15 @@ void plas::initialize(const XMLNode& x)
 
   /* set output files */
   FILE *inpFile = fopen(ip.writeTecplotFilename.c_str(),"r");
-  if (inpFile==NULL || !ip.restart) {
+  if (ip.writeTecplotFilename.length() && (inpFile==NULL || !ip.restart)) {
     ip.restart = 0;
     plas_CreateTecplotFile(ip.writeTecplotFilename);
   }
-  else
+  if (inpFile)
     fclose(inpFile);
-  inpFile = fopen(ip.writeStatsFilename.c_str(),"r");
-  if (inpFile==NULL) {
+
+  if (ip.writeStatsFilename.length())
     plas_CreateStatsFile(ip.writeStatsFilename);
-  }
-  else
-    fclose(inpFile);
 
   /* loaded or random distribution */
   if (ip.restart)
@@ -89,7 +86,7 @@ void plas::run()
 
 
   //***Flow solver parameters that have to be set at every time step***//
-  screenOutput("Initialization...\n");
+  screenOutput("Initialization...");
   setFlowSolverParamOnTimeStep(&(fp));
 
 
@@ -156,18 +153,18 @@ void plas::run()
   //***Entity production***//
 
   if (ip.numProdDom>0){
-    screenOutput("Imposing new entities in production domains...\n");
+    screenOutput("Imposing new entities in production domains...");
     plas_ImposeProductionDomains();
   }
 
   if (numExtEnt>0){
-    screenOutput("Imposing externally generated entities...\n");
+    screenOutput("Imposing externally generated entities...");
     plas_ImposeExternal();
   }
 
   //***Loop over dispersed entities to update trajectories***//
 
-  screenOutput("Updating trajectories...\n");
+  screenOutput("Updating trajectories...");
   for(ient=0; ient<sd.enabled; ient++){
 
     //***Get entity information from global data structure***//
@@ -359,7 +356,7 @@ void plas::run()
 
 
 //***Update counters***//
-  screenOutput("Post-processing...\n");
+  screenOutput("Post-processing...");
   sd.enabled  -= sd.out;
   sd.lost     += sd.leftproc-sd.passed;
   sd.enabled  -= sd.lost;
@@ -384,10 +381,10 @@ void plas::run()
 
   //***Write PLaS output to files***//
 
-  plas_WriteStatsFile(ip.writeStatsFilename,fp.iter,fp.time);
-  if (fp.writeOutput) {
+  if (ip.writeStatsFilename.length())
+    plas_WriteStatsFile(ip.writeStatsFilename,fp.iter,fp.time);
+  if (ip.writeTecplotFilename.length())
     plas_WriteTecplotFile(ip.writeTecplotFilename,fp.iter,fp.time);
-  }
 
   //***Free dynamic memory***//
 
@@ -1988,7 +1985,7 @@ void plas::plas_ImposeProductionDomains()
       sd.in++;
     }
   }
-  sprintf(msg,"imposed entities: %d\n",bCtr);
+  sprintf(msg,"imposed entities: %d",bCtr);
   screenOutput(msg);
 
   //***De-allocation of local data structure***//
@@ -2527,6 +2524,17 @@ void plas::plas_ReadParameters(const XMLNode& x)
   ip.restart = (x.getAttribute< std::string >("restart","no")=="yes");
   ip.writeStatsFilename   = x.getAttribute< std::string >("output.statistics","plas.txt");
   ip.writeTecplotFilename = x.getAttribute< std::string >("output.results","plas.plt");
+
+  const std::string label = x.getAttribute< std::string >("label","output");
+  bool
+    write_stats   = !(x.getAttribute< std::string >("output.statistics","yes")=="no"),
+    write_tecplot = !(x.getAttribute< std::string >("output.results",   "yes")=="no");
+  ip.writeStatsFilename   = (write_stats?
+                            (label.length()? label + ".plas.txt" : std::string("output.plas.txt"))
+                          :  std::string());
+  ip.writeTecplotFilename = (write_tecplot?
+                            (label.length()? label + ".plas.plt" : std::string("output.plas.plt"))
+                          :  std::string());
 
 
   // apply corrections and set additional paramters

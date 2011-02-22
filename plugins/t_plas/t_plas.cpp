@@ -291,209 +291,209 @@ void t_plas::transform(GetPot& o, mmesh& m)
   dmesh.elmVolumes.assign(ninnerelm,0.);
   double c2[3][2], c3[4][3];
   unsigned ielm = 0;
-  for (std::vector< s_zoneprops >::const_iterator z=m_zinner_props.begin(); z!=m_zinner_props.end(); ++z) {
-    for (int ie=0; ie<z->nelems; ++ie) {
+  for (size_t iz=0; iz<m_zinner_props.size(); ++iz) {
+    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie) {
       double &volume = dmesh.elmVolumes[ielm+ie];
 
-      if (z->e_type==ELM_SIMPLEX && M->d()==2){
+      if (m_zinner_props[iz].e_type==ELM_SIMPLEX && M->d()==2){
 
-        c2[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c2[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c2[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
-        c2[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
-        c2[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
-        c2[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
+        c2[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c2[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c2[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
+        c2[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
+        c2[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
+        c2[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
         volume = plasdriver_CalcAreaTriangle(c2);
 
       }
-      else if (z->e_type==ELM_SIMPLEX && M->d()==3){
+      else if (m_zinner_props[iz].e_type==ELM_SIMPLEX && M->d()==3){
 
-        c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
-        c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
-        c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[1] ];
-        c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
-        c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
-        c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[2] ];
-        c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
-        c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
-        c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
+        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
+        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
+        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
+        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[1] ];
+        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
+        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
+        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[2] ];
+        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
+        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
+        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
         volume = plasdriver_CalcVolumeTetra(c3);
 
       }
-      else if (z->e_type==ELM_QUAD){
+      else if (m_zinner_props[iz].e_type==ELM_QUAD){
 
-        c2[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c2[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c2[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
-        c2[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
-        c2[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
-        c2[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
+        c2[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c2[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c2[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
+        c2[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
+        c2[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
+        c2[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
         volume = plasdriver_CalcAreaTriangle(c2);
 
-        c2[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c2[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c2[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
-        c2[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
-        c2[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
-        c2[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
+        c2[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c2[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c2[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
+        c2[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
+        c2[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
+        c2[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
         volume += plasdriver_CalcAreaTriangle(c2);
 
       }
-      else if (z->e_type==ELM_HEX){
+      else if (m_zinner_props[iz].e_type==ELM_HEX){
 
-        c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
-        c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
-        c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[1] ];
-        c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
-        c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
-        c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
-        c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
-        c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
-        c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
+        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
+        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
+        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
+        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[1] ];
+        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
+        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
+        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
+        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
+        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
+        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
         volume = plasdriver_CalcVolumeTetra(c3);
 
-        c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
-        c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
-        c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
-        c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[6] ];
-        c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[6] ];
-        c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[6] ];
-        c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
-        c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
-        c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
+        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
+        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
+        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
+        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
+        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[6] ];
+        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[6] ];
+        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[6] ];
+        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
+        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
+        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
         volume += plasdriver_CalcVolumeTetra(c3);
 
-        c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
-        c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
-        c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
-        c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
-        c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
-        c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[2] ];
-        c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[6] ];
-        c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[6] ];
-        c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[6] ];
+        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
+        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
+        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
+        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
+        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
+        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
+        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[2] ];
+        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[6] ];
+        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[6] ];
+        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[6] ];
         volume += plasdriver_CalcVolumeTetra(c3);
 
-        c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
-        c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
-        c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
-        c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[6] ];
-        c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[6] ];
-        c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[6] ];
-        c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[4] ];
-        c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[4] ];
-        c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[4] ];
+        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
+        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
+        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
+        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
+        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[6] ];
+        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[6] ];
+        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[6] ];
+        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[4] ];
+        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[4] ];
+        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[4] ];
         volume += plasdriver_CalcVolumeTetra(c3);
 
-        c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
-        c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
-        c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
-        c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[6] ];
-        c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[6] ];
-        c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[6] ];
-        c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
-        c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
-        c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
-        c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[7] ];
-        c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[7] ];
-        c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[7] ];
+        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
+        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
+        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
+        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[6] ];
+        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[6] ];
+        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[6] ];
+        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
+        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
+        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
+        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[7] ];
+        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[7] ];
+        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[7] ];
         volume += plasdriver_CalcVolumeTetra(c3);
 
       }
-      else if (z->e_type==ELM_PRISM){
+      else if (m_zinner_props[iz].e_type==ELM_PRISM){
 
-        c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
-        c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
-        c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[1] ];
-        c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
-        c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
-        c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[2] ];
-        c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
-        c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
-        c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
+        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
+        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
+        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
+        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[1] ];
+        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
+        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
+        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[2] ];
+        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
+        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
+        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
         volume = plasdriver_CalcVolumeTetra(c3);
 
-        c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
-        c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
-        c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[1] ];
-        c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
-        c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
-        c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
-        c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[4] ];
-        c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[4] ];
-        c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[4] ];
+        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
+        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
+        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
+        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[1] ];
+        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
+        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
+        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
+        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[4] ];
+        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[4] ];
+        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[4] ];
         volume += plasdriver_CalcVolumeTetra(c3);
 
-        c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[4] ];
-        c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[4] ];
-        c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[4] ];
-        c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[5] ];
-        c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[5] ];
-        c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[5] ];
-        c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
-        c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
-        c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
+        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
+        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[4] ];
+        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[4] ];
+        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[4] ];
+        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
+        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
+        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
+        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
+        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
+        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
         volume += plasdriver_CalcVolumeTetra(c3);
 
       }
-      else if (z->e_type==ELM_PYRAMID){
+      else if (m_zinner_props[iz].e_type==ELM_PYRAMID){
 
-        c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[1] ];
-        c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[1] ];
-        c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[1] ];
-        c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
-        c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
-        c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
-        c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[4] ];
-        c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[4] ];
-        c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[4] ];
+        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
+        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
+        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
+        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[1] ];
+        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
+        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
+        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
+        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[4] ];
+        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[4] ];
+        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[4] ];
         volume = plasdriver_CalcVolumeTetra(c3);
 
-        c3[0][0] = M->vv[0][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[0].e2n[ielm].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[0].e2n[ielm].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[0].e2n[ielm].n[3] ];
-        c3[1][1] = M->vv[1][ M->vz[0].e2n[ielm].n[3] ];
-        c3[1][2] = M->vv[2][ M->vz[0].e2n[ielm].n[3] ];
-        c3[2][0] = M->vv[0][ M->vz[0].e2n[ielm].n[2] ];
-        c3[2][1] = M->vv[1][ M->vz[0].e2n[ielm].n[2] ];
-        c3[2][2] = M->vv[2][ M->vz[0].e2n[ielm].n[2] ];
-        c3[3][0] = M->vv[0][ M->vz[0].e2n[ielm].n[4] ];
-        c3[3][1] = M->vv[1][ M->vz[0].e2n[ielm].n[4] ];
-        c3[3][2] = M->vv[2][ M->vz[0].e2n[ielm].n[4] ];
+        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
+        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
+        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
+        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
+        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
+        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
+        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
+        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[2] ];
+        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[4] ];
+        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[4] ];
+        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[4] ];
         volume += plasdriver_CalcVolumeTetra(c3);
 
       }
 
     }
-    ielm += z->nelems;
+    ielm += m_zinner_props[iz].nelems;
   }
   cout << "info: recreating: inner element volumes." << endl;
 
@@ -704,7 +704,6 @@ void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
   fp->dtEul        = dparam.dt;
   fp->minElmVolume = *std::min_element(dmesh.elmVolumes.begin(),dmesh.elmVolumes.end());
   fp->maxElmVolume = *std::max_element(dmesh.elmVolumes.begin(),dmesh.elmVolumes.end());
-  fp->writeOutput  = 1;
 
   fp->time = 0.;
   fp->iter = 0;
