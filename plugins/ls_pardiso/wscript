@@ -3,7 +3,7 @@
 
 def configure(conf):
   conf.env.m_mlibraries.append('ls_pardiso')
-  conf.env['LIB_PARDISO']       = ['pardiso410_GNU443_X86-64','lapack','gfortran']
+  conf.env['LIB_PARDISO']       = ['pardiso411-GNU443-X86-64','lapack','gfortran']
   conf.env['LIBPATH_PARDISO']   = ['/home/pmaciel/Documents/dev/external/pardiso']
   conf.env['RPATH_PARDISO']     = ['/home/pmaciel/Documents/dev/external/pardiso']
   conf.env['LINKFLAGS_PARDISO'] = ['-fopenmp']
