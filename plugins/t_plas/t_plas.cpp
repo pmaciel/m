@@ -1,5 +1,6 @@
 
 #include <numeric>
+#include "boost/progress.hpp"
 #include "ext/xmlParser.h"
 #include "mfactory.h"
 #include "t_plas.h"
@@ -67,9 +68,12 @@ void t_plas::transform(GetPot& o, mmesh& m)
   M = &m;
 
 
-  cout << "info: recreating: inner zones properties..." << endl;
+  cout << "info: recreating: inner/boundary zones properties..." << endl;
   m_zinner_props.resize(M->z());
-  int numElm = 0;  // total number of (inner) elements
+  m_zbound_props.resize(M->z());
+  int
+    ninnerelm = 0,  // total number of inner elements
+    nboundelm = 0;  // total number of boundary elements
   for (unsigned iz=0; iz<M->z(); ++iz) {
     if (M->d(iz)==M->d()) {
       s_zoneprops &z = m_zinner_props[iz];
@@ -83,58 +87,18 @@ void t_plas::transform(GetPot& o, mmesh& m)
       case (PYRAMID4):        z.e_type = ELM_PYRAMID; z.e_nfaces = 5; z.e_nnodes = 5; break;
       default: {}
       }
-      numElm += z.nelems;
     }
-  }
-  cout << "info: recreating: inner zones properties." << endl;
-
-
-  cout << "info: recreating: boundary zones properties..." << endl;
-  m_zbound_props.resize(M->z());
-  for (unsigned iz=0; iz<M->z(); ++iz)
     if (M->d(iz)==M->d()-1)
       m_zbound_props[iz].nelems = M->e(iz);
-  for (int i=0; i<x.nChildNode("wall"); ++i)
-    m_zbound_props[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),*M) ].iswall = true;
-  cout << "info: recreating: boundary zones properties." << endl;
 
+    ninnerelm += (M->d(iz)==M->d()?   M->e(iz):0);
+    nboundelm += (M->d(iz)==M->d()-1? M->e(iz):0);
 
-  // set boundary elements
-#if 0
-  dmesh.bndFaces   .resize(M->z());
-  dmesh.bndDomElms .resize(M->z());
-  for (unsigned iz=0, ib=0; iz<M->z(); ++iz) {
-    if (M->d(iz)==M->d()-1) {
-
-      // set number of boundary faces
-      //FIXME dmesh.numBndFaces[ib] = M->e(iz);
-
-      // (iterate over this boundary's elements)
-      typedef std::vector< unsigned > t_element_nodes;
-      for (unsigned be=0; be<M->e(iz); ++be) {
-// t_element_nodes &elm_bnd = M->vz[iz].e2n[be].n;
-// FIXME ?
-      }
-
-      // set boundary faces "inner" element
-      dmesh.bndDomElms[ib].assign(M->e(iz),0);
-      for (unsigned jz=0, ie=0; jz<M->z(); ++jz) {
-        if (M->d(jz)==M->d()) {
-          ie += M->e(jz);
-        }
-      }
-
-      // set boundary faces boundary face index (0-based)
-      dmesh.bndFaces[ib].assign(M->e(iz),0);
-      for (unsigned i=0; i<M->e(iz); ++i) {
-// FIXME dmesh.bndFaces  [ib][i] = ?;
-      }
-
-      ++ib;
-    }
+    for (int i=0; i<x.nChildNode("wall"); ++i)
+      m_zbound_props[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),*M) ].iswall = true;
   }
-#endif
-  exit(42);
+  cout << "info: number of inner/boundary elements: " << ninnerelm << '/' << nboundelm << endl;
+  cout << "info: recreating: inner/boundary zones properties." << endl;
 
 
   cout << "info: recreating: node-to-element connectivity..." << endl;
@@ -147,45 +111,115 @@ void t_plas::transform(GetPot& o, mmesh& m)
 
 
   cout << "info: recreating: element-to-element (sharing a face) connectivity..." << endl;
-  dmesh.elmNeighbs.resize(numElm);
+  dmesh.elmNeighbs.resize(ninnerelm);
   std::vector< int >
-    ifacenodes(4,0),
-    jfacenodes(4,0);
+    ifacenodes(4,-1),
+    jfacenodes(4,-1);
+  std::vector< std::vector< int > > v_isboudaryelm(M->z());
+  boost::progress_display pbar(ninnerelm);
   for (size_t iz=0, ielm=0; iz<m_zinner_props.size(); ++iz) {
-    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++ielm) {
+    if (m_zinner_props[iz].nelems)
+      v_isboudaryelm[iz].assign(m_zinner_props[iz].nelems,0);
+    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++ielm, ++pbar) {
       dmesh.elmNeighbs[ielm].assign(m_zinner_props[iz].e_nfaces,-1);
       for (int ifac=0; ifac<m_zinner_props[iz].e_nfaces; ++ifac) {
 
         // get nodes in the face
-        plasdriver_GetFaceNodes(ielm,ifac,&ifacenodes[0]);
+        plasdriver_GetFaceNodes(iz,ie,ifac,&ifacenodes[0]);
         std::sort(ifacenodes.begin(),ifacenodes.end());
 
-        // get list of searcheable elements (sharing a node)
-        // TODO
+        // get list of searcheable elements (sharing a node), absolute index
+        std::vector< int > v_ielm;
+        for (std::vector< int >::const_iterator n=ifacenodes.begin(); n!=ifacenodes.end(); ++n)
+          if (*n!=-1)
+            v_ielm.insert(v_ielm.end(),dmesh.nodElms[*n].begin(),dmesh.nodElms[*n].end());
+        sort(v_ielm.begin(),v_ielm.end());
+        v_ielm.erase(unique(v_ielm.begin(),v_ielm.end()),v_ielm.end());
+
+        // convert absolute indices to relative (zone and internal elem. index
+        std::vector< int >
+          v_jelem_z,
+          v_jelem_e,
+          v_jelem_elm;
+        for (std::vector< int >::const_iterator elm=v_ielm.begin(); elm!=v_ielm.end(); ++elm)
+          for (int jz=0, nelems=0; jz<(int) m_zinner_props.size(); ++jz) {
+            nelems += m_zinner_props[jz].nelems;
+            if (nelems > *elm) {
+              v_jelem_z.push_back(jz);
+              v_jelem_e.push_back(*elm - nelems + m_zinner_props[jz].nelems);
+              v_jelem_elm.push_back(*elm);
+              break;
+            }
+          }
+        v_ielm.clear();
 
         // find the element with a face with the same nodes but different index
-        for (size_t jz=0, jelm=0; jz<m_zinner_props.size(); ++jz) {
-          for (int je=0; je<m_zinner_props[jz].nelems; ++je, ++jelm) {
-            for (int jfac=0; jfac<m_zinner_props[jz].e_nfaces; ++jfac) {
-              plasdriver_GetFaceNodes(jelm,jfac,&jfacenodes[0]);
-              std::sort(jfacenodes.begin(),jfacenodes.end());
-
-              dmesh.elmNeighbs[ielm][ifac] = (ielm!=jelm && ifacenodes==jfacenodes? jelm : -1);
-
-            }
+        for (size_t j=0; j<v_jelem_z.size(); ++j) {
+          const int
+            _z = v_jelem_z[j],
+            _e = v_jelem_e[j];
+          size_t jelm = v_jelem_elm[j];
+          for (int jfac=0; jfac<m_zinner_props[_z].e_nfaces && dmesh.elmNeighbs[ielm][ifac]<0; ++jfac) {
+            plasdriver_GetFaceNodes(_z,_e,jfac,&jfacenodes[0]);
+            std::sort(jfacenodes.begin(),jfacenodes.end());
+            dmesh.elmNeighbs[ielm][ifac] = (ielm!=jelm && ifacenodes==jfacenodes? jelm : -1);
           }
         }
 
+        v_isboudaryelm[iz][ie] += (dmesh.elmNeighbs[ielm][ifac]<0? 1:0);
       }
     }
   }
   cout << "info: recreating: element-to-element (sharing a face) connectivity." << endl;
 
 
+  cout << "info: recreating: boundary elements (to inner elements)..." << endl;
+  dmesh.bndFaces  .resize(M->z());
+  dmesh.bndDomElms.resize(M->z());
+  pbar.restart(nboundelm);
+  for (unsigned iz=0, ielm=0; iz<m_zbound_props.size(); ++iz) {
+    if (m_zbound_props[iz].nelems) {
+      dmesh.bndFaces  [iz].assign(m_zbound_props[iz].nelems,-1);
+      dmesh.bndDomElms[iz].assign(m_zbound_props[iz].nelems,-1);
+    }
+    for (int ie=0; ie<m_zbound_props[iz].nelems; ++ie, ++ielm, ++pbar) {
+
+      // create digestible face nodes
+      std::vector< int > ifacenodes(4,-1);
+      for (unsigned i=0; i<M->vz[iz].e2n[ie].n.size() && i<4; ++i)
+        ifacenodes[i] = M->vz[iz].e2n[ie].n[i];
+      std::sort(ifacenodes.begin(),ifacenodes.end());
+
+      // create faces to search for
+      std::vector< int > jfacenodes(4);
+      for (size_t jz=0, jelm=0; jz<m_zinner_props.size(); ++jz) {
+        for (int je=0; je<m_zinner_props[jz].nelems; ++je, ++jelm) {
+          if (v_isboudaryelm[jz][je]) {
+            for (int jfac=0; jfac<m_zinner_props[jz].e_nfaces; ++jfac) {
+              plasdriver_GetFaceNodes(jz,je,jfac,&jfacenodes[0]);
+              std::sort(jfacenodes.begin(),jfacenodes.end());
+
+              if (ifacenodes==jfacenodes) {
+                dmesh.bndFaces  [iz][ie] = jfac;
+                dmesh.bndDomElms[iz][ie] = jelm;
+                --v_isboudaryelm[jz][je];
+                break;
+              }
+
+            }
+          }
+        }
+      }
+
+    }
+  }
+  cout << "info: recreating: boundary inner elements (to inner elements)." << endl;
+
+
   cout << "info: recreating: inner element normals..." << endl;
 
   // allocate by number of (inner) elements, (inner) elements faces
-  dmesh.elmNorms.resize(numElm);
+  dmesh.elmNorms.resize(ninnerelm);
   for (size_t iz=0, e=0; iz<m_zinner_props.size(); ++iz)
     for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++e)
       dmesh.elmNorms[e].assign( m_zinner_props[iz].e_nfaces, std::vector< double >(M->d(),0.) );
@@ -197,7 +231,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
       for (int f=0; f<m_zinner_props[iz].e_nfaces; ++f) {
 
         fnodes[0] = fnodes[1] = fnodes[2] = fnodes[3] = -1;
-        plasdriver_GetFaceNodes((int) e,f,fnodes);
+        plasdriver_GetFaceNodes(iz,ie,f,fnodes);
         const int e_type = m_zinner_props[iz].e_type;
 
         if (e_type==ELM_SIMPLEX && M->d()==2) {
@@ -254,7 +288,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
 
 
   cout << "info: recreating: inner element volumes..." << endl;
-  dmesh.elmVolumes.assign(numElm,0.);
+  dmesh.elmVolumes.assign(ninnerelm,0.);
   double c2[3][2], c3[4][3];
   unsigned ielm = 0;
   for (std::vector< s_zoneprops >::const_iterator z=m_zinner_props.begin(); z!=m_zinner_props.end(); ++z) {
@@ -544,71 +578,60 @@ double t_plas::plasdriver_CalcVolumeTetra(double c[4][3])
 // This file contains routines to compute the geometry of the
 // mesh used for the steady-state flow solution.
 // This function gets the nodes of a boundary face.
-void t_plas::plasdriver_GetFaceNodes(int elm, int face, int *nodes)
+void t_plas::plasdriver_GetFaceNodes(int iz, int ie, int face, int *nodes)
 {
   nodes[0] = nodes[1] = nodes[2] = nodes[3] = -1;
+  const std::vector< unsigned > &en = M->vz[iz].e2n[ie].n;
 
-  int nelems = 0;
-  for (size_t iz=0; iz<m_zinner_props.size(); ++iz) {
-    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie) {
-      nelems += m_zinner_props[iz].nelems;
-      if (elm<nelems) {
-        const std::vector< unsigned > &en = M->vz[iz].e2n[ie].n;
-
-        switch (m_zinner_props[iz].e_type) {
-        case ELM_SIMPLEX:
-          if (M->d()==2) {
-            switch (face) {
-            case 0: { nodes[0]=en[0]; nodes[1]=en[1]; break; }
-            case 1: { nodes[0]=en[1]; nodes[1]=en[2]; break; }
-            case 2: { nodes[0]=en[2]; nodes[1]=en[0]; break; }
-            }
-          }
-          else if (M->d()==3) {
-            switch (face) {
-            case 0: { nodes[0]=en[1]; nodes[1]=en[0]; nodes[2]=en[2]; break; }
-            case 1: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[3]; break; }
-            case 2: { nodes[0]=en[1]; nodes[1]=en[2]; nodes[2]=en[3]; break; }
-            case 3: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[3]; break; }
-            }
-          } break;
-        case ELM_QUAD:
-          switch (face) {
-            case 0: { nodes[0]=en[0]; nodes[1]=en[1]; break; }
-            case 1: { nodes[0]=en[1]; nodes[1]=en[2]; break; }
-            case 2: { nodes[0]=en[2]; nodes[1]=en[3]; break; }
-            case 3: { nodes[0]=en[3]; nodes[1]=en[0]; break; }
-          } break;
-        case ELM_HEX:
-          switch (face) {
-            case 0: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[5]; nodes[3]=en[4]; break; }
-            case 1: { nodes[0]=en[1]; nodes[1]=en[3]; nodes[2]=en[7]; nodes[3]=en[5]; break; }
-            case 2: { nodes[0]=en[3]; nodes[1]=en[2]; nodes[2]=en[6]; nodes[3]=en[7]; break; }
-            case 3: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[4]; nodes[3]=en[6]; break; }
-            case 4: { nodes[0]=en[1]; nodes[1]=en[0]; nodes[2]=en[2]; nodes[3]=en[3]; break; }
-            case 5: { nodes[0]=en[4]; nodes[1]=en[5]; nodes[2]=en[7]; nodes[3]=en[6]; break; }
-          } break;
-        case ELM_PRISM:
-          switch (face) {
-            case 0: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[4]; nodes[3]=en[3]; break; }
-            case 1: { nodes[0]=en[1]; nodes[1]=en[2]; nodes[2]=en[5]; nodes[3]=en[4]; break; }
-            case 2: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[3]; nodes[3]=en[5]; break; }
-            case 3: { nodes[0]=en[0]; nodes[1]=en[2]; nodes[2]=en[1]; break; }
-            case 4: { nodes[0]=en[3]; nodes[1]=en[4]; nodes[2]=en[5]; break; }
-          } break;
-        case ELM_PYRAMID:
-          switch (face) {
-            case 0: { nodes[0]=en[0]; nodes[1]=en[2]; nodes[2]=en[3]; nodes[3]=en[1]; break; }
-            case 1: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[4]; break; }
-            case 2: { nodes[0]=en[1]; nodes[1]=en[3]; nodes[2]=en[4]; break; }
-            case 3: { nodes[0]=en[3]; nodes[1]=en[2]; nodes[2]=en[4]; break; }
-            case 4: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[4]; break; }
-          } break;
-        }
-
-        return;
+  switch (m_zinner_props[iz].e_type) {
+  case ELM_SIMPLEX:
+    if (M->d()==2) {
+      switch (face) {
+      case 0: { nodes[0]=en[0]; nodes[1]=en[1]; break; }
+      case 1: { nodes[0]=en[1]; nodes[1]=en[2]; break; }
+      case 2: { nodes[0]=en[2]; nodes[1]=en[0]; break; }
       }
     }
+    else if (M->d()==3) {
+      switch (face) {
+      case 0: { nodes[0]=en[1]; nodes[1]=en[0]; nodes[2]=en[2]; break; }
+      case 1: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[3]; break; }
+      case 2: { nodes[0]=en[1]; nodes[1]=en[2]; nodes[2]=en[3]; break; }
+      case 3: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[3]; break; }
+      }
+    } break;
+  case ELM_QUAD:
+    switch (face) {
+    case 0: { nodes[0]=en[0]; nodes[1]=en[1]; break; }
+    case 1: { nodes[0]=en[1]; nodes[1]=en[2]; break; }
+    case 2: { nodes[0]=en[2]; nodes[1]=en[3]; break; }
+    case 3: { nodes[0]=en[3]; nodes[1]=en[0]; break; }
+    } break;
+  case ELM_HEX:
+    switch (face) {
+    case 0: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[5]; nodes[3]=en[4]; break; }
+    case 1: { nodes[0]=en[1]; nodes[1]=en[3]; nodes[2]=en[7]; nodes[3]=en[5]; break; }
+    case 2: { nodes[0]=en[3]; nodes[1]=en[2]; nodes[2]=en[6]; nodes[3]=en[7]; break; }
+    case 3: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[4]; nodes[3]=en[6]; break; }
+    case 4: { nodes[0]=en[1]; nodes[1]=en[0]; nodes[2]=en[2]; nodes[3]=en[3]; break; }
+    case 5: { nodes[0]=en[4]; nodes[1]=en[5]; nodes[2]=en[7]; nodes[3]=en[6]; break; }
+    } break;
+  case ELM_PRISM:
+    switch (face) {
+    case 0: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[4]; nodes[3]=en[3]; break; }
+    case 1: { nodes[0]=en[1]; nodes[1]=en[2]; nodes[2]=en[5]; nodes[3]=en[4]; break; }
+    case 2: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[3]; nodes[3]=en[5]; break; }
+    case 3: { nodes[0]=en[0]; nodes[1]=en[2]; nodes[2]=en[1]; break; }
+    case 4: { nodes[0]=en[3]; nodes[1]=en[4]; nodes[2]=en[5]; break; }
+    } break;
+  case ELM_PYRAMID:
+    switch (face) {
+    case 0: { nodes[0]=en[0]; nodes[1]=en[2]; nodes[2]=en[3]; nodes[3]=en[1]; break; }
+    case 1: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[4]; break; }
+    case 2: { nodes[0]=en[1]; nodes[1]=en[3]; nodes[2]=en[4]; break; }
+    case 3: { nodes[0]=en[3]; nodes[1]=en[2]; nodes[2]=en[4]; break; }
+    case 4: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[4]; break; }
+    } break;
   }
 }
 

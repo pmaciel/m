@@ -64,7 +64,7 @@ class t_plas : public m::mtransform,
   double plasdriver_CalcAreaTriangle(double c[3][2]);
   double plasdriver_CalcVolumeTetra(double c[4][3]);
   void   plasdriver_InitFlowField(int material);
-  void   plasdriver_GetFaceNodes(int elm, int face, int *nodes);
+  void   plasdriver_GetFaceNodes(int iz, int ie, int face, int *nodes);
 
  private:  // plas interface functions
    void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp);
@@ -75,18 +75,27 @@ class t_plas : public m::mtransform,
    }
 
    double getElmFaceMiddlePoint(int elm, int eface, int dim) {
-     int faceNodes[4];
-     plasdriver_GetFaceNodes(elm,eface,faceNodes);
-
-     int ctr = 0;
      double coord = 0.;
-     for (int ifac=0; ifac<4; ++ifac)
-       if (faceNodes[ifac]!=-1) {
-         coord += M->vv[dim][faceNodes[ifac]];
-         ++ctr;
-       }
-     coord /= ctr;
+     for (int iz=0, nelems=0; iz<(int) m_zinner_props.size(); ++iz) {
+       nelems += m_zinner_props[iz].nelems;
+       if (nelems > elm) {
 
+         const int ie = elm - nelems + m_zinner_props[iz].nelems;
+         int
+           faceNodes[4],
+           ctr = 0;
+         plasdriver_GetFaceNodes(iz,ie,eface,faceNodes);
+
+         for (int i=0; i<4; ++i)
+           if (faceNodes[i]!=-1) {
+             coord += M->vv[dim][faceNodes[i]];
+             ++ctr;
+           }
+         coord /= ctr;
+
+         break;
+       }
+     }
      return coord;
    }
 

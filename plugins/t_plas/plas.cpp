@@ -1956,6 +1956,7 @@ void plas::plas_ImposeProductionDomains()
   //***Generate entities***//
   for(ient=0; ient<bCtr; ient++){
 
+    ent.elm = 0;
     ent.diam = newDiam[ient];
     ent.temp = ip.iniTempDisp;
     for(idim=0; idim<fp.numDim; idim++){
@@ -2668,27 +2669,17 @@ double plas::plas_SetDiameter()
 
 void plas::plas_SetElementFaces(int numDim, LOCAL_ENTITY_VARIABLES *ent)
 {
-  int type = getElementType(ent->elm);
-  int ifac,idim;
+  // set number of faces according to element type
+  const int type = getElementType(ent->elm);
+  ent->edata.numElmFaces = (type==ELM_SIMPLEX? numDim+1 :
+                           (type==ELM_PRISM?   5 :
+                           (type==ELM_QUAD?    4 :
+                           (type==ELM_HEX?     6 :
+                           (type==ELM_PYRAMID? 5 : 0 )))));
 
-  //***Set number of faces accrding to element type***//
-
-  if(type==ELM_SIMPLEX){
-    ent->edata.numElmFaces = numDim+1;
-  } else if(type==ELM_PRISM){
-    ent->edata.numElmFaces = 5;
-  } else if(type==ELM_QUAD){
-    ent->edata.numElmFaces = 4;
-  } else if(type==ELM_HEX){
-    ent->edata.numElmFaces = 6;
-  } else if(type==ELM_PYRAMID){
-    ent->edata.numElmFaces = 5;
-  }
-
-  //***Get faces and normals from flow solver***//
-
-  for(ifac=0; ifac<ent->edata.numElmFaces; ifac++){
-    for(idim=0; idim<numDim; idim++){
+  // get faces and normals
+  for (int ifac=0; ifac<ent->edata.numElmFaces; ++ifac) {
+    for (int idim=0; idim<numDim; ++idim) {
       ent->edata.elmFaceVectors[ifac][idim] = getElmFaceMiddlePoint(ent->elm,ifac,idim);
       ent->edata.elmNorms[ifac][idim] = getElmNormComp(ent->elm,ifac,idim);
     }
@@ -2705,28 +2696,17 @@ void plas::plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent)
 
 void plas::plas_SetElementNodes(int numDim, LOCAL_ENTITY_VARIABLES *ent)
 {
-  int type = getElementType(ent->elm);
-  int inod;
+  // set number of nodes according to element type
+  const int type = getElementType(ent->elm);
+  ent->edata.numElmNodes = (type==ELM_SIMPLEX? numDim+1 :
+                           (type==ELM_PRISM?   6 :
+                           (type==ELM_QUAD?    4 :
+                           (type==ELM_HEX?     8 :
+                           (type==ELM_PYRAMID? 5 : 0 )))));
 
-  //***Set number of nodes accrding to element type***//
-
-  if(type==ELM_SIMPLEX){
-    ent->edata.numElmNodes = numDim+1;
-  } else if(type==ELM_PRISM){
-    ent->edata.numElmNodes = 6;
-  } else if(type==ELM_QUAD){
-    ent->edata.numElmNodes = 4;
-  } else if(type==ELM_HEX){
-    ent->edata.numElmNodes = 8;
-  } else if(type==ELM_PYRAMID){
-    ent->edata.numElmNodes = 5;
-  }
-
-  //***Get node elements from flow solver***//
-
-  for(inod=0; inod<ent->edata.numElmNodes; inod++){
+  // get node elements
+  for (int inod=0; inod<ent->edata.numElmNodes; ++inod)
     ent->edata.elmNodes[inod] = getElmNode(ent->elm,inod);
-  }
 }
 
 
