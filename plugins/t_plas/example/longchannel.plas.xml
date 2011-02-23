@@ -33,7 +33,6 @@
   gravity.z="0."
   output.statistics="yes"
   output.results="yes"
-
   >
 
   <wall zone="wall"/>
