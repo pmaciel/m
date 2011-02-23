@@ -6,7 +6,7 @@
  * It works by using recursion and a node tree for breaking
  * down the elements of an XML document.
  *
- * @version     V2.41
+ * @version     V2.42
  * @author      Frank Vanden Berghen
  *
  * Copyright (c) 2002, Business-Insight
