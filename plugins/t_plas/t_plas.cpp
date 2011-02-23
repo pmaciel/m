@@ -93,10 +93,9 @@ void t_plas::transform(GetPot& o, mmesh& m)
 
     ninnerelm += (M->d(iz)==M->d()?   M->e(iz):0);
     nboundelm += (M->d(iz)==M->d()-1? M->e(iz):0);
-
-    for (int i=0; i<x.nChildNode("wall"); ++i)
-      m_zbound_props[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),*M) ].iswall = true;
   }
+  for (int i=0; i<x.nChildNode("wall"); ++i)
+    m_zbound_props[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),*M) ].iswall = true;
   cout << "info: number of inner/boundary elements: " << ninnerelm << '/' << nboundelm << endl;
   cout << "info: recreating: inner/boundary zones properties." << endl;
 

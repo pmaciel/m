@@ -2,8 +2,8 @@
 #define PLAS_PLAS_H
 
 
-/// Included files
 #include <string>
+#include <vector>
 #include "ext/xmlParser.h"
 
 
@@ -12,7 +12,7 @@
 #define DFLAG_ENABLED     1
 #define DFLAG_CREATED     2
 #define DFLAG_LEFT        3
-#define DFLAG_PASS        4
+
 #define FLOW_PARTIC       1
 #define FLOW_DROPLET      2
 #define FLOW_BUBBLY       3
@@ -27,7 +27,6 @@
 
 #define MAXELMFACES       6
 #define MAXELMNODES       8
-#define MAXELMNORMS       6
 #define FORCE_PIC         1
 #define FORCE_PROJ        2
 #define COLL_UNCORRELATED 1
@@ -48,7 +47,8 @@
 
 
 /// Data of a dispersed entity (particle, droplet or bubble)
-typedef struct _plas_entity_data{
+struct PLAS_ENTITY_DATA
+{
   int flag;             // Entity enabled/disabled flag
   int element;          // Grid element containing the entity
   int node;             // Nearest grid node to the entity
@@ -57,11 +57,12 @@ typedef struct _plas_entity_data{
   double *velocity;     // Entity velocity components
   double *velocityOld;  // Entity velocity components of time step n-1
   double temperature;   // Entity temperature;
-} PLAS_ENTITY_DATA;
+};
 
 
 /// Data of the dispersed phase (per node)
-typedef struct _plas_phase_data{
+struct PLAS_PHASE_DATA
+{
   int numDens;         // Number density of entities (per node)
   double volFrac;      // Volume fraction (per node)
   double volFracDt;    // Volume fraction change rate (per node)
@@ -72,11 +73,12 @@ typedef struct _plas_phase_data{
   double *stdVel;      // Entity velocity standard deviation (per node)
   double *dispForce;   // Momentum force of the entities (per node)
   double avgRespTime;  // Average response time (per node)
-} PLAS_PHASE_DATA;
+};
 
 
 /// Data of the dispersed phase material
-typedef struct _plas_material_data{
+struct PLAS_MATERIAL_DATA
+{
   double rhoDisp;           // Density of dispersed entities
   double muDisp;            // Viscosity of dispersed entities
   double cpDisp;            // Specific heat capacity of the dispersed entities
@@ -91,11 +93,12 @@ typedef struct _plas_material_data{
   double binaryDiffCoeff;   // Binary diffusion coefficient
   double massDiffCoeff;     // Mass diffusivity for a gas in a liquid
   double HeDisp;            // Henry Law constant for the dispersed entities
-} PLAS_MATERIAL_DATA;
+};
 
 
 /// Statistics data of PLaS
-typedef struct _plas_stats{
+struct PLAS_STATS
+{
   int enabled;         // Number of active entities
   int in;              // Number of entities added
   int out;             // Number of entities removed
@@ -109,11 +112,12 @@ typedef struct _plas_stats{
   double reynoldsAvg;  // Average entity Reynolds number
   double nusseltAvg;   // Average entity Nusselt number
   double subIterAvg;   // Average number of Lagrangian sub-iterations
-} PLAS_STATS;
+};
 
 
 /// PLaS input parameters (read from PLaS input file)
-typedef struct _plas_input_param{
+struct PLAS_INPUT_PARAM
+{
   int numMaxEnt;           // Maximum number of entities per process
   int numIniEnt;           // Number of initially distributed entities:
   int numProdDom;          // Number of entity production zones
@@ -134,16 +138,15 @@ typedef struct _plas_input_param{
   int evapModel;           // Flag: Evaporation model (only for droplet flow)
   int saturModel;          // Flag: Saturation model (only for bubbly flow)
   double gravVec[3];       // Gravity vector
-  int restart;             // Restart flag
   std::string
     writeStatsFilename,    // Write output statistics filename
     writeTecplotFilename;  // Write output tecplot filename
-} PLAS_INPUT_PARAM;
+};
 
 
 /// Data to be set by the flow solver
-typedef struct _plas_flowsolver_param{
-
+struct PLAS_FLOWSOLVER_PARAM
+{
   //***To be set on initialization (see interface function below)***//
   int numDim;           // Number of space dimensions
   int numUnk;           // Number of unknown variables for the primary phase flow
@@ -162,70 +165,105 @@ typedef struct _plas_flowsolver_param{
   //***To be set on every iteration (see interface function below)***//
   int iter;             // Current iteration
   double time;          // Current time
-
-} PLAS_FLOWSOLVER_PARAM;
+};
 
 
 /// Internal PLaS runtime variables
-typedef struct _plas_runtime_param{
+struct PLAS_RUNTIME_PARAM
+{
   double lagrTimeFactor;  // Lagrangian time factor (constant)
   double errTol;          // Error tolerance
   int flowType;           // Flag: Type of flow (particle, droplet, bubble)
   double *massResid;      // Mass flux residual
   double wallElasticity;  // Elasticity factor for wall bounces
-} PLAS_RUNTIME_PARAM;
+};
 
 /// Entity element data structures
-typedef struct _entity_element_data{
-  int numElmNodes;          // Number of element nodes
-  int *elmNodes;            // Element nodes
-  int numElmFaces;          // Number of element faces
-  double **elmFaceVectors;  // Element face middle points
-  double **elmNorms;        // Element face normals
-} ENTITY_ELEMENT_DATA;
+struct ENTITY_ELEMENT_DATA
+{
+  ENTITY_ELEMENT_DATA(const int dim, const int maxelmfaces) :
+    elmNodes(maxelmfaces,-1),
+    elmFaceVectors(maxelmfaces,std::vector< double >(dim,0.)),
+    elmNorms      (maxelmfaces,std::vector< double >(dim,0.)) {}
+  ~ENTITY_ELEMENT_DATA() {}
+  int
+    numElmNodes,                // Number of element nodes
+    numElmFaces;                // Number of element faces
+  std::vector< int > elmNodes;  // Element nodes
+  std::vector< std::vector< double > >
+    elmFaceVectors,             // Element face middle points
+    elmNorms;                   // Element face normals
+};
 
 
 /// Local entity variables data structure
-typedef struct _local_entity_variables{
-  int flag;                   // Flag to determine if the entity is active
-  int node;                   // Number of corresponding grid node
-  int elm;                    // Number of corresponding grid element
-  double diam;                // Diameter
-  double *pos;                // Entity position at time step n
-  double *posOld;             // Entity position at time step n-1
-  double *vel;                // Entity velocity at time step n
-  double *velOld;             // Entity velocity at time step n-1
-  double *relVel;             // Relative velocity
-  double normVel;             // Norm of the relative velocity
-  double temp;                // Temperature
-  double relTemp;             // Relative temperature
-  double reynolds;            // Dispersed Reynold number
-  double nusselt;             // Nusselt number
-  double sherwood;            // Sherwood number
-  double schmidt;             // Schmidt number
-  double spalding;            // Spalding number
-  double prandtl;             // Prandtl number
-  double dragCoeff;           // Drag coefficient
-  double liftCoeff;           // Lift coefficient
-  double kinRespTime;         // Kinematic response time
-  double thermRespTime;       // Thermal response time
-  double massTrCoeff;         // Mass transfer coefficient beta
-  double pressBubble;         // Bubble interal pressure
-  double rhoBubble;           // Bubble internal density
-  double concInterf;          // Bubble surface concentration
+struct LOCAL_ENTITY_VARIABLES
+{
+  LOCAL_ENTITY_VARIABLES(const int dim) :
+    elm(-1),
+    node(-1),
+    pos   (dim,0.),
+    posOld(dim,0.),
+    vel   (dim,0.),
+    velOld(dim,0.),
+    relVel(dim,0.),
+    edata(dim,MAXELMFACES) {}
+  ~LOCAL_ENTITY_VARIABLES() {}
+  int
+    flag,           // Flag to determine if the entity is active
+    elm,            // Number of corresponding grid element
+    node;           // Number of corresponding grid node
+
+  double
+    diam,           // Diameter
+    normVel,        // Norm of the relative velocity
+    temp,           // Temperature
+    relTemp,        // Relative temperature
+    reynolds,       // Dispersed Reynold number
+    nusselt,        // Nusselt number
+    sherwood,       // Sherwood number
+    schmidt,        // Schmidt number
+    spalding,       // Spalding number
+    prandtl,        // Prandtl number
+    dragCoeff,      // Drag coefficient
+    liftCoeff,      // Lift coefficient
+    kinRespTime,    // Kinematic response time
+    thermRespTime,  // Thermal response time
+    massTrCoeff,    // Mass transfer coefficient beta
+    pressBubble,    // Bubble interal pressure
+    rhoBubble,      // Bubble internal density
+    concInterf;     // Bubble surface concentration
+
+  std::vector< double >
+    pos,                      // Entity position at time step n
+    posOld,                   // Entity position at time step n-1
+    vel,                      // Entity velocity at time step n
+    velOld,                   // Entity velocity at time step n-1
+    relVel;                   // Relative velocity
+
   ENTITY_ELEMENT_DATA edata;  // Corresponding grid element data
-} LOCAL_ENTITY_VARIABLES;
+};
 
 
 /// Local flow variables data structure
-typedef struct _local_flow_variables{
-  double *vel;      // Local instantaneous flow velocity
-  double *velDt;    // Flow velocity time derivative
-  double **velDx;   // Flow velocity space derivative
-  double *vort;     // Local instantaneous flow vorticity
-  double pressure;  // Local instantaneous flow pressure
-  double temp;      // Local instantaneous flow temperature
-} LOCAL_FLOW_VARIABLES;
+struct LOCAL_FLOW_VARIABLES
+{
+  LOCAL_FLOW_VARIABLES(const int dim) :
+    vel  (dim,0.),
+    velDt(dim,0.),
+    vort (dim,0.),
+    velDx(dim,std::vector< double >(dim,0.)) {}
+  ~LOCAL_FLOW_VARIABLES() {}
+  std::vector< double >
+    vel,       // Local instantaneous flow velocity
+    velDt,     // Flow velocity time derivative
+    vort;      // Local instantaneous flow vorticity
+  std::vector< std::vector< double > >
+    velDx;     // Flow velocity space derivative
+  double
+    pressure,  // Local instantaneous flow pressure
+    temp;      // Local instantaneous flow temperature
+};
 
 
 /// PLaS interface class
@@ -476,28 +514,6 @@ class plas {
 
 
  private:  // internal methods
-
-  /**
-   * This file includes allocation and deallocation routines
-   * for PLaS data structures LOCAL_ENTITY_VARIABLES and
-   * LOCAL_FLOW_VARIABLES.
-   *
-   * This function allocates data for an instance of the
-   * structure LOCAL_ENTITY_VARIABLES, which stores the position,
-   * velocity and grid element information of an entity.
-   */
-  void plas_AllocateLocalEntityVar(int numDim, LOCAL_ENTITY_VARIABLES *ent);
-
-  /**
-   * This file includes allocation and deallocation routines
-   * for PLaS data structures LOCAL_ENTITY_VARIABLES and
-   * LOCAL_FLOW_VARIABLES.
-   *
-   * This function allocates data for an instance of the
-   * structure LOCAL_FLOW_VARIABLES, which stores the flow
-   * velocity and its derivatives at the entity position.
-   */
-  void plas_AllocateLocalFlowVar(int numDim, LOCAL_FLOW_VARIABLES *flow);
 
   /**
    * This file includes the computation of back-coupling terms
@@ -767,34 +783,14 @@ class plas {
   void plas_CreateTecplotFile(const std::string &outpString);
 
   /**
-   * This file includes allocation and deallocation routines
-   * for PLaS data structures LOCAL_ENTITY_VARIABLES and
-   * LOCAL_FLOW_VARIABLES.
-   *
-   * This function de-allocates data for an instance of the type
-   * LOCAL_ENTITY_VARIABLES.
-   */
-  void plas_DeallocateLocalEntityVar(LOCAL_ENTITY_VARIABLES *ent);
-
-  /**
-   * This file includes allocation and deallocation routines
-   * for PLaS data structures LOCAL_ENTITY_VARIABLES and
-   * LOCAL_FLOW_VARIABLES.
-   *
-   * This function de-allocates data for an instance of the
-   * structure LOCAL_FLOW_VARIABLES.
-   */
-  void plas_DeallocateLocalFlowVar(int numDim, LOCAL_FLOW_VARIABLES *flow);
-
-  /**
    * This file includes all functionality concerning entities
    * interacting with boundaries of the computational domain,
    * such as wall bounces and entities leaving through outlets.
    *
    * This function finds the index of the boundary face through
-   * which an entity leaft the computational domain.
+   * which an entity left the computational domain.
    */
-  void plas_FindExitFace(int numBnd, int numDim, LOCAL_ENTITY_VARIABLES *ent, int *f, int *i, int *j);
+  bool plas_FindExitFace(int numBnd, int numDim, LOCAL_ENTITY_VARIABLES *ent, int *i, int *j);
 
   /**
    * This file includes all functinality to perform an element
@@ -872,15 +868,6 @@ class plas {
   void plas_NormalizeVector(int numDim, double *a);
 
   /**
-   * This file includes a function to pass an entity from one
-   * process of a multi-processor job to another one after the
-   * entity has crossed a process boundary.
-   *
-   * Function to pass entities from one process to another.
-   */
-  void plas_PassEntities();
-
-  /**
    * This file contains routines to generate random numbers.
    *
    * This functions generates random doubles between 0 and 1.
@@ -945,22 +932,10 @@ class plas {
   double plas_SetDiameter();
 
   /**
-   * This function sets the faces and normal vectors of the
-   * element assigned to a dispersed entity.
-   */
-  void plas_SetElementFaces(int numDim, LOCAL_ENTITY_VARIABLES *ent);
-
-  /**
    * This function sets the geometry of an element assigned to
    * a dispersed entity.
    */
   void plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent);
-
-  /**
-   * This function sets the nodes of the element assigned to a
-   * dispersed entity.
-   */
-  void plas_SetElementNodes(int numDim, LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * This file includes the functionality to perform  trajectory
