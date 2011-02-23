@@ -10,7 +10,6 @@
   dt="0.05"
   continuum.material="water"
 
-  restart="no"
   entities.max="10000"
   entities.init="0"
   entities.material="air"
@@ -31,8 +30,8 @@
   gravity.x="0."
   gravity.y="0."
   gravity.z="0."
-  output.statistics="yes"
-  output.results="yes"
+  output.statistics="testchannel.plas.txt"
+  output.results="testchannel.plas.plt"
   >
 
   <wall zone="wall3"/>
