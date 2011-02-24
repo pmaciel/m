@@ -181,10 +181,10 @@ struct PLAS_RUNTIME_PARAM
 /// Entity element data structures
 struct ENTITY_ELEMENT_DATA
 {
-  ENTITY_ELEMENT_DATA(const int dim, const int maxelmfaces) :
-    elmNodes(maxelmfaces,-1),
-    elmFaceVectors(maxelmfaces,std::vector< double >(dim,0.)),
-    elmNorms      (maxelmfaces,std::vector< double >(dim,0.)) {}
+  ENTITY_ELEMENT_DATA(const int dim) :
+    elmNodes(MAXELMNODES,-1),
+    elmFaceVectors(MAXELMFACES,std::vector< double >(dim,0.)),
+    elmNorms      (MAXELMFACES,std::vector< double >(dim,0.)) {}
   ~ENTITY_ELEMENT_DATA() {}
   int
     numElmNodes,                // Number of element nodes
@@ -207,7 +207,7 @@ struct LOCAL_ENTITY_VARIABLES
     vel   (dim,0.),
     velOld(dim,0.),
     relVel(dim,0.),
-    edata(dim,MAXELMFACES) {}
+    edata(dim) {}
   ~LOCAL_ENTITY_VARIABLES() {}
   int
     flag,           // Flag to determine if the entity is active

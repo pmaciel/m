@@ -2288,7 +2288,7 @@ void plas::plas_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent)
 
     // find the face with the minimum distance to the entity
     int eface = -1;
-    double dist = 0.;
+    double dist = 1.e99;
     plas_FindMinimumElementFaceDistance(fp.numDim,ent,&eface,&dist);
 
     // in case the minimum distance is positive, the element is found
@@ -2297,10 +2297,12 @@ void plas::plas_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent)
     if (!elmFound) {
       // search the neighbour element in direction of the minimum face distance
       const int neighbourElm = getElmNeighbour(ent->elm,eface);
-      leftDomain = (neighbourElm<0? 1 : leftDomain);
+      leftDomain = (neighbourElm<0);
       if (!leftDomain) {
         ent->elm = neighbourElm;
-        lastElm = (lastElm>0? neighbourElm : lastElm);
+        if (lastElm!=-1) {
+          lastElm = neighbourElm;
+        }
       }
     }
 
