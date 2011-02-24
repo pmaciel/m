@@ -55,7 +55,7 @@ def configure(conf):
     if options.enable_c:  conf.env.append_unique('CFLAGS',  ['-Wall','-O0','-g3'])
     if options.enable_fc: conf.env.append_unique('FCFLAGS', ['-Wall','-O0','-g3'])
   elif conf.env.m_mbuild=='devel':
-    conf.                      env.append_unique('CXXFLAGS',['-Wall','-O0','-g3','-Wextra','-Wno-unused-parameter','-Wshadow','-Winline','-Wundef'])
+    conf.                      env.append_unique('CXXFLAGS',['-Wall','-O0','-g3','-Wextra','-Wno-unused-parameter','-Wshadow','-Winline','-Wundef','-D_GLIBCXX_DEBUG','-D_GLIBCXX_DEBUG_PEDANTIC'])
     if options.enable_c:  conf.env.append_unique('CFLAGS',  ['-Wall','-O0','-g3','-Wextra','-Wno-unused-parameter','-Wshadow','-Winline','-Wundef'])
     if options.enable_fc: conf.env.append_unique('FCFLAGS', ['-Wall','-O0','-g3','-Wextra','-Wno-unused-parameter','-Wshadow','-Winline'])
   elif conf.env.m_mbuild=='optim':
