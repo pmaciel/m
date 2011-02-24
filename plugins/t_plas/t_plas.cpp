@@ -21,20 +21,25 @@ Register< mtransform,t_plas > mt_plas( 7,
 namespace t_plas_aux {
 
 
-  unsigned getzoneidx(const std::string& n, const m::mmesh& m)
+  unsigned getvariableidx(const std::string& n, const m::mmesh& m)
   {
-    for (unsigned r=0; r!=m.z(); ++r)
-      if (m.vz[r].n==n)
+    for (unsigned r=0; r<m.v(); ++r)
+      if (m.vn[r]==n)
         return r;
-    std::cerr << "error: zone \"" << n << "\" not present!" << std::endl;
+    std::cerr << "error: variable \"" << n << "\" not present!" << std::endl;
     throw 42;
     return 0;
   }
 
 
-  std::vector< m::mzone >::const_iterator getzoneit(const std::string& n, const m::mmesh& m)
+  unsigned getzoneidx(const std::string& n, const m::mmesh& m)
   {
-    return m.vz.begin() + getzoneidx(n,m);
+    for (unsigned r=0; r<m.z(); ++r)
+      if (m.vz[r].n==n)
+        return r;
+    std::cerr << "error: zone \"" << n << "\" not present!" << std::endl;
+    throw 42;
+    return 0;
   }
 
 
@@ -62,6 +67,19 @@ void t_plas::transform(GetPot& o, mmesh& m)
                     (mat=="water"?    WATER    :
                     (mat=="nitrogen"? NITROGEN : WATER    )));
   cout << "info: setup plas xml." << endl;
+
+
+  cout << "info: setting quantities to provide..." << endl;
+  m_quantity_idx.assign(ALL_QUANTITIES,-1);
+  m_quantity_idx[COORD_X]    = t_plas_aux::getvariableidx("x",m);
+  m_quantity_idx[COORD_Y]    = t_plas_aux::getvariableidx("y",m);
+  m_quantity_idx[COORD_Z]    = t_plas_aux::getvariableidx("z",m);
+  m_quantity_idx[PRESSURE]   = t_plas_aux::getvariableidx("p",m);
+  m_quantity_idx[VELOCITY_X] = t_plas_aux::getvariableidx("vx",m);
+  m_quantity_idx[VELOCITY_Y] = t_plas_aux::getvariableidx("vy",m);
+  m_quantity_idx[VELOCITY_Z] = t_plas_aux::getvariableidx("vz",m);
+  m_quantityold_idx = m_quantity_idx;
+  cout << "info: setting quantities to provide." << endl;
 
 
   cout << "info: recreating data structures from m::mmesh..." << endl;
@@ -135,7 +153,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
         sort(v_ielm.begin(),v_ielm.end());
         v_ielm.erase(unique(v_ielm.begin(),v_ielm.end()),v_ielm.end());
 
-        // convert absolute indices to relative (zone and internal elem. index
+        // convert absolute indices to relative (zone and internal elem. index)
         std::vector< int >
           v_jelem_z,
           v_jelem_e,
@@ -509,11 +527,6 @@ void t_plas::transform(GetPot& o, mmesh& m)
 
 
   screenOutput("initializing flow field...");
-  dparam.p = new double [M->n()];
-  dparam.T = new double [M->n()];
-  dparam.u = new double*[M->n()];
-  for (unsigned i=0; i<M->n(); ++i)
-    dparam.u[i] = new double[M->d()];
   plasdriver_InitFlowField(dparam.material);
 
 
@@ -523,21 +536,9 @@ void t_plas::transform(GetPot& o, mmesh& m)
 
 
   screenOutput("perform PLaS iterations...");
-  for (dparam.iter=1; dparam.iter<=dparam.numIter; ++dparam.iter) {
-    screenOutput("iterate...");
+  for (dparam.iter=1; dparam.iter<=dparam.numIter; ++dparam.iter)
     plas::run();
-  }
   screenOutput("perform PLaS iterations.");
-
-
-  screenOutput("terminating PLaS...");
-  ///plasdriver_FreeGambitMemory();
-  for (unsigned i=0; i<M->n(); ++i)
-    delete[] dparam.u[i];
-  delete[] dparam.p;
-  delete[] dparam.u;
-  delete[] dparam.T;
-  screenOutput("terminating PLaS.");
 }
 
 
@@ -641,12 +642,7 @@ void t_plas::plasdriver_GetFaceNodes(int iz, int ie, int face, int *nodes)
 void t_plas::plasdriver_InitFlowField(int material)
 {
   // Define pressure, velocity and temperature
-  double
-    p = 101325.,
-    u =      1.,
-    v =      0.,
-    w =      0.,
-    T =    373.124;
+  double T = 373.124;
 
   if (material==AIR) {
 
@@ -671,15 +667,6 @@ void t_plas::plasdriver_InitFlowField(int material)
     dparam.cp  = (6.50+0.001*T)*4.184/(28.01e-3);
     dparam.k   = 2.5*(6.5592e-7*pow(T,0.6081))/(1.0+54.715/T)*((6.50+0.001*T)*4.184/(28.01e-3)-8.314)/28.01;
 
-  }
-
-  // Impose flow variables
-  for (unsigned n=0; n<M->n(); ++n) {
-    dparam.p[n]    = p;
-    dparam.u[n][0] = u;
-    dparam.u[n][1] = v;
-    dparam.u[n][2] = w;
-    dparam.T[n]    = T;
   }
 }
 

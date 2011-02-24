@@ -46,6 +46,22 @@
 #endif
 
 
+/// Available quantities
+enum PLAS_QUANTITY {
+  COORD_X,       COORD_Y,       COORD_Z,
+
+  PRESSURE,
+  TEMPERATURE,
+  VELOCITY_X,    VELOCITY_Y,    VELOCITY_Z,
+
+  VELOCITY_X_DX, VELOCITY_X_DY, VELOCITY_X_DZ,
+  VELOCITY_Y_DX, VELOCITY_Y_DY, VELOCITY_Y_DZ,
+  VELOCITY_Z_DX, VELOCITY_Z_DY, VELOCITY_Z_DZ,
+
+  ALL_QUANTITIES
+};
+
+
 /// Data of a dispersed entity (particle, droplet or bubble)
 struct PLAS_ENTITY_DATA
 {
@@ -340,14 +356,6 @@ class plas {
   virtual int getBndDomElm(int bnd, int bface) = 0;
 
   /**
-   * Provide node coordinate to PLaS
-   * @param[in] nod node index
-   * @param[in] dim coordinate index
-   * @return coordinate of the node
-   */
-  virtual double getNodCoord(int nod, int dim) = 0;
-
-  /**
    * Provide component of element normal to PLaS
    * @param[in] elm element index
    * @param[in] eface face of the element
@@ -410,66 +418,20 @@ class plas {
   virtual int getElementType(int elm) = 0;
 
   /**
-   * Provide nodal velocity component at time step n to PLaS
+   * Provide nodal quantity at time step n-1 (past) to PLaS
+   * @param[in] Q quantity to provide (as quantity enumerated index)
    * @param[in] nod node index
-   * @param[in] dim coordinate index
-   * @return velocity at time step n
+   * @return quantity at time step n-1
    */
-  virtual double getVelocityComp(int nod, int dim) = 0;
+  virtual double getOldQuantity(const PLAS_QUANTITY& Q, int nod) = 0;
 
   /**
-   * Provide nodal velocity component at time step n-1 to PLaS
+   * Provide nodal quantity at time step n (current) to PLaS
+   * @param[in] Q quantity to provide (as quantity enumerated index)
    * @param[in] nod node index
-   * @param[in] dim coordinate index
-   * @return velocity at time step n-1
+   * @return quantity at time step n
    */
-  virtual double getVelocityCompOld(int nod, int dim) = 0;
-
-  /**
-   * Provide velocity component derivative at time step n
-   * @param[in] nod node index
-   * @param[in] idim variable to take derivatrive of
-   * @param[in] jdim coordinate direction of derivative
-   * @return velocity derivative at time step n-1
-   */
-  virtual double getVelocityDerivativeComp(int nod, int idim, int jdim) = 0;
-
-  /**
-   * Provide velocity component derivative at time step n-1
-   * @param[in] nod node index
-   * @param[in] idim variable to take derivatrive of
-   * @param[in] jdim coordinate direction of derivative
-   * @return velocity derivative at time step n-1
-   */
-  virtual double getVelocityDerivativeCompOld(int nod, int idim, int jdim) = 0;
-
-  /**
-   * Provide nodal temperature at time step n to PLaS
-   * @param[in] nod node idx
-   * @return temperature at time step n
-   */
-  virtual double getTemperature(int nod) = 0;
-
-  /**
-   * Provide nodal temperature at time step n-1 to PLaS
-   * @param[in] nod node idx
-   * @return temperature at time step n-1
-   */
-  virtual double getTemperatureOld(int nod) = 0;
-
-  /**
-   * Provide nodal pressure at time step n to PLaS
-   * @param[in] nod node idx
-   * @return pressure at time step n
-   */
-  virtual double getPressure(int nod) = 0;
-
-  /**
-   * Provide nodal pressure at time step n-1 to PLaS
-   * @param[in] nod node idx
-   * @return pressure at time step n-1
-   */
-  virtual double getPressureOld(int nod) = 0;
+  virtual double getQuantity(const PLAS_QUANTITY& Q, int nod) = 0;
 
   /**
    * Provide Eulerian time scale (tke/disspation) for a node
@@ -638,7 +600,7 @@ class plas {
    * This function computes the node impact factors of an
    * element according to the entity position.
    */
-  void plas_CalcNodeImpactFactors(LOCAL_ENTITY_VARIABLES *ent, double *imp);
+  void plas_CalcNodeImpactFactors(const LOCAL_ENTITY_VARIABLES *ent, double *imp);
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -810,6 +772,26 @@ class plas {
   int plas_FindNearestElementNode(LOCAL_ENTITY_VARIABLES *ent);
 
   /**
+   * Provide nodal quantity at time step n-1 (past) to PLaS
+   * @param[in] Q quantity to provide (as simple index)
+   * @param[in] nod node index
+   * @return quantity at time step n
+   */
+  double plas_getOldQuantity(int q, int nod) {
+    return getOldQuantity(PLAS_QUANTITY(q),nod);
+  }
+
+  /**
+   * Provide nodal quantity at time step n (current) to PLaS
+   * @param[in] Q quantity to provide (as simple index)
+   * @param[in] nod node index
+   * @return quantity at time step n
+   */
+  double plas_getQuantity(int q, int nod) {
+    return getQuantity(PLAS_QUANTITY(q),nod);
+  }
+
+  /**
    * This file contains routines for the generation of entities,
    * be it to form an initial set of entities or to create
    * entites due to secondary phase boundary conditions.
@@ -836,22 +818,26 @@ class plas {
   void plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
 
   /**
-   * This function performs pressure interpolation from the
-   * fluid flow solver.
+   * This function calculates all the quantities interpolation
+   * @param[in] Q quantity to interpolate (as quantity enumerated index)
+   * @param[in] ent local entity description
+   * @param[in] fold factor to weigh the quantity old value with
+   * @param[in] new factor to weigh the quantity new value with
+   * @return quantity interpolated value
    */
-  void plas_InterpolatePressure(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
+  double plas_InterpolateQuantity(const PLAS_QUANTITY &Q, const LOCAL_ENTITY_VARIABLES &ent, double fold, double fnew);
 
   /**
-   * This function performs temperature interpolation from the
-   * fluid flow solver.
+   * This function calculates all the quantities interpolation
+   * @param[in] q quantity to interpolate (as simple index)
+   * @param[in] ent local entity description
+   * @param[in] fold factor to weigh the quantity old value with
+   * @param[in] new factor to weigh the quantity new value with
+   * @return quantity interpolated value
    */
-  void plas_InterpolateTemperature(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
-
-  /**
-   * This function performs velocity interpolation from the
-   * fluid flow solver.
-   */
-  void plas_InterpolateVelocity(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
+  double plas_InterpolateQuantity(const int &q, const LOCAL_ENTITY_VARIABLES &ent, double fold, double fnew) {
+    return plas_InterpolateQuantity(PLAS_QUANTITY(q),ent,fold,fnew);
+  }
 
   /**
    * This file contains routines for the generation of entities,

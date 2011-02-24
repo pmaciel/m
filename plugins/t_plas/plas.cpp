@@ -47,7 +47,7 @@ void plas::initialize(const XMLNode& x)
 
 
   //***Initialize material data from database***//
-  plas_CalcMaterialData(ip.iniTempDisp,getPressure(0));
+  plas_CalcMaterialData(ip.iniTempDisp,getQuantity(PRESSURE,0));
 
 
   // set output tecplot file (and initial entity distribution)
@@ -548,10 +548,10 @@ void plas::plas_CalcCellwiseData()
         xi = yi = xixi = xiyi = 0.0;
         for(jdim=0; jdim<numElmNodes; jdim++){
           inod = getElmNode(ielm,jdim);
-          xi += getNodCoord(inod,idim);
+          xi += plas_getQuantity(COORD_X+idim,inod);
           yi += pd[inod].volFrac;
-          xixi += getNodCoord(inod,idim)*getNodCoord(inod,idim);
-          xiyi += getNodCoord(inod,idim)*pd[inod].volFrac;
+          xixi += plas_getQuantity(COORD_X+idim,inod)*plas_getQuantity(COORD_X+idim,inod);
+          xiyi += plas_getQuantity(COORD_X+idim,inod)*pd[inod].volFrac;
         }
         pd[inod].volFracDx[idim] = (numElmNodes*xiyi-xi*yi)/(numElmNodes*xixi-xi*xi);
       }
@@ -916,7 +916,7 @@ void plas::plas_CalcMatVectScalarProduct_3D(double *value, double **m, double *a
 }
 
 
-void plas::plas_CalcNodeImpactFactors(LOCAL_ENTITY_VARIABLES *ent, double *imp)
+void plas::plas_CalcNodeImpactFactors(const LOCAL_ENTITY_VARIABLES *ent, double *imp)
 {
   double sum = 0.0;
   int idim,jdim,inod;
@@ -925,7 +925,7 @@ void plas::plas_CalcNodeImpactFactors(LOCAL_ENTITY_VARIABLES *ent, double *imp)
   for(idim=0; idim<ent->edata.numElmNodes; idim++){
     inod = ent->edata.elmNodes[idim];
     for(jdim=0; jdim<fp.numDim; jdim++){
-      distance[jdim] = getNodCoord(inod,jdim)-ent->pos[jdim];
+      distance[jdim] = plas_getQuantity(COORD_X+jdim,inod)-ent->pos[jdim];
     }
     imp[idim] = plas_CalcVectorLength(fp.numDim,distance);
     if(imp[idim]<rp.errTol){imp[idim] = rp.errTol;}
@@ -1842,16 +1842,31 @@ void plas::plas_ImposeProductionDomains()
 void plas::plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step)
 {
   // interpolate velocity, temperature and pressure
-  plas_InterpolateVelocity(ent,flow,step);
-  plas_CalcVorticity(fp.numDim,flow);
-  plas_InterpolateTemperature(ent,flow,step);
-  plas_InterpolatePressure(ent,flow,step);
+  flow->pressure = plas_InterpolateQuantity(PRESSURE,   *ent,1.-step,step);
+  flow->temp     = plas_InterpolateQuantity(TEMPERATURE,*ent,1.-step,step);
+  for (int d1=0; d1<fp.numDim; ++d1) {
 
-  // compute relative and normal velocity
+    // velocity interpolation
+    flow->vel[d1] = plas_InterpolateQuantity(VELOCITY_X+d1,*ent,1.-step,step);
+
+    // velocity space derivatives interpolation
+    for (int d2=0; d2<fp.numDim; ++d2)
+      flow->velDx[d1][d2] = plas_InterpolateQuantity(VELOCITY_X_DX + d1*fp.numDim + d2,*ent,1.-step,step);
+
+    // velocity time derivatives interpolation
+    flow->velDt[d1] = (fp.dtEul<1.e-20? 0. :
+      plas_InterpolateQuantity(VELOCITY_X+d1,*ent,-1./fp.dtEul,1./fp.dtEul) );
+
+  }
+
+  // calculate vorticity
+  plas_CalcVorticity(fp.numDim,flow);
+
+  // compute relative velocity vector and its norm
   ent->normVel = 0.;
-  for (int idim=0; idim<fp.numDim; ++idim) {
-    ent->relVel[idim] = flow->vel[idim]-ent->vel[idim];
-    ent->normVel += ent->relVel[idim]*ent->relVel[idim];
+  for (int d=0; d<fp.numDim; ++d) {
+    ent->relVel[d] = flow->vel[d]-ent->vel[d];
+    ent->normVel += ent->relVel[d]*ent->relVel[d];
   }
   ent->normVel = sqrt(ent->normVel);
 
@@ -1860,76 +1875,19 @@ void plas::plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *f
 }
 
 
-void plas::plas_InterpolatePressure(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step)
+double plas::plas_InterpolateQuantity(const PLAS_QUANTITY &Q, const LOCAL_ENTITY_VARIABLES &ent, double fold, double fnew)
 {
-  double impFac[ent->edata.numElmNodes];
-
   // compute impact factors of element nodes
-  plas_CalcNodeImpactFactors(ent,impFac);
+  double impFac[ent.edata.numElmNodes];
+  plas_CalcNodeImpactFactors(&ent,impFac);
 
-  // flow pressure
-  flow->pressure = 0.;
-  for (int idim=0; idim<ent->edata.numElmNodes; ++idim) {
-    flow->pressure += impFac[idim]*((1.0-step)*getPressureOld(ent->edata.elmNodes[idim])
-                                        + step*getPressure(ent->edata.elmNodes[idim]));
+  // interpolate
+  double r = 0.;
+  for (int n=0; n<ent.edata.numElmNodes; ++n) {
+    r += impFac[n] * ( fold * getOldQuantity(Q,ent.edata.elmNodes[n])
+                     + fnew * getQuantity   (Q,ent.edata.elmNodes[n]) );
   }
-}
-
-
-void plas::plas_InterpolateTemperature(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step)
-{
-  double impFac[ent->edata.numElmNodes];
-
-  // compute impact factors of element nodes
-  plas_CalcNodeImpactFactors(ent,impFac);
-
-  // flow temperature
-  flow->temp = 0.;
-  for (int idim=0; idim<ent->edata.numElmNodes; ++idim) {
-    flow->temp += impFac[idim]*((1.0-step)*getTemperatureOld(ent->edata.elmNodes[idim])
-                                    + step*getTemperature(ent->edata.elmNodes[idim]));
-  }
-}
-
-
-void plas::plas_InterpolateVelocity(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step)
-{
-  double impFac[ent->edata.numElmNodes];
-
-  // compute impact factors of element nodes
-  plas_CalcNodeImpactFactors(ent,impFac);
-
-  // flow velocity
-  for (int idim=0; idim<fp.numDim; ++idim) {
-    flow->vel[idim] = 0.;
-    for (int jdim=0; jdim<ent->edata.numElmNodes; ++jdim) {
-      flow->vel[idim] += impFac[jdim] * (
-        (1. - step) * getVelocityCompOld(ent->edata.elmNodes[jdim],idim)
-            + step  * getVelocityComp(ent->edata.elmNodes[jdim],idim) );
-    }
-  }
-
-  // flow velocity space derivatives
-  for (int idim=0; idim<fp.numDim; ++idim) {
-    for (int jdim=0; jdim<fp.numDim; ++jdim) {
-      flow->velDx[idim][jdim] = 0.;
-      for (int kdim=0; kdim<ent->edata.numElmNodes; ++kdim) {
-        flow->velDx[idim][jdim] += impFac[kdim]*((1.0-step)*getVelocityDerivativeCompOld(ent->edata.elmNodes[kdim],idim,jdim)
-                                                     + step*getVelocityDerivativeComp(ent->edata.elmNodes[kdim],idim,jdim));
-      }
-    }
-  }
-
-  // flow velocity time derivative
-  for (int idim=0; idim<fp.numDim; ++idim) {
-    flow->velDt[idim] = 0.0;
-    if (fp.dtEul>1.e-20) {
-      for (int jdim=0; jdim<ent->edata.numElmNodes; ++jdim) {
-        flow->velDt[idim] += impFac[jdim]*(getVelocityComp(ent->edata.elmNodes[jdim],idim)
-                                         - getVelocityCompOld(ent->edata.elmNodes[jdim],idim))/fp.dtEul;
-      }
-    }
-  }
+  return r;
 }
 
 
@@ -2090,12 +2048,12 @@ void plas::plas_RandomInitialDistribution()
       rand2 = (1.0-rand1)*plas_RandomDouble();
       rand3 = (1.0-rand1-rand2)*plas_RandomDouble();
       for(idim=0; idim<fp.numDim; idim++){
-        ent.pos[idim] = getNodCoord(ent.edata.elmNodes[0],idim)
-          + rand1*(getNodCoord(ent.edata.elmNodes[1],idim)-getNodCoord(ent.edata.elmNodes[0],idim))
-          + rand2*(getNodCoord(ent.edata.elmNodes[2],idim)-getNodCoord(ent.edata.elmNodes[0],idim));
+        ent.pos[idim] = plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
+          + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]))
+          + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]));
         if(fp.numDim==3){
           ent.pos[idim] +=
-            rand3*(getNodCoord(ent.edata.elmNodes[3],idim)-getNodCoord(ent.edata.elmNodes[0],idim));
+            rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]));
         }
       }
 
@@ -2106,12 +2064,12 @@ void plas::plas_RandomInitialDistribution()
       rand3 = plas_RandomDouble();
 
       for(idim=0; idim<fp.numDim; idim++){
-        ent.pos[idim] = rand3*getNodCoord(ent.edata.elmNodes[0],idim)
-          + rand3*rand1*(getNodCoord(ent.edata.elmNodes[1],idim)-getNodCoord(ent.edata.elmNodes[0],idim))
-          + rand3*rand2*(getNodCoord(ent.edata.elmNodes[2],idim)-getNodCoord(ent.edata.elmNodes[0],idim))
-          + (1.0-rand3)*getNodCoord(ent.edata.elmNodes[3],idim)
-          + (1.0-rand3)*rand1*(getNodCoord(ent.edata.elmNodes[4],idim)-getNodCoord(ent.edata.elmNodes[3],idim))
-          + (1.0-rand3)*rand2*(getNodCoord(ent.edata.elmNodes[5],idim)-getNodCoord(ent.edata.elmNodes[3],idim));
+        ent.pos[idim] = rand3*plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
+          + rand3*rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]))
+          + rand3*rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]))
+          + (1.0-rand3)*plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])
+          + (1.0-rand3)*rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[4])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3]))
+          + (1.0-rand3)*rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[5])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3]));
       }
 
     } else if(getElementType(ent.elm)==ELM_QUAD){
@@ -2121,12 +2079,12 @@ void plas::plas_RandomInitialDistribution()
       rand3 = plas_RandomDouble();
 
       for(idim=0; idim<fp.numDim; idim++){
-        ent.pos[idim] = rand3*(getNodCoord(ent.edata.elmNodes[0],idim)
-                      + rand1*(getNodCoord(ent.edata.elmNodes[1],idim)
-                             - getNodCoord(ent.edata.elmNodes[0],idim)))
-          + (1.0-rand3)*(getNodCoord(ent.edata.elmNodes[2],idim)
-                + rand2*(getNodCoord(ent.edata.elmNodes[3],idim)
-                       - getNodCoord(ent.edata.elmNodes[2],idim)));
+        ent.pos[idim] = rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
+                      + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])
+                             - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])))
+          + (1.0-rand3)*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])
+                + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])
+                       - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])));
       }
 
     } else if(getElementType(ent.elm)==ELM_HEX){
@@ -2137,18 +2095,18 @@ void plas::plas_RandomInitialDistribution()
       rand4 = plas_RandomDouble();
 
       for(idim=0; idim<fp.numDim; idim++){
-        ent.pos[idim] = rand4*(rand3*(getNodCoord(ent.edata.elmNodes[0],idim)
-                      + rand1*(getNodCoord(ent.edata.elmNodes[4],idim)
-                             - getNodCoord(ent.edata.elmNodes[0],idim)))
-                + (1.0-rand3)*(getNodCoord(ent.edata.elmNodes[1],idim)
-                      + rand2*(getNodCoord(ent.edata.elmNodes[5],idim)
-                             - getNodCoord(ent.edata.elmNodes[1],idim))))
-          +(1.0-rand4)*(rand3*(getNodCoord(ent.edata.elmNodes[2],idim)
-                      + rand1*(getNodCoord(ent.edata.elmNodes[6],idim)
-                             - getNodCoord(ent.edata.elmNodes[2],idim)))
-                + (1.0-rand3)*(getNodCoord(ent.edata.elmNodes[3],idim)
-                      + rand2*(getNodCoord(ent.edata.elmNodes[7],idim)
-                             - getNodCoord(ent.edata.elmNodes[3],idim))));
+        ent.pos[idim] = rand4*(rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
+                      + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[4])
+                             - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])))
+                + (1.0-rand3)*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])
+                      + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[5])
+                             - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1]))))
+          +(1.0-rand4)*(rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])
+                      + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[6])
+                             - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])))
+                + (1.0-rand3)*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])
+                      + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[7])
+                             - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3]))));
       }
 
     } else if(getElementType(ent.elm)==ELM_PYRAMID){
@@ -2159,13 +2117,13 @@ void plas::plas_RandomInitialDistribution()
       rand4 = plas_RandomDouble();
 
       for(idim=0; idim<fp.numDim; idim++){
-        ent.pos[idim] = rand4*getNodCoord(ent.edata.elmNodes[4],idim)
-        + (1.0-rand4)*(rand3*(getNodCoord(ent.edata.elmNodes[0],idim)
-                     + rand1*(getNodCoord(ent.edata.elmNodes[1],idim)
-                            - getNodCoord(ent.edata.elmNodes[0],idim)))
-               + (1.0-rand3)*(getNodCoord(ent.edata.elmNodes[2],idim)
-                     + rand2*(getNodCoord(ent.edata.elmNodes[3],idim)
-                            - getNodCoord(ent.edata.elmNodes[2],idim))));
+        ent.pos[idim] = rand4*plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[4])
+        + (1.0-rand4)*(rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
+                     + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])
+                            - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])))
+               + (1.0-rand3)*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])
+                     + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])
+                            - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2]))));
       }
     }
 

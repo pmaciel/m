@@ -11,7 +11,7 @@
 #define NITROGEN 3
 
 
-// mesh paramaters data structure
+// mesh parameters
 struct s_driver_mesh {
   std::vector< std::vector< int > > bndFaces;    // <---- remove!
   std::vector< std::vector< int > > bndDomElms;  // <---- remove!
@@ -24,16 +24,13 @@ struct s_driver_mesh {
 };
 
 
-// parameters and flow field data structure
+// parameters and flow properties
 struct s_driver_param {
   double
     rho,
     mu,
     cp,
     k,
-    *p,   // <---- remove!
-    **u,  // <---- remove!
-    *T,   // <---- remove!
     dt;
   int
     iter,
@@ -108,16 +105,9 @@ class t_plas : public m::mtransform,
    double getElmNormComp               (int elm, int eface, int dim) { return dmesh.elmNorms[elm][eface][dim]; }
    double getElmVol                    (int elm)                     { return dmesh.elmVolumes[elm]; }
    double getEulerianTimeScale         (int nod)                     { return 0.; }
-   double getNodCoord                  (int nod, int dim)            { return M->vv[dim][nod]; }
    double getNodVol                    (int nod)                     { return dmesh.nodVolumes[nod]; }
-   double getPressure                  (int nod)                     { return dparam.p[nod]; }
-   double getPressureOld               (int nod)                     { return dparam.p[nod]; }
-   double getTemperature               (int nod)                     { return dparam.T[nod]; }
-   double getTemperatureOld            (int nod)                     { return dparam.T[nod]; }
-   double getVelocityComp              (int nod, int dim)            { return dparam.u[nod][dim]; }
-   double getVelocityCompOld           (int nod, int dim)            { return dparam.u[nod][dim]; }
-   double getVelocityDerivativeComp    (int nod, int idim, int jdim) { return 0.; }
-   double getVelocityDerivativeCompOld (int nod, int idim, int jdim) { return 0.; }
+   double getQuantity   (const PLAS_QUANTITY& Q, int nod) { return (m_quantity_idx   [Q]<0? 0. : ( M->vv[ m_quantity_idx   [Q] ][nod] )); }
+   double getOldQuantity(const PLAS_QUANTITY& Q, int nod) { return (m_quantityold_idx[Q]<0? 0. : ( M->vv[ m_quantityold_idx[Q] ][nod] )); }
    int    getBndDomElm                 (int bnd, int bface)          { return dmesh.bndDomElms[bnd][bface]; }
    int    getElementType               (int elm) {
      int nelems = 0;
@@ -149,6 +139,9 @@ class t_plas : public m::mtransform,
   std::vector< s_zoneprops >
     m_zinner_props,
     m_zbound_props;
+  std::vector< int >
+    m_quantity_idx,
+    m_quantityold_idx;
 
   // FIXME refactor!
   s_driver_mesh dmesh;
