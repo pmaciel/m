@@ -825,7 +825,7 @@ class plas {
    * @param[in] new factor to weigh the quantity new value with
    * @return quantity interpolated value
    */
-  double plas_InterpolateQuantity(const PLAS_QUANTITY &Q, const LOCAL_ENTITY_VARIABLES &ent, double fold, double fnew);
+  double plas_InterpolateQuantity(const PLAS_QUANTITY &Q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew);
 
   /**
    * This function calculates all the quantities interpolation
@@ -835,8 +835,8 @@ class plas {
    * @param[in] new factor to weigh the quantity new value with
    * @return quantity interpolated value
    */
-  double plas_InterpolateQuantity(const int &q, const LOCAL_ENTITY_VARIABLES &ent, double fold, double fnew) {
-    return plas_InterpolateQuantity(PLAS_QUANTITY(q),ent,fold,fnew);
+  double plas_InterpolateQuantity(const int &q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew) {
+    return plas_InterpolateQuantity(PLAS_QUANTITY(q),ent,en_impactfactor,fold,fnew);
   }
 
   /**

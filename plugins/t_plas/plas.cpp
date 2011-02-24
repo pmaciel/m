@@ -1841,21 +1841,22 @@ void plas::plas_ImposeProductionDomains()
 
 void plas::plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step)
 {
-  // interpolate velocity, temperature and pressure
-  flow->pressure = plas_InterpolateQuantity(PRESSURE,   *ent,1.-step,step);
-  flow->temp     = plas_InterpolateQuantity(TEMPERATURE,*ent,1.-step,step);
+  // node impact factors for interpolation
+  std::vector< double > impFac(ent->edata.numElmNodes,0.);
+  plas_CalcNodeImpactFactors(ent,&impFac[0]);
+
+  // pressure, temperature and velocity (components, space and time derivatives)
+  flow->pressure = plas_InterpolateQuantity(PRESSURE,   *ent,impFac,1.-step,step);
+  flow->temp     = plas_InterpolateQuantity(TEMPERATURE,*ent,impFac,1.-step,step);
   for (int d1=0; d1<fp.numDim; ++d1) {
 
-    // velocity interpolation
-    flow->vel[d1] = plas_InterpolateQuantity(VELOCITY_X+d1,*ent,1.-step,step);
+    flow->vel[d1] = plas_InterpolateQuantity(VELOCITY_X+d1,*ent,impFac,1.-step,step);
 
-    // velocity space derivatives interpolation
     for (int d2=0; d2<fp.numDim; ++d2)
-      flow->velDx[d1][d2] = plas_InterpolateQuantity(VELOCITY_X_DX + d1*fp.numDim + d2,*ent,1.-step,step);
+      flow->velDx[d1][d2] = plas_InterpolateQuantity(VELOCITY_X_DX + d1*fp.numDim + d2,*ent,impFac,1.-step,step);
 
-    // velocity time derivatives interpolation
     flow->velDt[d1] = (fp.dtEul<1.e-20? 0. :
-      plas_InterpolateQuantity(VELOCITY_X+d1,*ent,-1./fp.dtEul,1./fp.dtEul) );
+      plas_InterpolateQuantity(VELOCITY_X+d1,*ent,impFac,-1./fp.dtEul,1./fp.dtEul) );
 
   }
 
@@ -1875,17 +1876,13 @@ void plas::plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *f
 }
 
 
-double plas::plas_InterpolateQuantity(const PLAS_QUANTITY &Q, const LOCAL_ENTITY_VARIABLES &ent, double fold, double fnew)
+double plas::plas_InterpolateQuantity(const PLAS_QUANTITY &Q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew)
 {
-  // compute impact factors of element nodes
-  double impFac[ent.edata.numElmNodes];
-  plas_CalcNodeImpactFactors(&ent,impFac);
-
   // interpolate
   double r = 0.;
   for (int n=0; n<ent.edata.numElmNodes; ++n) {
-    r += impFac[n] * ( fold * getOldQuantity(Q,ent.edata.elmNodes[n])
-                     + fnew * getQuantity   (Q,ent.edata.elmNodes[n]) );
+    r += en_impactfactor[n]*( fold * getOldQuantity(Q,ent.edata.elmNodes[n])
+                            + fnew * getQuantity   (Q,ent.edata.elmNodes[n]) );
   }
   return r;
 }
