@@ -27,15 +27,25 @@ struct s_driver_mesh {
 // parameters and flow properties
 struct s_driver_param {
   double
-    rho,
-    mu,
-    cp,
-    k,
+    rho,  // <---- remove!
+    mu,   // <---- remove!
+    cp,   // <---- remove!
+    k,    // <---- remove!
     dt;
   int
     iter,
     numIter,
     material;
+};
+
+
+// parameters and flow properties
+struct s_material {
+  double
+    rho,
+    mu,
+    cp,
+    k;
 };
 
 

@@ -1845,19 +1845,16 @@ void plas::plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *f
   std::vector< double > impFac(ent->edata.numElmNodes,0.);
   plas_CalcNodeImpactFactors(ent,&impFac[0]);
 
-  // pressure, temperature and velocity (components, space and time derivatives)
+  // interpolation of pressure, temperature and velocity (components, space and
+  // time derivatives)
   flow->pressure = plas_InterpolateQuantity(PRESSURE,   *ent,impFac,1.-step,step);
   flow->temp     = plas_InterpolateQuantity(TEMPERATURE,*ent,impFac,1.-step,step);
   for (int d1=0; d1<fp.numDim; ++d1) {
-
     flow->vel[d1] = plas_InterpolateQuantity(VELOCITY_X+d1,*ent,impFac,1.-step,step);
-
     for (int d2=0; d2<fp.numDim; ++d2)
       flow->velDx[d1][d2] = plas_InterpolateQuantity(VELOCITY_X_DX + d1*fp.numDim + d2,*ent,impFac,1.-step,step);
-
     flow->velDt[d1] = (fp.dtEul<1.e-20? 0. :
       plas_InterpolateQuantity(VELOCITY_X+d1,*ent,impFac,-1./fp.dtEul,1./fp.dtEul) );
-
   }
 
   // calculate vorticity
@@ -1878,7 +1875,6 @@ void plas::plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *f
 
 double plas::plas_InterpolateQuantity(const PLAS_QUANTITY &Q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew)
 {
-  // interpolate
   double r = 0.;
   for (int n=0; n<ent.edata.numElmNodes; ++n) {
     r += en_impactfactor[n]*( fold * getOldQuantity(Q,ent.edata.elmNodes[n])

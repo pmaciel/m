@@ -70,15 +70,22 @@ void t_plas::transform(GetPot& o, mmesh& m)
 
 
   cout << "info: setting quantities to provide..." << endl;
+
+  // get variables to share
   m_quantity_idx.assign(ALL_QUANTITIES,-1);
   m_quantity_idx[COORD_X]    = t_plas_aux::getvariableidx("x",m);
   m_quantity_idx[COORD_Y]    = t_plas_aux::getvariableidx("y",m);
-  m_quantity_idx[COORD_Z]    = t_plas_aux::getvariableidx("z",m);
   m_quantity_idx[PRESSURE]   = t_plas_aux::getvariableidx("p",m);
   m_quantity_idx[VELOCITY_X] = t_plas_aux::getvariableidx("vx",m);
   m_quantity_idx[VELOCITY_Y] = t_plas_aux::getvariableidx("vy",m);
-  m_quantity_idx[VELOCITY_Z] = t_plas_aux::getvariableidx("vz",m);
+  if (m.d()>2) {
+    m_quantity_idx[COORD_Z]    = t_plas_aux::getvariableidx("z",m);
+    m_quantity_idx[VELOCITY_Z] = t_plas_aux::getvariableidx("vz",m);
+  }
+
+  // steady-state has time step n-1 quantities the same as time step n
   m_quantityold_idx = m_quantity_idx;
+
   cout << "info: setting quantities to provide." << endl;
 
 
