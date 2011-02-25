@@ -5,12 +5,6 @@
 #include "plas.h"
 
 
-// Preprocessor constants
-#define AIR      1
-#define WATER    2
-#define NITROGEN 3
-
-
 // mesh parameters
 struct s_driver_mesh {
   std::vector< std::vector< int > > bndFaces;    // <---- remove!
@@ -26,26 +20,10 @@ struct s_driver_mesh {
 
 // parameters and flow properties
 struct s_driver_param {
-  double
-    rho,  // <---- remove!
-    mu,   // <---- remove!
-    cp,   // <---- remove!
-    k,    // <---- remove!
-    dt;
+  double dt;
   int
     iter,
-    numIter,
-    material;
-};
-
-
-// parameters and flow properties
-struct s_material {
-  double
-    rho,
-    mu,
-    cp,
-    k;
+    numIter;
 };
 
 
@@ -70,7 +48,6 @@ class t_plas : public m::mtransform,
  private:  // member functions
   double plasdriver_CalcAreaTriangle(double c[3][2]);
   double plasdriver_CalcVolumeTetra(double c[4][3]);
-  void   plasdriver_InitFlowField(int material);
   void   plasdriver_GetFaceNodes(int iz, int ie, int face, int *nodes);
 
  private:  // plas interface functions
@@ -152,6 +129,7 @@ class t_plas : public m::mtransform,
   std::vector< int >
     m_quantity_idx,
     m_quantityold_idx;
+  plas_material *m_material_cont;
 
   // FIXME refactor!
   s_driver_mesh dmesh;

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "ext/xmlParser.h"
+#include "plas_material.h"
 
 
 /// Preprocessor constants
@@ -12,18 +13,6 @@
 #define DFLAG_ENABLED     1
 #define DFLAG_CREATED     2
 #define DFLAG_LEFT        3
-
-#define FLOW_PARTIC       1
-#define FLOW_DROPLET      2
-#define FLOW_BUBBLY       3
-
-#define MAT_COPPER        1
-#define MAT_POLY          2
-#define MAT_WATER         3
-#define MAT_NHEPTANE      4
-#define MAT_HYDROGEN      5
-#define MAT_OXYGEN        6
-#define MAT_AIR           7
 
 #define MAXELMFACES       6
 #define MAXELMNODES       8
@@ -40,9 +29,6 @@
 
 #ifndef PI
 #define PI 3.14159265
-#endif
-#ifndef Ru
-#define Ru 8314.472
 #endif
 
 
@@ -92,26 +78,6 @@ struct PLAS_PHASE_DATA
 };
 
 
-/// Data of the dispersed phase material
-struct PLAS_MATERIAL_DATA
-{
-  double rhoDisp;           // Density of dispersed entities
-  double muDisp;            // Viscosity of dispersed entities
-  double cpDisp;            // Specific heat capacity of the dispersed entities
-  double kDisp;             // Thermal conductivity of the dispersed entities
-  double sigDisp;           // Surface tension of the dispersed entities
-  double epsDisp;           // Emissivity of the dispersed entities
-  double satPresDisp;       // Saturation pressure of the dispersed entities evaluated at surface of entities
-  double vapPres;           // Vapour pressure of the dispersed entities
-  double latHeatDisp;       // Specific latent heat of the dispersed entities
-  double molarMassDisp;     // Molar mass of the dispersed entities components
-  double molarMassDispVap;  // Molar mass of the dispersed entities components at vapour phase
-  double binaryDiffCoeff;   // Binary diffusion coefficient
-  double massDiffCoeff;     // Mass diffusivity for a gas in a liquid
-  double HeDisp;            // Henry Law constant for the dispersed entities
-};
-
-
 /// Statistics data of PLaS
 struct PLAS_STATS
 {
@@ -119,11 +85,9 @@ struct PLAS_STATS
   int in;              // Number of entities added
   int out;             // Number of entities removed
   int bounce;          // Number of wall bounces
-  int passed;          // Number of entities passing process borders
   int lost;            // Number of lost entities (should be zero)
   int coll;            // Number of particle or bubble collisions
   int coalesc;         // Number of coalescences of bubbles
-  int leftproc;        // Internal counter for particles leaving a process
   double dtLagrAvg;    // Average lagrangian time scale
   double reynoldsAvg;  // Average entity Reynolds number
   double nusseltAvg;   // Average entity Nusselt number
@@ -145,7 +109,6 @@ struct PLAS_INPUT_PARAM
   double iniDiamStd;       // Diameter standard deviation
   double iniVel[3];        // Initial velocity of dispersed entities
   double iniTempDisp;      // Temperature of dispersed entities
-  int material;            // Flag: Entity material (defines flow type)
   int momentumCoupl;       // Flag: Momentum coupling
   int volfracCoupl;        // Flag: Volume fraction coupling
   int energyCoupl;         // Flag: Energy coupling
@@ -189,7 +152,6 @@ struct PLAS_RUNTIME_PARAM
 {
   double lagrTimeFactor;  // Lagrangian time factor (constant)
   double errTol;          // Error tolerance
-  int flowType;           // Flag: Type of flow (particle, droplet, bubble)
   double *massResid;      // Mass flux residual
   double wallElasticity;  // Elasticity factor for wall bounces
 };
@@ -288,7 +250,13 @@ class plas {
 
  public:  // interface public methods
 
-  /**
+   /**
+    * initialize simulation-independent solver data
+    */
+   plas();
+
+
+   /**
    * This function initializes the PLaS solver. It has to be
    * called before doing any run of PLaS from the driving flow
    * solver.
@@ -574,12 +542,6 @@ class plas {
    * coefficient.
    */
   double plas_CalcMassTransferCoeff(double sherwood, double spalding);
-
-  /**
-   * This function contains the material database for dispersed
-   * particles, droplets and bubbles.
-   */
-  void plas_CalcMaterialData(double T, double p);
 
   /**
    * This function computes the 2D scalar product of a matrix
@@ -964,7 +926,6 @@ class plas {
 
   PLAS_ENTITY_DATA      *ed;          // Entity data structure (per entity)
   PLAS_PHASE_DATA       *pd;          // Phase data structure (per node)
-  PLAS_MATERIAL_DATA    md;           // Material data structure
   PLAS_STATS            sd;           // Statistics data structure
   PLAS_INPUT_PARAM      ip;           // Input file parameter structure
   PLAS_FLOWSOLVER_PARAM fp;           // Flowsolver parameter structure
@@ -974,6 +935,8 @@ class plas {
   double                *extEntVel;   // Velocities of bubbles coming from external code
   double                *extEntTemp;  // Temperatures of bubbles coming from external code
   double                *extEntDiam;  // Diameters of bubbles coming from external code
+
+  plas_material *m_material_disp;
 
 };
 

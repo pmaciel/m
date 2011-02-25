@@ -3,6 +3,7 @@
 #include "boost/progress.hpp"
 #include "ext/xmlParser.h"
 #include "mfactory.h"
+#include "plas_material.h"
 #include "t_plas.h"
 
 using namespace m;
@@ -59,13 +60,10 @@ void t_plas::transform(GetPot& o, mmesh& m)
 
   dparam.numIter =  x.getAttribute< int    >("iterations",1 );
   dparam.dt      =  x.getAttribute< double >("dt",        1.);
-  const std::string mat =  x.getAttribute< std::string >("continuum.material","water");
 
   dparam.numIter  = dparam.numIter<0? 0      : dparam.numIter;
   dparam.dt       = dparam.dt<=0.?    1.e-12 : dparam.dt;
-  dparam.material = (mat=="air"?      AIR      :
-                    (mat=="water"?    WATER    :
-                    (mat=="nitrogen"? NITROGEN : WATER    )));
+  m_material_cont = m::Create< plas_material >(x.getAttribute< std::string >("continuum.material","water"));
   cout << "info: setup plas xml." << endl;
 
 
@@ -533,10 +531,6 @@ void t_plas::transform(GetPot& o, mmesh& m)
   cout << "info: recreating data structures from m::mmesh." << endl;
 
 
-  screenOutput("initializing flow field...");
-  plasdriver_InitFlowField(dparam.material);
-
-
   screenOutput("initializing PLaS...");
   plas::initialize(x);
   screenOutput("initializing PLaS.");
@@ -643,41 +637,6 @@ void t_plas::plasdriver_GetFaceNodes(int iz, int ie, int face, int *nodes)
 }
 
 
-// This file contains functionality to define or read a
-// steady-state primary flow field.
-// This function initializes a steady-state flow field.
-void t_plas::plasdriver_InitFlowField(int material)
-{
-  // Define pressure, velocity and temperature
-  double T = 373.124;
-
-  if (material==AIR) {
-
-    dparam.rho = 1.225;
-    dparam.mu  = 1.7894e-5;
-    dparam.cp  = 1.006;
-    dparam.k   = 0.0242;
-
-  }
-  else if (material==WATER) {
-
-    dparam.rho = 998.2;
-    dparam.mu  = 1.003e-3;
-    dparam.cp  = 4.182;
-    dparam.k   = 0.6;
-
-  }
-  else if (material==NITROGEN) {
-
-    dparam.rho = 1.25;
-    dparam.mu  = (6.5592e-7*pow(T,0.6081))/(1.0+54.715/T);
-    dparam.cp  = (6.50+0.001*T)*4.184/(28.01e-3);
-    dparam.k   = 2.5*(6.5592e-7*pow(T,0.6081))/(1.0+54.715/T)*((6.50+0.001*T)*4.184/(28.01e-3)-8.314)/28.01;
-
-  }
-}
-
-
 void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
 {
   int numElm = 0;
@@ -689,11 +648,13 @@ void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
   fp->numNod       = M->n();
   fp->numElm       = numElm;
   fp->numBnd       = M->z();
-  fp->rhoCont      = dparam.rho;
-  fp->muCont       = dparam.mu;
-  fp->nuCont       = dparam.mu/dparam.rho;
-  fp->cpCont       = dparam.cp;
-  fp->kCont        = dparam.k;
+
+  fp->rhoCont      = m_material_cont->rho;
+  fp->muCont       = m_material_cont->mu;
+  fp->nuCont       = m_material_cont->mu / m_material_cont->rho;
+  fp->cpCont       = m_material_cont->cp;
+  fp->kCont        = m_material_cont->k;
+
   fp->dtEul        = dparam.dt;
   fp->minElmVolume = *std::min_element(dmesh.elmVolumes.begin(),dmesh.elmVolumes.end());
   fp->maxElmVolume = *std::max_element(dmesh.elmVolumes.begin(),dmesh.elmVolumes.end());
