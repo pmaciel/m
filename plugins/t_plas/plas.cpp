@@ -3,14 +3,17 @@
 #include <fstream>
 #include <cmath>
 #include "mfactory.h"
-#include "plas_material.h"
 #include "plas.h"
+
+
+/// Forward declaration: PLaS materials database initialisation
+void plas_material_database();
 
 
 plas::plas()
 {
   // initialize materials database
-  aux::plas_material_database();
+  plas_material_database();
 }
 
 
@@ -56,7 +59,7 @@ void plas::initialize(const XMLNode& x)
 
 
   //***Initialize material data from database***//
-  m_material_disp->update(ip.iniTempDisp,getQuantity(PRESSURE,0));
+  mdd->update(ip.iniTempDisp,getQuantity(PRESSURE,0));
 
 
   // set output tecplot file (and initial entity distribution)
@@ -224,7 +227,7 @@ void plas::run()
 
       //***Re-calculate material data from database***//
       if(ip.energyCoupl){
-        m_material_disp->update(ent.temp,flow.pressure);
+        mdd->update(ent.temp,flow.pressure);
       }
 
       if(ent.flag!=DFLAG_DISABLED){
@@ -271,7 +274,7 @@ void plas::run()
 
 
         //***Compute back-coupling terms to flow solver***//
-        const flowtype_t flowType(m_material_disp->flowtype);
+        const flowtype_t flowType(mdd->flowtype);
         if(flowType==FLOW_PARTIC || flowType==FLOW_DROPLET){
           plas_CalcCouplingForcesParticle(&ent,&flow,dtLagr/fp.dtEul);
         } else if (flowType==FLOW_BUBBLY){
@@ -407,7 +410,7 @@ void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABL
     inod = ent->node;
     contVol = getNodVol(ent->node);
     for(idim=0; idim<fp.numDim; idim++){
-      pd[ent->node].dispForce[idim+1] -= tFactor*force[idim]*jFrac/((1.0-iFrac)*contVol*fp.rhoCont);
+      pd[ent->node].dispForce[idim+1] -= tFactor*force[idim]*jFrac/((1.0-iFrac)*contVol * mdc->rho);
     }
 
   } else if(ip.momentumCoupl==FORCE_PROJ){
@@ -417,7 +420,7 @@ void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABL
       inod = ent->edata.elmNodes[idim];
       contVol = getNodVol(inod);
       for(jdim=0; jdim<fp.numDim; jdim++){
-        pd[inod].dispForce[jdim+1] -= tFactor*impFac[idim]*force[jdim]*jFrac/((1.0-iFrac)*contVol*fp.rhoCont);
+        pd[inod].dispForce[jdim+1] -= tFactor*impFac[idim]*force[jdim]*jFrac/((1.0-iFrac)*contVol * mdc->rho);
       }
     }
   }
@@ -487,8 +490,8 @@ void plas::plas_CalcCellwiseData()
       }
       pd[inod].volFrac += ivol/getNodVol(inod);
       pd[inod].avgDiam += ed[ient].diameter;
-      pd[inod].avgRespTime += (2.0 * m_material_disp->rho + fp.rhoCont)
-                                   *ed[ient].diameter*ed[ient].diameter/(24.0*fp.muCont);
+      pd[inod].avgRespTime += (2.0 * mdd->rho + mdc->rho)
+                                   *ed[ient].diameter*ed[ient].diameter/(24.*mdc->mu);
       for(idim=0; idim<fp.numDim; idim++){
         pd[inod].avgVel[idim] += ed[ient].velocity[idim];
       }
@@ -569,7 +572,7 @@ void plas::plas_CalcCellwiseData()
 
 double plas::plas_CalcConcInterf(double pressBubble)
 {
-  return (pressBubble*m_material_disp->He);
+  return (pressBubble*mdd->He);
 }
 
 
@@ -584,8 +587,8 @@ void plas::plas_CalcCouplingForcesBubble(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW
   if(ip.momentumCoupl){
 
     bubbleVol = PI*ent->diam*ent->diam*ent->diam/6.0;
-    bubbleMass = m_material_disp->rho * bubbleVol;
-    densityRatio = (fp.rhoCont / m_material_disp->rho);
+    bubbleMass = mdd->rho * bubbleVol;
+    densityRatio = (mdc->rho / mdd->rho);
 
     if(fp.numDim==2){
       uxw[0] = 0.0;
@@ -633,8 +636,8 @@ void plas::plas_CalcCouplingForcesParticle(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FL
   if(ip.momentumCoupl){
 
     particleVol = PI*ent->diam*ent->diam*ent->diam/6.0;
-    particleMass = m_material_disp->rho * particleVol;
-    densityRatio = (fp.rhoCont / m_material_disp->rho);
+    particleMass = mdd->rho * particleVol;
+    densityRatio = (mdc->rho / mdd->rho);
 
     if(fp.numDim==2){
       uxw[0] = 0.0;
@@ -717,20 +720,20 @@ void plas::plas_CalcEntityCoefficients(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_V
 {
   //***Compute flow coefficients***//
 
-  ent->reynolds = plas_CalcDispReynolds(fp.nuCont,ent->diam,ent->normVel);
-  ent->dragCoeff = plas_CalcDragCoeff(m_material_disp->flowtype,ent->reynolds);
-  ent->liftCoeff = plas_CalcLiftCoeff(m_material_disp->flowtype);
-  ent->kinRespTime = plas_CalcKinematicResponseTime(ent);
-  ent->spalding = plas_CalcSpaldingNumber(flow->pressure);
-  ent->prandtl = plas_CalcPrandtlNumber();
-  ent->nusselt = plas_CalcNusseltNumber(ip.evapModel,ent->reynolds,ent->spalding,ent->prandtl);
+  ent->reynolds      = plas_CalcDispReynolds(mdc->mu / mdc->rho,ent->diam,ent->normVel);
+  ent->dragCoeff     = plas_CalcDragCoeff(mdd->flowtype,ent->reynolds);
+  ent->liftCoeff     = plas_CalcLiftCoeff(mdd->flowtype);
+  ent->kinRespTime   = plas_CalcKinematicResponseTime(ent);
+  ent->spalding      = plas_CalcSpaldingNumber(flow->pressure);
+  ent->prandtl       = plas_CalcPrandtlNumber();
+  ent->nusselt       = plas_CalcNusseltNumber(ip.evapModel,ent->reynolds,ent->spalding,ent->prandtl);
   ent->thermRespTime = plas_CalcThermalResponseTime(ent->diam);
-  ent->schmidt = plas_CalcSchmidtNumber();
-  ent->sherwood = plas_CalcSherwoodNumber(ip.evapModel,ent->reynolds,ent->schmidt,ent->spalding);
-  ent->massTrCoeff = plas_CalcMassTransferCoeff(ent->sherwood,ent->spalding);
-  ent->pressBubble = plas_CalcPressBubble(ent->diam,flow->pressure);
-  ent->rhoBubble = plas_CalcRhoBubble(ent->temp, ent->pressBubble);
-  ent->concInterf = plas_CalcConcInterf( ent->pressBubble);
+  ent->schmidt       = plas_CalcSchmidtNumber();
+  ent->sherwood      = plas_CalcSherwoodNumber(ip.evapModel,ent->reynolds,ent->schmidt,ent->spalding);
+  ent->massTrCoeff   = plas_CalcMassTransferCoeff(ent->sherwood,ent->spalding);
+  ent->pressBubble   = plas_CalcPressBubble(ent->diam,flow->pressure);
+  ent->rhoBubble     = plas_CalcRhoBubble(ent->temp, ent->pressBubble);
+  ent->concInterf    = plas_CalcConcInterf( ent->pressBubble);
 }
 
 
@@ -738,11 +741,11 @@ double plas::plas_CalcKinematicResponseTime(LOCAL_ENTITY_VARIABLES *ent)
 {
   double tau = 0.;
 
-  const flowtype_t flowType(m_material_disp->flowtype);
+  const flowtype_t flowType(mdd->flowtype);
   if(flowType==FLOW_PARTIC || flowType==FLOW_DROPLET){
-    tau = 4.0 * m_material_disp->rho * ent->diam*ent->diam/(3.0*fp.muCont*ent->reynolds*ent->dragCoeff);
+    tau = 4.0 * mdd->rho * ent->diam*ent->diam/(3.*mdc->mu*ent->reynolds*ent->dragCoeff);
   } else if(flowType==FLOW_BUBBLY){
-    tau = 2.0*ent->diam*ent->diam/(3.0*fp.nuCont*ent->reynolds*ent->dragCoeff);
+    tau = 2.0*ent->diam*ent->diam/(3. * mdc->mu / mdc->rho * ent->reynolds * ent->dragCoeff);
   }
 
   return tau;
@@ -763,7 +766,7 @@ double plas::plas_CalcMassTransferCoeff(double sherwood, double spalding)
 {
   double omega = log(1.0+spalding);
 
-  return (2.0*(fp.rhoCont / m_material_disp->rho) * m_material_disp->binaryDiffCoeff * sherwood*omega);
+  return (2.0*(mdc->rho / mdd->rho) * mdd->binaryDiffCoeff * sherwood*omega);
 }
 
 
@@ -818,19 +821,19 @@ double plas::plas_CalcNusseltNumber(int evapModel, double reynolds, double spald
 
 double plas::plas_CalcPrandtlNumber()
 {
-  return (fp.muCont*fp.cpCont/fp.kCont);
+  return (mdc->mu * mdc->cp / mdc->k);
 }
 
 
 double plas::plas_CalcPressBubble(double diameter, double pressure)
 {
-  return (pressure - m_material_disp->satPres + 4. * m_material_disp->sig / diameter);
+  return (pressure - mdd->satPres + 4. * mdd->sig / diameter);
 }
 
 
 double plas::plas_CalcRhoBubble(double temperature, double pressBubble)
 {
-  return (m_material_disp->molarMass / (Ru*temperature)*pressBubble);
+  return (mdd->molarMass / (Ru*temperature)*pressBubble);
 }
 
 
@@ -881,7 +884,7 @@ void plas::plas_CalcRotationMatrix_3D(double phi, double **m, int axis)
 
 double plas::plas_CalcSchmidtNumber()
 {
-  return (( m_material_disp->mu *fp.kCont)/( m_material_disp->rho *fp.rhoCont*fp.cpCont));
+  return (( mdd->mu * mdc->k)/( mdd->rho * mdc->rho * mdc->cp));
 }
 
 
@@ -900,23 +903,23 @@ double plas::plas_CalcSherwoodNumber(int evapModel, double reynolds, double schm
 
 double plas::plas_CalcSpaldingNumber(double pressure)
 {
-  if ( m_material_disp->satPres <1.e-20 ||  m_material_disp->molarMass <1.e-20)
+  if ( mdd->satPres <1.e-20 ||  mdd->molarMass <1.e-20)
     return 0.;
 
-  double Y_s = 1.0/(1.0+(pressure/ m_material_disp->satPres -1.0)*(m_material_disp->molarMassVap / m_material_disp->molarMass ));
+  double Y_s = 1.0/(1.0+(pressure/ mdd->satPres -1.0)*(mdd->molarMassVap / mdd->molarMass ));
   return ((Y_s)/(1.0-Y_s));
 }
 
 
 double plas::plas_CalcThermalResponseTime(double diameter)
 {
-  return (1.0/(12.0*fp.kCont))*( m_material_disp->rho *diameter*diameter* m_material_disp->cp );
+  return (1.0/(12. * mdc->k))*( mdd->rho *diameter*diameter* mdd->cp );
 }
 
 
 void plas::plas_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double dtLagr)
 {
-  const flowtype_t flowType(m_material_disp->flowtype);
+  const flowtype_t flowType(mdd->flowtype);
 
   int idim,jdim;
   double
@@ -940,7 +943,7 @@ void plas::plas_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES
 
   // TODO: Concentration definition depends on saturation model
   double alpha = 1.25;
-  double flow_concentration = flow->pressure* m_material_disp->He *alpha;
+  double flow_concentration = flow->pressure* mdd->He *alpha;
 
   //***Initialize data structures (u,v,w,T,d)***//
 
@@ -1011,9 +1014,9 @@ void plas::plas_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES
 
   if(ip.energyCoupl && (flowType==FLOW_PARTIC || flowType==FLOW_DROPLET)){
     convTerm = ent->nusselt/(2.0*ent->thermRespTime);
-    radTerm = (6.0*boltzmann* m_material_disp->eps )/( m_material_disp->rho * m_material_disp->cp *ent->diam);
+    radTerm = (6.0*boltzmann* mdd->eps )/( mdd->rho * mdd->cp *ent->diam);
     if(ip.evapModel && flowType==FLOW_DROPLET){
-      massTerm = (3.0)*(ent->massTrCoeff/pow(ent->diam,2.0))*(m_material_disp->latHeat / m_material_disp->cp );
+      massTerm = (3.0)*(ent->massTrCoeff/pow(ent->diam,2.0))*(mdd->latHeat / mdd->cp );
     } else{
       massTerm = 0.0;
     }
@@ -1034,11 +1037,11 @@ void plas::plas_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES
   //***Concentration Boundary Layer Model Payvar for bubble growth and Epstein & Plesset for Bubble shrink
 
   if(ip.saturModel && flowType==FLOW_BUBBLY ){
-   concTerm  = 4.0 * m_material_disp->massDiffCoeff * fp.rhoCont * (flow_concentration-ent->concInterf)/(ent->rhoBubble*(fp.rhoCont-ent->concInterf));
+   concTerm  = 4.0 * mdd->massDiffCoeff * mdc->rho * (flow_concentration-ent->concInterf)/(ent->rhoBubble*(mdc->rho - ent->concInterf));
 
     if(flow_concentration > ent->concInterf){
-      rhsvec[fp.numDim+1] += concTerm/ent->diam*(1.0+1.0/(pow(1.0+(flow_concentration-fp.rhoCont)/(ent->concInterf-flow_concentration)*(ent->rhoBubble/fp.rhoCont)*(1.0-( m_material_disp->rho /ent->rhoBubble)*pow(2.0e-5/ent->diam,3.0)),0.5)-1.0));
-      mat[fp.numDim+1][fp.numDim+1] -= concTerm*((1.0/(ent->diam+eps)+1.0/((ent->diam+eps)*pow(1.0+(flow_concentration-fp.rhoCont)/(ent->concInterf-flow_concentration)*(ent->rhoBubble/fp.rhoCont)*(1.0-( m_material_disp->rho /ent->rhoBubble)*pow(2.0e-5/(ent->diam+eps),3.0)),0.5)-1.0))-(1.0/ent->diam+1.0/(ent->diam*pow(1.0+(flow_concentration-fp.rhoCont)/(ent->concInterf-flow_concentration)*(ent->rhoBubble/fp.rhoCont)*(1.0-( m_material_disp->rho /ent->rhoBubble)*pow(2.0e-5/ent->diam,3.0)),0.5)-1.0)))/eps;
+      rhsvec[fp.numDim+1] += concTerm/ent->diam*(1.0+1.0/(pow(1.0+( flow_concentration - mdc->rho )/(ent->concInterf-flow_concentration)*( ent->rhoBubble / mdc->rho )*(1.0-( mdd->rho /ent->rhoBubble)*pow(2.0e-5/ent->diam,3.0)),0.5)-1.0));
+      mat[fp.numDim+1][fp.numDim+1] -= concTerm*((1.0/(ent->diam+eps)+1.0/((ent->diam+eps)*pow(1.0+(flow_concentration - mdc->rho)/(ent->concInterf-flow_concentration)*(ent->rhoBubble / mdc->rho)*(1.0-( mdd->rho /ent->rhoBubble)*pow(2.0e-5/(ent->diam+eps),3.0)),0.5)-1.0))-(1.0/ent->diam+1.0/(ent->diam*pow(1.0+(flow_concentration - mdc->rho)/(ent->concInterf-flow_concentration)*(ent->rhoBubble / mdc->rho)*(1.0-( mdd->rho /ent->rhoBubble)*pow(2.0e-5/ent->diam,3.0)),0.5)-1.0)))/eps;
 
       }else{
       rhsvec[fp.numDim+1] += concTerm/ent->diam;
@@ -1167,7 +1170,7 @@ int plas::plas_Coalescence(double dj, double di, double *uijRelPrPr, double *x, 
   double Cc = 0.5;
   double sigma = 0.06;
   double Rij = 2.0*1/(2/dj+2/di);
-  double T = sqrt(Rij*Rij*Rij*fp.rhoCont/(16*sigma))*log(h0/hf);
+  double T = sqrt(Rij*Rij*Rij * mdc->rho/(16*sigma))*log(h0/hf);
   double Tau_ij = Cc*Rij/uijRelPrPr[0];
   int idim,isCoal;
   double diStar;
@@ -1396,8 +1399,8 @@ void plas::plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double 
 
     //***Sliding or non-sliding collision***//
 
-    Mi =  m_material_disp->rho *PI*(dj/2.0)*(dj/2.0);
-    Mj =  m_material_disp->rho *PI*(dj/2.0)*(dj/2.0);
+    Mi =  mdd->rho *PI*(dj/2.0)*(dj/2.0);
+    Mj =  mdd->rho *PI*(dj/2.0)*(dj/2.0);
     Jx = -(1.0-e)*uiPrPr[1]*(Mi*Mj)/(Mi+Mj);
     length = plas_CalcVectorLength(fp.numDim,uijRel);
 
@@ -1623,8 +1626,8 @@ void plas::plas_ImposeProductionDomains()
 
       //***Calculate mass of generated entity***//
       const double mass =
-        (fp.numDim==2?  m_material_disp->rho *PI*newDiam[bCtr]*newDiam[bCtr]              /4. :
-        (fp.numDim==3?  m_material_disp->rho *PI*newDiam[bCtr]*newDiam[bCtr]*newDiam[bCtr]/6. :
+        (fp.numDim==2?  mdd->rho *PI*newDiam[bCtr]*newDiam[bCtr]              /4. :
+        (fp.numDim==3?  mdd->rho *PI*newDiam[bCtr]*newDiam[bCtr]*newDiam[bCtr]/6. :
                        0. ));
 
       rp.massResid[ipd] -= mass;
@@ -2042,7 +2045,7 @@ void plas::plas_ReadParameters(const XMLNode& x)
   ip.writeStatsFilename   = x.getAttribute< std::string >("output.statistics","plas.txt");
   ip.writeTecplotFilename = x.getAttribute< std::string >("output.results","plas.plt");
 
-  m_material_disp = m::Create< plas_material >(x.getAttribute< std::string >("entities.material","air"));
+  mdd = m::Create< PLAS_MATERIAL_DATA >(x.getAttribute< std::string >("entities.material","air"));
 
   // apply corrections and set additional paramters
   ip.iniDiamType = (e_ddist=="constant"?   0 :

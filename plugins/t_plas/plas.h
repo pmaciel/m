@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 #include "ext/xmlParser.h"
-#include "plas_material.h"
 
 
 /// Preprocessor constants
@@ -30,9 +29,21 @@
 #ifndef PI
 #define PI 3.14159265
 #endif
+#ifndef Ru
+#define Ru 8314.472
+#endif
 
 
-/// Available quantities
+/**
+ * type of flow associated to the dispersed phase material
+ * (particle, droplet, bubble)
+ */
+enum flowtype_t { FLOW_PARTIC=1, FLOW_DROPLET, FLOW_BUBBLY };
+
+
+/**
+ * Available quantities
+ */
 enum PLAS_QUANTITY {
   COORD_X,       COORD_Y,       COORD_Z,
 
@@ -132,11 +143,6 @@ struct PLAS_FLOWSOLVER_PARAM
   int numNod;           // Number of nodes
   int numElm;           // Number of elements
   int numBnd;           // Number of boundaries
-  double rhoCont;       // Primary phase density
-  double muCont;        // Primary phase viscosity
-  double nuCont;        // Primary phase kinematic viscosity
-  double cpCont;        // Specific heat coefficient of the flow medium
-  double kCont;         // Thermal conductivity of the flow medium
   double dtEul;         // Eulerian time scale
   double minElmVolume;  // Smallest element volume (in 2D: area) in the domain
   double maxElmVolume;  // Largest element volume (in 2D: area) in the domain
@@ -155,6 +161,7 @@ struct PLAS_RUNTIME_PARAM
   double *massResid;      // Mass flux residual
   double wallElasticity;  // Elasticity factor for wall bounces
 };
+
 
 /// Entity element data structures
 struct ENTITY_ELEMENT_DATA
@@ -241,6 +248,44 @@ struct LOCAL_FLOW_VARIABLES
   double
     pressure,  // Local instantaneous flow pressure
     temp;      // Local instantaneous flow temperature
+};
+
+
+
+/**
+ * structure to hold material physical properties
+ */
+struct PLAS_MATERIAL_DATA
+{
+  // methods
+  PLAS_MATERIAL_DATA() : T(273.15/*K*/), p(101325./*Pa*/) {}
+  virtual void update(double _T, double _p) { T=_T; p=_p; }
+
+  // independent physical properties
+  double
+    T,
+    p;
+  flowtype_t flowtype;  // type of flow (particle, droplet, bubble)
+
+  // generic (dependent) physical properties
+  double
+    rho,  // density
+    mu,   // dynamic viscosity
+    cp,   // specific heat capacity
+    k;    // thermal conductivity
+
+  // dispersed phase-specific properties
+  double
+    sig,              // surface tension
+    eps,              // emissivity
+    satPres,          // saturation pressure evaluated at surface of entities
+    vapPres,          // vapour pressure
+    latHeat,          // specific latent heat
+    molarMass,        // molar mass
+    molarMassVap,     // molar mass at vapour phase
+    binaryDiffCoeff,  // binary diffusion coefficient
+    massDiffCoeff,    // mass diffusivity for a gas in a liquid
+    He;               // Henry law constant
 };
 
 
@@ -402,7 +447,8 @@ class plas {
   virtual double getQuantity(const PLAS_QUANTITY& Q, int nod) = 0;
 
   /**
-   * Provide Eulerian time scale (tke/disspation) for a node
+   * Provide Eulerian time scale (turbulence kinetic energy over dissipation)
+   * for a node
    * @param[in] nod node index
    * @return Eulerian time scale (k/eps)
    */
@@ -935,8 +981,9 @@ class plas {
   double                *extEntVel;   // Velocities of bubbles coming from external code
   double                *extEntTemp;  // Temperatures of bubbles coming from external code
   double                *extEntDiam;  // Diameters of bubbles coming from external code
-
-  plas_material *m_material_disp;
+  PLAS_MATERIAL_DATA
+    *mdd,                             // Material data, for the dispersed phase
+    *mdc;                             // Material data, for the continuous phase
 
 };
 

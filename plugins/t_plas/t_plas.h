@@ -129,7 +129,6 @@ class t_plas : public m::mtransform,
   std::vector< int >
     m_quantity_idx,
     m_quantityold_idx;
-  plas_material *m_material_cont;
 
   // FIXME refactor!
   s_driver_mesh dmesh;

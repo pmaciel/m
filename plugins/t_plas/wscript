@@ -6,6 +6,15 @@ def configure(conf):
 
 
 def build(bld):
-  bld.stlib(target='plas',   includes=['.','../../mkernel'], source=['plas.cpp','plas_material.cpp'])
-  bld.shlib(target='t_plas', includes=['.','../../mkernel'], source=['t_plas.cpp'], use=['plas'])
+  bld.stlib(
+    target='plas',
+    includes=['.','../../mkernel'],
+    source=[
+      'plas.cpp',
+      'plas_material_database.cpp'] )
+  bld.shlib(
+    target='t_plas',
+    includes=['.','../../mkernel'],
+    source=['t_plas.cpp'],
+    use=['plas'] )
 

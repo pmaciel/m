@@ -3,7 +3,6 @@
 #include "boost/progress.hpp"
 #include "ext/xmlParser.h"
 #include "mfactory.h"
-#include "plas_material.h"
 #include "t_plas.h"
 
 using namespace m;
@@ -63,7 +62,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
 
   dparam.numIter  = dparam.numIter<0? 0      : dparam.numIter;
   dparam.dt       = dparam.dt<=0.?    1.e-12 : dparam.dt;
-  m_material_cont = m::Create< plas_material >(x.getAttribute< std::string >("continuum.material","water"));
+  plas::mdc = m::Create< PLAS_MATERIAL_DATA >(x.getAttribute< std::string >("continuum.material","water"));
   cout << "info: setup plas xml." << endl;
 
 
@@ -643,17 +642,11 @@ void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
   for (size_t i=0; i<m_zinner_props.size(); ++i)
     numElm += m_zinner_props[i].nelems;
 
-  fp->numDim       = M->d();
-  fp->numUnk       = M->d()+2;
-  fp->numNod       = M->n();
-  fp->numElm       = numElm;
-  fp->numBnd       = M->z();
-
-  fp->rhoCont      = m_material_cont->rho;
-  fp->muCont       = m_material_cont->mu;
-  fp->nuCont       = m_material_cont->mu / m_material_cont->rho;
-  fp->cpCont       = m_material_cont->cp;
-  fp->kCont        = m_material_cont->k;
+  fp->numDim = M->d();
+  fp->numUnk = M->d()+2;
+  fp->numNod = M->n();
+  fp->numElm = numElm;
+  fp->numBnd = M->z();
 
   fp->dtEul        = dparam.dt;
   fp->minElmVolume = *std::min_element(dmesh.elmVolumes.begin(),dmesh.elmVolumes.end());
