@@ -62,7 +62,6 @@ void t_plas::transform(GetPot& o, mmesh& m)
 
   dparam.numIter  = dparam.numIter<0? 0      : dparam.numIter;
   dparam.dt       = dparam.dt<=0.?    1.e-12 : dparam.dt;
-  plas::mdc = m::Create< PLAS_MATERIAL_DATA >(x.getAttribute< std::string >("continuum.material","water"));
   cout << "info: setup plas xml." << endl;
 
 
@@ -101,12 +100,12 @@ void t_plas::transform(GetPot& o, mmesh& m)
       s_zoneprops &z = m_zinner_props[iz];
       z.nelems = M->e(iz);
       switch(M->vz[iz].t) {
-      case (FETRIANGLE):      z.e_type = ELM_SIMPLEX; z.e_nfaces = 3; z.e_nnodes = 3; break;
-      case (FEQUADRILATERAL): z.e_type = ELM_QUAD;    z.e_nfaces = 4; z.e_nnodes = 4; break;
-      case (FETETRAHEDRON):   z.e_type = ELM_SIMPLEX; z.e_nfaces = 4; z.e_nnodes = 4; break;
-      case (FEBRICK):         z.e_type = ELM_HEX;     z.e_nfaces = 6; z.e_nnodes = 8; break;
-      case (PRISM3):          z.e_type = ELM_PRISM;   z.e_nfaces = 5; z.e_nnodes = 5; break;
-      case (PYRAMID4):        z.e_type = ELM_PYRAMID; z.e_nfaces = 5; z.e_nnodes = 5; break;
+      case (FETRIANGLE):      z.e_type = ELM_TRIANGLE;    z.e_nfaces = 3; z.e_nnodes = 3; break;
+      case (FEQUADRILATERAL): z.e_type = ELM_QUAD;        z.e_nfaces = 4; z.e_nnodes = 4; break;
+      case (FETETRAHEDRON):   z.e_type = ELM_TETRAHEDRON; z.e_nfaces = 4; z.e_nnodes = 4; break;
+      case (FEBRICK):         z.e_type = ELM_HEX;         z.e_nfaces = 6; z.e_nnodes = 8; break;
+      case (PRISM3):          z.e_type = ELM_PRISM;       z.e_nfaces = 5; z.e_nnodes = 5; break;
+      case (PYRAMID4):        z.e_type = ELM_PYRAMID;     z.e_nfaces = 5; z.e_nnodes = 5; break;
       default: {}
       }
     }
@@ -255,11 +254,11 @@ void t_plas::transform(GetPot& o, mmesh& m)
         plasdriver_GetFaceNodes(iz,ie,f,fnodes);
         const int e_type = m_zinner_props[iz].e_type;
 
-        if (e_type==ELM_SIMPLEX && M->d()==2) {
+        if (e_type==ELM_TRIANGLE) {
           dmesh.elmNorms[e][f][0] = M->vv[1][fnodes[0]] - M->vv[1][fnodes[1]];
           dmesh.elmNorms[e][f][1] = M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]];
         }
-        else if ((e_type==ELM_SIMPLEX && M->d()==3)
+        else if ((e_type==ELM_TETRAHEDRON)
               || (e_type==ELM_PRISM   && f>2)
               || (e_type==ELM_PYRAMID && f>0)) {
           dmesh.elmNorms[e][f][0] =
@@ -316,7 +315,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
     for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie) {
       double &volume = dmesh.elmVolumes[ielm+ie];
 
-      if (m_zinner_props[iz].e_type==ELM_SIMPLEX && M->d()==2){
+      if (m_zinner_props[iz].e_type==ELM_TRIANGLE){
 
         c2[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
         c2[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
@@ -327,7 +326,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
         volume = plasdriver_CalcAreaTriangle(c2);
 
       }
-      else if (m_zinner_props[iz].e_type==ELM_SIMPLEX && M->d()==3){
+      else if (m_zinner_props[iz].e_type==ELM_TETRAHEDRON){
 
         c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
         c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
@@ -584,21 +583,18 @@ void t_plas::plasdriver_GetFaceNodes(int iz, int ie, int face, int *nodes)
   const std::vector< unsigned > &en = M->vz[iz].e2n[ie].n;
 
   switch (m_zinner_props[iz].e_type) {
-  case ELM_SIMPLEX:
-    if (M->d()==2) {
-      switch (face) {
-      case 0: { nodes[0]=en[0]; nodes[1]=en[1]; break; }
-      case 1: { nodes[0]=en[1]; nodes[1]=en[2]; break; }
-      case 2: { nodes[0]=en[2]; nodes[1]=en[0]; break; }
-      }
-    }
-    else if (M->d()==3) {
-      switch (face) {
-      case 0: { nodes[0]=en[1]; nodes[1]=en[0]; nodes[2]=en[2]; break; }
-      case 1: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[3]; break; }
-      case 2: { nodes[0]=en[1]; nodes[1]=en[2]; nodes[2]=en[3]; break; }
-      case 3: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[3]; break; }
-      }
+  case ELM_TRIANGLE:
+    switch (face) {
+    case 0: { nodes[0]=en[0]; nodes[1]=en[1]; break; }
+    case 1: { nodes[0]=en[1]; nodes[1]=en[2]; break; }
+    case 2: { nodes[0]=en[2]; nodes[1]=en[0]; break; }
+    } break;
+  case ELM_TETRAHEDRON:
+    switch (face) {
+    case 0: { nodes[0]=en[1]; nodes[1]=en[0]; nodes[2]=en[2]; break; }
+    case 1: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[3]; break; }
+    case 2: { nodes[0]=en[1]; nodes[1]=en[2]; nodes[2]=en[3]; break; }
+    case 3: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[3]; break; }
     } break;
   case ELM_QUAD:
     switch (face) {

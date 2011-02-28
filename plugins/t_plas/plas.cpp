@@ -547,12 +547,13 @@ void plas::plas_CalcCellwiseData()
       for(idim=0; idim<fp.numDim; idim++){
 
         itype = getElementType(ielm);
-        numElmNodes = (itype==ELM_SIMPLEX? fp.numDim+1 :
-                      (itype==ELM_PRISM?   6 :
-                      (itype==ELM_QUAD?    4 :
-                      (itype==ELM_HEX?     8 :
-                      (itype==ELM_PYRAMID? 5 :
-                                           0 )))));
+        numElmNodes = (itype==ELM_TRIANGLE?    3 :
+                      (itype==ELM_TETRAHEDRON? 4 :
+                      (itype==ELM_PRISM?       6 :
+                      (itype==ELM_QUAD?        4 :
+                      (itype==ELM_HEX?         8 :
+                      (itype==ELM_PYRAMID?     5 :
+                                               0 ))))));
 
         xi = yi = xixi = xiyi = 0.0;
         for(jdim=0; jdim<numElmNodes; jdim++){
@@ -1905,22 +1906,31 @@ void plas::plas_RandomInitialDistribution()
 
     //***Random position according to element type***//
 
-    if(getElementType(ent.elm)==ELM_SIMPLEX){
+    if(getElementType(ent.elm)==ELM_TRIANGLE){
+
+      rand1 = plas_RandomDouble();
+      rand2 = (1.0-rand1)*plas_RandomDouble();
+      for (idim=0; idim<fp.numDim; ++idim) {
+        ent.pos[idim] = plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
+          + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]))
+          + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]));
+      }
+
+    }
+    else if(getElementType(ent.elm)==ELM_TETRAHEDRON) {
 
       rand1 = plas_RandomDouble();
       rand2 = (1.0-rand1)*plas_RandomDouble();
       rand3 = (1.0-rand1-rand2)*plas_RandomDouble();
-      for(idim=0; idim<fp.numDim; idim++){
+      for (idim=0; idim<fp.numDim; ++idim) {
         ent.pos[idim] = plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
           + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]))
-          + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]));
-        if(fp.numDim==3){
-          ent.pos[idim] +=
-            rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]));
-        }
+          + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]))
+          + rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]));
       }
 
-    } else if(getElementType(ent.elm)==ELM_PRISM){
+    }
+    else if(getElementType(ent.elm)==ELM_PRISM) {
 
       rand1 = plas_RandomDouble();
       rand2 = (1.0-rand1)*plas_RandomDouble();
@@ -2044,8 +2054,8 @@ void plas::plas_ReadParameters(const XMLNode& x)
 
   ip.writeStatsFilename   = x.getAttribute< std::string >("output.statistics","plas.txt");
   ip.writeTecplotFilename = x.getAttribute< std::string >("output.results","plas.plt");
-
-  mdd = m::Create< PLAS_MATERIAL_DATA >(x.getAttribute< std::string >("entities.material","air"));
+  mdd = m::Create< PLAS_MATERIAL_DATA >(x.getAttribute< std::string >("entities.material", "air"  ));
+  mdc = m::Create< PLAS_MATERIAL_DATA >(x.getAttribute< std::string >("continuum.material","water"));
 
   // apply corrections and set additional paramters
   ip.iniDiamType = (e_ddist=="constant"?   0 :
@@ -2172,16 +2182,18 @@ void plas::plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent)
 {
   // set number of nodes/faces according to element type
   const int type = getElementType(ent->elm);
-  ent->edata.numElmNodes = (type==ELM_SIMPLEX? numDim+1 :
-                           (type==ELM_PRISM?   6 :
-                           (type==ELM_QUAD?    4 :
-                           (type==ELM_HEX?     8 :
-                           (type==ELM_PYRAMID? 5 : 0 )))));
-  ent->edata.numElmFaces = (type==ELM_SIMPLEX? numDim+1 :
-                           (type==ELM_PRISM?   5 :
-                           (type==ELM_QUAD?    4 :
-                           (type==ELM_HEX?     6 :
-                           (type==ELM_PYRAMID? 5 : 0 )))));
+  ent->edata.numElmNodes = (type==ELM_TRIANGLE?    3 :
+                           (type==ELM_TETRAHEDRON? 4 :
+                           (type==ELM_PRISM?       6 :
+                           (type==ELM_QUAD?        4 :
+                           (type==ELM_HEX?         8 :
+                           (type==ELM_PYRAMID?     5 : 0 ))))));
+  ent->edata.numElmFaces = (type==ELM_TRIANGLE?    3 :
+                           (type==ELM_TETRAHEDRON? 4 :
+                           (type==ELM_PRISM?       5 :
+                           (type==ELM_QUAD?        4 :
+                           (type==ELM_HEX?         6 :
+                           (type==ELM_PYRAMID?     5 : 0 ))))));
 
   // set nodes of the element assigned to a dispersed entity
   for (int inod=0; inod<ent->edata.numElmNodes; ++inod)

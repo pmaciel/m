@@ -20,11 +20,12 @@
 #define COLL_UNCORRELATED 1
 #define COLL_CORRELATED   2
 
-#define ELM_SIMPLEX       1
-#define ELM_PRISM         2
-#define ELM_QUAD          3
-#define ELM_HEX           4
-#define ELM_PYRAMID       5
+#define ELM_TRIANGLE      1
+#define ELM_TETRAHEDRON   2
+#define ELM_PRISM         3
+#define ELM_QUAD          4
+#define ELM_HEX           5
+#define ELM_PYRAMID       6
 
 #ifndef PI
 #define PI 3.14159265
@@ -46,15 +47,12 @@ enum flowtype_t { FLOW_PARTIC=1, FLOW_DROPLET, FLOW_BUBBLY };
  */
 enum PLAS_QUANTITY {
   COORD_X,       COORD_Y,       COORD_Z,
-
   PRESSURE,
   TEMPERATURE,
   VELOCITY_X,    VELOCITY_Y,    VELOCITY_Z,
-
   VELOCITY_X_DX, VELOCITY_X_DY, VELOCITY_X_DZ,
   VELOCITY_Y_DX, VELOCITY_Y_DY, VELOCITY_Y_DZ,
   VELOCITY_Z_DX, VELOCITY_Z_DY, VELOCITY_Z_DZ,
-
   ALL_QUANTITIES
 };
 
