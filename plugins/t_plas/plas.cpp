@@ -47,15 +47,9 @@ void plas::initialize(const XMLNode& x)
   }
 
 
-  //***Initialize fixed runtime parameters***//
-  rp.lagrTimeFactor = 0.3;
-  rp.errTol         = 1e-6;
-  rp.wallElasticity = 1.;
-
-
   //***Initialize variable runtime parameters***//
   if (ip.numProdDom>0)
-    rp.massResid = new double[ip.numProdDom];
+    massResid = new double[ip.numProdDom];
 
 
   //***Initialize material data from database***//
@@ -192,9 +186,9 @@ void plas::run()
 
 
       //***Determine Lagrangian time step size***//
-      entVel   = std::max(rp.errTol, plas_CalcVectorLength(fp.numDim,&ent.vel[0]) );
-      cellSize = std::max(rp.errTol, pow(getElmVol(ent.elm),(1.0/fp.numDim)) );
-      dtLagr   = std::min(dtRemaining, rp.lagrTimeFactor*(cellSize/entVel) );
+      entVel   = std::max(ip.errTol, plas_CalcVectorLength(fp.numDim,&ent.vel[0]) );
+      cellSize = std::max(ip.errTol, pow(getElmVol(ent.elm),(1./fp.numDim)) );
+      dtLagr   = std::min(dtRemaining, ip.lagrTimeFactor*(cellSize/entVel) );
       dtRemaining -= dtLagr;
       subIter++;
 
@@ -220,7 +214,7 @@ void plas::run()
 
 
       //***Check for evaporated, burned or collapsed entity***//
-      if(ent.diam<rp.errTol){
+      if (ent.diam<ip.errTol) {
         ent.flag = DFLAG_DISABLED;
       }
 
@@ -242,7 +236,7 @@ void plas::run()
           if (plas_FindExitFace(fp.numBnd,fp.numDim,&ent,&ibnd,&ifac) && getWallBndFlag(ibnd)) {
 
             // perform wall bounce
-            plas_WallBounce(fp.numDim,rp.wallElasticity,&ent,ibnd,ifac);
+            plas_WallBounce(fp.numDim,ip.wallElasticity,&ent,ibnd,ifac);
             sd.bounce++;
             ent.flag = DFLAG_ENABLED;
 
@@ -376,7 +370,7 @@ plas::~plas()
     delete[] ip.prodParam;
     delete[] ip.prodDom;
     delete[] ip.massFluxes;
-    delete[] rp.massResid;
+    delete[] massResid;
   }
 }
 
@@ -798,7 +792,8 @@ void plas::plas_CalcNodeImpactFactors(const LOCAL_ENTITY_VARIABLES *ent, double 
       distance[jdim] = plas_getQuantity(COORD_X+jdim,inod)-ent->pos[jdim];
     }
     imp[idim] = plas_CalcVectorLength(fp.numDim,distance);
-    if(imp[idim]<rp.errTol){imp[idim] = rp.errTol;}
+    if (imp[idim]<ip.errTol)
+      imp[idim] = ip.errTol;
     sum += 1.0/imp[idim];
   }
 
@@ -1610,8 +1605,9 @@ void plas::plas_ImposeProductionDomains()
     if(ip.prodDom[ipd]==0){continue;}
 
     //***Accumulate produced secondary phase mass***//
-    rp.massResid[ipd] += ip.massFluxes[ipd]*fp.dtEul;
-    if(rp.massResid[ipd]<=0.0){continue;}
+    massResid[ipd] += ip.massFluxes[ipd]*fp.dtEul;
+    if (massResid[ipd]<=0.)
+      continue;
 
     //***Copy production parameters to local data structure***//
     for(idim=0; idim<3; idim++){
@@ -1620,7 +1616,7 @@ void plas::plas_ImposeProductionDomains()
     }
 
     //***Iteratively generate entities according to mass flux***//
-    for (; rp.massResid[ipd]>0. && bCtr<ip.numMaxEnt; ++bCtr) {
+    for (; massResid[ipd]>0. && bCtr<ip.numMaxEnt; ++bCtr) {
 
       //***Set diameter***//
       newDiam[bCtr] = plas_SetDiameter();
@@ -1631,7 +1627,7 @@ void plas::plas_ImposeProductionDomains()
         (fp.numDim==3?  mdd->rho *PI*newDiam[bCtr]*newDiam[bCtr]*newDiam[bCtr]/6. :
                        0. ));
 
-      rp.massResid[ipd] -= mass;
+      massResid[ipd] -= mass;
 
       //***Compute position***//
       if(ip.prodDom[ipd]==1){
@@ -1660,9 +1656,8 @@ void plas::plas_ImposeProductionDomains()
           for(idim=0; idim<fp.numDim; idim++){
             s = 2.0*plas_RandomDouble()-1.0;
             newPos[fp.numDim*bCtr+idim] = p1[idim]+s*p2[idim];
-            if(p2[idim]>rp.errTol){
+            if (p2[idim]>ip.errTol)
               p += (newPos[fp.numDim*bCtr+idim]-p1[idim])*(newPos[fp.numDim*bCtr+idim]-p1[idim])/(p2[idim]*p2[idim]);
-            }
           }
         } while(p>1.0);
       }
@@ -2057,6 +2052,11 @@ void plas::plas_ReadParameters(const XMLNode& x)
   mdd = m::Create< PLAS_MATERIAL_DATA >(x.getAttribute< std::string >("entities.material", "air"  ));
   mdc = m::Create< PLAS_MATERIAL_DATA >(x.getAttribute< std::string >("continuum.material","water"));
 
+  ip.lagrTimeFactor = x.getAttribute< double >("lagrangeantimefactor",0.3);
+  ip.errTol         = x.getAttribute< double >("errortolerance",      1.e-6);
+  ip.wallElasticity = x.getAttribute< double >("wallelasticity",      1.);
+
+
   // apply corrections and set additional paramters
   ip.iniDiamType = (e_ddist=="constant"?   0 :
                    (e_ddist=="normal"?     1 :
@@ -2111,7 +2111,7 @@ void plas::plas_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent)
     plas_FindMinimumElementFaceDistance(fp.numDim,ent,&eface,&dist);
 
     // in case the minimum distance is positive, the element is found
-    elmFound = (dist > 0. - rp.errTol);
+    elmFound = (dist > 0. - ip.errTol);
 
     if (!elmFound) {
       // search the neighbour element in direction of the minimum face distance
@@ -2173,7 +2173,7 @@ double plas::plas_SetDiameter()
 
     }
   }
-  while (diameter<rp.errTol);
+  while (diameter<ip.errTol);
   return diameter;
 }
 

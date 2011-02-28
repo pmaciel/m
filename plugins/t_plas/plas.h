@@ -126,6 +126,11 @@ struct PLAS_INPUT_PARAM
   int evapModel;           // Flag: Evaporation model (only for droplet flow)
   int saturModel;          // Flag: Saturation model (only for bubbly flow)
   double gravVec[3];       // Gravity vector
+
+  double lagrTimeFactor;   // Lagrangian time factor (constant)
+  double errTol;           // Error tolerance
+  double wallElasticity;   // Elasticity factor for wall bounces
+
   std::string
     writeStatsFilename,    // Write output statistics filename
     writeTecplotFilename;  // Write output tecplot filename
@@ -135,7 +140,7 @@ struct PLAS_INPUT_PARAM
 /// Data to be set by the flow solver
 struct PLAS_FLOWSOLVER_PARAM
 {
-  //***To be set on initialization (see interface function below)***//
+  // to be set on initialization
   int numDim;           // Number of space dimensions
   int numUnk;           // Number of unknown variables for the primary phase flow
   int numNod;           // Number of nodes
@@ -145,19 +150,9 @@ struct PLAS_FLOWSOLVER_PARAM
   double minElmVolume;  // Smallest element volume (in 2D: area) in the domain
   double maxElmVolume;  // Largest element volume (in 2D: area) in the domain
 
-  //***To be set on every iteration (see interface function below)***//
+  // to be set on every iteration (see interface function below)
   int iter;             // Current iteration
   double time;          // Current time
-};
-
-
-/// Internal PLaS runtime variables
-struct PLAS_RUNTIME_PARAM
-{
-  double lagrTimeFactor;  // Lagrangian time factor (constant)
-  double errTol;          // Error tolerance
-  double *massResid;      // Mass flux residual
-  double wallElasticity;  // Elasticity factor for wall bounces
 };
 
 
@@ -973,12 +968,12 @@ class plas {
   PLAS_STATS            sd;           // Statistics data structure
   PLAS_INPUT_PARAM      ip;           // Input file parameter structure
   PLAS_FLOWSOLVER_PARAM fp;           // Flowsolver parameter structure
-  PLAS_RUNTIME_PARAM    rp;           // PLaS internal runtime parameter structure
   int                   numExtEnt;    // Number of bubbles coming from external code
   double                *extEntPos;   // Positions of bubbles coming from external code
   double                *extEntVel;   // Velocities of bubbles coming from external code
   double                *extEntTemp;  // Temperatures of bubbles coming from external code
   double                *extEntDiam;  // Diameters of bubbles coming from external code
+  double *massResid;                  // Mass flux residual
   PLAS_MATERIAL_DATA
     *mdd,                             // Material data, for the dispersed phase
     *mdc;                             // Material data, for the continuous phase
