@@ -11,6 +11,7 @@ def build(bld):
     includes=['.','../../mkernel'],
     source=[
       'plas.cpp',
+      'plas_geometry.cpp',
       'plas_material_database.cpp'] )
   bld.shlib(
     target='t_plas',

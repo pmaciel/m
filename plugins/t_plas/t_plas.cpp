@@ -8,12 +8,11 @@
 using namespace m;
 
 
-Register< mtransform,t_plas > mt_plas( 7,
+Register< mtransform,t_plas > mt_plas( 6,
   "-tplas", "[str] filename or string with xml formatted as:",
   "", "<plas",
   "", " iterations=\"[int]\" (default 1)",
   "", " dt=\"[real]\" (default 1.)",
-  "", " material.continuum=\"(air|water|nitrogen)\" (default water)",
   "", " <wall zone=\"[str]\"/> (walls, 1 or more)",
   "", "</plas>" );
 
@@ -57,11 +56,10 @@ void t_plas::transform(GetPot& o, mmesh& m)
   XMLNode x = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"plas")
                                                  : XMLNode::openFileHelper(o_xml.c_str(),"plas");
 
-  dparam.numIter =  x.getAttribute< int    >("iterations",1 );
-  dparam.dt      =  x.getAttribute< double >("dt",        1.);
-
-  dparam.numIter  = dparam.numIter<0? 0      : dparam.numIter;
-  dparam.dt       = dparam.dt<=0.?    1.e-12 : dparam.dt;
+  dparam.numIter = x.getAttribute< int    >("iterations",1 );
+  dparam.dt      = x.getAttribute< double >("dt",        1.);
+  dparam.numIter = dparam.numIter<0? 0      : dparam.numIter;
+  dparam.dt      = dparam.dt<=0.?    1.e-12 : dparam.dt;
   cout << "info: setup plas xml." << endl;
 
 
@@ -145,7 +143,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
       for (int ifac=0; ifac<m_zinner_props[iz].e_nfaces; ++ifac) {
 
         // get nodes in the face
-        plasdriver_GetFaceNodes(iz,ie,ifac,&ifacenodes[0]);
+        plas_getElmFaceNodes(iz,ie,ifac,&ifacenodes[0],&ifacenodes[1],&ifacenodes[2],&ifacenodes[3]);
         std::sort(ifacenodes.begin(),ifacenodes.end());
 
         // get list of searcheable elements (sharing a node), absolute index
@@ -180,7 +178,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
             _e = v_jelem_e[j];
           size_t jelm = v_jelem_elm[j];
           for (int jfac=0; jfac<m_zinner_props[_z].e_nfaces && dmesh.elmNeighbs[ielm][ifac]<0; ++jfac) {
-            plasdriver_GetFaceNodes(_z,_e,jfac,&jfacenodes[0]);
+            plas_getElmFaceNodes(_z,_e,jfac,&jfacenodes[0],&jfacenodes[1],&jfacenodes[2],&jfacenodes[3]);
             std::sort(jfacenodes.begin(),jfacenodes.end());
             dmesh.elmNeighbs[ielm][ifac] = (ielm!=jelm && ifacenodes==jfacenodes? jelm : -1);
           }
@@ -216,7 +214,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
         for (int je=0; je<m_zinner_props[jz].nelems; ++je, ++jelm) {
           if (v_isboudaryelm[jz][je]) {
             for (int jfac=0; jfac<m_zinner_props[jz].e_nfaces; ++jfac) {
-              plasdriver_GetFaceNodes(jz,je,jfac,&jfacenodes[0]);
+              plas_getElmFaceNodes(jz,je,jfac,&jfacenodes[0],&jfacenodes[1],&jfacenodes[2],&jfacenodes[3]);
               std::sort(jfacenodes.begin(),jfacenodes.end());
 
               if (ifacenodes==jfacenodes) {
@@ -251,7 +249,7 @@ void t_plas::transform(GetPot& o, mmesh& m)
       for (int f=0; f<m_zinner_props[iz].e_nfaces; ++f) {
 
         fnodes[0] = fnodes[1] = fnodes[2] = fnodes[3] = -1;
-        plasdriver_GetFaceNodes(iz,ie,f,fnodes);
+        plas_getElmFaceNodes(iz,ie,f,&fnodes[0],&fnodes[1],&fnodes[2],&fnodes[3]);
         const int e_type = m_zinner_props[iz].e_type;
 
         if (e_type==ELM_TRIANGLE) {
@@ -278,8 +276,8 @@ void t_plas::transform(GetPot& o, mmesh& m)
                 *(M->vv[1][fnodes[2]] - M->vv[1][fnodes[0]]));
         }
         else if(e_type==ELM_QUAD) {
-          dmesh.elmNorms[e][f][0] = 2.0*(M->vv[1][fnodes[0]] - M->vv[1][fnodes[1]]);
-          dmesh.elmNorms[e][f][1] = 2.0*(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]]);
+          dmesh.elmNorms[e][f][0] = 2.*(M->vv[1][fnodes[0]] - M->vv[1][fnodes[1]]);
+          dmesh.elmNorms[e][f][1] = 2.*(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]]);
         }
         else if (e_type==ELM_HEX
              || (e_type==ELM_PRISM   && f<=2)
@@ -307,225 +305,6 @@ void t_plas::transform(GetPot& o, mmesh& m)
   cout << "info: recreating: inner element normals." << endl;
 
 
-  cout << "info: recreating: inner element volumes..." << endl;
-  dmesh.elmVolumes.assign(ninnerelm,0.);
-  double c2[3][2], c3[4][3];
-  unsigned ielm = 0;
-  for (size_t iz=0; iz<m_zinner_props.size(); ++iz) {
-    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie) {
-      double &volume = dmesh.elmVolumes[ielm+ie];
-
-      if (m_zinner_props[iz].e_type==ELM_TRIANGLE){
-
-        c2[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c2[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c2[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
-        c2[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
-        c2[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
-        c2[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
-        volume = plasdriver_CalcAreaTriangle(c2);
-
-      }
-      else if (m_zinner_props[iz].e_type==ELM_TETRAHEDRON){
-
-        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
-        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
-        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[1] ];
-        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
-        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
-        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[2] ];
-        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
-        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
-        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
-        volume = plasdriver_CalcVolumeTetra(c3);
-
-      }
-      else if (m_zinner_props[iz].e_type==ELM_QUAD){
-
-        c2[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c2[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c2[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
-        c2[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
-        c2[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
-        c2[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
-        volume = plasdriver_CalcAreaTriangle(c2);
-
-        c2[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c2[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c2[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
-        c2[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
-        c2[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
-        c2[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
-        volume += plasdriver_CalcAreaTriangle(c2);
-
-      }
-      else if (m_zinner_props[iz].e_type==ELM_HEX){
-
-        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
-        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
-        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[1] ];
-        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
-        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
-        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
-        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
-        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
-        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
-        volume = plasdriver_CalcVolumeTetra(c3);
-
-        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
-        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
-        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
-        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[6] ];
-        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[6] ];
-        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[6] ];
-        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
-        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
-        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
-        volume += plasdriver_CalcVolumeTetra(c3);
-
-        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
-        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
-        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
-        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
-        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
-        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[2] ];
-        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[6] ];
-        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[6] ];
-        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[6] ];
-        volume += plasdriver_CalcVolumeTetra(c3);
-
-        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
-        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
-        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
-        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[6] ];
-        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[6] ];
-        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[6] ];
-        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[4] ];
-        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[4] ];
-        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[4] ];
-        volume += plasdriver_CalcVolumeTetra(c3);
-
-        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
-        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
-        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
-        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[6] ];
-        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[6] ];
-        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[6] ];
-        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
-        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
-        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
-        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[7] ];
-        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[7] ];
-        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[7] ];
-        volume += plasdriver_CalcVolumeTetra(c3);
-
-      }
-      else if (m_zinner_props[iz].e_type==ELM_PRISM){
-
-        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
-        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
-        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[1] ];
-        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
-        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
-        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[2] ];
-        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
-        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
-        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
-        volume = plasdriver_CalcVolumeTetra(c3);
-
-        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
-        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
-        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[1] ];
-        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
-        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
-        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
-        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[4] ];
-        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[4] ];
-        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[4] ];
-        volume += plasdriver_CalcVolumeTetra(c3);
-
-        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[4] ];
-        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[4] ];
-        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[4] ];
-        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[5] ];
-        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[5] ];
-        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[5] ];
-        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
-        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
-        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
-        volume += plasdriver_CalcVolumeTetra(c3);
-
-      }
-      else if (m_zinner_props[iz].e_type==ELM_PYRAMID){
-
-        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[1] ];
-        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[1] ];
-        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[1] ];
-        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
-        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
-        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
-        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[4] ];
-        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[4] ];
-        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[4] ];
-        volume = plasdriver_CalcVolumeTetra(c3);
-
-        c3[0][0] = M->vv[0][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][1] = M->vv[1][ M->vz[iz].e2n[ie].n[0] ];
-        c3[0][2] = M->vv[2][ M->vz[iz].e2n[ie].n[0] ];
-        c3[1][0] = M->vv[0][ M->vz[iz].e2n[ie].n[3] ];
-        c3[1][1] = M->vv[1][ M->vz[iz].e2n[ie].n[3] ];
-        c3[1][2] = M->vv[2][ M->vz[iz].e2n[ie].n[3] ];
-        c3[2][0] = M->vv[0][ M->vz[iz].e2n[ie].n[2] ];
-        c3[2][1] = M->vv[1][ M->vz[iz].e2n[ie].n[2] ];
-        c3[2][2] = M->vv[2][ M->vz[iz].e2n[ie].n[2] ];
-        c3[3][0] = M->vv[0][ M->vz[iz].e2n[ie].n[4] ];
-        c3[3][1] = M->vv[1][ M->vz[iz].e2n[ie].n[4] ];
-        c3[3][2] = M->vv[2][ M->vz[iz].e2n[ie].n[4] ];
-        volume += plasdriver_CalcVolumeTetra(c3);
-
-      }
-
-    }
-    ielm += m_zinner_props[iz].nelems;
-  }
-  cout << "info: recreating: inner element volumes." << endl;
-
-
-  cout << "info: recreating: nodal volumes (dual cell)..." << endl;
-  dmesh.nodVolumes.assign(M->n(),0.);
-  for (unsigned n=0; n<M->n(); ++n)
-    for (size_t e=0; e<dmesh.nodElms[n].size(); ++e)
-      dmesh.nodVolumes[n] += dmesh.elmVolumes[dmesh.nodElms[n][e]]/dmesh.nodElms[n].size();
-  cout << "info: recreating: nodal volumes (dual cell)." << endl;
-
-
   cout << "info: recreating data structures from m::mmesh." << endl;
 
 
@@ -541,112 +320,25 @@ void t_plas::transform(GetPot& o, mmesh& m)
 }
 
 
-// This file contains routines to compute the geometry of the
-// mesh used for the steady-state flow solution.
-// This function computes the area of a triangle.
-double t_plas::plasdriver_CalcAreaTriangle(double c[3][2])
-{
-  return c[0][0]*(c[1][1]-c[2][1]) + c[1][0]*(c[2][1]-c[0][1]) + c[2][0]*(c[0][1]-c[1][1]);
-}
-
-
-// This file contains routines to compute the geometry of the
-// mesh used for the steady-state flow solution.
-// This function computes the volume of a tetrahedron.
-double t_plas::plasdriver_CalcVolumeTetra(double c[4][3])
-{
-  double v1[3],v2[3],v3[3],v4[3];
-
-  v1[0] = c[1][0]-c[0][0];
-  v1[1] = c[1][1]-c[0][1];
-  v1[2] = c[1][2]-c[0][2];
-  v2[0] = c[2][0]-c[0][0];
-  v2[1] = c[2][1]-c[0][1];
-  v2[2] = c[2][2]-c[0][2];
-
-  plas_CalcCrossProduct_3D(v3,v1,v2);
-
-  v4[0] = c[3][0]-c[0][0];
-  v4[1] = c[3][1]-c[0][1];
-  v4[2] = c[3][2]-c[0][2];
-
-  return (plas_CalcVectScalarProduct(3,v3,v4)/6.0);
-}
-
-
-// This file contains routines to compute the geometry of the
-// mesh used for the steady-state flow solution.
-// This function gets the nodes of a boundary face.
-void t_plas::plasdriver_GetFaceNodes(int iz, int ie, int face, int *nodes)
-{
-  nodes[0] = nodes[1] = nodes[2] = nodes[3] = -1;
-  const std::vector< unsigned > &en = M->vz[iz].e2n[ie].n;
-
-  switch (m_zinner_props[iz].e_type) {
-  case ELM_TRIANGLE:
-    switch (face) {
-    case 0: { nodes[0]=en[0]; nodes[1]=en[1]; break; }
-    case 1: { nodes[0]=en[1]; nodes[1]=en[2]; break; }
-    case 2: { nodes[0]=en[2]; nodes[1]=en[0]; break; }
-    } break;
-  case ELM_TETRAHEDRON:
-    switch (face) {
-    case 0: { nodes[0]=en[1]; nodes[1]=en[0]; nodes[2]=en[2]; break; }
-    case 1: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[3]; break; }
-    case 2: { nodes[0]=en[1]; nodes[1]=en[2]; nodes[2]=en[3]; break; }
-    case 3: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[3]; break; }
-    } break;
-  case ELM_QUAD:
-    switch (face) {
-    case 0: { nodes[0]=en[0]; nodes[1]=en[1]; break; }
-    case 1: { nodes[0]=en[1]; nodes[1]=en[2]; break; }
-    case 2: { nodes[0]=en[2]; nodes[1]=en[3]; break; }
-    case 3: { nodes[0]=en[3]; nodes[1]=en[0]; break; }
-    } break;
-  case ELM_HEX:
-    switch (face) {
-    case 0: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[5]; nodes[3]=en[4]; break; }
-    case 1: { nodes[0]=en[1]; nodes[1]=en[3]; nodes[2]=en[7]; nodes[3]=en[5]; break; }
-    case 2: { nodes[0]=en[3]; nodes[1]=en[2]; nodes[2]=en[6]; nodes[3]=en[7]; break; }
-    case 3: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[4]; nodes[3]=en[6]; break; }
-    case 4: { nodes[0]=en[1]; nodes[1]=en[0]; nodes[2]=en[2]; nodes[3]=en[3]; break; }
-    case 5: { nodes[0]=en[4]; nodes[1]=en[5]; nodes[2]=en[7]; nodes[3]=en[6]; break; }
-    } break;
-  case ELM_PRISM:
-    switch (face) {
-    case 0: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[4]; nodes[3]=en[3]; break; }
-    case 1: { nodes[0]=en[1]; nodes[1]=en[2]; nodes[2]=en[5]; nodes[3]=en[4]; break; }
-    case 2: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[3]; nodes[3]=en[5]; break; }
-    case 3: { nodes[0]=en[0]; nodes[1]=en[2]; nodes[2]=en[1]; break; }
-    case 4: { nodes[0]=en[3]; nodes[1]=en[4]; nodes[2]=en[5]; break; }
-    } break;
-  case ELM_PYRAMID:
-    switch (face) {
-    case 0: { nodes[0]=en[0]; nodes[1]=en[2]; nodes[2]=en[3]; nodes[3]=en[1]; break; }
-    case 1: { nodes[0]=en[0]; nodes[1]=en[1]; nodes[2]=en[4]; break; }
-    case 2: { nodes[0]=en[1]; nodes[1]=en[3]; nodes[2]=en[4]; break; }
-    case 3: { nodes[0]=en[3]; nodes[1]=en[2]; nodes[2]=en[4]; break; }
-    case 4: { nodes[0]=en[2]; nodes[1]=en[0]; nodes[2]=en[4]; break; }
-    } break;
-  }
-}
-
-
 void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
 {
+  // FIXME remove!
   int numElm = 0;
   for (size_t i=0; i<m_zinner_props.size(); ++i)
     numElm += m_zinner_props[i].nelems;
+  fp->numElm = numElm;
 
+  fp->nInnerElements.assign(M->z(),0);
+  fp->nBoundElements.assign(M->z(),0);
+  for (size_t i=0; i<M->z(); ++i) {
+    fp->nInnerElements[i] = (M->d()==M->d(i)?   M->e(i) : 0);
+    fp->nBoundElements[i] = (M->d()==M->d(i)-1? M->e(i) : 0);
+  }
   fp->numDim = M->d();
   fp->numUnk = M->d()+2;
   fp->numNod = M->n();
-  fp->numElm = numElm;
   fp->numBnd = M->z();
-
-  fp->dtEul        = dparam.dt;
-  fp->minElmVolume = *std::min_element(dmesh.elmVolumes.begin(),dmesh.elmVolumes.end());
-  fp->maxElmVolume = *std::max_element(dmesh.elmVolumes.begin(),dmesh.elmVolumes.end());
+  fp->dtEul  = dparam.dt;
 
   fp->time = 0.;
   fp->iter = 0;

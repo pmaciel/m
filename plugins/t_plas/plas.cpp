@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include "boost/progress.hpp"
 #include "mfactory.h"
 #include "plas.h"
 
@@ -25,6 +26,10 @@ void plas::initialize(const XMLNode& x)
 
   //***Read parameters from input file***//
   plas_ReadParameters(x);
+
+
+  // calculate nodal and elements volume
+  plas_SetupElementsAndNodalVolumes();
 
 
   //***Allocate memory for dispersed phase data***//
@@ -101,7 +106,15 @@ void plas::run()
   sd.nusseltAvg  = 0.;
   sd.subIterAvg  = 0.;
   avgctr         = 0;
-  minCellSize = pow(fp.minElmVolume,(1.0/fp.numDim));
+
+  // find minimum cell size
+  {
+    double min_volumeElm = 1.e99;
+    for (size_t iz=0; iz<volumeElm.size(); ++iz)
+      for  (size_t ie=0; ie<volumeElm[ie].size(); ++ie)
+        min_volumeElm = std::min(min_volumeElm,volumeElm[iz][ie]);
+    minCellSize = pow(min_volumeElm,(1./fp.numDim));
+  }
 
   if(fp.iter==1){
     plas_CalcCellwiseData();
@@ -187,7 +200,7 @@ void plas::run()
 
       //***Determine Lagrangian time step size***//
       entVel   = std::max(ip.errTol, plas_CalcVectorLength(fp.numDim,&ent.vel[0]) );
-      cellSize = std::max(ip.errTol, pow(getElmVol(ent.elm),(1./fp.numDim)) );
+      cellSize = std::max(ip.errTol, pow( volumeElm[ent.zone][ent.elm], 1./fp.numDim) );
       dtLagr   = std::min(dtRemaining, ip.lagrTimeFactor*(cellSize/entVel) );
       dtRemaining -= dtLagr;
       subIter++;
@@ -451,12 +464,9 @@ void plas::plas_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *u
 
 void plas::plas_CalcCellwiseData()
 {
-  int ient,inod,ielm,idim,jdim,itype,numElmNodes=0;
-  double ivol=0,xi,yi,xixi,xiyi,volFracOld[fp.numNod];
-
-
   //***Initialize cellwise secondary phase data***//
-  for(inod=0; inod<fp.numNod; inod++){
+  double volFracOld[fp.numNod];
+  for (int inod=0; inod<fp.numNod; ++inod){
     pd[inod].numDens = 0;
     volFracOld[inod] = pd[inod].volFrac;
     pd[inod].volFrac = 0.0;
@@ -464,29 +474,28 @@ void plas::plas_CalcCellwiseData()
     pd[inod].avgDiam = 0.0;
     pd[inod].stdDiam = 0.0;
     pd[inod].avgRespTime = 0.0;
-    for(idim=0; idim<fp.numDim; idim++){
-      pd[inod].volFracDx[idim] = 0.0;
-      pd[inod].avgVel[idim] = 0.0;
-      pd[inod].stdVel[idim] = 0.0;
+    for (int idim=0; idim<fp.numDim; ++idim) {
+      pd[inod].volFracDx[idim] = 0.;
+      pd[inod].avgVel[idim]    = 0.;
+      pd[inod].stdVel[idim]    = 0.;
     }
   }
 
 
   //***Assemble cellwise data by looping over all active entities***//
-  for(ient=0; ient<ip.numMaxEnt; ient++){
+  for (int ient=0; ient<ip.numMaxEnt; ++ient) {
     if(ed[ient].flag==DFLAG_ENABLED){
-      inod = ed[ient].node;
+      const int inod = ed[ient].node;
       pd[inod].numDens++;
-      if(fp.numDim==2){
-        ivol = PI*ed[ient].diameter*ed[ient].diameter/4.0;
-      } else if(fp.numDim==3){
-        ivol = PI*ed[ient].diameter*ed[ient].diameter*ed[ient].diameter/6.0;
-      }
+
+      const double ivol = (fp.numDim==2? PI*ed[ient].diameter*ed[ient].diameter/4. :
+                          (fp.numDim==3? PI*ed[ient].diameter*ed[ient].diameter*ed[ient].diameter/6. :
+                                         0. ));
       pd[inod].volFrac += ivol/getNodVol(inod);
       pd[inod].avgDiam += ed[ient].diameter;
       pd[inod].avgRespTime += (2.0 * mdd->rho + mdc->rho)
                                    *ed[ient].diameter*ed[ient].diameter/(24.*mdc->mu);
-      for(idim=0; idim<fp.numDim; idim++){
+      for (int idim=0; idim<fp.numDim; ++idim) {
         pd[inod].avgVel[idim] += ed[ient].velocity[idim];
       }
     }
@@ -494,11 +503,11 @@ void plas::plas_CalcCellwiseData()
 
 
   //***Divide averaged quantities by number density***//
-  for(inod=0; inod<fp.numNod; inod++){
+  for (int inod=0; inod<fp.numNod; inod++){
     if(pd[inod].numDens>0){
       pd[inod].avgDiam /= pd[inod].numDens;
       pd[inod].avgRespTime /= pd[inod].numDens;
-      for(idim=0; idim<fp.numDim; idim++){
+      for (int idim=0; idim<fp.numDim; ++idim) {
         pd[inod].avgVel[idim] /= pd[inod].numDens;
       }
     }
@@ -508,21 +517,21 @@ void plas::plas_CalcCellwiseData()
   //***Compute standard deviations of averaged quantities***//
   if(ip.collisionModel){
 
-    for(ient=0; ient<ip.numMaxEnt; ient++){
+    for (int ient=0; ient<ip.numMaxEnt; ++ient) {
       if(ed[ient].flag==DFLAG_ENABLED){
-        inod = ed[ient].node;
+        const int inod = ed[ient].node;
 
         pd[inod].stdDiam += pow(ed[ient].diameter-pd[inod].avgDiam,2.0);
-        for(idim=0; idim<fp.numDim; idim++){
+        for (int idim=0; idim<fp.numDim; ++idim) {
           pd[inod].stdVel[idim] += pow(ed[ient].velocity[idim]-pd[inod].avgVel[idim],2.0);
         }
       }
     }
 
-    for(inod=0; inod<fp.numNod; inod++){
+    for (int inod=0; inod<fp.numNod; inod++){
       if(pd[inod].numDens>0){
         pd[inod].stdDiam = sqrt(pd[inod].stdDiam/pd[inod].numDens);
-        for(idim=0; idim<fp.numDim; idim++){
+        for (int idim=0; idim<fp.numDim; ++idim) {
           pd[inod].stdVel[idim] = sqrt(pd[inod].stdVel[idim]/pd[inod].numDens);
         }
       }
@@ -530,34 +539,32 @@ void plas::plas_CalcCellwiseData()
   }
 
 
-  //***Calculate volume fraction derivatrives in time and space***//
-  if(ip.volfracCoupl){
+  //***Calculate volume fraction derivatives in time and space***//
+  if (ip.volfracCoupl) {
 
-    for(inod=0; inod<fp.numNod; inod++){
+    for (int inod=0; inod<fp.numNod; ++inod) {
       pd[inod].volFracDt = (pd[inod].volFrac-volFracOld[inod])/fp.dtEul;
     }
 
-    for(ielm=0; ielm<fp.numElm; ielm++){
-      for(idim=0; idim<fp.numDim; idim++){
+    for (int iz=0; iz<(int) fp.nInnerElements.size(); ++iz) {
+      for (int ie=0; ie<fp.nInnerElements[iz]; ++ie) {
 
-        itype = getElementType(ielm);
-        numElmNodes = (itype==ELM_TRIANGLE?    3 :
-                      (itype==ELM_TETRAHEDRON? 4 :
-                      (itype==ELM_PRISM?       6 :
-                      (itype==ELM_QUAD?        4 :
-                      (itype==ELM_HEX?         8 :
-                      (itype==ELM_PYRAMID?     5 :
-                                               0 ))))));
+        std::vector< unsigned > en;
+        getElmNodes(iz,ie,en);
+        const double dNElmNodes = (double) en.size();
+        for (int idim=0; idim<fp.numDim; ++idim) {
 
-        xi = yi = xixi = xiyi = 0.0;
-        for(jdim=0; jdim<numElmNodes; jdim++){
-          inod = getElmNode(ielm,jdim);
-          xi += plas_getQuantity(COORD_X+idim,inod);
-          yi += pd[inod].volFrac;
-          xixi += plas_getQuantity(COORD_X+idim,inod)*plas_getQuantity(COORD_X+idim,inod);
-          xiyi += plas_getQuantity(COORD_X+idim,inod)*pd[inod].volFrac;
+          double xi=0., yi=0., xixi=0., xiyi=0.;
+          for (size_t jdim=0; jdim<en.size(); ++jdim) {
+            const int n = (int) en[jdim];
+            xi += plas_getQuantity(COORD_X+idim,n);
+            yi += pd[n].volFrac;
+            xixi += plas_getQuantity(COORD_X+idim,n)*plas_getQuantity(COORD_X+idim,n);
+            xiyi += plas_getQuantity(COORD_X+idim,n)*pd[n].volFrac;
+            pd[n].volFracDx[idim] = (dNElmNodes*xiyi-xi*yi)/(dNElmNodes*xixi-xi*xi);
+          }
+
         }
-        pd[inod].volFracDx[idim] = (numElmNodes*xiyi-xi*yi)/(numElmNodes*xixi-xi*xi);
       }
     }
 
@@ -1072,13 +1079,13 @@ void plas::plas_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES
 
 double plas::plas_CalcVectorAngle(int numDim, double *a, double *b)
 {
-  return acos(plas_CalcVectScalarProduct(numDim,a,b)/(plas_CalcVectorLength(numDim,a)*plas_CalcVectorLength(numDim,b)));
+  return acos(plas_CalcVectorScalarProduct(numDim,a,b)/(plas_CalcVectorLength(numDim,a)*plas_CalcVectorLength(numDim,b)));
 }
 
 
 double plas::plas_CalcVectorLength(int numDim, double *a)
 {
-  return sqrt(plas_CalcVectScalarProduct(numDim,a,a));
+  return sqrt(plas_CalcVectorScalarProduct(numDim,a,a));
 }
 
 
@@ -1096,7 +1103,7 @@ void plas::plas_CalcVectorRotation_3D(double phi, double **m, double *a)
 }
 
 
-double plas::plas_CalcVectScalarProduct(int numDim, double *a, double *b)
+double plas::plas_CalcVectorScalarProduct(int numDim, double *a, double *b)
 {
   if (numDim==2)
     return a[0]*b[0]+a[1]*b[1];
@@ -1121,20 +1128,18 @@ void plas::plas_CalcVorticity(int numDim, LOCAL_FLOW_VARIABLES *flow)
 
 double plas::plas_CalcWallFaceDistance(int numDim, double *pos, int ibnd, int ifac)
 {
-  int idim;
   double posVec[numDim],unitVec[numDim];
 
-  //***Calculate unit normal of boundary segment***//
-
+  // calculate unit normal of boundary segment
   plas_CalcBoundaryUnitNormal(numDim,ibnd,ifac,unitVec);
 
-  //***Calculate and return wall face distance***//
+  // calculate and return wall face distance
+  std::vector< unsigned > fn;
+  getElmNodes(ibnd,ifac,fn);
+  for (int d=0; d<numDim; ++d)
+    posVec[d] = pos[d] - plas_getQuantity(COORD_X+d,(int) fn[0]);
 
-  for(idim=0; idim<numDim; idim++){
-    posVec[idim] = pos[idim]-getBndFaceRefCoord(ibnd,ifac,idim);
-  }
-
-  return plas_CalcVectScalarProduct(numDim,posVec,unitVec);
+  return plas_CalcVectorScalarProduct(numDim,posVec,unitVec);
 }
 
 
@@ -1187,8 +1192,8 @@ int plas::plas_Coalescence(double dj, double di, double *uijRelPrPr, double *x, 
       uiPrPrNew[0] = uiPrPr[0]+Mi/(Mi+Mj);
       uiPrPrNew[1] = uiPrPr[1];
 
-      uiNew[0] = plas_CalcVectScalarProduct(fp.numDim,uiPrPrNew,x);
-      uiNew[1] = plas_CalcVectScalarProduct(fp.numDim,uiPrPrNew,y);
+      uiNew[0] = plas_CalcVectorScalarProduct(fp.numDim,uiPrPrNew,x);
+      uiNew[1] = plas_CalcVectorScalarProduct(fp.numDim,uiPrPrNew,y);
 
     } else if(fp.numDim==3){
 
@@ -1196,9 +1201,9 @@ int plas::plas_Coalescence(double dj, double di, double *uijRelPrPr, double *x, 
       uiPrPrNew[1] = uiPrPr[1];
       uiPrPrNew[2] = uiPrPr[2];
 
-      uiNew[0] = plas_CalcVectScalarProduct(fp.numDim,uiPrPrNew,x);
-      uiNew[1] = plas_CalcVectScalarProduct(fp.numDim,uiPrPrNew,y);
-      uiNew[2] = plas_CalcVectScalarProduct(fp.numDim,uiPrPrNew,z);
+      uiNew[0] = plas_CalcVectorScalarProduct(fp.numDim,uiPrPrNew,x);
+      uiNew[1] = plas_CalcVectorScalarProduct(fp.numDim,uiPrPrNew,y);
+      uiNew[2] = plas_CalcVectorScalarProduct(fp.numDim,uiPrPrNew,z);
     }
 
     di = diStar;
@@ -1339,9 +1344,9 @@ void plas::plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double 
     plas_CalcCrossProduct_3D(yPr,xPr,x);
     plas_CalcCrossProduct_3D(zPr,xPr,yPr);
 
-    pos1Pr[0] = plas_CalcVectScalarProduct(fp.numDim,&ent->pos[0],xPr);
-    pos1Pr[1] = plas_CalcVectScalarProduct(fp.numDim,&ent->pos[0],yPr);
-    pos1Pr[2] = plas_CalcVectScalarProduct(fp.numDim,&ent->pos[0],zPr);
+    pos1Pr[0] = plas_CalcVectorScalarProduct(fp.numDim,&ent->pos[0],xPr);
+    pos1Pr[1] = plas_CalcVectorScalarProduct(fp.numDim,&ent->pos[0],yPr);
+    pos1Pr[2] = plas_CalcVectorScalarProduct(fp.numDim,&ent->pos[0],zPr);
 
     while(L>1){
       Y = plas_RandomDouble();
@@ -1361,9 +1366,9 @@ void plas::plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double 
       pos2Pr[idim] *= (dj+di)/2.0;
     }
 
-    pos2[0] = plas_CalcVectScalarProduct(fp.numDim,pos2Pr,x);
-    pos2[1] = plas_CalcVectScalarProduct(fp.numDim,pos2Pr,y);
-    pos2[2] = plas_CalcVectScalarProduct(fp.numDim,pos2Pr,z);
+    pos2[0] = plas_CalcVectorScalarProduct(fp.numDim,pos2Pr,x);
+    pos2[1] = plas_CalcVectorScalarProduct(fp.numDim,pos2Pr,y);
+    pos2[2] = plas_CalcVectorScalarProduct(fp.numDim,pos2Pr,z);
 
     //***Transform into 3rd coordinate system***//
 
@@ -1383,15 +1388,15 @@ void plas::plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double 
 
     plas_CalcCrossProduct_3D(yPrPr,zPrPr,xPrPr);
 
-    uiPrPr[0] = plas_CalcVectScalarProduct(fp.numDim,ui,xPrPr);
-    uiPrPr[1] = plas_CalcVectScalarProduct(fp.numDim,ui,yPrPr);
-    uiPrPr[2] = plas_CalcVectScalarProduct(fp.numDim,ui,zPrPr);
-    ujPrPr[0] = plas_CalcVectScalarProduct(fp.numDim,uj,xPrPr);
-    ujPrPr[1] = plas_CalcVectScalarProduct(fp.numDim,uj,yPrPr);
-    ujPrPr[2] = plas_CalcVectScalarProduct(fp.numDim,uj,zPrPr);
-    uijRelPrPr[0] = plas_CalcVectScalarProduct(fp.numDim,uijRel,xPrPr);
-    uijRelPrPr[1] = plas_CalcVectScalarProduct(fp.numDim,uijRel,yPrPr);
-    uijRelPrPr[2] = plas_CalcVectScalarProduct(fp.numDim,uijRel,zPrPr);
+    uiPrPr[0] = plas_CalcVectorScalarProduct(fp.numDim,ui,xPrPr);
+    uiPrPr[1] = plas_CalcVectorScalarProduct(fp.numDim,ui,yPrPr);
+    uiPrPr[2] = plas_CalcVectorScalarProduct(fp.numDim,ui,zPrPr);
+    ujPrPr[0] = plas_CalcVectorScalarProduct(fp.numDim,uj,xPrPr);
+    ujPrPr[1] = plas_CalcVectorScalarProduct(fp.numDim,uj,yPrPr);
+    ujPrPr[2] = plas_CalcVectorScalarProduct(fp.numDim,uj,zPrPr);
+    uijRelPrPr[0] = plas_CalcVectorScalarProduct(fp.numDim,uijRel,xPrPr);
+    uijRelPrPr[1] = plas_CalcVectorScalarProduct(fp.numDim,uijRel,yPrPr);
+    uijRelPrPr[2] = plas_CalcVectorScalarProduct(fp.numDim,uijRel,zPrPr);
 
     //***Sliding or non-sliding collision***//
 
@@ -1412,9 +1417,9 @@ void plas::plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double 
     uiPrPrNew[1] = uiPrPr[1]+Jy/Mi;
     uiPrPrNew[2] = uiPrPr[2]+Jz/Mi;
 
-    uiNew[0] = plas_CalcVectScalarProduct(fp.numDim,uiPrPrNew,x);
-    uiNew[1] = plas_CalcVectScalarProduct(fp.numDim,uiPrPrNew,y);
-    uiNew[2] = plas_CalcVectScalarProduct(fp.numDim,uiPrPrNew,z);
+    uiNew[0] = plas_CalcVectorScalarProduct(fp.numDim,uiPrPrNew,x);
+    uiNew[1] = plas_CalcVectorScalarProduct(fp.numDim,uiPrPrNew,y);
+    uiNew[2] = plas_CalcVectorScalarProduct(fp.numDim,uiPrPrNew,z);
 
     sd.coll++;
 
@@ -1463,7 +1468,7 @@ bool plas::plas_FindExitFace(int numBnd, int numDim, LOCAL_ENTITY_VARIABLES *ent
 {
   // loop over boundaries and faces to find the exit face
   for (int ibnd=0; ibnd<numBnd; ibnd++) {
-    for (int ifac=0; ifac<getNumBndFaces(ibnd); ++ifac) {
+    for (int ifac=0; ifac<fp.nBoundElements[ibnd]; ++ifac) {
       if (ent->elm==getBndDomElm(ibnd,ifac) &&
           plas_CalcWallFaceDistance(numDim,&ent->pos[0],ibnd,ifac)<0.) {
         *i = ibnd;
@@ -1489,7 +1494,7 @@ void plas::plas_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARIABLE
       normvec[jdim] = ent->edata.elmNorms[eface][jdim];
     }
     plas_NormalizeVector(numDim,&normvec[0]);
-    const double idist = plas_CalcVectScalarProduct(numDim,&posvec[0],&normvec[0]);
+    const double idist = plas_CalcVectorScalarProduct(numDim,&posvec[0],&normvec[0]);
     if (idist<*dmin) {
       *idx  = eface;
       *dmin = idist;
@@ -1874,11 +1879,20 @@ void plas::plas_RandomInitialDistribution()
   LOCAL_ENTITY_VARIABLES ent(fp.numDim);
   LOCAL_FLOW_VARIABLES flow(fp.numDim);
   int ient,idim;
-  double p,q,rand1,rand2,rand3,rand4,setDiam,elmVolume;
+  double p,q,setDiam;
 
 
   //***Initializations***//
   ip.numIniEnt = (ip.numIniEnt>ip.numMaxEnt? ip.numMaxEnt : ip.numIniEnt);
+
+
+  // find maximum cell size
+  double maxCellSize = 1.e99;
+  {
+    for (size_t iz=0; iz<volumeElm.size(); ++iz)
+      for  (size_t ie=0; ie<volumeElm[ie].size(); ++ie)
+        maxCellSize = std::max(maxCellSize,volumeElm[iz][ie]);
+  }
 
 
   //***Loop over entities to generate***//
@@ -1890,110 +1904,15 @@ void plas::plas_RandomInitialDistribution()
     do{
       ent.elm = plas_RandomInteger(0,fp.numElm-1);
       plas_SetElementGeometry(fp.numDim,&ent);
-      elmVolume = getElmVol(ent.elm);
       p = plas_RandomDouble();
-      q = elmVolume/fp.maxElmVolume;
+      q = volumeElm[ent.zone][ent.elm] / maxCellSize;
     } while(p>q);
 
-    //***Set diameter***//
 
+    // set diameter and random position inside element
     setDiam = plas_SetDiameter();
+    plas_RandomElmPosition(ent.zone,ent.elm,&ent.pos[0]);
 
-    //***Random position according to element type***//
-
-    if(getElementType(ent.elm)==ELM_TRIANGLE){
-
-      rand1 = plas_RandomDouble();
-      rand2 = (1.0-rand1)*plas_RandomDouble();
-      for (idim=0; idim<fp.numDim; ++idim) {
-        ent.pos[idim] = plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
-          + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]))
-          + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]));
-      }
-
-    }
-    else if(getElementType(ent.elm)==ELM_TETRAHEDRON) {
-
-      rand1 = plas_RandomDouble();
-      rand2 = (1.0-rand1)*plas_RandomDouble();
-      rand3 = (1.0-rand1-rand2)*plas_RandomDouble();
-      for (idim=0; idim<fp.numDim; ++idim) {
-        ent.pos[idim] = plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
-          + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]))
-          + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]))
-          + rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]));
-      }
-
-    }
-    else if(getElementType(ent.elm)==ELM_PRISM) {
-
-      rand1 = plas_RandomDouble();
-      rand2 = (1.0-rand1)*plas_RandomDouble();
-      rand3 = plas_RandomDouble();
-
-      for(idim=0; idim<fp.numDim; idim++){
-        ent.pos[idim] = rand3*plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
-          + rand3*rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]))
-          + rand3*rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0]))
-          + (1.0-rand3)*plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])
-          + (1.0-rand3)*rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[4])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3]))
-          + (1.0-rand3)*rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[5])-plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3]));
-      }
-
-    } else if(getElementType(ent.elm)==ELM_QUAD){
-
-      rand1 = plas_RandomDouble();
-      rand2 = plas_RandomDouble();
-      rand3 = plas_RandomDouble();
-
-      for(idim=0; idim<fp.numDim; idim++){
-        ent.pos[idim] = rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
-                      + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])
-                             - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])))
-          + (1.0-rand3)*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])
-                + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])
-                       - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])));
-      }
-
-    } else if(getElementType(ent.elm)==ELM_HEX){
-
-      rand1 = plas_RandomDouble();
-      rand2 = plas_RandomDouble();
-      rand3 = plas_RandomDouble();
-      rand4 = plas_RandomDouble();
-
-      for(idim=0; idim<fp.numDim; idim++){
-        ent.pos[idim] = rand4*(rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
-                      + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[4])
-                             - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])))
-                + (1.0-rand3)*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])
-                      + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[5])
-                             - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1]))))
-          +(1.0-rand4)*(rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])
-                      + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[6])
-                             - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])))
-                + (1.0-rand3)*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])
-                      + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[7])
-                             - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3]))));
-      }
-
-    } else if(getElementType(ent.elm)==ELM_PYRAMID){
-
-      rand1 = plas_RandomDouble();
-      rand2 = plas_RandomDouble();
-      rand3 = plas_RandomDouble();
-      rand4 = plas_RandomDouble();
-
-      for(idim=0; idim<fp.numDim; idim++){
-        ent.pos[idim] = rand4*plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[4])
-        + (1.0-rand4)*(rand3*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])
-                     + rand1*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[1])
-                            - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[0])))
-               + (1.0-rand3)*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2])
-                     + rand2*(plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[3])
-                            - plas_getQuantity(COORD_X+idim,ent.edata.elmNodes[2]))));
-      }
-    }
 
     //***Initialize entity***//
 
@@ -2181,7 +2100,7 @@ double plas::plas_SetDiameter()
 void plas::plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent)
 {
   // set number of nodes/faces according to element type
-  const int type = getElementType(ent->elm);
+  const int type = getElmType(ent->zone,ent->elm);
   ent->edata.numElmNodes = (type==ELM_TRIANGLE?    3 :
                            (type==ELM_TETRAHEDRON? 4 :
                            (type==ELM_PRISM?       6 :
@@ -2196,16 +2115,52 @@ void plas::plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent)
                            (type==ELM_PYRAMID?     5 : 0 ))))));
 
   // set nodes of the element assigned to a dispersed entity
-  for (int inod=0; inod<ent->edata.numElmNodes; ++inod)
-    ent->edata.elmNodes[inod] = getElmNode(ent->elm,inod);
+  std::vector< unsigned > en;
+  getElmNodes(ent->zone,ent->elm,en);
+  for (size_t i=0; i<en.size(); ++i)
+    ent->edata.elmNodes[i] = (int) en[i];
 
   // set faces and normal vectors of the element assigned to a dispersed entity
-  for (int ifac=0; ifac<ent->edata.numElmFaces; ++ifac) {
-    for (int idim=0; idim<numDim; ++idim) {
-      ent->edata.elmFaceVectors[ifac][idim] = getElmFaceMiddlePoint(ent->elm,ifac,idim);
-      ent->edata.elmNorms[ifac][idim] = getElmNormComp(ent->elm,ifac,idim);
+  for (int f=0; f<ent->edata.numElmFaces; ++f) {
+    for (int d=0; d<numDim; ++d) {
+      ent->edata.elmFaceVectors[f][d] = plas_getElmFaceMiddlePoint(ent->zone,ent->elm,f,d);
+      ent->edata.elmNorms      [f][d] = getElmNormComp(ent->elm,f,d);
     }
   }
+}
+
+
+void plas::plas_SetupElementsAndNodalVolumes()
+{
+  screenOutput("calculating element volumes...");
+  volumeElm.resize(fp.nInnerElements.size());
+  {
+    std::vector< unsigned > en;
+    for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
+      if (fp.nInnerElements[iz])
+        volumeElm.resize(fp.nInnerElements[iz]);
+      for (size_t ie=0; ie<(size_t) fp.nInnerElements[iz]; ++ie) {
+        getElmNodes(iz,ie,en);
+        const int et = getElmType(iz,ie);
+        volumeElm[iz][ie] = (et==ELM_TRIANGLE?    plas_CalcSizeTriangle     (en[0],en[1],en[2]) :
+                            (et==ELM_TETRAHEDRON? plas_CalcSizeTetrahedron  (en[0],en[1],en[2],en[3]) :
+                            (et==ELM_PRISM?       plas_CalcSizePrism        (en[0],en[1],en[2],en[3],en[4],en[5]) :
+                            (et==ELM_QUAD?        plas_CalcSizeQuadrilateral(en[0],en[1],en[2],en[3]) :
+                            (et==ELM_HEX?         plas_CalcSizeHexahedron   (en[0],en[1],en[2],en[3],en[4],en[5],en[6],en[7]) :
+                            (et==ELM_PYRAMID?     plas_CalcSizePyramid      (en[0],en[1],en[2],en[3],en[4]) :
+                                                  0. ))))));
+      }
+    }
+  }
+  screenOutput("calculating element volumes.");
+
+
+  screenOutput("calculating nodal volumes (dual cell)...");
+  volumeNod.assign(fp.numNod,0.);
+  for (int n=0; n<fp.numNod; ++n)
+    for (size_t e=0; e<10/*FIXME dmesh.nodElms[n].size()*/; ++e)
+      volumeNod[n] += 10 /*FIXME volume_elm[dmesh.nodElms[n][e]]/dmesh.nodElms[n].size()*/;
+  screenOutput("calculating nodal volumes (dual cell).");
 }
 
 
