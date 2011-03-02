@@ -467,6 +467,15 @@ class plas {
 
 
   /**
+   * Caculate area/length-scaled element face normal
+   * @param[in] element zone index
+   * @param[in] elm element index
+   * @param[in] eface face of the element
+   * @param[out] normal area/length-scaled face normal vector
+   */
+  void plas_CalcElmFaceNormal(const int zone, const int elm, const int eface, double *normal);
+
+  /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes all flow coefficients.
@@ -761,15 +770,6 @@ class plas {
   int plas_getBndDomElm(int bnd, int bface);
 
   /**
-   * Provide component of boundary face normal to PLaS
-   * @param[in] elm element index
-   * @param[in] bface face of the boundary
-   * @param[in] dim coordinate index
-   * @return coordinate of the normal
-   */
-  double plas_getBndFaceNormComp(int bnd, int bface, int dim);
-
-  /**
    * Provide component of element face middle-point vector
    * @param[in] iz element zone
    * @param[in] ie element index in the zone
@@ -819,15 +819,6 @@ class plas {
    */
   int plas_getElmNNodes(const plas_elmtype_t et);
 
-
-  /**
-   * Provide component of element normal to PLaS
-   * @param[in] elm element index
-   * @param[in] eface face of the element
-   * @param[in] dim coordinate index
-   * @return coordinate of the normal
-   */
-  double plas_getElmNormComp(int elm, int eface, int dim);
 
   /**
    * Provide nodal quantity at time step n-1 (previous) to PLaS
@@ -1085,6 +1076,22 @@ class plas {
 
   std::vector< double > volumeNod;                 // nodal volume (dual mesh)
   std::vector< std::vector< double > > volumeElm;  // elements volume
+
+  // inner element faces normal vectors
+  std::vector<        // per (inner) zone
+    std::vector<      // per element
+      std::vector<    // per face
+        std::vector<  // per coordinate
+          double > > > > m_innerelem_normals;
+
+  // boundary elements connection to inner elements
+  struct s_boundtoinner {
+    s_boundtoinner() : inner_iz(-1), inner_ie(-1), inner_if(-1) {}
+    int inner_iz, inner_ie, inner_if;
+  };
+  std::vector<    // per (boundary) zone
+    std::vector<  // per element
+      s_boundtoinner > > m_boundtoelement;
 
 };
 

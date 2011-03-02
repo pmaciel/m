@@ -32,7 +32,7 @@ class t_plas : public m::mtransform,
    double getEulerianTimeScale(int nod){ return 0.; }
    double getOldQuantity      (const plas_quantity_t& Q, const int nod, double *v=NULL, const int d=1) { return getQuantity(Q,nod,v,d); }
    double getQuantity         (const plas_quantity_t& Q, const int nod, double *v=NULL, const int d=1) {
-     if (m_quantity[Q]<=0)
+     if (m_quantity[Q]<0)
        return 0.;
      for (int i=0; i<d && v!=NULL; ++i)
        v[i] = M->vv[ (int)(m_quantity[Q]+i) ][nod];

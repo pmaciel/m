@@ -37,9 +37,6 @@ void plas::initialize(const XMLNode& x)
 
 
 #if 0
-  cout << "info: recreating data structures from m::mmesh..." << endl;
-
-
   cout << "info: recreating: node-to-element connectivity..." << endl;
   dmesh.nodElms.assign(M->n(),std::vector< int >());
   for (size_t iz=0, ielm=0; iz<m_zinner_props.size(); ++iz)
@@ -153,95 +150,38 @@ void plas::initialize(const XMLNode& x)
     }
   }
   cout << "info: recreating: boundary inner elements (to inner elements)." << endl;
-
-
-  cout << "info: recreating: inner element normals..." << endl;
-
-  // allocate by number of (inner) elements, (inner) elements faces
-  dmesh.elmNorms.resize(ninnerelm);
-  for (size_t iz=0, e=0; iz<m_zinner_props.size(); ++iz)
-    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++e)
-      dmesh.elmNorms[e].assign( m_zinner_props[iz].e_nfaces, std::vector< double >(M->d(),0.) );
-
-  // calculate face normals
-  int fnodes[4];
-  for (size_t iz=0, e=0; iz<m_zinner_props.size(); ++iz) {
-    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++e) {
-      for (int f=0; f<m_zinner_props[iz].e_nfaces; ++f) {
-
-        fnodes[0] = fnodes[1] = fnodes[2] = fnodes[3] = -1;
-        plas_getElmFaceNodes(iz,ie,f,&fnodes[0],&fnodes[1],&fnodes[2],&fnodes[3]);
-        const int e_type = m_zinner_props[iz].e_type;
-
-        if (e_type==ELM_TRIANGLE) {
-          dmesh.elmNorms[e][f][0] = M->vv[1][fnodes[0]] - M->vv[1][fnodes[1]];
-          dmesh.elmNorms[e][f][1] = M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]];
-        }
-        else if ((e_type==ELM_TETRAHEDRON)
-              || (e_type==ELM_WEDGE   && f>2)
-              || (e_type==ELM_PYRAMID && f>0)) {
-          dmesh.elmNorms[e][f][0] =
-            0.5*((M->vv[1][fnodes[2]] - M->vv[1][fnodes[0]])
-                *(M->vv[2][fnodes[1]] - M->vv[2][fnodes[0]])
-                -(M->vv[1][fnodes[1]] - M->vv[1][fnodes[0]])
-                *(M->vv[2][fnodes[2]] - M->vv[2][fnodes[0]]));
-          dmesh.elmNorms[e][f][1] =
-            0.5*((M->vv[2][fnodes[2]] - M->vv[2][fnodes[0]])
-                *(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]])
-                -(M->vv[2][fnodes[1]] - M->vv[2][fnodes[0]])
-                *(M->vv[0][fnodes[2]] - M->vv[0][fnodes[0]]));
-          dmesh.elmNorms[e][f][2] =
-            0.5*((M->vv[0][fnodes[2]] - M->vv[0][fnodes[0]])
-                *(M->vv[1][fnodes[1]] - M->vv[1][fnodes[0]])
-                -(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]])
-                *(M->vv[1][fnodes[2]] - M->vv[1][fnodes[0]]));
-        }
-        else if(e_type==ELM_QUAD) {
-          dmesh.elmNorms[e][f][0] = 2.*(M->vv[1][fnodes[0]] - M->vv[1][fnodes[1]]);
-          dmesh.elmNorms[e][f][1] = 2.*(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]]);
-        }
-        else if (e_type==ELM_BRICK
-             || (e_type==ELM_WEDGE   && f<=2)
-             || (e_type==ELM_PYRAMID && f==0)) {
-          dmesh.elmNorms[e][f][0] =
-              ((M->vv[1][fnodes[3]] - M->vv[1][fnodes[0]])
-              *(M->vv[2][fnodes[1]] - M->vv[2][fnodes[0]])
-              -(M->vv[1][fnodes[1]] - M->vv[1][fnodes[0]])
-              *(M->vv[2][fnodes[3]] - M->vv[2][fnodes[0]]));
-          dmesh.elmNorms[e][f][1] =
-              ((M->vv[2][fnodes[3]] - M->vv[2][fnodes[0]])
-              *(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]])
-              -(M->vv[2][fnodes[1]] - M->vv[2][fnodes[0]])
-              *(M->vv[0][fnodes[3]] - M->vv[0][fnodes[0]]));
-          dmesh.elmNorms[e][f][2] =
-              ((M->vv[0][fnodes[3]] - M->vv[0][fnodes[0]])
-              *(M->vv[1][fnodes[1]] - M->vv[1][fnodes[0]])
-              -(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]])
-              *(M->vv[1][fnodes[3]] - M->vv[1][fnodes[0]]));
-        }
-
-      }
-    }
-  }
-  cout << "info: recreating: inner element normals." << endl;
-
-
-  cout << "info: recreating data structures from m::mmesh." << endl;
 #endif
 
 
+  //FIXME urgent: build m_boundtoelement
 
 
+  screenOutput("calculating inner element normals...");
+  {
+    // allocate
+    unsigned long count = 0;
+    m_innerelem_normals.resize(fp.nInnerElements.size());
+    for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
+      if (fp.nInnerElements[iz]) {
+        m_innerelem_normals[iz].resize(fp.nInnerElements[iz]);
+        for (size_t ie=0; ie<fp.nInnerElements[iz]; ++ie) {
+          m_innerelem_normals[iz][ie].assign(
+                plas_getElmNFaces(getElmType(iz,ie)),
+                std::vector< double >(fp.numDim,0.) );
+          count += m_innerelem_normals[iz][ie].size();
+        }
+      }
+    }
 
-
-
-
-
-
-
-
-
-
+    // calculate zone/element/face normals
+    boost::progress_display pbar(count);
+    for (int iz=0; iz<(int) m_innerelem_normals.size(); ++iz)
+      for (int ie=0; ie<(int) m_innerelem_normals[iz].size(); ++ie)
+        for (int f=0; f<(int) m_innerelem_normals[iz][ie].size(); ++f, ++pbar)
+          plas_CalcElmFaceNormal( iz,ie,f, &(m_innerelem_normals[iz][ie][f])[0] );
+  }
+  screenOutput("calculating inner element normals.");
+exit(0);
 
 
 
@@ -688,8 +628,9 @@ void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABL
 void plas::plas_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *unitVec)
 {
   // get normal vector of a boundary face
+  const s_boundtoinner &in = m_boundtoelement[ibnd][ifac];
   for (int idim=0; idim<numDim; ++idim)
-    unitVec[idim] = plas_getBndFaceNormComp(ibnd,ifac,idim);
+    unitVec[idim] = m_innerelem_normals[in.inner_iz][in.inner_ie][in.inner_if][idim];
 
   // divide normal vector components by vector length
   const double length = plas_CalcVectorLength(numDim,unitVec);
@@ -1729,7 +1670,7 @@ void plas::plas_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARIABLE
   for (int eface=0; eface<ent->edata.numElmFaces; ++eface) {
     for (int jdim=0; jdim<numDim; ++jdim) {
       posvec[jdim]  = ent->pos[jdim] - ent->edata.elmFaceVectors[eface][jdim];
-      normvec[jdim] = ent->edata.elmNorms[eface][jdim];
+      normvec[jdim] = m_innerelem_normals[ent->zone][ent->elm][eface][jdim];
     }
     plas_NormalizeVector(numDim,&normvec[0]);
     const double idist = plas_CalcVectorScalarProduct(numDim,&posvec[0],&normvec[0]);
@@ -1769,21 +1710,9 @@ int plas::plas_getBndDomElm(int bnd, int bface)
 }
 
 
-double plas::plas_getBndFaceNormComp(int bnd, int face, int dim)
-{
-  return 0. /*FIXME dmesh.elmNorms[ dmesh.bndDomElms[bnd][face] ][ dmesh.bndFaces[bnd][face] ][ dim ]*/;
-}
-
-
 int plas::plas_getElmNeighbour(int elm, int eface)
 {
   return 0 /*FIXME dmesh.elmNeighbs[elm][eface]*/;
-}
-
-
-double plas::plas_getElmNormComp(int elm, int eface, int dim)
-{
-  return 0. /*FIXME dmesh.elmNorms[elm][eface][dim]*/;
 }
 
 
@@ -2379,7 +2308,7 @@ void plas::plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent)
   for (int f=0; f<ent->edata.numElmFaces; ++f) {
     plas_getElmFaceMiddlePoint(ent->zone,ent->elm,f,&(ent->edata.elmFaceVectors[f])[0]);
     for (int d=0; d<numDim; ++d)
-      ent->edata.elmNorms[f][d] = plas_getElmNormComp(ent->elm,f,d);
+      ent->edata.elmNorms[f][d] = m_innerelem_normals[ent->zone][ent->elm][f][d];
   }
 }
 

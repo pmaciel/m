@@ -238,3 +238,46 @@ int plas::plas_getElmNNodes(const plas_elmtype_t et)
          (et==ELM_PYRAMID?     5 : 0 ))))));
 }
 
+
+void plas::plas_CalcElmFaceNormal(const int zone, const int elm, const int eface, double *normal)
+{
+  // initialize
+  for (int d=0; d<fp.numDim; ++d)
+    normal[d] = 0.;
+  const plas_elmtype_t
+    et = getElmType(zone,elm),
+    ft = plas_getElmFaceType(et,eface);
+  std::vector< int > fn(plas_getElmNNodes(ft),-1);
+  std::vector< std::vector< double > > c(fn.size(),std::vector< double >(fp.numDim,0.));
+
+  // get element nodes and coordinates
+  plas_getElmFaceNodes(zone,elm,eface,&fn[0]);
+  for (size_t i=0; i<fn.size(); ++i)
+    plas_getQuantity(COORD,fn[i],&(c[i])[0],fp.numDim);
+
+  // calculate element face normal
+  if (et==ELM_TRIANGLE) {
+    normal[0] = c[0][1] - c[1][1];
+    normal[1] = c[1][0] - c[0][0];
+  }
+  else if ((et==ELM_TETRAHEDRON)
+        || (et==ELM_WEDGE   && eface>2)
+        || (et==ELM_PYRAMID && eface>0)) {
+    normal[0] = 0.5*((c[2][1] - c[0][1]) * (c[1][2] - c[0][2]) - (c[1][1] - c[0][1]) * (c[2][2] - c[0][2]));
+    normal[1] = 0.5*((c[2][2] - c[0][2]) * (c[1][0] - c[0][0]) - (c[1][2] - c[0][2]) * (c[2][0] - c[0][0]));
+    normal[2] = 0.5*((c[2][0] - c[0][0]) * (c[1][1] - c[0][1]) - (c[1][0] - c[0][0]) * (c[2][1] - c[0][1]));
+  }
+  else if(et==ELM_QUAD) {
+    normal[0] = 2.*(c[0][1] - c[1][1]);
+    normal[1] = 2.*(c[1][0] - c[0][0]);
+  }
+  else if (et==ELM_BRICK
+       || (et==ELM_WEDGE   && eface<=2)
+       || (et==ELM_PYRAMID && eface==0)) {
+    normal[0] = ((c[3][1] - c[0][1]) * (c[1][2] - c[0][2]) -(c[1][1] - c[0][1]) * (c[3][2] - c[0][2]));
+    normal[1] = ((c[3][2] - c[0][2]) * (c[1][0] - c[0][0]) -(c[1][2] - c[0][2]) * (c[3][0] - c[0][0]));
+    normal[2] = ((c[3][0] - c[0][0]) * (c[1][1] - c[0][1]) -(c[1][0] - c[0][0]) * (c[3][1] - c[0][1]));
+  }
+
+}
+
