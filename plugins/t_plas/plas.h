@@ -29,15 +29,15 @@
 
 
 /// type of flow associated to the dispersed phase material
-enum flowtype_t { FLOW_PARTIC=1, FLOW_DROPLET, FLOW_BUBBLY };
+enum plas_flowtype_t { FLOW_PARTIC, FLOW_DROPLET, FLOW_BUBBLY };
 
 
 /// supported element types (following Gambit convention numbering)
-enum elmtype_t { ELM_TRIANGLE=1, ELM_TETRAHEDRON, ELM_PRISM, ELM_QUAD, ELM_HEX, ELM_PYRAMID };
+enum plas_elmtype_t { ELM_UNDEFINED, ELM_TRIANGLE, ELM_TETRAHEDRON, ELM_WEDGE, ELM_QUAD, ELM_BRICK, ELM_PYRAMID, ELM_EDGE, ALL_ELEMENTS };
 
 
 /// Available quantities (coordinates, pressure, temperature, velocity and its spacial derivatives)
-enum PLAS_QUANTITY {
+enum plas_quantity_t {
   COORD_X,       COORD_Y,       COORD_Z,
   PRESSURE,
   TEMPERATURE,
@@ -137,15 +137,13 @@ struct PLAS_FLOWSOLVER_PARAM
   int
     numDim,          // Number of space dimensions
     numUnk,          // Number of unknown variables for the primary phase flow
-    numNod,          // Number of nodes
-    numElm,          // Number of elements
-    numBnd;          // Number of boundaries
+    numNod;          // Number of nodes
   double dtEul;      // Eulerian time scale
-  std::vector< int >
+  std::vector< unsigned >
     nInnerElements,  // number of inner elements, per zone
     nBoundElements;  // number of boundary elements, per zone
 
-  // to be set on every iteration (see interface function below)
+  // updated on calls to plas::run()
   int iter;          // Current iteration
   double time;       // Current time
 };
@@ -255,7 +253,7 @@ struct PLAS_MATERIAL_DATA
   double
     T,
     p;
-  flowtype_t flowtype;  // type of flow (particle, droplet, bubble)
+  plas_flowtype_t flowtype;  // type of flow (particle, droplet, bubble)
 
   // generic (dependent) physical properties
   double
@@ -320,43 +318,12 @@ class plas {
   virtual void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp) = 0;
 
   /**
-   * Set flow solver parameters on time step
-   * @param[in] fp pointer to PLaS data structure
-   */
-  virtual void setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp) = 0;
-
-  /**
-   * Provide neighbour of an element to PLaS
-   * @param[in] elm element index
-   * @param[in] eface face of the element
-   * @return neighbour element index
-   */
-  virtual int getElmNeighbour(int elm, int eface) = 0;
-
-  /**
-   * Provide domain element associated to boundary face to PLaS
-   * @param[in] bnd boundary index
-   * @param[in] bface face of the boundary
-   * @return element index
-   */
-  virtual int getBndDomElm(int bnd, int bface) = 0;
-
-  /**
    * Provide element node indices to PLaS
-   * @param[in] element zone
-   * @param[in] element index in the zone
-   * @param[out] vector with element node indices
+   * @param[in] iz element zone
+   * @param[in] ie element index in the zone
+   * @param[out] enodes element node indices array (preallocated)
    */
-  virtual void getElmNodes(const int iz, const int ie, std::vector< unsigned >& en) = 0;
-
-  /**
-   * Provide component of element normal to PLaS
-   * @param[in] elm element index
-   * @param[in] eface face of the element
-   * @param[in] dim coordinate index
-   * @return coordinate of the normal
-   */
-  virtual double getElmNormComp(int elm, int eface, int dim) = 0;
+  virtual void getElmNodes(const int iz, const int ie, int *enodes) = 0;
 
   /**
    * Provide element type to PLaS
@@ -364,23 +331,7 @@ class plas {
    * @param[in] element index in the zone
    * @return element type
    */
-  virtual int getElmType(const int iz, const int ie) = 0;
-
-  /**
-   * Provide component of boundary face normal to PLaS
-   * @param[in] elm element index
-   * @param[in] bface face of the boundary
-   * @param[in] dim coordinate index
-   * @return coordinate of the normal
-   */
-  virtual double getBndFaceNormComp(int bnd, int bface, int dim) = 0;
-
-  /**
-   * Provide nodal area/volume to PLaS
-   * @param[in] nod node index
-   * @return nodal cell volume
-   */
-  virtual double getNodVol(int nod) = 0;
+  virtual plas_elmtype_t getElmType(const int iz, const int ie) = 0;
 
   /**
    * Provide information about which boundary is a wall to PLaS
@@ -395,7 +346,7 @@ class plas {
    * @param[in] nod node index
    * @return quantity at time step n-1
    */
-  virtual double getOldQuantity(const PLAS_QUANTITY& Q, int nod) = 0;
+  virtual double getOldQuantity(const plas_quantity_t& Q, int nod) = 0;
 
   /**
    * Provide nodal quantity at time step n (current) to PLaS
@@ -403,7 +354,7 @@ class plas {
    * @param[in] nod node index
    * @return quantity at time step n
    */
-  virtual double getQuantity(const PLAS_QUANTITY& Q, int nod) = 0;
+  virtual double getQuantity(const plas_quantity_t& Q, int nod) = 0;
 
   /**
    * Provide Eulerian time scale (turbulence kinetic energy over dissipation)
@@ -696,55 +647,12 @@ class plas {
 
 
   /**
-   * Calculates the size of a triangular prism (volume)
-   * @param[in] n1 element node index 1 (Gambit convention)
-   * @param[in] n2 element node index 2
-   * @param[in] n3 element node index 3
-   * @param[in] n4 element node index 4
-   * @param[in] n5 element node index 5
-   * @param[in] n6 element node index 6
-   * @return volume of the triangular prism
+   * Calculates the size (volume/area) of an element
+   * @param[in] iz element zone
+   * @param[in] ie element index in the zone
+   * @return volume/area of the given element
    */
-  double plas_CalcSizePrism(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4, const unsigned n5, const unsigned n6);
-
-
-  /**
-   * Calculates the size of a quadrilateral (area)
-   * @param[in] n1 element node index 1 (Gambit convention)
-   * @param[in] n2 element node index 2
-   * @param[in] n3 element node index 3
-   * @param[in] n4 element node index 4
-   * @return area of the quadrilateral
-   */
-  double plas_CalcSizeQuadrilateral(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4);
-
-
-  /**
-   * Calculates the size of a hexahedron (volume)
-   * @param[in] n1 element node index 1 (Gambit convention)
-   * @param[in] n2 element node index 2
-   * @param[in] n3 element node index 3
-   * @param[in] n4 element node index 4
-   * @param[in] n5 element node index 5
-   * @param[in] n6 element node index 6
-   * @param[in] n7 element node index 7
-   * @param[in] n8 element node index 8
-   * @return volume of the hexahedron
-   */
-  double plas_CalcSizeHexahedron(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4, const unsigned n5, const unsigned n6, const unsigned n7, const unsigned n8);
-
-
-  /**
-   * Calculates the size of a quadrangular pyramid (volume)
-   * @param[in] n1 element node index 1 (Gambit convention)
-   * @param[in] n2 element node index 2
-   * @param[in] n3 element node index 3
-   * @param[in] n4 element node index 4
-   * @param[in] n5 element node index 5
-   * @return volume of the quadrangular prism
-   */
-  double plas_CalcSizePyramid(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4, const unsigned n5);
-
+  double plas_CalcElmSize(const unsigned iz, const unsigned ie);
 
 
   /**
@@ -818,7 +726,7 @@ class plas {
    * This function finds the index of the boundary face through
    * which an entity left the computational domain.
    */
-  bool plas_FindExitFace(int numBnd, int numDim, LOCAL_ENTITY_VARIABLES *ent, int *i, int *j);
+  bool plas_FindExitFace(LOCAL_ENTITY_VARIABLES *ent, int *i, int *j);
 
 
   /**
@@ -839,38 +747,82 @@ class plas {
    */
   int plas_FindNearestElementNode(LOCAL_ENTITY_VARIABLES *ent);
 
+  /**
+   * Provide domain element associated to boundary face to PLaS
+   * @param[in] bnd boundary index
+   * @param[in] bface face of the boundary
+   * @return element index
+   */
+  int plas_getBndDomElm(int bnd, int bface);
+
+  /**
+   * Provide component of boundary face normal to PLaS
+   * @param[in] elm element index
+   * @param[in] bface face of the boundary
+   * @param[in] dim coordinate index
+   * @return coordinate of the normal
+   */
+  double plas_getBndFaceNormComp(int bnd, int bface, int dim);
 
   /**
    * Provide component of element face middle-point vector
    * @param[in] iz element zone
    * @param[in] ie element index in the zone
    * @param[in] iface element face index
-   * @param[in] dim coordinate index
-   * @return coordinate of the face middle-point
+   * @param[out] coordinates of the face middle-point (preallocated)
    */
-  double plas_getElmFaceMiddlePoint(const int iz, const int ie, const int iface, const int dim);
+  void plas_getElmFaceMiddlePoint(const int iz, const int ie, const int iface, double *fmp);
 
   /**
    * This function gets the nodes of a boundary face of a given element
    * @param[in] iz element zone
    * @param[in] ie element index in the zone
    * @param[in] iface element face index
-   * @param[out] n1 element face first node
-   * @param[out] n2 element face second node
-   * @param[out] n3 element face third node
-   * @param[out] n4 element face fourth node
+   * @param[out] fnodes element face node indices array (preallocated)
+   * @return returned face element type
    */
-  void plas_getElmFaceNodes(const int iz, const int ie, const int iface, int *n1, int *n2, int *n3, int *n4);
+  void plas_getElmFaceNodes(const int iz, const int ie, const int iface, int *fnodes);
+
+  /**
+   * This function gets the face type of a given element
+   * @param[in] element type
+   * @param[in] iface element face index
+   * @return returned face element type
+   */
+  plas_elmtype_t plas_getElmFaceType(const plas_elmtype_t et, const int iface);
+
+  /**
+   * Provide neighbour of an element to PLaS
+   * @param[in] elm element index
+   * @param[in] eface face of the element
+   * @return neighbour element index
+   */
+  int plas_getElmNeighbour(int elm, int eface);
+
+  /**
+   * Provide element number of nodes
+   * @param[in] element type
+   * @return element number of faces
+   */
+  int plas_getElmNFaces(const plas_elmtype_t et);
 
 
   /**
    * Provide element number of nodes
-   * @param[in] element zone
-   * @param[in] element index in the zone
+   * @param[in] element type
    * @return element number of nodes
    */
-  int plas_getElmNNodes(const int iz, const int ie);
+  int plas_getElmNNodes(const plas_elmtype_t et);
 
+
+  /**
+   * Provide component of element normal to PLaS
+   * @param[in] elm element index
+   * @param[in] eface face of the element
+   * @param[in] dim coordinate index
+   * @return coordinate of the normal
+   */
+  double plas_getElmNormComp(int elm, int eface, int dim);
 
   /**
    * Provide nodal quantity at time step n-1 (past) to PLaS
@@ -879,7 +831,7 @@ class plas {
    * @return quantity at time step n
    */
   double plas_getOldQuantity(int q, int nod) {
-    return getOldQuantity(PLAS_QUANTITY(q),nod);
+    return getOldQuantity(plas_quantity_t(q),nod);
   }
 
 
@@ -890,7 +842,7 @@ class plas {
    * @return quantity at time step n
    */
   double plas_getQuantity(int q, int nod) {
-    return getQuantity(PLAS_QUANTITY(q),nod);
+    return getQuantity(plas_quantity_t(q),nod);
   }
 
 
@@ -931,7 +883,7 @@ class plas {
    * @param[in] new factor to weigh the quantity new value with
    * @return quantity interpolated value
    */
-  double plas_InterpolateQuantity(const PLAS_QUANTITY &Q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew);
+  double plas_InterpolateQuantity(const plas_quantity_t &Q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew);
 
 
   /**
@@ -943,7 +895,7 @@ class plas {
    * @return quantity interpolated value
    */
   double plas_InterpolateQuantity(const int &q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew) {
-    return plas_InterpolateQuantity(PLAS_QUANTITY(q),ent,en_impactfactor,fold,fnew);
+    return plas_InterpolateQuantity(plas_quantity_t(q),ent,en_impactfactor,fold,fnew);
   }
 
 
@@ -958,17 +910,15 @@ class plas {
 
 
   /**
-   * This function normalizes a vector to length one.
+   * This function normalizes a vector to length one
    */
   void plas_NormalizeVector(int numDim, double *a);
 
 
   /**
-   * This file contains routines to generate random numbers.
-   *
-   * This functions generates random doubles between 0 and 1.
+   * This function generates random doubles in a given range
    */
-  double plas_RandomDouble();
+  double plas_RandomDouble(double _min=0., double _max=1.);
 
 
   /**

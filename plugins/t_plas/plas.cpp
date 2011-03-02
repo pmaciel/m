@@ -28,6 +28,227 @@ void plas::initialize(const XMLNode& x)
   plas_ReadParameters(x);
 
 
+
+
+
+
+
+#if 0
+  cout << "info: recreating data structures from m::mmesh..." << endl;
+
+
+  cout << "info: recreating: node-to-element connectivity..." << endl;
+  dmesh.nodElms.assign(M->n(),std::vector< int >());
+  for (size_t iz=0, ielm=0; iz<m_zinner_props.size(); ++iz)
+    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++ielm)
+      for (std::vector< unsigned >::const_iterator n=M->vz[iz].e2n[ie].n.begin(); n!=M->vz[iz].e2n[ie].n.end(); ++n)
+        dmesh.nodElms[ *n ].push_back(ielm);
+  cout << "info: recreating: node-to-element connectivity." << endl;
+
+
+  cout << "info: recreating: element-to-element (sharing a face) connectivity..." << endl;
+  dmesh.elmNeighbs.resize(ninnerelm);
+  std::vector< int >
+    ifacenodes(4,-1),
+    jfacenodes(4,-1);
+  std::vector< std::vector< int > > v_isboudaryelm(M->z());
+  boost::progress_display pbar(ninnerelm);
+  for (size_t iz=0, ielm=0; iz<m_zinner_props.size(); ++iz) {
+    if (m_zinner_props[iz].nelems)
+      v_isboudaryelm[iz].assign(m_zinner_props[iz].nelems,0);
+    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++ielm, ++pbar) {
+      dmesh.elmNeighbs[ielm].assign(m_zinner_props[iz].e_nfaces,-1);
+      for (int ifac=0; ifac<m_zinner_props[iz].e_nfaces; ++ifac) {
+
+        // get nodes in the face
+        plas_getElmFaceNodes(iz,ie,ifac,&ifacenodes[0],&ifacenodes[1],&ifacenodes[2],&ifacenodes[3]);
+        std::sort(ifacenodes.begin(),ifacenodes.end());
+
+        // get list of searcheable elements (sharing a node), absolute index
+        std::vector< int > v_ielm;
+        for (std::vector< int >::const_iterator n=ifacenodes.begin(); n!=ifacenodes.end(); ++n)
+          if (*n!=-1)
+            v_ielm.insert(v_ielm.end(),dmesh.nodElms[*n].begin(),dmesh.nodElms[*n].end());
+        sort(v_ielm.begin(),v_ielm.end());
+        v_ielm.erase(unique(v_ielm.begin(),v_ielm.end()),v_ielm.end());
+
+        // convert absolute indices to relative (zone and internal elem. index)
+        std::vector< int >
+          v_jelem_z,
+          v_jelem_e,
+          v_jelem_elm;
+        for (std::vector< int >::const_iterator elm=v_ielm.begin(); elm!=v_ielm.end(); ++elm)
+          for (int jz=0, nelems=0; jz<(int) m_zinner_props.size(); ++jz) {
+            nelems += m_zinner_props[jz].nelems;
+            if (nelems > *elm) {
+              v_jelem_z.push_back(jz);
+              v_jelem_e.push_back(*elm - nelems + m_zinner_props[jz].nelems);
+              v_jelem_elm.push_back(*elm);
+              break;
+            }
+          }
+        v_ielm.clear();
+
+        // find the element with a face with the same nodes but different index
+        for (size_t j=0; j<v_jelem_z.size(); ++j) {
+          const int
+            _z = v_jelem_z[j],
+            _e = v_jelem_e[j];
+          size_t jelm = v_jelem_elm[j];
+          for (int jfac=0; jfac<m_zinner_props[_z].e_nfaces && dmesh.elmNeighbs[ielm][ifac]<0; ++jfac) {
+            plas_getElmFaceNodes(_z,_e,jfac,&jfacenodes[0],&jfacenodes[1],&jfacenodes[2],&jfacenodes[3]);
+            std::sort(jfacenodes.begin(),jfacenodes.end());
+            dmesh.elmNeighbs[ielm][ifac] = (ielm!=jelm && ifacenodes==jfacenodes? jelm : -1);
+          }
+        }
+
+        v_isboudaryelm[iz][ie] += (dmesh.elmNeighbs[ielm][ifac]<0? 1:0);
+      }
+    }
+  }
+  cout << "info: recreating: element-to-element (sharing a face) connectivity." << endl;
+
+
+  cout << "info: recreating: boundary elements (to inner elements)..." << endl;
+  dmesh.bndFaces  .resize(M->z());
+  dmesh.bndDomElms.resize(M->z());
+  pbar.restart(nboundelm);
+  for (unsigned iz=0, ielm=0; iz<m_zbound_props.size(); ++iz) {
+    if (m_zbound_props[iz].nelems) {
+      dmesh.bndFaces  [iz].assign(m_zbound_props[iz].nelems,-1);
+      dmesh.bndDomElms[iz].assign(m_zbound_props[iz].nelems,-1);
+    }
+    for (int ie=0; ie<m_zbound_props[iz].nelems; ++ie, ++ielm, ++pbar) {
+
+      // create digestible face nodes
+      std::vector< int > ifacenodes(4,-1);
+      for (unsigned i=0; i<M->vz[iz].e2n[ie].n.size() && i<4; ++i)
+        ifacenodes[i] = M->vz[iz].e2n[ie].n[i];
+      std::sort(ifacenodes.begin(),ifacenodes.end());
+
+      // create faces to search for
+      std::vector< int > jfacenodes(4);
+      for (size_t jz=0, jelm=0; jz<m_zinner_props.size(); ++jz) {
+        for (int je=0; je<m_zinner_props[jz].nelems; ++je, ++jelm) {
+          if (v_isboudaryelm[jz][je]) {
+            for (int jfac=0; jfac<m_zinner_props[jz].e_nfaces; ++jfac) {
+              plas_getElmFaceNodes(jz,je,jfac,&jfacenodes[0],&jfacenodes[1],&jfacenodes[2],&jfacenodes[3]);
+              std::sort(jfacenodes.begin(),jfacenodes.end());
+
+              if (ifacenodes==jfacenodes) {
+                dmesh.bndFaces  [iz][ie] = jfac;
+                dmesh.bndDomElms[iz][ie] = jelm;
+                --v_isboudaryelm[jz][je];
+                break;
+              }
+
+            }
+          }
+        }
+      }
+
+    }
+  }
+  cout << "info: recreating: boundary inner elements (to inner elements)." << endl;
+
+
+  cout << "info: recreating: inner element normals..." << endl;
+
+  // allocate by number of (inner) elements, (inner) elements faces
+  dmesh.elmNorms.resize(ninnerelm);
+  for (size_t iz=0, e=0; iz<m_zinner_props.size(); ++iz)
+    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++e)
+      dmesh.elmNorms[e].assign( m_zinner_props[iz].e_nfaces, std::vector< double >(M->d(),0.) );
+
+  // calculate face normals
+  int fnodes[4];
+  for (size_t iz=0, e=0; iz<m_zinner_props.size(); ++iz) {
+    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++e) {
+      for (int f=0; f<m_zinner_props[iz].e_nfaces; ++f) {
+
+        fnodes[0] = fnodes[1] = fnodes[2] = fnodes[3] = -1;
+        plas_getElmFaceNodes(iz,ie,f,&fnodes[0],&fnodes[1],&fnodes[2],&fnodes[3]);
+        const int e_type = m_zinner_props[iz].e_type;
+
+        if (e_type==ELM_TRIANGLE) {
+          dmesh.elmNorms[e][f][0] = M->vv[1][fnodes[0]] - M->vv[1][fnodes[1]];
+          dmesh.elmNorms[e][f][1] = M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]];
+        }
+        else if ((e_type==ELM_TETRAHEDRON)
+              || (e_type==ELM_WEDGE   && f>2)
+              || (e_type==ELM_PYRAMID && f>0)) {
+          dmesh.elmNorms[e][f][0] =
+            0.5*((M->vv[1][fnodes[2]] - M->vv[1][fnodes[0]])
+                *(M->vv[2][fnodes[1]] - M->vv[2][fnodes[0]])
+                -(M->vv[1][fnodes[1]] - M->vv[1][fnodes[0]])
+                *(M->vv[2][fnodes[2]] - M->vv[2][fnodes[0]]));
+          dmesh.elmNorms[e][f][1] =
+            0.5*((M->vv[2][fnodes[2]] - M->vv[2][fnodes[0]])
+                *(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]])
+                -(M->vv[2][fnodes[1]] - M->vv[2][fnodes[0]])
+                *(M->vv[0][fnodes[2]] - M->vv[0][fnodes[0]]));
+          dmesh.elmNorms[e][f][2] =
+            0.5*((M->vv[0][fnodes[2]] - M->vv[0][fnodes[0]])
+                *(M->vv[1][fnodes[1]] - M->vv[1][fnodes[0]])
+                -(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]])
+                *(M->vv[1][fnodes[2]] - M->vv[1][fnodes[0]]));
+        }
+        else if(e_type==ELM_QUAD) {
+          dmesh.elmNorms[e][f][0] = 2.*(M->vv[1][fnodes[0]] - M->vv[1][fnodes[1]]);
+          dmesh.elmNorms[e][f][1] = 2.*(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]]);
+        }
+        else if (e_type==ELM_BRICK
+             || (e_type==ELM_WEDGE   && f<=2)
+             || (e_type==ELM_PYRAMID && f==0)) {
+          dmesh.elmNorms[e][f][0] =
+              ((M->vv[1][fnodes[3]] - M->vv[1][fnodes[0]])
+              *(M->vv[2][fnodes[1]] - M->vv[2][fnodes[0]])
+              -(M->vv[1][fnodes[1]] - M->vv[1][fnodes[0]])
+              *(M->vv[2][fnodes[3]] - M->vv[2][fnodes[0]]));
+          dmesh.elmNorms[e][f][1] =
+              ((M->vv[2][fnodes[3]] - M->vv[2][fnodes[0]])
+              *(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]])
+              -(M->vv[2][fnodes[1]] - M->vv[2][fnodes[0]])
+              *(M->vv[0][fnodes[3]] - M->vv[0][fnodes[0]]));
+          dmesh.elmNorms[e][f][2] =
+              ((M->vv[0][fnodes[3]] - M->vv[0][fnodes[0]])
+              *(M->vv[1][fnodes[1]] - M->vv[1][fnodes[0]])
+              -(M->vv[0][fnodes[1]] - M->vv[0][fnodes[0]])
+              *(M->vv[1][fnodes[3]] - M->vv[1][fnodes[0]]));
+        }
+
+      }
+    }
+  }
+  cout << "info: recreating: inner element normals." << endl;
+
+
+  cout << "info: recreating data structures from m::mmesh." << endl;
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // calculate nodal and elements volume
   plas_SetupElementsAndNodalVolumes();
 
@@ -71,6 +292,7 @@ void plas::initialize(const XMLNode& x)
     plas_LoadInitialDistribution(ip.writeTecplotFilename);
   else if (ip.numIniEnt>0)
     plas_RandomInitialDistribution();
+  exit(0);
 
 
   // set output statistics file
@@ -90,7 +312,8 @@ void plas::run()
 
   //***Flow solver parameters that have to be set at every time step***//
   screenOutput("Initialization...");
-  setFlowSolverParamOnTimeStep(&(fp));
+  fp.time += fp.dtEul;
+  ++fp.iter;
 
 
   //***Initializations***//
@@ -246,7 +469,7 @@ void plas::run()
 
         // treat entities that left the domain after unsuccessful element search
         if (ent.flag==DFLAG_LEFT) {
-          if (plas_FindExitFace(fp.numBnd,fp.numDim,&ent,&ibnd,&ifac) && getWallBndFlag(ibnd)) {
+          if (plas_FindExitFace(&ent,&ibnd,&ifac) && getWallBndFlag(ibnd)) {
 
             // perform wall bounce
             plas_WallBounce(fp.numDim,ip.wallElasticity,&ent,ibnd,ifac);
@@ -281,7 +504,7 @@ void plas::run()
 
 
         //***Compute back-coupling terms to flow solver***//
-        const flowtype_t flowType(mdd->flowtype);
+        const plas_flowtype_t flowType(mdd->flowtype);
         if(flowType==FLOW_PARTIC || flowType==FLOW_DROPLET){
           plas_CalcCouplingForcesParticle(&ent,&flow,dtLagr/fp.dtEul);
         } else if (flowType==FLOW_BUBBLY){
@@ -415,7 +638,7 @@ void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABL
   if(ip.momentumCoupl==FORCE_PIC){
 
     inod = ent->node;
-    contVol = getNodVol(ent->node);
+    contVol = volumeNod[ent->node];
     for(idim=0; idim<fp.numDim; idim++){
       pd[ent->node].dispForce[idim+1] -= tFactor*force[idim]*jFrac/((1.0-iFrac)*contVol * mdc->rho);
     }
@@ -425,7 +648,7 @@ void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABL
     plas_CalcNodeImpactFactors(ent,impFac);
     for(idim=0; idim<ent->edata.numElmNodes; idim++){
       inod = ent->edata.elmNodes[idim];
-      contVol = getNodVol(inod);
+      contVol = volumeNod[inod];
       for(jdim=0; jdim<fp.numDim; jdim++){
         pd[inod].dispForce[jdim+1] -= tFactor*impFac[idim]*force[jdim]*jFrac/((1.0-iFrac)*contVol * mdc->rho);
       }
@@ -453,7 +676,7 @@ void plas::plas_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *u
 {
   // get normal vector of a boundary face
   for (int idim=0; idim<numDim; ++idim)
-    unitVec[idim] = getBndFaceNormComp(ibnd,ifac,idim);
+    unitVec[idim] = plas_getBndFaceNormComp(ibnd,ifac,idim);
 
   // divide normal vector components by vector length
   const double length = plas_CalcVectorLength(numDim,unitVec);
@@ -491,7 +714,7 @@ void plas::plas_CalcCellwiseData()
       const double ivol = (fp.numDim==2? PI*ed[ient].diameter*ed[ient].diameter/4. :
                           (fp.numDim==3? PI*ed[ient].diameter*ed[ient].diameter*ed[ient].diameter/6. :
                                          0. ));
-      pd[inod].volFrac += ivol/getNodVol(inod);
+      pd[inod].volFrac += ivol/volumeNod[inod];
       pd[inod].avgDiam += ed[ient].diameter;
       pd[inod].avgRespTime += (2.0 * mdd->rho + mdc->rho)
                                    *ed[ient].diameter*ed[ient].diameter/(24.*mdc->mu);
@@ -546,17 +769,20 @@ void plas::plas_CalcCellwiseData()
       pd[inod].volFracDt = (pd[inod].volFrac-volFracOld[inod])/fp.dtEul;
     }
 
-    for (int iz=0; iz<(int) fp.nInnerElements.size(); ++iz) {
-      for (int ie=0; ie<fp.nInnerElements[iz]; ++ie) {
-
-        std::vector< unsigned > en;
-        getElmNodes(iz,ie,en);
-        const double dNElmNodes = (double) en.size();
+    std::vector< int > en(MAXELMNODES,-1);
+    for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
+      for (size_t ie=0; ie<fp.nInnerElements[iz]; ++ie) {
+        getElmNodes(iz,ie,&en[0]);
+        const double dNElmNodes = (double) plas_getElmNNodes(getElmType(iz,ie));
         for (int idim=0; idim<fp.numDim; ++idim) {
 
-          double xi=0., yi=0., xixi=0., xiyi=0.;
-          for (size_t jdim=0; jdim<en.size(); ++jdim) {
-            const int n = (int) en[jdim];
+          double
+            xi = 0.,
+            yi = 0.,
+            xixi = 0.,
+            xiyi = 0.;
+          for (int in=0; in<plas_getElmNNodes(getElmType(iz,ie)); ++in) {
+            const int n = en[in];
             xi += plas_getQuantity(COORD_X+idim,n);
             yi += pd[n].volFrac;
             xixi += plas_getQuantity(COORD_X+idim,n)*plas_getQuantity(COORD_X+idim,n);
@@ -743,7 +969,7 @@ double plas::plas_CalcKinematicResponseTime(LOCAL_ENTITY_VARIABLES *ent)
 {
   double tau = 0.;
 
-  const flowtype_t flowType(mdd->flowtype);
+  const plas_flowtype_t flowType(mdd->flowtype);
   if(flowType==FLOW_PARTIC || flowType==FLOW_DROPLET){
     tau = 4.0 * mdd->rho * ent->diam*ent->diam/(3.*mdc->mu*ent->reynolds*ent->dragCoeff);
   } else if(flowType==FLOW_BUBBLY){
@@ -922,7 +1148,7 @@ double plas::plas_CalcThermalResponseTime(double diameter)
 
 void plas::plas_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double dtLagr)
 {
-  const flowtype_t flowType(mdd->flowtype);
+  const plas_flowtype_t flowType(mdd->flowtype);
 
   int idim,jdim;
   double
@@ -1134,10 +1360,10 @@ double plas::plas_CalcWallFaceDistance(int numDim, double *pos, int ibnd, int if
   plas_CalcBoundaryUnitNormal(numDim,ibnd,ifac,unitVec);
 
   // calculate and return wall face distance
-  std::vector< unsigned > fn;
-  getElmNodes(ibnd,ifac,fn);
+  std::vector< int > fn(plas_getElmNNodes(getElmType(ibnd,ifac)),-1);
+  getElmNodes(ibnd,ifac,&fn[0]);
   for (int d=0; d<numDim; ++d)
-    posVec[d] = pos[d] - plas_getQuantity(COORD_X+d,(int) fn[0]);
+    posVec[d] = pos[d] - plas_getQuantity(COORD_X+d,fn[0]);
 
   return plas_CalcVectorScalarProduct(numDim,posVec,unitVec);
 }
@@ -1324,7 +1550,7 @@ void plas::plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double 
 
   //***Collision probability criterion***//
 
-  conc = numDens/getNodVol(ent->node);
+  conc = numDens/volumeNod[ent->node];
   FreqColl = PI/4.0*(di+dj)*(di+dj)*plas_CalcVectorLength(fp.numDim,uijRel)*conc;
   Pcoll = FreqColl*dtLagr;
 
@@ -1464,13 +1690,13 @@ void plas::plas_CreateTecplotFile(const std::string &outpString)
 }
 
 
-bool plas::plas_FindExitFace(int numBnd, int numDim, LOCAL_ENTITY_VARIABLES *ent, int *i, int *j)
+bool plas::plas_FindExitFace(LOCAL_ENTITY_VARIABLES *ent, int *i, int *j)
 {
   // loop over boundaries and faces to find the exit face
-  for (int ibnd=0; ibnd<numBnd; ibnd++) {
-    for (int ifac=0; ifac<fp.nBoundElements[ibnd]; ++ifac) {
-      if (ent->elm==getBndDomElm(ibnd,ifac) &&
-          plas_CalcWallFaceDistance(numDim,&ent->pos[0],ibnd,ifac)<0.) {
+  for (size_t ibnd=0; ibnd<fp.nBoundElements.size(); ++ibnd) {
+    for (size_t ifac=0; ifac<fp.nBoundElements[ibnd]; ++ifac) {
+      if (ent->elm==plas_getBndDomElm(ibnd,ifac) &&
+          plas_CalcWallFaceDistance(fp.numDim,&ent->pos[0],ibnd,ifac)<0.) {
         *i = ibnd;
         *j = ifac;
         return true;
@@ -1522,6 +1748,30 @@ int plas::plas_FindNearestElementNode(LOCAL_ENTITY_VARIABLES *ent)
   }
 
   return node;
+}
+
+
+int plas::plas_getBndDomElm(int bnd, int bface)
+{
+  return 0 /*FIXME dmesh.bndDomElms[bnd][bface]*/;
+}
+
+
+double plas::plas_getBndFaceNormComp(int bnd, int face, int dim)
+{
+  return 0. /*FIXME dmesh.elmNorms[ dmesh.bndDomElms[bnd][face] ][ dmesh.bndFaces[bnd][face] ][ dim ]*/;
+}
+
+
+int plas::plas_getElmNeighbour(int elm, int eface)
+{
+  return 0 /*FIXME dmesh.elmNeighbs[elm][eface]*/;
+}
+
+
+double plas::plas_getElmNormComp(int elm, int eface, int dim)
+{
+  return 0. /*FIXME dmesh.elmNorms[elm][eface][dim]*/;
 }
 
 
@@ -1744,7 +1994,7 @@ void plas::plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *f
 }
 
 
-double plas::plas_InterpolateQuantity(const PLAS_QUANTITY &Q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew)
+double plas::plas_InterpolateQuantity(const plas_quantity_t &Q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew)
 {
   double r = 0.;
   for (int n=0; n<ent.edata.numElmNodes; ++n) {
@@ -1841,13 +2091,6 @@ void plas::plas_NormalizeVector(int numDim, double *a)
 }
 
 
-double plas::plas_RandomDouble()
-{
-  int r = plas_RandomInteger(0,100000);
-  return (double)(r/100000.);
-}
-
-
 double plas::plas_RandomGaussian(float m, float s)
 {
   double xx1, xx2, w, yy1;
@@ -1876,64 +2119,79 @@ double plas::plas_RandomGaussian(float m, float s)
 
 void plas::plas_RandomInitialDistribution()
 {
-  LOCAL_ENTITY_VARIABLES ent(fp.numDim);
-  LOCAL_FLOW_VARIABLES flow(fp.numDim);
-  int ient,idim;
-  double p,q,setDiam;
+  LOCAL_ENTITY_VARIABLES ent (fp.numDim);
+  LOCAL_FLOW_VARIABLES   flow(fp.numDim);
 
 
-  //***Initializations***//
+  // initializations
   ip.numIniEnt = (ip.numIniEnt>ip.numMaxEnt? ip.numMaxEnt : ip.numIniEnt);
 
 
   // find maximum cell size
-  double maxCellSize = 1.e99;
-  {
-    for (size_t iz=0; iz<volumeElm.size(); ++iz)
-      for  (size_t ie=0; ie<volumeElm[ie].size(); ++ie)
-        maxCellSize = std::max(maxCellSize,volumeElm[iz][ie]);
-  }
+  double maxCellSize = 0.;
+  for (size_t iz=0; iz<volumeElm.size(); ++iz)
+    for  (size_t ie=0; ie<volumeElm[iz].size(); ++ie)
+      maxCellSize = std::max(maxCellSize,volumeElm[iz][ie]);
 
 
   //***Loop over entities to generate***//
 
-  for(ient=0; ient<ip.numIniEnt; ient++){
+  for (int ient=0; ient<ip.numIniEnt; ++ient) {
 
-    //***Generate entity in a random element***//
-
-    do{
-      ent.elm = plas_RandomInteger(0,fp.numElm-1);
-      plas_SetElementGeometry(fp.numDim,&ent);
-      p = plas_RandomDouble();
-      q = volumeElm[ent.zone][ent.elm] / maxCellSize;
-    } while(p>q);
+    // generate entity in a random element
+    // 1. calculate total volume (Vtotal)
+    // 2. pick a value within ]0.;Vtotal[ (Vpick)
+    // 3. sequentially accumulate element volumes (Vacc) until overcoming Vpick
+    ent.elm  = -1;
+    ent.zone = -1;
+    double
+      Vtotal = 0.,
+      Vpick  = 0.,
+      Vacc   = 0.;
+    for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz)
+      for (size_t ie=0; ie<fp.nInnerElements[iz]; ++ie)
+        Vtotal += volumeElm[iz][ie];
+    Vpick = plas_RandomDouble(0.,Vtotal);
+    for (size_t iz=0; iz<fp.nInnerElements.size() && ent.elm<0; ++iz) {
+      for (size_t ie=0; ie<fp.nInnerElements[iz] && ent.elm<0; Vacc += volumeElm[iz][ie], ++ie) {
+        if (Vacc>Vpick) {
+          ent.elm  = (int) ie;
+          ent.zone = (int) iz;
+        }
+      }
+    }
+    std::cout << "element pick z/e: " << ent.zone << '/' << ent.elm << std::endl;
 
 
     // set diameter and random position inside element
-    setDiam = plas_SetDiameter();
     plas_RandomElmPosition(ent.zone,ent.elm,&ent.pos[0]);
 
 
-    //***Initialize entity***//
-
+    // initialize entity
     plas_Interpolate(&ent,&flow,0.0);
-
-    ed[ient].flag = DFLAG_CREATED;
-    ed[ient].element = ent.elm;
-    ed[ient].node = plas_FindNearestElementNode(&ent);
-    ed[ient].diameter = setDiam;
+    ed[ient].flag        = DFLAG_CREATED;
+    ed[ient].element     = ent.elm;
+    ed[ient].node        = plas_FindNearestElementNode(&ent);
+    ed[ient].diameter    = plas_SetDiameter();
     ed[ient].temperature = ip.iniTempDisp;
-    for(idim=0; idim<fp.numDim; idim++){
-      ed[ient].position[idim] = ent.pos[idim];
-      ed[ient].velocity[idim] = flow.vel[idim]+ip.iniVel[idim];
+    for (int d=0; d<fp.numDim; ++d) {
+      ed[ient].position[d] = ent.pos[d];
+      ed[ient].velocity[d] = flow.vel[d]+ip.iniVel[d];
     }
-    sd.in++;
+    ++sd.in;
   }
+}
+
+
+double plas::plas_RandomDouble(double min, double max)
+{
+  return min + (max-min) * rand()/(RAND_MAX);
 }
 
 
 int plas::plas_RandomInteger(int min, int max)
 {
+  // FIXME this is not propper generation
   return min + (int)( ((double)(max - min) + 1.) * rand()/(RAND_MAX + 1.));
 }
 
@@ -2034,7 +2292,7 @@ void plas::plas_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent)
 
     if (!elmFound) {
       // search the neighbour element in direction of the minimum face distance
-      const int neighbourElm = getElmNeighbour(ent->elm,eface);
+      const int neighbourElm = plas_getElmNeighbour(ent->elm,eface);
       leftDomain = (neighbourElm<0);
       if (!leftDomain) {
         ent->elm = neighbourElm;
@@ -2099,33 +2357,17 @@ double plas::plas_SetDiameter()
 
 void plas::plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent)
 {
-  // set number of nodes/faces according to element type
-  const int type = getElmType(ent->zone,ent->elm);
-  ent->edata.numElmNodes = (type==ELM_TRIANGLE?    3 :
-                           (type==ELM_TETRAHEDRON? 4 :
-                           (type==ELM_PRISM?       6 :
-                           (type==ELM_QUAD?        4 :
-                           (type==ELM_HEX?         8 :
-                           (type==ELM_PYRAMID?     5 : 0 ))))));
-  ent->edata.numElmFaces = (type==ELM_TRIANGLE?    3 :
-                           (type==ELM_TETRAHEDRON? 4 :
-                           (type==ELM_PRISM?       5 :
-                           (type==ELM_QUAD?        4 :
-                           (type==ELM_HEX?         6 :
-                           (type==ELM_PYRAMID?     5 : 0 ))))));
-
-  // set nodes of the element assigned to a dispersed entity
-  std::vector< unsigned > en;
-  getElmNodes(ent->zone,ent->elm,en);
-  for (size_t i=0; i<en.size(); ++i)
-    ent->edata.elmNodes[i] = (int) en[i];
+  // set element number of nodes/faces and element nodes
+  ent->edata.numElmNodes = plas_getElmNNodes(getElmType(ent->zone,ent->elm));
+  ent->edata.numElmFaces = plas_getElmNFaces(getElmType(ent->zone,ent->elm));
+  ent->edata.elmNodes.resize(ent->edata.numElmNodes);
+  getElmNodes(ent->zone,ent->elm,&ent->edata.elmNodes[0]);
 
   // set faces and normal vectors of the element assigned to a dispersed entity
   for (int f=0; f<ent->edata.numElmFaces; ++f) {
-    for (int d=0; d<numDim; ++d) {
-      ent->edata.elmFaceVectors[f][d] = plas_getElmFaceMiddlePoint(ent->zone,ent->elm,f,d);
-      ent->edata.elmNorms      [f][d] = getElmNormComp(ent->elm,f,d);
-    }
+    plas_getElmFaceMiddlePoint(ent->zone,ent->elm,f,&(ent->edata.elmFaceVectors[f])[0]);
+    for (int d=0; d<numDim; ++d)
+      ent->edata.elmNorms[f][d] = plas_getElmNormComp(ent->elm,f,d);
   }
 }
 
@@ -2134,22 +2376,11 @@ void plas::plas_SetupElementsAndNodalVolumes()
 {
   screenOutput("calculating element volumes...");
   volumeElm.resize(fp.nInnerElements.size());
-  {
-    std::vector< unsigned > en;
-    for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
-      if (fp.nInnerElements[iz])
-        volumeElm.resize(fp.nInnerElements[iz]);
-      for (size_t ie=0; ie<(size_t) fp.nInnerElements[iz]; ++ie) {
-        getElmNodes(iz,ie,en);
-        const int et = getElmType(iz,ie);
-        volumeElm[iz][ie] = (et==ELM_TRIANGLE?    plas_CalcSizeTriangle     (en[0],en[1],en[2]) :
-                            (et==ELM_TETRAHEDRON? plas_CalcSizeTetrahedron  (en[0],en[1],en[2],en[3]) :
-                            (et==ELM_PRISM?       plas_CalcSizePrism        (en[0],en[1],en[2],en[3],en[4],en[5]) :
-                            (et==ELM_QUAD?        plas_CalcSizeQuadrilateral(en[0],en[1],en[2],en[3]) :
-                            (et==ELM_HEX?         plas_CalcSizeHexahedron   (en[0],en[1],en[2],en[3],en[4],en[5],en[6],en[7]) :
-                            (et==ELM_PYRAMID?     plas_CalcSizePyramid      (en[0],en[1],en[2],en[3],en[4]) :
-                                                  0. ))))));
-      }
+  for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
+    if (fp.nInnerElements[iz]) {
+      volumeElm[iz].resize(fp.nInnerElements[iz]);
+      for (size_t ie=0; ie<(size_t) fp.nInnerElements[iz]; ++ie)
+        volumeElm[iz][ie] = plas_CalcElmSize(iz,ie);
     }
   }
   screenOutput("calculating element volumes.");
@@ -2285,3 +2516,4 @@ void plas::plas_WriteTecplotFile(const std::string &outpString, int iter, double
     }
   }
 }
+

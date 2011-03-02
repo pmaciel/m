@@ -35,36 +35,35 @@ double plas::plas_CalcSizeTetrahedron(const unsigned n1, const unsigned n2, cons
 }
 
 
-double plas::plas_CalcSizePrism(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4, const unsigned n5, const unsigned n6)
+double plas::plas_CalcElmSize(const unsigned iz, const unsigned ie)
 {
-  return plas_CalcSizeTetrahedron(n1,n2,n3,n6)
-       + plas_CalcSizeTetrahedron(n1,n2,n6,n5)
-       + plas_CalcSizeTetrahedron(n1,n5,n6,n4);
+  plas_elmtype_t et(getElmType(iz,ie));
+  std::vector< int > n(plas_getElmNNodes(et),-1);
+  getElmNodes(iz,ie,&n[0]);
+
+  switch (et) {
+  case ELM_TRIANGLE:    return plas_CalcSizeTriangle(n[0],n[1],n[2]);
+  case ELM_TETRAHEDRON: return plas_CalcSizeTetrahedron(n[0],n[1],n[2],n[3]);
+  case ELM_WEDGE:       return plas_CalcSizeTetrahedron(n[0],n[1],n[2],n[5])
+                             + plas_CalcSizeTetrahedron(n[0],n[1],n[5],n[4])
+                             + plas_CalcSizeTetrahedron(n[0],n[4],n[5],n[3]);
+  case ELM_QUAD:        return plas_CalcSizeTriangle(n[0],n[1],n[2])
+                             + plas_CalcSizeTriangle(n[0],n[2],n[3]);
+  case ELM_BRICK:       return plas_CalcSizeTetrahedron(n[0],n[1],n[3],n[5])
+                             + plas_CalcSizeTetrahedron(n[0],n[3],n[6],n[5])
+                             + plas_CalcSizeTetrahedron(n[0],n[3],n[2],n[6])
+                             + plas_CalcSizeTetrahedron(n[0],n[5],n[6],n[4])
+                             + plas_CalcSizeTetrahedron(n[3],n[6],n[5],n[7]);
+  case ELM_PYRAMID:     return plas_CalcSizeTetrahedron(n[0],n[1],n[3],n[4])
+                             + plas_CalcSizeTetrahedron(n[0],n[3],n[2],n[4]);
+  case ELM_EDGE:
+  case ELM_UNDEFINED:
+  case ALL_ELEMENTS:
+  default: break;
+  }
+  return 0.;
 }
 
-
-double plas::plas_CalcSizeQuadrilateral(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4)
-{
-  return plas_CalcSizeTriangle(n1,n2,n3)
-       + plas_CalcSizeTriangle(n1,n3,n4);
-}
-
-
-double plas::plas_CalcSizeHexahedron(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4, const unsigned n5, const unsigned n6, const unsigned n7, const unsigned n8)
-{
-  return plas_CalcSizeTetrahedron(n1,n2,n4,n6)
-       + plas_CalcSizeTetrahedron(n1,n4,n7,n6)
-       + plas_CalcSizeTetrahedron(n1,n4,n3,n7)
-       + plas_CalcSizeTetrahedron(n1,n6,n7,n5)
-       + plas_CalcSizeTetrahedron(n4,n7,n6,n8);
-}
-
-
-double plas::plas_CalcSizePyramid(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4, const unsigned n5)
-{
-  return plas_CalcSizeTetrahedron(n1,n2,n4,n5)
-       + plas_CalcSizeTetrahedron(n1,n4,n3,n5);
-}
 
 void plas::plas_RandomElmPosition(const int zone, const int elm, double *p)
 {
@@ -76,12 +75,8 @@ void plas::plas_RandomElmPosition(const int zone, const int elm, double *p)
     rand4 = plas_RandomDouble();
 
   // get element nodes
-  std::vector< unsigned > enu;
-  std::vector< int      > en;
-  getElmNodes(zone,elm,enu);
-  en.resize(enu.size());
-  for (size_t i=0; i<enu.size(); ++i)
-    en[i] = (int) enu[i];
+  std::vector< int > en(plas_getElmNNodes(getElmType(zone,elm)),-1);
+  getElmNodes(zone,elm,&en[0]);
 
   switch (getElmType(zone,elm)) {
   case ELM_TRIANGLE: {
@@ -110,7 +105,7 @@ void plas::plas_RandomElmPosition(const int zone, const int elm, double *p)
            + (1.-rand1-(1.-rand1)*rand2)*rand3*(plas_getQuantity(COORD_X+d,en[3]) - plas_getQuantity(COORD_X+d,en[0]));
 
   } break;
-  case ELM_HEX: {
+  case ELM_BRICK: {
 
     for (int d=0; d<fp.numDim; ++d)
       p[d] = rand4*(rand3*(plas_getQuantity(COORD_X+d,en[0]) + rand1*(plas_getQuantity(COORD_X+d,en[4]) - plas_getQuantity(COORD_X+d,en[0])))
@@ -119,7 +114,7 @@ void plas::plas_RandomElmPosition(const int zone, const int elm, double *p)
              + (1.-rand3)*(plas_getQuantity(COORD_X+d,en[3]) + rand2*(plas_getQuantity(COORD_X+d,en[7]) - plas_getQuantity(COORD_X+d,en[3]))));
 
   } break;
-  case ELM_PRISM: {
+  case ELM_WEDGE: {
 
     for (int d=0; d<fp.numDim; ++d)
       p[d] =                        rand3*plas_getQuantity(COORD_X+d,en[0])
@@ -148,92 +143,111 @@ void plas::plas_RandomElmPosition(const int zone, const int elm, double *p)
 }
 
 
-double plas::plas_getElmFaceMiddlePoint(const int iz, const int ie, const int iface, const int dim)
+void plas::plas_getElmFaceMiddlePoint(const int iz, const int ie, const int iface, double *fmp)
 {
-  std::vector< int > fn(4,-1);
-  plas_getElmFaceNodes(iz,ie,iface,&fn[0],&fn[1],&fn[2],&fn[3]);
+  plas_elmtype_t ft = plas_getElmFaceType(getElmType(iz,ie),iface);
+  std::vector< int > fn(plas_getElmNNodes(ft),-1);
+  plas_getElmFaceNodes(iz,ie,iface,&fn[0]);
 
-  double coord = 0.;
-  int ctr = 0;
-  for (int i=0; i<4; ++i) {
-    if (fn[i]!=-1) {
-      coord += plas_getQuantity(COORD_X+dim,fn[i]);
-      ++ctr;
-    }
+  for (int d=0; d<fp.numDim; ++d) {
+    fmp[d] = 0.;
+    for (int i=0; i<plas_getElmNNodes(ft); ++i)
+      fmp[d] += plas_getQuantity(COORD_X+d,fn[i]);
+    fmp[d] /= (double) plas_getElmNNodes(ft);
   }
-  return (ctr? coord/double(ctr) : 0.);
 }
 
 
-void plas::plas_getElmFaceNodes(const int iz, const int ie, const int iface, int *n1, int *n2, int *n3, int *n4)
+plas_elmtype_t plas::plas_getElmFaceType(const plas_elmtype_t et, const int iface)
+{
+  return (et==ELM_TRIANGLE?    ELM_EDGE     :
+         (et==ELM_TETRAHEDRON? ELM_TRIANGLE :
+         (et==ELM_QUAD?        ELM_EDGE     :
+         (et==ELM_BRICK?       ELM_QUAD     :
+         (et==ELM_WEDGE?       (iface<3? ELM_QUAD : ELM_TRIANGLE) :
+         (et==ELM_PYRAMID?     (iface<1? ELM_QUAD : ELM_TRIANGLE) :
+                               ELM_UNDEFINED ))))));
+}
+
+
+void plas::plas_getElmFaceNodes(const int iz, const int ie, const int iface, int *fnodes)
 {
   // get element nodes
-  std::vector< unsigned > enu;
-  std::vector< int      > en;
-  getElmNodes(iz,ie,enu);
-  en.resize(enu.size());
-  for (size_t i=0; i<enu.size(); ++i)
-    en[i] = (int) enu[i];
+  const plas_elmtype_t et = getElmType(iz,ie);
+  std::vector< int > en(plas_getElmNNodes(et),-1);
+  getElmNodes(iz,ie,&en[0]);
 
-  *n1 = *n2 = *n3 = *n4 = -1;
-  switch (getElmType(iz,ie)) {
+  // get face nodes
+  switch (et) {
   case ELM_TRIANGLE:
     switch (iface) {
-    case 0: { *n1=en[0]; *n2=en[1]; } break;
-    case 1: { *n1=en[1]; *n2=en[2]; } break;
-    case 2: { *n1=en[2]; *n2=en[0]; } break;
+    case 0: { fnodes[0]=en[0]; fnodes[1]=en[1]; } break;
+    case 1: { fnodes[0]=en[1]; fnodes[1]=en[2]; } break;
+    case 2: { fnodes[0]=en[2]; fnodes[1]=en[0]; } break;
     } break;
   case ELM_TETRAHEDRON:
     switch (iface) {
-    case 0: { *n1=en[1]; *n2=en[0]; *n3=en[2]; } break;
-    case 1: { *n1=en[0]; *n2=en[1]; *n3=en[3]; } break;
-    case 2: { *n1=en[1]; *n2=en[2]; *n3=en[3]; } break;
-    case 3: { *n1=en[2]; *n2=en[0]; *n3=en[3]; } break;
+    case 0: { fnodes[0]=en[1]; fnodes[1]=en[0]; fnodes[2]=en[2]; } break;
+    case 1: { fnodes[0]=en[0]; fnodes[1]=en[1]; fnodes[2]=en[3]; } break;
+    case 2: { fnodes[0]=en[1]; fnodes[1]=en[2]; fnodes[2]=en[3]; } break;
+    case 3: { fnodes[0]=en[2]; fnodes[1]=en[0]; fnodes[2]=en[3]; } break;
     } break;
   case ELM_QUAD:
     switch (iface) {
-    case 0: { *n1=en[0]; *n2=en[1]; } break;
-    case 1: { *n1=en[1]; *n2=en[2]; } break;
-    case 2: { *n1=en[2]; *n2=en[3]; } break;
-    case 3: { *n1=en[3]; *n2=en[0]; } break;
+    case 0: { fnodes[0]=en[0]; fnodes[1]=en[1]; } break;
+    case 1: { fnodes[0]=en[1]; fnodes[1]=en[2]; } break;
+    case 2: { fnodes[0]=en[2]; fnodes[1]=en[3]; } break;
+    case 3: { fnodes[0]=en[3]; fnodes[1]=en[0]; } break;
     } break;
-  case ELM_HEX:
+  case ELM_BRICK:
     switch (iface) {
-    case 0: { *n1=en[0]; *n2=en[1]; *n3=en[5]; *n4=en[4]; } break;
-    case 1: { *n1=en[1]; *n2=en[3]; *n3=en[7]; *n4=en[5]; } break;
-    case 2: { *n1=en[3]; *n2=en[2]; *n3=en[6]; *n4=en[7]; } break;
-    case 3: { *n1=en[2]; *n2=en[0]; *n3=en[4]; *n4=en[6]; } break;
-    case 4: { *n1=en[1]; *n2=en[0]; *n3=en[2]; *n4=en[3]; } break;
-    case 5: { *n1=en[4]; *n2=en[5]; *n3=en[7]; *n4=en[6]; } break;
+    case 0: { fnodes[0]=en[0]; fnodes[1]=en[1]; fnodes[2]=en[5]; fnodes[3]=en[4]; } break;
+    case 1: { fnodes[0]=en[1]; fnodes[1]=en[3]; fnodes[2]=en[7]; fnodes[3]=en[5]; } break;
+    case 2: { fnodes[0]=en[3]; fnodes[1]=en[2]; fnodes[2]=en[6]; fnodes[3]=en[7]; } break;
+    case 3: { fnodes[0]=en[2]; fnodes[1]=en[0]; fnodes[2]=en[4]; fnodes[3]=en[6]; } break;
+    case 4: { fnodes[0]=en[1]; fnodes[1]=en[0]; fnodes[2]=en[2]; fnodes[3]=en[3]; } break;
+    case 5: { fnodes[0]=en[4]; fnodes[1]=en[5]; fnodes[2]=en[7]; fnodes[3]=en[6]; } break;
     } break;
-  case ELM_PRISM:
+  case ELM_WEDGE:
     switch (iface) {
-    case 0: { *n1=en[0]; *n2=en[1]; *n3=en[4]; *n4=en[3]; } break;
-    case 1: { *n1=en[1]; *n2=en[2]; *n3=en[5]; *n4=en[4]; } break;
-    case 2: { *n1=en[2]; *n2=en[0]; *n3=en[3]; *n4=en[5]; } break;
-    case 3: { *n1=en[0]; *n2=en[2]; *n3=en[1]; } break;
-    case 4: { *n1=en[3]; *n2=en[4]; *n3=en[5]; } break;
+    case 0: { fnodes[0]=en[0]; fnodes[1]=en[1]; fnodes[2]=en[4]; fnodes[3]=en[3]; } break;
+    case 1: { fnodes[0]=en[1]; fnodes[1]=en[2]; fnodes[2]=en[5]; fnodes[3]=en[4]; } break;
+    case 2: { fnodes[0]=en[2]; fnodes[1]=en[0]; fnodes[2]=en[3]; fnodes[3]=en[5]; } break;
+    case 3: { fnodes[0]=en[0]; fnodes[1]=en[2]; fnodes[2]=en[1]; } break;
+    case 4: { fnodes[0]=en[3]; fnodes[1]=en[4]; fnodes[2]=en[5]; } break;
     } break;
   case ELM_PYRAMID:
     switch (iface) {
-    case 0: { *n1=en[0]; *n2=en[2]; *n3=en[3]; *n4=en[1]; } break;
-    case 1: { *n1=en[0]; *n2=en[1]; *n3=en[4]; } break;
-    case 2: { *n1=en[1]; *n2=en[3]; *n3=en[4]; } break;
-    case 3: { *n1=en[3]; *n2=en[2]; *n3=en[4]; } break;
-    case 4: { *n1=en[2]; *n2=en[0]; *n3=en[4]; } break;
+    case 0: { fnodes[0]=en[0]; fnodes[1]=en[2]; fnodes[2]=en[3]; fnodes[3]=en[1]; } break;
+    case 1: { fnodes[0]=en[0]; fnodes[1]=en[1]; fnodes[2]=en[4]; } break;
+    case 2: { fnodes[0]=en[1]; fnodes[1]=en[3]; fnodes[2]=en[4]; } break;
+    case 3: { fnodes[0]=en[3]; fnodes[1]=en[2]; fnodes[2]=en[4]; } break;
+    case 4: { fnodes[0]=en[2]; fnodes[1]=en[0]; fnodes[2]=en[4]; } break;
     } break;
+  case ALL_ELEMENTS:
+  default: break;
   }
 }
 
 
-int plas::plas_getElmNNodes(const int iz, const int ie)
+int plas::plas_getElmNFaces(const plas_elmtype_t et)
 {
-  const int t(getElmType(iz,ie));
-  return (t==ELM_TRIANGLE?    3 :
-         (t==ELM_TETRAHEDRON? 4 :
-         (t==ELM_PRISM?       6 :
-         (t==ELM_QUAD?        4 :
-         (t==ELM_HEX?         8 :
-         (t==ELM_PYRAMID?     5 : 0 ))))));
+  return (et==ELM_TRIANGLE?    3 :
+         (et==ELM_TETRAHEDRON? 4 :
+         (et==ELM_WEDGE?       5 :
+         (et==ELM_QUAD?        4 :
+         (et==ELM_BRICK?       6 :
+         (et==ELM_PYRAMID?     5 : 0 ))))));
+}
+
+
+int plas::plas_getElmNNodes(const plas_elmtype_t et)
+{
+  return (et==ELM_TRIANGLE?    3 :
+         (et==ELM_TETRAHEDRON? 4 :
+         (et==ELM_WEDGE?       6 :
+         (et==ELM_QUAD?        4 :
+         (et==ELM_BRICK?       8 :
+         (et==ELM_PYRAMID?     5 : 0 ))))));
 }
 

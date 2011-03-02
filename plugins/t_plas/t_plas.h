@@ -5,39 +5,6 @@
 #include "plas.h"
 
 
-// mesh parameters
-struct s_driver_mesh {
-  std::vector< std::vector< int > > bndFaces;    // <---- remove!
-  std::vector< std::vector< int > > bndDomElms;  // <---- remove!
-
-  std::vector< std::vector< int > > nodElms;
-  std::vector< std::vector< int > > elmNeighbs;
-  std::vector< double > nodVolumes;
-  std::vector< std::vector< std::vector< double > > > elmNorms;
-};
-
-
-// parameters and flow properties
-struct s_driver_param {
-  double dt;
-  int
-    iter,
-    numIter;
-};
-
-
-// additional zone properties (for convenience)
-struct s_zoneprops {
-  s_zoneprops() : iswall(false), nelems(0), e_type(0), e_nnodes(0), e_nfaces(0) {}
-  bool iswall;
-  int
-    nelems,
-    e_type,
-    e_nnodes,
-    e_nfaces;
-};
-
-
 // module to use the Particle Lagrangian Solver (PLaS)
 class t_plas : public m::mtransform,
                public plas {
@@ -46,39 +13,36 @@ class t_plas : public m::mtransform,
 
  private:  // plas interface functions
    void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp);
-   void setFlowSolverParamOnTimeStep(PLAS_FLOWSOLVER_PARAM *fp);
-
-   int    getBndDomElm        (int bnd, int bface)                                      { return dmesh.bndDomElms[bnd][bface]; }
-   double getBndFaceNormComp(int bnd, int face, int dim) {
-     return dmesh.elmNorms
-         [ dmesh.bndDomElms[bnd][face] ]
-         [ dmesh.bndFaces[bnd][face] ]
-         [ dim ];
+   void getElmNodes(const int iz, const int ie, int *enodes) {
+     const std::vector< unsigned >& n = M->vz[iz].e2n[ie].n;
+     for (size_t i=0; i<n.size(); ++i)
+       enodes[i] = (int) n[i];
    }
-   int    getElmNeighbour     (int elm, int eface)                                      { return dmesh.elmNeighbs[elm][eface]; }
-   void   getElmNodes         (const int iz, const int ie, std::vector< unsigned >& en) { en = M->vz[iz].e2n[ie].n; }
-   double getElmNormComp      (int elm, int eface, int dim)                             { return dmesh.elmNorms[elm][eface][dim]; }
-   int    getElmType          (const int iz, const int ie)                              { return (m_zinner_props[iz].nelems? m_zinner_props[iz].e_type : m_zbound_props[iz].e_type); }
-   double getEulerianTimeScale(int nod)                                                 { return 0.; }
-   double getNodVol           (int nod)                                                 { return dmesh.nodVolumes[nod]; }
-   double getOldQuantity      (const PLAS_QUANTITY& Q, int nod)                         { return (m_quantityold_idx[Q]<0? 0. : ( M->vv[ m_quantityold_idx[Q] ][nod] )); }
-   double getQuantity         (const PLAS_QUANTITY& Q, int nod)                         { return (m_quantity_idx   [Q]<0? 0. : ( M->vv[ m_quantity_idx   [Q] ][nod] )); }
-   int    getWallBndFlag      (int bnd)                                                 { return m_zbound_props[bnd].iswall? 1:0; }
-   void   screenOutput        (const std::string& text)                                 { std::cout << "t_plas: info: " << text << std::endl; }
-   void   screenWarning       (const std::string& text)                                 { std::cout << "t_plas: warn: " << text << std::endl; }
+   plas_elmtype_t getElmType(const int iz, const int ie) {
+     const m::mtype t(M->vz[iz].t);
+     return (t==m::FELINESEG?       ELM_EDGE        :
+            (t==m::FETRIANGLE?      ELM_TRIANGLE    :
+            (t==m::FEQUADRILATERAL? ELM_QUAD        :
+            (t==m::FETETRAHEDRON?   ELM_TETRAHEDRON :
+            (t==m::FEBRICK?         ELM_BRICK       :
+            (t==m::PRISM3?          ELM_WEDGE       :
+            (t==m::PYRAMID4?        ELM_PYRAMID     :
+                                    ELM_UNDEFINED )))))));
+   }
+   double getEulerianTimeScale(int nod)                           { return 0.; }
+   double getOldQuantity      (const plas_quantity_t& Q, int nod) { return getQuantity(Q,nod); }
+   double getQuantity         (const plas_quantity_t& Q, int nod) { return (m_quantity_idx[Q]<0? 0. : ( M->vv[ m_quantity_idx[Q] ][nod] )); }
+   int    getWallBndFlag      (int bnd)                           { return m_ziswall[bnd]? 1:0; }
+   void   screenOutput        (const std::string& text)           { std::cout << "t_plas: info: " << text << std::endl; }
+   void   screenWarning       (const std::string& text)           { std::cout << "t_plas: warn: " << text << std::endl; }
 
  private:  // member variables
   m::mmesh *M;
-  std::vector< s_zoneprops >
-    m_zinner_props,
-    m_zbound_props;
-  std::vector< int >
-    m_quantity_idx,
-    m_quantityold_idx;
-
-  // FIXME refactor!
-  s_driver_mesh dmesh;
-  s_driver_param dparam;
+  std::vector< int  > m_quantity_idx;
+  std::vector< bool > m_ziswall;
+  double m_dt;
+  int m_iter;
+  int m_numiter;
 
 };
 
