@@ -29,19 +29,24 @@ class t_plas : public m::mtransform,
             (t==m::PYRAMID4?        ELM_PYRAMID     :
                                     ELM_UNDEFINED )))))));
    }
-   double getEulerianTimeScale(int nod)                           { return 0.; }
-   double getOldQuantity      (const plas_quantity_t& Q, int nod) { return getQuantity(Q,nod); }
-   double getQuantity         (const plas_quantity_t& Q, int nod) { return (m_quantity_idx[Q]<0? 0. : ( M->vv[ m_quantity_idx[Q] ][nod] )); }
+   double getEulerianTimeScale(int nod){ return 0.; }
+   double getOldQuantity      (const plas_quantity_t& Q, const int nod, double *v=NULL, const int d=1) { return getQuantity(Q,nod,v,d); }
+   double getQuantity         (const plas_quantity_t& Q, const int nod, double *v=NULL, const int d=1) {
+     if (m_quantity[Q]<=0)
+       return 0.;
+     for (int i=0; i<d && v!=NULL; ++i)
+       v[i] = M->vv[ (int)(m_quantity[Q]+i) ][nod];
+     return   M->vv[ (int) m_quantity[Q]    ][nod];
+   }
    int    getWallBndFlag      (int bnd)                           { return m_ziswall[bnd]? 1:0; }
    void   screenOutput        (const std::string& text)           { std::cout << "t_plas: info: " << text << std::endl; }
    void   screenWarning       (const std::string& text)           { std::cout << "t_plas: warn: " << text << std::endl; }
 
  private:  // member variables
   m::mmesh *M;
-  std::vector< int  > m_quantity_idx;
+  std::vector< int  > m_quantity;
   std::vector< bool > m_ziswall;
   double m_dt;
-  int m_iter;
   int m_numiter;
 
 };

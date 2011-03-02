@@ -38,14 +38,15 @@ enum plas_elmtype_t { ELM_UNDEFINED, ELM_TRIANGLE, ELM_TETRAHEDRON, ELM_WEDGE, E
 
 /// Available quantities (coordinates, pressure, temperature, velocity and its spacial derivatives)
 enum plas_quantity_t {
-  COORD_X,       COORD_Y,       COORD_Z,
-  PRESSURE,
-  TEMPERATURE,
-  VELOCITY_X,    VELOCITY_Y,    VELOCITY_Z,
-  VELOCITY_X_DX, VELOCITY_X_DY, VELOCITY_X_DZ,
-  VELOCITY_Y_DX, VELOCITY_Y_DY, VELOCITY_Y_DZ,
-  VELOCITY_Z_DX, VELOCITY_Z_DY, VELOCITY_Z_DZ,
-  ALL_QUANTITIES
+  QUANTITY_UNDEFINED,
+  COORD,                            // vector
+  PRESSURE       = COORD+3,         // scalar
+  TEMPERATURE,                      // scalar
+  VELOCITY,                         // vector
+  VELOCITY_X_D   = VELOCITY+3,      // vector
+  VELOCITY_Y_D   = VELOCITY_X_D+3,  // vector
+  VELOCITY_Z_D   = VELOCITY_Y_D+3,  // vector
+  ALL_QUANTITIES = VELOCITY_Z_D+3
 };
 
 
@@ -341,20 +342,24 @@ class plas {
   virtual int getWallBndFlag(int bnd) = 0;
 
   /**
-   * Provide nodal quantity at time step n-1 (past) to PLaS
+   * Provide nodal quantity at time step n-1 (previous) to PLaS
    * @param[in] Q quantity to provide (as quantity enumerated index)
    * @param[in] nod node index
-   * @return quantity at time step n-1
+   * @param[out] v quantity value
+   * @param[in] d quantity dimension, for tensor quantities
+   * @return first entry in quantity value pointer (for scalar quantities)
    */
-  virtual double getOldQuantity(const plas_quantity_t& Q, int nod) = 0;
+  virtual double getOldQuantity(const plas_quantity_t& Q, const int nod, double *v=NULL, const int d=1) = 0;
 
   /**
    * Provide nodal quantity at time step n (current) to PLaS
    * @param[in] Q quantity to provide (as quantity enumerated index)
    * @param[in] nod node index
-   * @return quantity at time step n
+   * @param[out] v quantity value
+   * @param[in] d quantity dimension, for tensor quantities
+   * @return first entry in quantity value pointer (for scalar quantities)
    */
-  virtual double getQuantity(const plas_quantity_t& Q, int nod) = 0;
+  virtual double getQuantity(const plas_quantity_t& Q, const int nod, double *v=NULL, const int d=1) = 0;
 
   /**
    * Provide Eulerian time scale (turbulence kinetic energy over dissipation)
@@ -825,13 +830,15 @@ class plas {
   double plas_getElmNormComp(int elm, int eface, int dim);
 
   /**
-   * Provide nodal quantity at time step n-1 (past) to PLaS
+   * Provide nodal quantity at time step n-1 (previous) to PLaS
    * @param[in] Q quantity to provide (as simple index)
    * @param[in] nod node index
-   * @return quantity at time step n
+   * @param[out] v quantity value
+   * @param[in] d quantity dimension, for tensor quantities
+   * @return first entry in quantity value pointer (for scalar quantities)
    */
-  double plas_getOldQuantity(int q, int nod) {
-    return getOldQuantity(plas_quantity_t(q),nod);
+  double plas_getOldQuantity(const int q, const int nod, double *v=NULL, const int d=1) {
+    return getOldQuantity(plas_quantity_t(q),nod,v,d);
   }
 
 
@@ -839,10 +846,12 @@ class plas {
    * Provide nodal quantity at time step n (current) to PLaS
    * @param[in] Q quantity to provide (as simple index)
    * @param[in] nod node index
-   * @return quantity at time step n
+   * @param[out] v quantity value
+   * @param[in] d quantity dimension, for tensor quantities
+   * @return first entry in quantity value pointer (for scalar quantities)
    */
-  double plas_getQuantity(int q, int nod) {
-    return getQuantity(plas_quantity_t(q),nod);
+  double plas_getQuantity(const int q, const int nod, double *v=NULL, const int d=1) {
+    return getQuantity(plas_quantity_t(q),nod,v,d);
   }
 
 

@@ -6,9 +6,9 @@
 double plas::plas_CalcSizeTriangle(const unsigned n1, const unsigned n2, const unsigned n3)
 {
   double c[3][2];
-  c[0][0]=plas_getQuantity(COORD_X,n1);  c[0][1]=plas_getQuantity(COORD_Y,n1);
-  c[1][0]=plas_getQuantity(COORD_X,n2);  c[1][1]=plas_getQuantity(COORD_Y,n2);
-  c[2][0]=plas_getQuantity(COORD_X,n3);  c[2][1]=plas_getQuantity(COORD_Y,n3);
+  plas_getQuantity(COORD,n1,c[0],2);
+  plas_getQuantity(COORD,n2,c[1],2);
+  plas_getQuantity(COORD,n3,c[2],2);
   return c[0][0]*(c[1][1]-c[2][1])
        + c[1][0]*(c[2][1]-c[0][1])
        + c[2][0]*(c[0][1]-c[1][1]);
@@ -17,19 +17,18 @@ double plas::plas_CalcSizeTriangle(const unsigned n1, const unsigned n2, const u
 
 double plas::plas_CalcSizeTetrahedron(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4)
 {
-  double p1[3], v1[3], v2[3], v3[3], v4[3];
-  p1[0] = plas_getQuantity(COORD_X,n1);
-  p1[1] = plas_getQuantity(COORD_Y,n1);
-  p1[2] = plas_getQuantity(COORD_Z,n1);
-  v1[0] = plas_getQuantity(COORD_X,n2) - p1[0];
-  v1[1] = plas_getQuantity(COORD_Y,n2) - p1[1];
-  v1[2] = plas_getQuantity(COORD_Z,n2) - p1[2];
-  v2[0] = plas_getQuantity(COORD_X,n3) - p1[0];
-  v2[1] = plas_getQuantity(COORD_Y,n3) - p1[1];
-  v2[2] = plas_getQuantity(COORD_Z,n3) - p1[2];
-  v3[0] = plas_getQuantity(COORD_X,n4) - p1[0];
-  v3[1] = plas_getQuantity(COORD_Y,n4) - p1[1];
-  v3[2] = plas_getQuantity(COORD_Z,n4) - p1[2];
+  double c[4][3];
+  plas_getQuantity(COORD,n1,c[0],3);
+  plas_getQuantity(COORD,n2,c[1],3);
+  plas_getQuantity(COORD,n3,c[2],3);
+  plas_getQuantity(COORD,n4,c[3],3);
+
+  double v1[3], v2[3], v3[3], v4[3];
+  for (int d=0; d<3; ++d) {
+    v1[d] = c[1][d] - c[0][d];
+    v2[d] = c[2][d] - c[0][d];
+    v3[d] = c[3][d] - c[0][d];
+  }
   plas_CalcCrossProduct_3D(v4,v1,v2);
   return (plas_CalcVectorScalarProduct(3,v3,v4)/6.);
 }
@@ -74,67 +73,48 @@ void plas::plas_RandomElmPosition(const int zone, const int elm, double *p)
     rand3 = plas_RandomDouble(),
     rand4 = plas_RandomDouble();
 
-  // get element nodes
-  std::vector< int > en(plas_getElmNNodes(getElmType(zone,elm)),-1);
-  getElmNodes(zone,elm,&en[0]);
+  // get element nodes and coordinates
+  std::vector< int > n(plas_getElmNNodes(getElmType(zone,elm)),-1);
+  std::vector< std::vector< double > > c(n.size(),std::vector< double >(fp.numDim,0.));
+  getElmNodes(zone,elm,&n[0]);
+  for (size_t i=0; i<n.size(); ++i)
+    plas_getQuantity(COORD,n[i],&(c[i])[0],fp.numDim);
 
   switch (getElmType(zone,elm)) {
   case ELM_TRIANGLE: {
 
     for (int d=0; d<fp.numDim; ++d)
-      p[d] =                   plas_getQuantity(COORD_X+d,en[0])
-                      + rand1*(plas_getQuantity(COORD_X+d,en[1]) - plas_getQuantity(COORD_X+d,en[0]))
-           + (1.-rand1)*rand2*(plas_getQuantity(COORD_X+d,en[2]) - plas_getQuantity(COORD_X+d,en[0]));
+      p[d] = c[0][d] + rand1*(c[1][d] - c[0][d]) + (1.-rand1)*rand2*(c[2][d] - c[0][d]);
 
   } break;
   case ELM_QUAD: {
 
     for (int d=0; d<fp.numDim; ++d)
-      p[d] = rand3*(                                    plas_getQuantity(COORD_X+d,en[0])
-           + rand1*(plas_getQuantity(COORD_X+d,en[1]) - plas_getQuantity(COORD_X+d,en[0])))
-           + (1.-rand3) * (                             plas_getQuantity(COORD_X+d,en[2])
-           + rand2*(plas_getQuantity(COORD_X+d,en[3]) - plas_getQuantity(COORD_X+d,en[2])));
+      p[d] = rand3 * ( c[0][d] + rand1*(c[1][d] - c[0][d])) + (1.-rand3) * ( c[2][d] + rand2*(c[3][d] - c[2][d]));
 
   } break;
   case ELM_TETRAHEDRON: {
 
     for (int d=0; d<fp.numDim; ++d)
-      p[d] =                                    plas_getQuantity(COORD_X+d,en[0])
-                                       + rand1*(plas_getQuantity(COORD_X+d,en[1]) - plas_getQuantity(COORD_X+d,en[0]))
-                            + (1.-rand1)*rand2*(plas_getQuantity(COORD_X+d,en[2]) - plas_getQuantity(COORD_X+d,en[0]))
-           + (1.-rand1-(1.-rand1)*rand2)*rand3*(plas_getQuantity(COORD_X+d,en[3]) - plas_getQuantity(COORD_X+d,en[0]));
+      p[d] = c[0][d] + rand1*(c[1][d] - c[0][d]) + (1.-rand1)*rand2*(c[2][d] - c[0][d]) + (1.-rand1-(1.-rand1)*rand2)*rand3*(c[3][d] - c[0][d]);
 
   } break;
   case ELM_BRICK: {
 
     for (int d=0; d<fp.numDim; ++d)
-      p[d] = rand4*(rand3*(plas_getQuantity(COORD_X+d,en[0]) + rand1*(plas_getQuantity(COORD_X+d,en[4]) - plas_getQuantity(COORD_X+d,en[0])))
-             + (1.-rand3)*(plas_getQuantity(COORD_X+d,en[1]) + rand2*(plas_getQuantity(COORD_X+d,en[5]) - plas_getQuantity(COORD_X+d,en[1]))))
-       +(1.-rand4)*(rand3*(plas_getQuantity(COORD_X+d,en[2]) + rand1*(plas_getQuantity(COORD_X+d,en[6]) - plas_getQuantity(COORD_X+d,en[2])))
-             + (1.-rand3)*(plas_getQuantity(COORD_X+d,en[3]) + rand2*(plas_getQuantity(COORD_X+d,en[7]) - plas_getQuantity(COORD_X+d,en[3]))));
+      p[d] = rand4*(rand3*(c[0][d] + rand1*(c[4][d] - c[0][d])) + (1.-rand3)*(c[1][d] + rand2*(c[5][d] - c[1][d]))) +(1.-rand4)*(rand3*(c[2][d] + rand1*(c[6][d] - c[2][d])) + (1.-rand3)*(c[3][d] + rand2*(c[7][d] - c[3][d])));
 
   } break;
   case ELM_WEDGE: {
 
     for (int d=0; d<fp.numDim; ++d)
-      p[d] =                        rand3*plas_getQuantity(COORD_X+d,en[0])
-                           + rand3*rand1*(plas_getQuantity(COORD_X+d,en[1]) - plas_getQuantity(COORD_X+d,en[0]))
-                + rand3*(1.-rand1)*rand2*(plas_getQuantity(COORD_X+d,en[2]) - plas_getQuantity(COORD_X+d,en[0]))
-                             + (1.-rand3)*plas_getQuantity(COORD_X+d,en[3])
-                      + (1.-rand3)*rand1*(plas_getQuantity(COORD_X+d,en[4]) - plas_getQuantity(COORD_X+d,en[3]))
-           + (1.-rand3)*(1.-rand1)*rand2*(plas_getQuantity(COORD_X+d,en[5]) - plas_getQuantity(COORD_X+d,en[3]));
+      p[d] = rand3*c[0][d] + rand3*rand1*(c[1][d] - c[0][d]) + rand3*(1.-rand1)*rand2*(c[2][d] - c[0][d]) + (1.-rand3)*c[3][d] + (1.-rand3)*rand1*(c[4][d] - c[3][d]) + (1.-rand3)*(1.-rand1)*rand2*(c[5][d] - c[3][d]);
 
   } break;
   case ELM_PYRAMID: {
 
     for (int d=0; d<fp.numDim; ++d)
-      p[d] =              rand4*plas_getQuantity(COORD_X+d,en[4])
-           + (1.-rand4)*(rand3*(plas_getQuantity(COORD_X+d,en[0])
-                       + rand1*(plas_getQuantity(COORD_X+d,en[1])
-                              - plas_getQuantity(COORD_X+d,en[0])))
-                  + (1.-rand3)*(plas_getQuantity(COORD_X+d,en[2])
-                       + rand2*(plas_getQuantity(COORD_X+d,en[3])
-                              - plas_getQuantity(COORD_X+d,en[2]))));
+      p[d] = rand4*c[4][d] + (1.-rand4)*(rand3*(c[0][d] + rand1*(c[1][d] - c[0][d])) + (1.-rand3)*(c[2][d] + rand2*(c[3][d] - c[2][d])));
 
   } break;
   default: break;
@@ -145,15 +125,22 @@ void plas::plas_RandomElmPosition(const int zone, const int elm, double *p)
 
 void plas::plas_getElmFaceMiddlePoint(const int iz, const int ie, const int iface, double *fmp)
 {
+  // initialize
   plas_elmtype_t ft = plas_getElmFaceType(getElmType(iz,ie),iface);
   std::vector< int > fn(plas_getElmNNodes(ft),-1);
-  plas_getElmFaceNodes(iz,ie,iface,&fn[0]);
+  std::vector< std::vector< double > > c(fn.size(),std::vector< double >(fp.numDim,0.));
 
+  // get element nodes and coordinates
+  plas_getElmFaceNodes(iz,ie,iface,&fn[0]);
+  for (size_t i=0; i<fn.size(); ++i)
+    plas_getQuantity(COORD,fn[i],&(c[i])[0],fp.numDim);
+
+  // calculate middle point
   for (int d=0; d<fp.numDim; ++d) {
     fmp[d] = 0.;
-    for (int i=0; i<plas_getElmNNodes(ft); ++i)
-      fmp[d] += plas_getQuantity(COORD_X+d,fn[i]);
-    fmp[d] /= (double) plas_getElmNNodes(ft);
+    for (size_t i=0; i<fn.size(); ++i)
+      fmp[d] += c[i][d];
+    fmp[d] /= (double) fn.size();
   }
 }
 

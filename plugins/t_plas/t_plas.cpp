@@ -45,46 +45,34 @@ namespace t_plas_aux {
 
 void t_plas::transform(GetPot& o, m::mmesh& m)
 {
-  screenOutput("setup plas xml...");
+
+  // setup xml options
   const std::string o_xml = o.get(o.inc_cursor(),"");
   XMLNode x = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"plas")
                                                  : XMLNode::openFileHelper(o_xml.c_str(),"plas");
+
+  // set number of iterations and time-step
   m_numiter = std::max(0,     x.getAttribute< int    >("iterations",1 ));
   m_dt      = std::max(1.e-12,x.getAttribute< double >("dt",        1.));
+
+  // setup walls
   m_ziswall.assign(m.z(),false);
   for (int i=0; i<x.nChildNode("wall"); ++i)
     m_ziswall[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),m) ] = true;
-  screenOutput("setup plas xml.");
 
-
-  screenOutput("setting quantities to provide...");
-  // get variables to share
-  m_quantity_idx.assign(ALL_QUANTITIES,-1);
-  m_quantity_idx[COORD_X]      = t_plas_aux::getvariableidx("x",m);
-  m_quantity_idx[COORD_Y]      = t_plas_aux::getvariableidx("y",m);
-  m_quantity_idx[PRESSURE]     = t_plas_aux::getvariableidx("p",m);
-  m_quantity_idx[VELOCITY_X]   = t_plas_aux::getvariableidx("vx",m);
-  m_quantity_idx[VELOCITY_Y]   = t_plas_aux::getvariableidx("vy",m);
-  if (m.d()>2) {
-    m_quantity_idx[COORD_Z]    = t_plas_aux::getvariableidx("z",m);
-    m_quantity_idx[VELOCITY_Z] = t_plas_aux::getvariableidx("vz",m);
-  }
-  screenOutput("setting quantities to provide.");
-
-
-  // share the data structure accross member functions
+  // setup data structure (accross member functions)
   M = &m;
 
+  // setup quantities to provide
+  m_quantity.assign(ALL_QUANTITIES,-1);
+  m_quantity[COORD]    = t_plas_aux::getvariableidx("x", m);
+  m_quantity[PRESSURE] = t_plas_aux::getvariableidx("p", m);
+  m_quantity[VELOCITY] = t_plas_aux::getvariableidx("vx",m);
 
-  screenOutput("initializing PLaS...");
+  // run
   plas::initialize(x);
-  screenOutput("initializing PLaS.");
-
-
-  screenOutput("perform PLaS iterations...");
-  for (m_iter=1; m_iter<=m_numiter; ++m_iter)
+  for (int i=1; i<=m_numiter; ++i)
     plas::run();
-  screenOutput("perform PLaS iterations.");
 }
 
 

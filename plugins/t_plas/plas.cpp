@@ -20,6 +20,9 @@ plas::plas()
 
 void plas::initialize(const XMLNode& x)
 {
+  screenOutput("initializing PLaS...");
+
+
   //***Flow solver parameters that have to be set only once***//
   setFlowSolverParamOnInit(&fp);
 
@@ -279,7 +282,9 @@ void plas::initialize(const XMLNode& x)
 
 
   //***Initialize material data from database***//
-  mdd->update(ip.iniTempDisp,getQuantity(PRESSURE,0));
+  double p = 0.;
+  getQuantity(PRESSURE,0,&p);
+  mdd->update(ip.iniTempDisp,p);
 
 
   // set output tecplot file (and initial entity distribution)
@@ -298,11 +303,17 @@ void plas::initialize(const XMLNode& x)
   // set output statistics file
   if (ip.writeStatsFilename.length())
     plas_CreateStatsFile(ip.writeStatsFilename);
+
+
+  screenOutput("initializing PLaS.");
 }
 
 
 void plas::run()
 {
+  screenOutput("perform PLaS iteration...");
+
+
   LOCAL_ENTITY_VARIABLES ent(fp.numDim);
   LOCAL_FLOW_VARIABLES flow(fp.numDim);
   char errMessage[100];
@@ -311,7 +322,6 @@ void plas::run()
 
 
   //***Flow solver parameters that have to be set at every time step***//
-  screenOutput("Initialization...");
   fp.time += fp.dtEul;
   ++fp.iter;
 
@@ -578,6 +588,9 @@ void plas::run()
     plas_WriteStatsFile(ip.writeStatsFilename,fp.iter,fp.time);
   if (ip.writeTecplotFilename.length())
     plas_WriteTecplotFile(ip.writeTecplotFilename,fp.iter,fp.time);
+
+
+  screenOutput("perform PLaS iteration.");
 }
 
 
@@ -783,10 +796,10 @@ void plas::plas_CalcCellwiseData()
             xiyi = 0.;
           for (int in=0; in<plas_getElmNNodes(getElmType(iz,ie)); ++in) {
             const int n = en[in];
-            xi += plas_getQuantity(COORD_X+idim,n);
+            xi += plas_getQuantity(COORD+idim,n);
             yi += pd[n].volFrac;
-            xixi += plas_getQuantity(COORD_X+idim,n)*plas_getQuantity(COORD_X+idim,n);
-            xiyi += plas_getQuantity(COORD_X+idim,n)*pd[n].volFrac;
+            xixi += plas_getQuantity(COORD+idim,n)*plas_getQuantity(COORD+idim,n);
+            xiyi += plas_getQuantity(COORD+idim,n)*pd[n].volFrac;
             pd[n].volFracDx[idim] = (dNElmNodes*xiyi-xi*yi)/(dNElmNodes*xixi-xi*xi);
           }
 
@@ -1016,14 +1029,13 @@ void plas::plas_CalcMatVectScalarProduct_3D(double *value, double **m, double *a
 void plas::plas_CalcNodeImpactFactors(const LOCAL_ENTITY_VARIABLES *ent, double *imp)
 {
   double sum = 0.0;
-  int idim,jdim,inod;
+  int idim,inod;
   double distance[fp.numDim];
 
   for(idim=0; idim<ent->edata.numElmNodes; idim++){
     inod = ent->edata.elmNodes[idim];
-    for(jdim=0; jdim<fp.numDim; jdim++){
-      distance[jdim] = plas_getQuantity(COORD_X+jdim,inod)-ent->pos[jdim];
-    }
+    for (int d=0; d<fp.numDim; ++d)
+      distance[d] = plas_getQuantity(COORD+d,inod) - ent->pos[d];
     imp[idim] = plas_CalcVectorLength(fp.numDim,distance);
     if (imp[idim]<ip.errTol)
       imp[idim] = ip.errTol;
@@ -1363,7 +1375,7 @@ double plas::plas_CalcWallFaceDistance(int numDim, double *pos, int ibnd, int if
   std::vector< int > fn(plas_getElmNNodes(getElmType(ibnd,ifac)),-1);
   getElmNodes(ibnd,ifac,&fn[0]);
   for (int d=0; d<numDim; ++d)
-    posVec[d] = pos[d] - plas_getQuantity(COORD_X+d,fn[0]);
+    posVec[d] = pos[d] - plas_getQuantity(COORD+d,fn[0]);
 
   return plas_CalcVectorScalarProduct(numDim,posVec,unitVec);
 }
@@ -1971,11 +1983,11 @@ void plas::plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *f
   flow->pressure = plas_InterpolateQuantity(PRESSURE,   *ent,impFac,1.-step,step);
   flow->temp     = plas_InterpolateQuantity(TEMPERATURE,*ent,impFac,1.-step,step);
   for (int d1=0; d1<fp.numDim; ++d1) {
-    flow->vel[d1] = plas_InterpolateQuantity(VELOCITY_X+d1,*ent,impFac,1.-step,step);
+    flow->vel[d1] = plas_InterpolateQuantity(VELOCITY+d1,*ent,impFac,1.-step,step);
     for (int d2=0; d2<fp.numDim; ++d2)
-      flow->velDx[d1][d2] = plas_InterpolateQuantity(VELOCITY_X_DX + d1*fp.numDim + d2,*ent,impFac,1.-step,step);
+      flow->velDx[d1][d2] = plas_InterpolateQuantity(VELOCITY_X_D + d1*fp.numDim + d2,*ent,impFac,1.-step,step);
     flow->velDt[d1] = (fp.dtEul<1.e-20? 0. :
-      plas_InterpolateQuantity(VELOCITY_X+d1,*ent,impFac,-1./fp.dtEul,1./fp.dtEul) );
+      plas_InterpolateQuantity(VELOCITY+d1,*ent,impFac,-1./fp.dtEul,1./fp.dtEul) );
   }
 
   // calculate vorticity
