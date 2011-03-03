@@ -285,12 +285,6 @@ class plas {
  public:  // interface public methods
 
    /**
-    * initialize simulation-independent solver data
-    */
-   plas();
-
-
-   /**
    * This function initializes the PLaS solver. It has to be
    * called before doing any run of PLaS from the driving flow
    * solver.
@@ -316,10 +310,26 @@ class plas {
    * Set flow solver parameters on initialization
    * @param[in] fp pointer to PLaS data structure
    */
-  virtual void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp) = 0;
+  virtual void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *_fp) = 0;
 
   /**
-   * Provide element node indices to PLaS
+   * Provide boundary element node indices to PLaS
+   * @param[in] iz boundary element zone
+   * @param[in] ie element index in the boundary zone
+   * @param[out] enodes element node indices array (preallocated)
+   */
+  virtual void getBndElmNodes(const int iz, const int ie, int *enodes) = 0;
+
+  /**
+   * Provide boundary element type to PLaS
+   * @param[in] element boundary zone
+   * @param[in] element index in the boundary zone
+   * @return element type
+   */
+  virtual plas_elmtype_t getBndElmType(const int iz, const int ie) = 0;
+
+  /**
+   * Provide inner element node indices to PLaS
    * @param[in] iz element zone
    * @param[in] ie element index in the zone
    * @param[out] enodes element node indices array (preallocated)
@@ -327,9 +337,9 @@ class plas {
   virtual void getElmNodes(const int iz, const int ie, int *enodes) = 0;
 
   /**
-   * Provide element type to PLaS
-   * @param[in] element zone
-   * @param[in] element index in the zone
+   * Provide inner element type to PLaS
+   * @param[in] element inner zone
+   * @param[in] element index in the inner zone
    * @return element type
    */
   virtual plas_elmtype_t getElmType(const int iz, const int ie) = 0;
@@ -393,7 +403,6 @@ class plas {
    */
   void plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double *force, double tFactor);
 
-
   /**
    * This file includes all functionality concerning entities
    * interacting with boundaries of the computational domain,
@@ -403,7 +412,6 @@ class plas {
    * boundary face.
    */
   void plas_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *unitVec);
-
 
   /**
    * This file includes a function to manage cellwise data of
@@ -415,14 +423,12 @@ class plas {
    */
   void plas_CalcCellwiseData();
 
-
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the concentation in bubble's surface.
    */
   double plas_CalcConcInterf(double pressBubble);
-
 
   /**
    * This file includes the computation of back-coupling terms
@@ -433,7 +439,6 @@ class plas {
    */
   void plas_CalcCouplingForcesBubble(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
 
-
   /**
    * This file includes the computation of back-coupling terms
    * from the dispersed phase to the continuous phase.
@@ -443,12 +448,10 @@ class plas {
    */
   void plas_CalcCouplingForcesParticle(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
 
-
   /**
    * This function computes the 3D cross product of two vectors.
    */
   void plas_CalcCrossProduct_3D(double *value, double *a, double *b);
-
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -457,14 +460,12 @@ class plas {
    */
   double plas_CalcDispReynolds(double viscosity, double diameter, double normVel);
 
-
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity drag coefficient.
    */
   double plas_CalcDragCoeff(int flowType, double reynolds);
-
 
   /**
    * Caculate area/length-scaled element face normal
@@ -482,7 +483,6 @@ class plas {
    */
   void plas_CalcEntityCoefficients(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow);
 
-
   /**
    * This file includes functions to compute flow coefficients.
    *
@@ -491,14 +491,12 @@ class plas {
    */
   double plas_CalcKinematicResponseTime(LOCAL_ENTITY_VARIABLES *ent);
 
-
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity lift coefficient.
    */
   double plas_CalcLiftCoeff(int flowType);
-
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -508,20 +506,17 @@ class plas {
    */
   double plas_CalcMassTransferCoeff(double sherwood, double spalding);
 
-
   /**
    * This function computes the 2D scalar product of a matrix
    * and a vector.
    */
   void plas_CalcMatVectScalarProduct_2D(double *value, double **m, double *a);
 
-
   /**
    * This function computes the 3D scalar product of a matrix
    * and a vector.
    */
   void plas_CalcMatVectScalarProduct_3D(double *value, double **m, double *a);
-
 
   /**
    * This file includes all functinality to perform an element
@@ -532,14 +527,12 @@ class plas {
    */
   void plas_CalcNodeImpactFactors(const LOCAL_ENTITY_VARIABLES *ent, double *imp);
 
-
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity Nusselt number.
    */
   double plas_CalcNusseltNumber(int evapModel, double reynolds, double spalding, double prandtl);
-
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -548,30 +541,25 @@ class plas {
    */
   double plas_CalcPrandtlNumber();
 
-
   /**
    * This file includes functions to compute flow coefficients.
    */
   double plas_CalcPressBubble(double diameter, double pressure);
-
 
   /**
    * This file includes functions to compute flow coefficients.
    */
   double plas_CalcRhoBubble(double temperature, double pressBubble);
 
-
   /**
    * This function computes a rotation matrix in 2D.
    */
   void plas_CalcRotationMatrix_2D(double phi, double **m);
 
-
   /**
    * This function computes a rotation matrix in 3D.
    */
   void plas_CalcRotationMatrix_3D(double phi, double **m, int axis);
-
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -580,7 +568,6 @@ class plas {
    */
   double plas_CalcSchmidtNumber();
 
-
   /**
    * This file includes functions to compute flow coefficients.
    *
@@ -588,14 +575,12 @@ class plas {
    */
   double plas_CalcSherwoodNumber(int evapModel, double reynolds, double schmidt, double spalding);
 
-
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity Spalding number.
    */
   double plas_CalcSpaldingNumber(double pressure);
-
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -605,7 +590,6 @@ class plas {
    */
   double plas_CalcThermalResponseTime(double diameter);
 
-
   /**
    * This file includes the functionality to perform  trajectory
    * integrations of dispersed entities.
@@ -614,30 +598,25 @@ class plas {
    */
   void plas_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double dtLagr);
 
-
   /**
    * This function computes the angle between two vectors.
    */
   double plas_CalcVectorAngle(int numDim, double *a, double *b);
-
 
   /**
    * This function computes the length of a vector.
    */
   double plas_CalcVectorLength(int numDim, double *a);
 
-
   /**
    * This function rotates a 3D vector.
    */
   void plas_CalcVectorRotation_3D(double phi, double **m, double *a);
 
-
   /**
    * This function computes the scalar product of two vectors.
    */
   double plas_CalcVectorScalarProduct(int numDim, double *a, double *b);
-
 
   /**
    * Calculates the size of a triangle (area)
@@ -647,7 +626,6 @@ class plas {
    * @return area of the triangle
    */
   double plas_CalcSizeTriangle(const unsigned n1, const unsigned n2, const unsigned n3);
-
 
   /**
    * Calculates the size of a tetrahedron (volume)
@@ -659,7 +637,6 @@ class plas {
    */
   double plas_CalcSizeTetrahedron(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4);
 
-
   /**
    * Calculates the size (volume/area) of an element
    * @param[in] iz element zone
@@ -668,12 +645,10 @@ class plas {
    */
   double plas_CalcElmSize(const unsigned iz, const unsigned ie);
 
-
   /**
    * This function computes the vorticity of the fluid flow.
    */
   void plas_CalcVorticity(int numDim, LOCAL_FLOW_VARIABLES *flow);
-
 
   /**
    * This file includes all functionality concerning entities
@@ -685,7 +660,6 @@ class plas {
    */
   double plas_CalcWallFaceDistance(int numDim, double *pos, int ibnd, int ifac);
 
-
   /**
    * This file includes the functionality to perform  trajectory
    * integrations of dispersed entities.
@@ -694,7 +668,6 @@ class plas {
    * position and velocity.
    */
   void plas_CheckNaN(LOCAL_ENTITY_VARIABLES *ent);
-
 
   /**
    * This function computes coalescense of bubbles according
@@ -705,13 +678,11 @@ class plas {
    */
   int plas_Coalescence(double dj, double di, double *uijRelPrPr, double *x, double *y, double *z, double Mi, double Mj, double *uiPrPr, double *uiPrPrNew, double *uiNew, double *ui);
 
-
   /**
    * This function computes inter-entity collisions based on the
    * stochastic model of Sommerfeld.
    */
   void plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double dtLagr);
-
 
   /**
    * This file contains all write functionality, to the screen,
@@ -721,7 +692,6 @@ class plas {
    */
   void plas_CreateStatsFile(const std::string &outpString);
 
-
   /**
    * This file contains all write functionality, to the screen,
    * to output files and to Tecplot.
@@ -730,7 +700,6 @@ class plas {
    * phase entities.
    */
   void plas_CreateTecplotFile(const std::string &outpString);
-
 
   /**
    * This file includes all functionality concerning entities
@@ -742,7 +711,6 @@ class plas {
    */
   bool plas_FindExitFace(LOCAL_ENTITY_VARIABLES *ent, int *i, int *j);
 
-
   /**
    * This file includes all functinality to perform an element
    * search for a dispersed entity.
@@ -751,7 +719,6 @@ class plas {
    * an entity.
    */
   void plas_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARIABLES *ent, int *idx, double *dmin);
-
 
   /**
    * This file includes all functinality to perform an element
@@ -811,14 +778,12 @@ class plas {
    */
   int plas_getElmNFaces(const plas_elmtype_t et);
 
-
   /**
    * Provide element number of nodes
    * @param[in] element type
    * @return element number of nodes
    */
   int plas_getElmNNodes(const plas_elmtype_t et);
-
 
   /**
    * Provide nodal quantity at time step n-1 (previous) to PLaS
@@ -832,7 +797,6 @@ class plas {
     return getOldQuantity(plas_quantity_t(q),nod,v,d);
   }
 
-
   /**
    * Provide nodal quantity at time step n (current) to PLaS
    * @param[in] Q quantity to provide (as simple index)
@@ -845,7 +809,6 @@ class plas {
     return getQuantity(plas_quantity_t(q),nod,v,d);
   }
 
-
   /**
    * This file contains routines for the generation of entities,
    * be it to form an initial set of entities or to create
@@ -855,7 +818,6 @@ class plas {
    * external code module (e.g. electrochemistry).
    */
   void plas_ImposeExternal();
-
 
   /**
    * This file contains routines for the generation of entities,
@@ -867,13 +829,11 @@ class plas {
    */
   void plas_ImposeProductionDomains();
 
-
   /**
    * This function manages the interpolation of variables from
    * the fluid flow solver.
    */
   void plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
-
 
   /**
    * This function calculates all the quantities interpolation
@@ -884,7 +844,6 @@ class plas {
    * @return quantity interpolated value
    */
   double plas_InterpolateQuantity(const plas_quantity_t &Q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew);
-
 
   /**
    * This function calculates all the quantities interpolation
@@ -898,7 +857,6 @@ class plas {
     return plas_InterpolateQuantity(plas_quantity_t(q),ent,en_impactfactor,fold,fnew);
   }
 
-
   /**
    * This file contains routines for the generation of entities,
    * be it to form an initial set of entities or to create
@@ -908,18 +866,15 @@ class plas {
    */
   void plas_LoadInitialDistribution(const std::string &inpString);
 
-
   /**
    * This function normalizes a vector to length one
    */
   void plas_NormalizeVector(int numDim, double *a);
 
-
   /**
    * This function generates random doubles in a given range
    */
   double plas_RandomDouble(double _min=0., double _max=1.);
-
 
   /**
    * Generate a random position inside an element in a given zone
@@ -928,7 +883,6 @@ class plas {
    * @param[out] p random position (preallocated to number of dimensions)
    */
   void plas_RandomElmPosition(const int zone, const int elm, double *p);
-
 
   /**
    * This file contains routines to generate random numbers.
@@ -943,7 +897,6 @@ class plas {
    */
   double plas_RandomGaussian(float m, float s);
 
-
   /**
    * This file contains routines for the generation of entities,
    * be it to form an initial set of entities or to create
@@ -954,14 +907,12 @@ class plas {
    */
   void plas_RandomInitialDistribution();
 
-
   /**
    * This file contains routines to generate random numbers.
    *
    * This functions generates random integers.
    */
   int plas_RandomInteger(int min, int max);
-
 
   /**
    * This file contains all functionality to read in data from
@@ -971,7 +922,6 @@ class plas {
    */
   void plas_ReadParameters(const XMLNode& x);
 
-
   /**
    * This file includes all functinality to perform an element
    * search for a dispersed entity.
@@ -980,7 +930,6 @@ class plas {
    * following the algorithm of Loehner et al.
    */
   void plas_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent);
-
 
   /**
    * This file contains routines for the generation of entities,
@@ -992,20 +941,11 @@ class plas {
    */
   double plas_SetDiameter();
 
-
   /**
    * This function sets the geometry of an element assigned to
    * a dispersed entity.
    */
   void plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent);
-
-
-  /**
-   * This function sets the volumes of elements and additionally distributes
-   * them to the nodes.
-   */
-  void plas_SetupElementsAndNodalVolumes();
-
 
   /**
    * This file includes the functionality to perform  trajectory
@@ -1015,7 +955,6 @@ class plas {
    */
   void plas_SolveGaussSeidel(int numDim, double **mat, double *s, double *rhs);
 
-
   /**
    * This file contains all write functionality, to the screen,
    * to output files and to Tecplot.
@@ -1024,7 +963,6 @@ class plas {
    * writes out an error message.
    */
   void plas_TerminateOnError(const std::string& errMessage);
-
 
   /**
    * This file includes all functionality concerning entities
@@ -1037,7 +975,6 @@ class plas {
    */
   void plas_WallBounce(int numDim, double elasticity, LOCAL_ENTITY_VARIABLES *ent, int ibnd, int ifac);
 
-
   /**
    * This file contains all write functionality, to the screen,
    * to output files and to Tecplot.
@@ -1045,7 +982,6 @@ class plas {
    * This function writes the PLaS statistics to a file.
    */
   void plas_WriteStatsFile(const std::string &outpString, int iter, double time);
-
 
   /**
    * This file contains all write functionality, to the screen,
@@ -1082,16 +1018,34 @@ class plas {
     std::vector<      // per element
       std::vector<    // per face
         std::vector<  // per coordinate
-          double > > > > m_innerelem_normals;
+          double      // coordinate value
+  > > > > m_innerelem_normals;
 
-  // boundary elements connection to inner elements
+  // map of boundary elements to (inner) elements
   struct s_boundtoinner {
     s_boundtoinner() : inner_iz(-1), inner_ie(-1), inner_if(-1) {}
-    int inner_iz, inner_ie, inner_if;
+    int
+      inner_iz,
+      inner_ie,
+      inner_if;
   };
-  std::vector<    // per (boundary) zone
-    std::vector<  // per element
-      s_boundtoinner > > m_boundtoelement;
+  std::vector<        // per (boundary) zone
+    std::vector<      // per element
+      s_boundtoinner  // with element zone/index/face
+  > > m_boundtoinner;
+
+  // map of nodes to (inner) elements
+  std::vector<               // per node
+    std::vector<             // list of neighbors
+      std::pair< int,int >   // with element zone/index
+  > > m_nodetoelem;
+
+  // map of (inner) elements to elements (sharing a face)
+  std::vector<                // per (inner) zone
+    std::vector<              // per element
+      std::vector<            // per face
+        std::pair< int,int >  // with element zone/index
+  > > > m_elemtoelem;
 
 };
 

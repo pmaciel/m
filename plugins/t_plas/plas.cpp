@@ -2,6 +2,11 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <algorithm>
+#include <numeric>
+#include <set>
+#include <list>
+
 #include "boost/progress.hpp"
 #include "mfactory.h"
 #include "plas.h"
@@ -11,192 +16,199 @@
 void plas_material_database();
 
 
-plas::plas()
-{
-  // initialize materials database
-  plas_material_database();
-}
-
-
 void plas::initialize(const XMLNode& x)
 {
   screenOutput("initializing PLaS...");
 
 
-  //***Flow solver parameters that have to be set only once***//
+  screenOutput("initialize materials database...");
+  plas_material_database();
+  screenOutput("initialize materials database.");
+
+
+  screenOutput("set flow solver parameters...");
   setFlowSolverParamOnInit(&fp);
+  screenOutput("set flow solver parameters.");
 
 
-  //***Read parameters from input file***//
+  screenOutput("recreating node-to-element connectivity...");
   plas_ReadParameters(x);
+  screenOutput("recreating node-to-element connectivity.");
 
 
+  screenOutput("recreating map of nodes to (inner) elements...");
+
+  // allocate
+  m_nodetoelem.resize(fp.numNod);
+
+  // push back all the elements to their composing node indices
+  for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
+    for (size_t ie=0; ie<fp.nInnerElements[iz]; ++ie) {
+      std::vector< int > en( plas_getElmNNodes(getElmType(iz,ie)) );
+      getElmNodes(iz,ie,&en[0]);
+      for (std::vector< int >::const_iterator n=en.begin(); n!=en.end(); ++n)
+        m_nodetoelem[ *n ].push_back(std::pair< int,int >(iz,ie));
+    }
+  }
+  screenOutput("recreating map of nodes to (inner) elements.");
 
 
+  screenOutput("recreating map of (inner) elements to elements (sharing a face)...");
 
+  // allocate
+  long unsigned fcount = 0;
+  m_elemtoelem.resize(fp.nInnerElements.size());
+  for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
+    if (fp.nInnerElements[iz])
+      m_elemtoelem[iz].resize(fp.nInnerElements[iz]);
+    for (size_t ie=0; ie<fp.nInnerElements[iz]; ++ie) {
+      fcount += plas_getElmNFaces(getElmType(iz,ie));
+      m_elemtoelem[iz][ie].assign( plas_getElmNFaces(getElmType(iz,ie)), std::pair< int,int >(-1,-1) );
+    }
+  }
 
+  // hold information about elements on a boundary
+  std::list< std::pair< int,int > > list_boundelems;
 
-#if 0
-  cout << "info: recreating: node-to-element connectivity..." << endl;
-  dmesh.nodElms.assign(M->n(),std::vector< int >());
-  for (size_t iz=0, ielm=0; iz<m_zinner_props.size(); ++iz)
-    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++ielm)
-      for (std::vector< unsigned >::const_iterator n=M->vz[iz].e2n[ie].n.begin(); n!=M->vz[iz].e2n[ie].n.end(); ++n)
-        dmesh.nodElms[ *n ].push_back(ielm);
-  cout << "info: recreating: node-to-element connectivity." << endl;
+  // perform the (inner) element to element search
+  boost::progress_display pbar(fcount);
+  for (size_t iz=0; iz<m_elemtoelem.size(); ++iz) {
+    for (size_t ie=0; ie<m_elemtoelem[iz].size(); ++ie) {
+      for (size_t iface=0; iface<m_elemtoelem[iz][ie].size(); ++iface, ++pbar) {
 
+        // get element face nodes
+        std::vector< int > fn( plas_getElmNNodes(plas_getElmFaceType(getElmType(iz,ie),iface)), -1 );
+        plas_getElmFaceNodes(iz,ie,iface,&fn[0]);
+        std::sort(fn.begin(),fn.end());
 
-  cout << "info: recreating: element-to-element (sharing a face) connectivity..." << endl;
-  dmesh.elmNeighbs.resize(ninnerelm);
-  std::vector< int >
-    ifacenodes(4,-1),
-    jfacenodes(4,-1);
-  std::vector< std::vector< int > > v_isboudaryelm(M->z());
-  boost::progress_display pbar(ninnerelm);
-  for (size_t iz=0, ielm=0; iz<m_zinner_props.size(); ++iz) {
-    if (m_zinner_props[iz].nelems)
-      v_isboudaryelm[iz].assign(m_zinner_props[iz].nelems,0);
-    for (int ie=0; ie<m_zinner_props[iz].nelems; ++ie, ++ielm, ++pbar) {
-      dmesh.elmNeighbs[ielm].assign(m_zinner_props[iz].e_nfaces,-1);
-      for (int ifac=0; ifac<m_zinner_props[iz].e_nfaces; ++ifac) {
+        // create set of searcheable elements (those sharing a node)
+        std::set< std::pair< int,int > > neighelems;
+        for (std::vector< int >::const_iterator n=fn.begin(); n!=fn.end(); ++n)
+          for (std::vector< std::pair< int,int > >::const_iterator e=m_nodetoelem[*n].begin(); e!=m_nodetoelem[*n].end(); ++e)
+            neighelems.insert( neighelems.end(), *e);
+        neighelems.erase(std::pair< int,int >(iz,ie));  // avoid self-search
 
-        // get nodes in the face
-        plas_getElmFaceNodes(iz,ie,ifac,&ifacenodes[0],&ifacenodes[1],&ifacenodes[2],&ifacenodes[3]);
-        std::sort(ifacenodes.begin(),ifacenodes.end());
+        // find the element with a face with the same nodes
+        bool isneighborfacefound = false;
+        for (std::set< std::pair< int,int > >::const_iterator ne=neighelems.begin(); ne!=neighelems.end() && !isneighborfacefound; ++ne) {
+          for (int jface=0; jface<plas_getElmNFaces(getElmType(ne->first,ne->second)) && !isneighborfacefound; ++jface) {
 
-        // get list of searcheable elements (sharing a node), absolute index
-        std::vector< int > v_ielm;
-        for (std::vector< int >::const_iterator n=ifacenodes.begin(); n!=ifacenodes.end(); ++n)
-          if (*n!=-1)
-            v_ielm.insert(v_ielm.end(),dmesh.nodElms[*n].begin(),dmesh.nodElms[*n].end());
-        sort(v_ielm.begin(),v_ielm.end());
-        v_ielm.erase(unique(v_ielm.begin(),v_ielm.end()),v_ielm.end());
+            // get neighbor element face nodes
+            std::vector< int > nfn( plas_getElmNNodes(plas_getElmFaceType(getElmType(ne->first,ne->second),jface)), -1 );
+            plas_getElmFaceNodes(ne->first,ne->second,jface,&nfn[0]);
+            std::sort(nfn.begin(),nfn.end());
 
-        // convert absolute indices to relative (zone and internal elem. index)
-        std::vector< int >
-          v_jelem_z,
-          v_jelem_e,
-          v_jelem_elm;
-        for (std::vector< int >::const_iterator elm=v_ielm.begin(); elm!=v_ielm.end(); ++elm)
-          for (int jz=0, nelems=0; jz<(int) m_zinner_props.size(); ++jz) {
-            nelems += m_zinner_props[jz].nelems;
-            if (nelems > *elm) {
-              v_jelem_z.push_back(jz);
-              v_jelem_e.push_back(*elm - nelems + m_zinner_props[jz].nelems);
-              v_jelem_elm.push_back(*elm);
-              break;
+            // if neighbor face matches, it must be that one
+            if (std::equal(fn.begin(),fn.end(),nfn.begin())) {
+              m_elemtoelem[iz][ie][iface] = *ne;
+              isneighborfacefound = true;
             }
-          }
-        v_ielm.clear();
 
-        // find the element with a face with the same nodes but different index
-        for (size_t j=0; j<v_jelem_z.size(); ++j) {
-          const int
-            _z = v_jelem_z[j],
-            _e = v_jelem_e[j];
-          size_t jelm = v_jelem_elm[j];
-          for (int jfac=0; jfac<m_zinner_props[_z].e_nfaces && dmesh.elmNeighbs[ielm][ifac]<0; ++jfac) {
-            plas_getElmFaceNodes(_z,_e,jfac,&jfacenodes[0],&jfacenodes[1],&jfacenodes[2],&jfacenodes[3]);
-            std::sort(jfacenodes.begin(),jfacenodes.end());
-            dmesh.elmNeighbs[ielm][ifac] = (ielm!=jelm && ifacenodes==jfacenodes? jelm : -1);
           }
         }
 
-        v_isboudaryelm[iz][ie] += (dmesh.elmNeighbs[ielm][ifac]<0? 1:0);
+        // if neighbor face is not found, it just might touch a boundary :)
+        if (!isneighborfacefound)
+          list_boundelems.insert(list_boundelems.end(),std::pair< int,int >(iz,ie));
+
       }
     }
   }
-  cout << "info: recreating: element-to-element (sharing a face) connectivity." << endl;
+  screenOutput("recreating map of (inner) elements to elements (sharing a face).");
 
 
-  cout << "info: recreating: boundary elements (to inner elements)..." << endl;
-  dmesh.bndFaces  .resize(M->z());
-  dmesh.bndDomElms.resize(M->z());
-  pbar.restart(nboundelm);
-  for (unsigned iz=0, ielm=0; iz<m_zbound_props.size(); ++iz) {
-    if (m_zbound_props[iz].nelems) {
-      dmesh.bndFaces  [iz].assign(m_zbound_props[iz].nelems,-1);
-      dmesh.bndDomElms[iz].assign(m_zbound_props[iz].nelems,-1);
-    }
-    for (int ie=0; ie<m_zbound_props[iz].nelems; ++ie, ++ielm, ++pbar) {
+  screenOutput("recreating map of boundary elements to (inner) elements...");
 
-      // create digestible face nodes
-      std::vector< int > ifacenodes(4,-1);
-      for (unsigned i=0; i<M->vz[iz].e2n[ie].n.size() && i<4; ++i)
-        ifacenodes[i] = M->vz[iz].e2n[ie].n[i];
-      std::sort(ifacenodes.begin(),ifacenodes.end());
+  // allocate
+  fcount = 0;
+  m_boundtoinner.resize(fp.nBoundElements.size());
+  for (size_t iz=0; iz<fp.nBoundElements.size(); ++iz) {
+    fcount += fp.nBoundElements[iz];
+    if (fp.nBoundElements[iz])
+      m_boundtoinner[iz].resize(fp.nBoundElements[iz]);
+  }
 
-      // create faces to search for
-      std::vector< int > jfacenodes(4);
-      for (size_t jz=0, jelm=0; jz<m_zinner_props.size(); ++jz) {
-        for (int je=0; je<m_zinner_props[jz].nelems; ++je, ++jelm) {
-          if (v_isboudaryelm[jz][je]) {
-            for (int jfac=0; jfac<m_zinner_props[jz].e_nfaces; ++jfac) {
-              plas_getElmFaceNodes(jz,je,jfac,&jfacenodes[0],&jfacenodes[1],&jfacenodes[2],&jfacenodes[3]);
-              std::sort(jfacenodes.begin(),jfacenodes.end());
+  // perform the boundary elements to (inner) elements search
+  pbar.restart(fcount);
+  for (size_t iz=0; iz<m_boundtoinner.size(); ++iz) {
+    for (size_t ie=0; ie<m_boundtoinner[iz].size(); ++ie, ++pbar) {
 
-              if (ifacenodes==jfacenodes) {
-                dmesh.bndFaces  [iz][ie] = jfac;
-                dmesh.bndDomElms[iz][ie] = jelm;
-                --v_isboudaryelm[jz][je];
-                break;
-              }
+      // get boundary element nodes (sorted for comparison later)
+      std::vector< int > ben( plas_getElmNNodes(getBndElmType(iz,ie)), -1 );
+      getBndElmNodes(iz,ie,&ben[0]);
+      std::sort(ben.begin(),ben.end());
 
-            }
+      // find the element with a face with the same nodes
+      bool isinnerfacefound = false;
+      for (std::list< std::pair< int,int > >::iterator be=list_boundelems.begin(); be!=list_boundelems.end() && !isinnerfacefound; ++be) {
+        for (int jface=0; jface<plas_getElmNFaces(getElmType(be->first,be->second)) && !isinnerfacefound; ++jface) {
+
+          // get inner element face nodes
+          std::vector< int > befn( plas_getElmNNodes(plas_getElmFaceType(getElmType(be->first,be->second),jface)), -1 );
+          plas_getElmFaceNodes(be->first,be->second,jface,&befn[0]);
+          std::sort(befn.begin(),befn.end());
+
+          // if neighbor face matches, it must be that one
+          if (std::equal(ben.begin(),ben.end(),befn.begin())) {
+            m_boundtoinner[iz][ie].inner_iz = be->first;
+            m_boundtoinner[iz][ie].inner_ie = be->second;
+            m_boundtoinner[iz][ie].inner_if = jface;
+            list_boundelems.erase(be);
+            isinnerfacefound = true;
           }
+
         }
       }
 
     }
   }
-  cout << "info: recreating: boundary inner elements (to inner elements)." << endl;
-#endif
-
-
-  //FIXME urgent: build m_boundtoelement
+  screenOutput("recreating map of boundary elements to (inner) elements.");
 
 
   screenOutput("calculating inner element normals...");
-  {
-    // allocate
-    unsigned long count = 0;
-    m_innerelem_normals.resize(fp.nInnerElements.size());
-    for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
-      if (fp.nInnerElements[iz]) {
-        m_innerelem_normals[iz].resize(fp.nInnerElements[iz]);
-        for (size_t ie=0; ie<fp.nInnerElements[iz]; ++ie) {
-          m_innerelem_normals[iz][ie].assign(
-                plas_getElmNFaces(getElmType(iz,ie)),
-                std::vector< double >(fp.numDim,0.) );
-          count += m_innerelem_normals[iz][ie].size();
-        }
-      }
-    }
 
-    // calculate zone/element/face normals
-    boost::progress_display pbar(count);
-    for (int iz=0; iz<(int) m_innerelem_normals.size(); ++iz)
-      for (int ie=0; ie<(int) m_innerelem_normals[iz].size(); ++ie)
-        for (int f=0; f<(int) m_innerelem_normals[iz][ie].size(); ++f, ++pbar)
-          plas_CalcElmFaceNormal( iz,ie,f, &(m_innerelem_normals[iz][ie][f])[0] );
+  // allocate
+  fcount = 0;
+  m_innerelem_normals.resize(fp.nInnerElements.size());
+  for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
+    if (fp.nInnerElements[iz])
+      m_innerelem_normals[iz].resize(fp.nInnerElements[iz]);
+    for (size_t ie=0; ie<fp.nInnerElements[iz]; ++ie) {
+      m_innerelem_normals[iz][ie].assign( plas_getElmNFaces(getElmType(iz,ie)), std::vector< double >(fp.numDim,0.) );
+      fcount += m_innerelem_normals[iz][ie].size();
+    }
+  }
+
+  // calculate zone/element/face normals
+  pbar.restart(fcount);
+  for (size_t iz=0; iz<m_innerelem_normals.size(); ++iz) {
+    for (size_t ie=0; ie<m_innerelem_normals[iz].size(); ++ie)
+      for (size_t f=0; f<m_innerelem_normals[iz][ie].size(); ++f, ++pbar)
+        plas_CalcElmFaceNormal( iz,ie,f, &(m_innerelem_normals[iz][ie][f])[0] );
   }
   screenOutput("calculating inner element normals.");
-exit(0);
 
 
+  screenOutput("calculating element volumes...");
+  volumeElm.resize(fp.nInnerElements.size());
+  for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
+    if (fp.nInnerElements[iz])
+      volumeElm[iz].assign(fp.nInnerElements[iz],0.);
+    for (size_t ie=0; ie<(size_t) fp.nInnerElements[iz]; ++ie)
+      volumeElm[iz][ie] = plas_CalcElmSize(iz,ie);
+  }
+  screenOutput("calculating element volumes.");
 
 
+  screenOutput("calculating nodal volumes (dual cell)...");
+  volumeNod.assign(fp.numNod,0.);
+  for (int in=0; in<fp.numNod; ++in)
+    for (std::vector< std::pair< int,int > >::const_iterator e=m_nodetoelem[in].begin(); e!=m_nodetoelem[in].end(); ++e)
+      volumeNod[in] += volumeElm[e->first][e->second] / double(plas_getElmNNodes(getElmType(e->first,e->second)));
+  screenOutput("calculating nodal volumes (dual cell).");
 
 
-
-
-
-
-  // calculate nodal and elements volume
-  plas_SetupElementsAndNodalVolumes();
-
-
-  //***Allocate memory for dispersed phase data***//
+  // allocate memory for dispersed phase data
   ed = new PLAS_ENTITY_DATA[ip.numMaxEnt];
   for (int ient=0; ient<ip.numMaxEnt; ++ient) {
     ed[ient].flag        = DFLAG_DISABLED;
@@ -237,7 +249,6 @@ exit(0);
     plas_LoadInitialDistribution(ip.writeTecplotFilename);
   else if (ip.numIniEnt>0)
     plas_RandomInitialDistribution();
-  exit(0);
 
 
   // set output statistics file
@@ -628,7 +639,7 @@ void plas::plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABL
 void plas::plas_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *unitVec)
 {
   // get normal vector of a boundary face
-  const s_boundtoinner &in = m_boundtoelement[ibnd][ifac];
+  const s_boundtoinner &in = m_boundtoinner[ibnd][ifac];
   for (int idim=0; idim<numDim; ++idim)
     unitVec[idim] = m_innerelem_normals[in.inner_iz][in.inner_ie][in.inner_if][idim];
 
@@ -1314,7 +1325,7 @@ double plas::plas_CalcWallFaceDistance(int numDim, double *pos, int ibnd, int if
 
   // calculate and return wall face distance
   std::vector< int > fn(plas_getElmNNodes(getElmType(ibnd,ifac)),-1);
-  getElmNodes(ibnd,ifac,&fn[0]);
+  getBndElmNodes(ibnd,ifac,&fn[0]);
   for (int d=0; d<numDim; ++d)
     posVec[d] = pos[d] - plas_getQuantity(COORD+d,fn[0]);
 
@@ -1684,23 +1695,19 @@ void plas::plas_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARIABLE
 
 int plas::plas_FindNearestElementNode(LOCAL_ENTITY_VARIABLES *ent)
 {
-  int idim,node=0;
-  double impFac[ent->edata.numElmNodes],f_max=0.;
+  std::vector< double > impFac(plas_getElmNNodes(getElmType(ent->zone,ent->elm)),0.);
+  plas_CalcNodeImpactFactors(ent,&impFac[0]);
 
-  plas_CalcNodeImpactFactors(ent,impFac);
-  for(idim=0; idim<ent->edata.numElmNodes; idim++){
-    if(idim==0){
-      node = ent->edata.elmNodes[idim];
-      f_max = impFac[idim];
-    } else{
-      if(impFac[idim]>f_max){
-        node = ent->edata.elmNodes[idim];
-        f_max = impFac[idim];
-      }
+  int    fmax_nod = ent->edata.elmNodes[0];
+  double fmax_val = impFac[0];
+  for (size_t in=1; in<impFac.size(); ++in) {
+    if (impFac[in]>fmax_val) {
+      fmax_nod = ent->edata.elmNodes[in];
+      fmax_val = impFac[in];
     }
   }
 
-  return node;
+  return fmax_nod;
 }
 
 
@@ -2075,6 +2082,10 @@ void plas::plas_RandomInitialDistribution()
       maxCellSize = std::max(maxCellSize,volumeElm[iz][ie]);
 
 
+  // calculate total volume (to generate entities all over the place)
+  const double Vtotal = std::accumulate(volumeNod.begin(),volumeNod.end(),0.);
+
+
   //***Loop over entities to generate***//
 
   for (int ient=0; ient<ip.numIniEnt; ++ient) {
@@ -2086,13 +2097,8 @@ void plas::plas_RandomInitialDistribution()
     ent.elm  = -1;
     ent.zone = -1;
     double
-      Vtotal = 0.,
-      Vpick  = 0.,
+      Vpick  = plas_RandomDouble(0.,Vtotal),
       Vacc   = 0.;
-    for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz)
-      for (size_t ie=0; ie<fp.nInnerElements[iz]; ++ie)
-        Vtotal += volumeElm[iz][ie];
-    Vpick = plas_RandomDouble(0.,Vtotal);
     for (size_t iz=0; iz<fp.nInnerElements.size() && ent.elm<0; ++iz) {
       for (size_t ie=0; ie<fp.nInnerElements[iz] && ent.elm<0; Vacc += volumeElm[iz][ie], ++ie) {
         if (Vacc>Vpick) {
@@ -2101,7 +2107,8 @@ void plas::plas_RandomInitialDistribution()
         }
       }
     }
-    std::cout << "element pick z/e: " << ent.zone << '/' << ent.elm << std::endl;
+    ent.edata.numElmFaces = plas_getElmNFaces(getElmType(ent.zone,ent.elm));
+    ent.edata.numElmNodes = plas_getElmNNodes(getElmType(ent.zone,ent.elm));
 
 
     // set diameter and random position inside element
@@ -2310,29 +2317,6 @@ void plas::plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent)
     for (int d=0; d<numDim; ++d)
       ent->edata.elmNorms[f][d] = m_innerelem_normals[ent->zone][ent->elm][f][d];
   }
-}
-
-
-void plas::plas_SetupElementsAndNodalVolumes()
-{
-  screenOutput("calculating element volumes...");
-  volumeElm.resize(fp.nInnerElements.size());
-  for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
-    if (fp.nInnerElements[iz]) {
-      volumeElm[iz].resize(fp.nInnerElements[iz]);
-      for (size_t ie=0; ie<(size_t) fp.nInnerElements[iz]; ++ie)
-        volumeElm[iz][ie] = plas_CalcElmSize(iz,ie);
-    }
-  }
-  screenOutput("calculating element volumes.");
-
-
-  screenOutput("calculating nodal volumes (dual cell)...");
-  volumeNod.assign(fp.numNod,0.);
-  for (int n=0; n<fp.numNod; ++n)
-    for (size_t e=0; e<10/*FIXME dmesh.nodElms[n].size()*/; ++e)
-      volumeNod[n] += 10 /*FIXME volume_elm[dmesh.nodElms[n][e]]/dmesh.nodElms[n].size()*/;
-  screenOutput("calculating nodal volumes (dual cell).");
 }
 
 

@@ -1,6 +1,4 @@
 
-#include <numeric>
-#include "boost/progress.hpp"
 #include "ext/xmlParser.h"
 #include "mfactory.h"
 #include "t_plas.h"
@@ -76,19 +74,19 @@ void t_plas::transform(GetPot& o, m::mmesh& m)
 }
 
 
-void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp)
+void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *_fp)
 {
-  fp->nInnerElements.assign(M->z(),0);
-  fp->nBoundElements.assign(M->z(),0);
+  _fp->nInnerElements.assign(M->z(),0);
+  _fp->nBoundElements.assign(M->z(),0);
   for (size_t i=0; i<M->z(); ++i) {
-    fp->nInnerElements[i] = (M->d()==M->d(i)?   M->e(i) : 0);
-    fp->nBoundElements[i] = (M->d()==M->d(i)-1? M->e(i) : 0);
+    _fp->nInnerElements[i] = (M->d(i)==M->d()?   M->e(i) : 0);
+    _fp->nBoundElements[i] = (M->d(i)==M->d()-1? M->e(i) : 0);
   }
-  fp->numDim = M->d();
-  fp->numUnk = M->d()+2;
-  fp->numNod = M->n();
-  fp->dtEul  = m_dt;
+  _fp->numDim = M->d();
+  _fp->numUnk = M->d()+2;
+  _fp->numNod = M->n();
+  _fp->dtEul  = m_dt;
 
-  fp->time = 0.;
-  fp->iter = 0;
+  _fp->time = 0.;
+  _fp->iter = 0;
 }

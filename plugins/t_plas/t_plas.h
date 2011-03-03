@@ -12,7 +12,9 @@ class t_plas : public m::mtransform,
   void transform(GetPot& o, m::mmesh& m);
 
  private:  // plas interface functions
-   void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *fp);
+   void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *_fp);
+   void getBndElmNodes(const int iz, const int ie, int *enodes) { getElmNodes(iz,ie,enodes); }
+   plas_elmtype_t getBndElmType(const int iz, const int ie) { return getElmType(iz,ie); }
    void getElmNodes(const int iz, const int ie, int *enodes) {
      const std::vector< unsigned >& n = M->vz[iz].e2n[ie].n;
      for (size_t i=0; i<n.size(); ++i)
