@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  conf.env.m_mlibraries.append('t_pillaz')
+
+
+def build(bld):
+  bld.stlib(
+    target='pillaz',
+    includes=['.','../../mkernel'],
+    source=[
+      'pillaz.cpp',
+      'pillaz_geometry.cpp',
+      'pillaz_material_database.cpp'] )
+  bld.shlib(
+    target='t_pillaz',
+    includes=['.','../../mkernel'],
+    source=['t_pillaz.cpp'],
+    use=['pillaz'] )
+

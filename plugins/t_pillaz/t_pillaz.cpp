@@ -1,19 +1,19 @@
 
 #include "ext/xmlParser.h"
 #include "mfactory.h"
-#include "t_plas.h"
+#include "t_pillaz.h"
 
 
-m::Register< m::mtransform,t_plas > mt_plas( 6,
-  "-tplas", "[str] filename or string with xml formatted as:",
-  "", "<plas",
+m::Register< m::mtransform,t_pillaz > mt_pillaz( 6,
+  "-tpillaz", "[str] filename or string with xml formatted as:",
+  "", "<pillaz",
   "", " iterations=\"[int]\" (default 1)",
   "", " dt=\"[real]\" (default 1.)",
   "", " <wall zone=\"[str]\"/> (walls, 1 or more)",
-  "", "</plas>" );
+  "", "</pillaz>" );
 
 
-namespace t_plas_aux {
+namespace t_pillaz_aux {
 
 
   unsigned getvariableidx(const std::string& n, const m::mmesh& m)
@@ -41,13 +41,13 @@ namespace t_plas_aux {
 }
 
 
-void t_plas::transform(GetPot& o, m::mmesh& m)
+void t_pillaz::transform(GetPot& o, m::mmesh& m)
 {
 
   // setup xml options
   const std::string o_xml = o.get(o.inc_cursor(),"");
-  XMLNode x = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"plas")
-                                                 : XMLNode::openFileHelper(o_xml.c_str(),"plas");
+  XMLNode x = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"pillaz")
+                                                 : XMLNode::openFileHelper(o_xml.c_str(),"pillaz");
 
   // set number of iterations and time-step
   m_numiter = std::max(0,     x.getAttribute< int    >("iterations",1 ));
@@ -56,25 +56,26 @@ void t_plas::transform(GetPot& o, m::mmesh& m)
   // setup walls
   m_ziswall.assign(m.z(),false);
   for (int i=0; i<x.nChildNode("wall"); ++i)
-    m_ziswall[ t_plas_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),m) ] = true;
+    m_ziswall[ t_pillaz_aux::getzoneidx(x.getChildNode("wall",i).getAttribute< std::string >("zone"),m) ] = true;
 
   // setup data structure (accross member functions)
   M = &m;
 
   // setup quantities to provide
-  m_quantity.assign(ALL_QUANTITIES,-1);
-  m_quantity[COORD]    = t_plas_aux::getvariableidx("x", m);
-  m_quantity[PRESSURE] = t_plas_aux::getvariableidx("p", m);
-  m_quantity[VELOCITY] = t_plas_aux::getvariableidx("vx",m);
+  m_quantityscalar.assign(ALL_QSCALAR,-1);
+  m_quantityvector.assign(ALL_QVECTOR,-1);
+  m_quantityscalar[PRESSURE] = t_pillaz_aux::getvariableidx("p", m);
+  m_quantityvector[VELOCITY] = t_pillaz_aux::getvariableidx("vx",m);
+  m_quantityvector[COORD]    = t_pillaz_aux::getvariableidx("x", m);
 
   // run
-  plas::initialize(x);
+  pillaz::initialize(x);
   for (int i=1; i<=m_numiter; ++i)
-    plas::run();
+    pillaz::run();
 }
 
 
-void t_plas::setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *_fp)
+void t_pillaz::setFlowSolverParamOnInit(PILLAZ_FLOWSOLVER_PARAM *_fp)
 {
   _fp->nInnerElements.assign(M->z(),0);
   _fp->nBoundElements.assign(M->z(),0);

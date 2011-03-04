@@ -1,5 +1,5 @@
-#ifndef PLAS_PLAS_H
-#define PLAS_PLAS_H
+#ifndef PILLAZ_PILLAZ_H
+#define PILLAZ_PILLAZ_H
 
 
 #include <string>
@@ -12,9 +12,6 @@
 #define DFLAG_ENABLED     1
 #define DFLAG_CREATED     2
 #define DFLAG_LEFT        3
-
-#define MAXELMFACES       6
-#define MAXELMNODES       8
 #define FORCE_PIC         1
 #define FORCE_PROJ        2
 #define COLL_UNCORRELATED 1
@@ -29,33 +26,46 @@
 
 
 /// type of flow associated to the dispersed phase material
-enum plas_flowtype_t { FLOW_PARTIC, FLOW_DROPLET, FLOW_BUBBLY };
+enum pillaz_flowtype_t { FLOW_PARTIC, FLOW_DROPLET, FLOW_BUBBLY };
 
 
 /// supported element types (following Gambit convention numbering)
-enum plas_elmtype_t { ELM_UNDEFINED, ELM_TRIANGLE, ELM_TETRAHEDRON, ELM_WEDGE, ELM_QUAD, ELM_BRICK, ELM_PYRAMID, ELM_EDGE, ALL_ELEMENTS };
+enum pillaz_elmtype_t { ELM_UNDEFINED, ELM_TRIANGLE, ELM_TETRAHEDRON, ELM_WEDGE, ELM_QUAD, ELM_BRICK, ELM_PYRAMID, ELM_EDGE, ALL_ELEMENTS };
 
 
 /// Available quantities (coordinates, pressure, temperature, velocity and its spacial derivatives)
-enum plas_quantity_t {
-  QUANTITY_UNDEFINED,
-  COORD,                            // vector
-  PRESSURE       = COORD+3,         // scalar
-  TEMPERATURE,                      // scalar
-  VELOCITY,                         // vector
-  VELOCITY_X_D   = VELOCITY+3,      // vector
-  VELOCITY_Y_D   = VELOCITY_X_D+3,  // vector
-  VELOCITY_Z_D   = VELOCITY_Y_D+3,  // vector
-  ALL_QUANTITIES = VELOCITY_Z_D+3
+enum pillaz_quantityscalar_t { QSCALAR_UNDEFINED, PRESSURE, TEMPERATURE, ALL_QSCALAR };
+enum pillaz_quantityvector_t { QVECTOR_UNDEFINED, COORD, VELOCITY, VELOCITY_X_D, VELOCITY_Y_D, VELOCITY_Z_D, ALL_QVECTOR };
+
+
+/// Description of an element address
+struct pillaz_elementaddress {
+  pillaz_elementaddress(const int _izone, const int _ielem, const int _iface=-1) : izone(_izone), ielem(_ielem), iface(_iface) {}
+  pillaz_elementaddress() : izone(-1), ielem(-1), iface(-1) { reset(); }
+  int
+    izone,
+    ielem,
+    iface;
+  void reset() { izone = ielem = iface = -1; }
+  bool valid() const { return (izone>=0 && ielem>=0); }
+  pillaz_elementaddress& operator=(const pillaz_elementaddress& other) {
+    this->izone = other.izone;
+    this->ielem = other.ielem;
+    this->iface = other.iface;
+    return *this;
+  }
+  bool operator==(const pillaz_elementaddress& other) {
+    // does not compare faces
+    return (this->izone==other.izone && this->ielem==other.ielem);
+  }
 };
 
 
 /// Data of a dispersed entity (particle, droplet or bubble)
-struct PLAS_ENTITY_DATA
+struct PILLAZ_ENTITY_DATA
 {
+  pillaz_elementaddress eaddress;
   int flag;             // Entity enabled/disabled flag
-  int element;          // Grid element containing the entity
-  int zone;             // Element zone index
   int node;             // Nearest grid node to the entity
   double diameter;      // Entity diameter
   double *position;     // Entity position coordiantes
@@ -66,7 +76,7 @@ struct PLAS_ENTITY_DATA
 
 
 /// Data of the dispersed phase (per node)
-struct PLAS_PHASE_DATA
+struct PILLAZ_PHASE_DATA
 {
   int numDens;         // Number density of entities (per node)
   double volFrac;      // Volume fraction (per node)
@@ -81,8 +91,8 @@ struct PLAS_PHASE_DATA
 };
 
 
-/// Statistics data of PLaS
-struct PLAS_STATS
+/// Statistics data of Pillaz
+struct PILLAZ_STATS
 {
   int enabled;         // Number of active entities
   int in;              // Number of entities added
@@ -98,8 +108,8 @@ struct PLAS_STATS
 };
 
 
-/// PLaS input parameters (read from PLaS input file)
-struct PLAS_INPUT_PARAM
+/// Pillaz input parameters (read from Pillaz input file)
+struct PILLAZ_INPUT_PARAM
 {
   int numMaxEnt;           // Maximum number of entities per process
   int numIniEnt;           // Number of initially distributed entities:
@@ -132,7 +142,7 @@ struct PLAS_INPUT_PARAM
 
 
 /// Data to be set by the flow solver
-struct PLAS_FLOWSOLVER_PARAM
+struct PILLAZ_FLOWSOLVER_PARAM
 {
   // to be set on initialization
   int
@@ -144,7 +154,7 @@ struct PLAS_FLOWSOLVER_PARAM
     nInnerElements,  // number of inner elements, per zone
     nBoundElements;  // number of boundary elements, per zone
 
-  // updated on calls to plas::run()
+  // updated on calls to pillaz::run()
   int iter;          // Current iteration
   double time;       // Current time
 };
@@ -153,18 +163,9 @@ struct PLAS_FLOWSOLVER_PARAM
 /// Entity element data structures
 struct ENTITY_ELEMENT_DATA
 {
-  ENTITY_ELEMENT_DATA(const int dim) :
-    elmNodes(MAXELMNODES,-1),
-    elmFaceVectors(MAXELMFACES,std::vector< double >(dim,0.)),
-    elmNorms      (MAXELMFACES,std::vector< double >(dim,0.)) {}
-  ~ENTITY_ELEMENT_DATA() {}
-  int
-    numElmNodes,                // Number of element nodes
-    numElmFaces;                // Number of element faces
-  std::vector< int > elmNodes;  // Element nodes
-  std::vector< std::vector< double > >
-    elmFaceVectors,             // Element face middle points
-    elmNorms;                   // Element face normals
+  std::vector< int > elmNodes;                          // element nodes
+  std::vector< std::vector< double > > elmFaceVectors;  // element face middle points
+  std::vector< std::vector< double > > elmNorms;        // element face normals
 };
 
 
@@ -172,21 +173,17 @@ struct ENTITY_ELEMENT_DATA
 struct LOCAL_ENTITY_VARIABLES
 {
   LOCAL_ENTITY_VARIABLES(const int dim) :
-    elm(-1),
-    zone(-1),
     node(-1),
     pos   (dim,0.),
     posOld(dim,0.),
     vel   (dim,0.),
     velOld(dim,0.),
-    relVel(dim,0.),
-    edata(dim) {}
+    relVel(dim,0.) {}
   ~LOCAL_ENTITY_VARIABLES() {}
   int
     flag,           // Flag to determine if the entity is active
-    elm,            // Number of corresponding grid element
-    zone,           // Element zone index
     node;           // Number of corresponding grid node
+  pillaz_elementaddress eaddress;
 
   double
     diam,           // Diameter
@@ -244,17 +241,17 @@ struct LOCAL_FLOW_VARIABLES
 /**
  * structure to hold material physical properties
  */
-struct PLAS_MATERIAL_DATA
+struct PILLAZ_MATERIAL_DATA
 {
   // methods
-  PLAS_MATERIAL_DATA() : T(273.15/*K*/), p(101325./*Pa*/) {}
+  PILLAZ_MATERIAL_DATA() : T(273.15/*K*/), p(101325./*Pa*/) {}
   virtual void update(double _T, double _p) { T=_T; p=_p; }
 
   // independent physical properties
   double
     T,
     p;
-  plas_flowtype_t flowtype;  // type of flow (particle, droplet, bubble)
+  pillaz_flowtype_t flowtype;  // type of flow (particle, droplet, bubble)
 
   // generic (dependent) physical properties
   double
@@ -278,42 +275,42 @@ struct PLAS_MATERIAL_DATA
 };
 
 
-/// PLaS interface class
-class plas {
+/// Pillaz interface class
+class pillaz {
 
 
  public:  // interface public methods
 
    /**
-   * This function initializes the PLaS solver. It has to be
-   * called before doing any run of PLaS from the driving flow
+   * This function initializes the Pillaz solver. It has to be
+   * called before doing any run of Pillaz from the driving flow
    * solver.
    */
   void initialize(const XMLNode& x);
 
   /**
-   * This is the main routine of the PLaS solver. It has to be
+   * This is the main routine of the Pillaz solver. It has to be
    * called at each time step of the driving flow solver.
    */
   void run();
 
   /**
-   * This routine terminates PLaS. It has to be called after
-   * the last run of PLaS from the driving flow solver.
+   * This routine terminates Pillaz. It has to be called after
+   * the last run of Pillaz from the driving flow solver.
    */
-  virtual ~plas();
+  virtual ~pillaz();
 
 
  private:  // interface methods to implement in derived class
 
   /**
    * Set flow solver parameters on initialization
-   * @param[in] fp pointer to PLaS data structure
+   * @param[in] fp pointer to Pillaz data structure
    */
-  virtual void setFlowSolverParamOnInit(PLAS_FLOWSOLVER_PARAM *_fp) = 0;
+  virtual void setFlowSolverParamOnInit(PILLAZ_FLOWSOLVER_PARAM *_fp) = 0;
 
   /**
-   * Provide boundary element node indices to PLaS
+   * Provide boundary element node indices to Pillaz
    * @param[in] iz boundary element zone
    * @param[in] ie element index in the boundary zone
    * @param[out] enodes element node indices array (preallocated)
@@ -321,15 +318,15 @@ class plas {
   virtual void getBndElmNodes(const int iz, const int ie, int *enodes) = 0;
 
   /**
-   * Provide boundary element type to PLaS
+   * Provide boundary element type to Pillaz
    * @param[in] element boundary zone
    * @param[in] element index in the boundary zone
    * @return element type
    */
-  virtual plas_elmtype_t getBndElmType(const int iz, const int ie) = 0;
+  virtual pillaz_elmtype_t getBndElmType(const int iz, const int ie) = 0;
 
   /**
-   * Provide inner element node indices to PLaS
+   * Provide inner element node indices to Pillaz
    * @param[in] iz element zone
    * @param[in] ie element index in the zone
    * @param[out] enodes element node indices array (preallocated)
@@ -337,39 +334,59 @@ class plas {
   virtual void getElmNodes(const int iz, const int ie, int *enodes) = 0;
 
   /**
-   * Provide inner element type to PLaS
+   * Provide inner element type to Pillaz
    * @param[in] element inner zone
    * @param[in] element index in the inner zone
    * @return element type
    */
-  virtual plas_elmtype_t getElmType(const int iz, const int ie) = 0;
+  virtual pillaz_elmtype_t getElmType(const int iz, const int ie) = 0;
 
   /**
-   * Provide information about which boundary is a wall to PLaS
+   * Provide information about which boundary is a wall to Pillaz
    * @param[in] bnd boundary index
    * @return non-zero if boundary is a wall, else zero
    */
   virtual int getWallBndFlag(int bnd) = 0;
 
   /**
-   * Provide nodal quantity at time step n-1 (previous) to PLaS
-   * @param[in] Q quantity to provide (as quantity enumerated index)
+   * Provide nodal scalar quantity at time step n (current) to Pillaz
+   * @param[in] Q scalar quantity to provide
    * @param[in] nod node index
-   * @param[out] v quantity value
-   * @param[in] d quantity dimension, for tensor quantities
    * @return first entry in quantity value pointer (for scalar quantities)
    */
-  virtual double getOldQuantity(const plas_quantity_t& Q, const int nod, double *v=NULL, const int d=1) = 0;
+  virtual double getQuantityScalar(const pillaz_quantityscalar_t& Q, const int nod) = 0;
 
   /**
-   * Provide nodal quantity at time step n (current) to PLaS
-   * @param[in] Q quantity to provide (as quantity enumerated index)
+   * Provide nodal scalar quantity at time step n-1 (previous) to Pillaz
+   * (default implementation is not time-accurate)
+   * @param[in] Q scalar quantity to provide
    * @param[in] nod node index
-   * @param[out] v quantity value
-   * @param[in] d quantity dimension, for tensor quantities
    * @return first entry in quantity value pointer (for scalar quantities)
    */
-  virtual double getQuantity(const plas_quantity_t& Q, const int nod, double *v=NULL, const int d=1) = 0;
+  virtual double getQuantityScalarOld(const pillaz_quantityscalar_t& Q, const int nod) {
+    return getQuantityScalar(Q,nod);
+  }
+
+  /**
+   * Provide nodal vector quantity at time step n (current) to Pillaz
+   * @param[in] Q vector quantity to provide
+   * @param[in] nod node index
+   * @param[in] dim quantity dimension
+   * @param[out] v quantity value
+   */
+  virtual void getQuantityVector(const pillaz_quantityvector_t& Q, const int nod, const int dim, double *v) = 0;
+
+  /**
+   * Provide nodal vector quantity at time step n-1 (previous) to Pillaz
+   * (default implementation is not time-accurate)
+   * @param[in] Q vector quantity to provide
+   * @param[in] nod node index
+   * @param[in] dim quantity dimension
+   * @param[out] v quantity value
+   */
+  virtual void  getQuantityVectorOld(const pillaz_quantityvector_t& Q, const int nod, const int dim, double *v) {
+    getQuantityVector(Q,nod,dim,v);
+  }
 
   /**
    * Provide Eulerian time scale (turbulence kinetic energy over dissipation)
@@ -401,7 +418,7 @@ class plas {
    * This function computes the mass and momentum back coupling
    * terms for a dispersed entity.
    */
-  void plas_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double *force, double tFactor);
+  void pillaz_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double *force, double tFactor);
 
   /**
    * This file includes all functionality concerning entities
@@ -411,7 +428,7 @@ class plas {
    * This function calculates the unit normal vector of a
    * boundary face.
    */
-  void plas_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *unitVec);
+  void pillaz_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *unitVec);
 
   /**
    * This file includes a function to manage cellwise data of
@@ -421,14 +438,14 @@ class plas {
    * fraction) of the secondary phase and corrects the data
    * on the boundaries of a multiprocessor job.
    */
-  void plas_CalcCellwiseData();
+  void pillaz_CalcCellwiseData();
 
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the concentation in bubble's surface.
    */
-  double plas_CalcConcInterf(double pressBubble);
+  double pillaz_CalcConcInterf(double pressBubble);
 
   /**
    * This file includes the computation of back-coupling terms
@@ -437,7 +454,7 @@ class plas {
    * This function computes the momentum back coupling forces
    * for a bubble.
    */
-  void plas_CalcCouplingForcesBubble(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
+  void pillaz_CalcCouplingForcesBubble(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
 
   /**
    * This file includes the computation of back-coupling terms
@@ -446,26 +463,26 @@ class plas {
    * This function calculates the momentum back coupling forces
    * for a particle or droplet.
    */
-  void plas_CalcCouplingForcesParticle(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
+  void pillaz_CalcCouplingForcesParticle(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
 
   /**
    * This function computes the 3D cross product of two vectors.
    */
-  void plas_CalcCrossProduct_3D(double *value, double *a, double *b);
+  void pillaz_CalcCrossProduct_3D(double *value, double *a, double *b);
 
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity Reynolds number.
    */
-  double plas_CalcDispReynolds(double viscosity, double diameter, double normVel);
+  double pillaz_CalcDispReynolds(double viscosity, double diameter, double normVel);
 
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity drag coefficient.
    */
-  double plas_CalcDragCoeff(int flowType, double reynolds);
+  double pillaz_CalcDragCoeff(int flowType, double reynolds);
 
   /**
    * Caculate area/length-scaled element face normal
@@ -474,14 +491,14 @@ class plas {
    * @param[in] eface face of the element
    * @param[out] normal area/length-scaled face normal vector
    */
-  void plas_CalcElmFaceNormal(const int zone, const int elm, const int eface, double *normal);
+  void pillaz_CalcElmFaceNormal(const int zone, const int elm, const int eface, double *normal);
 
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes all flow coefficients.
    */
-  void plas_CalcEntityCoefficients(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow);
+  void pillaz_CalcEntityCoefficients(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow);
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -489,14 +506,14 @@ class plas {
    * This function computes the kinematic response time of the
    * dispersed entity.
    */
-  double plas_CalcKinematicResponseTime(LOCAL_ENTITY_VARIABLES *ent);
+  double pillaz_CalcKinematicResponseTime(LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity lift coefficient.
    */
-  double plas_CalcLiftCoeff(int flowType);
+  double pillaz_CalcLiftCoeff(int flowType);
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -504,19 +521,19 @@ class plas {
    * This function computes the entity mass transfer
    * coefficient.
    */
-  double plas_CalcMassTransferCoeff(double sherwood, double spalding);
+  double pillaz_CalcMassTransferCoeff(double sherwood, double spalding);
 
   /**
    * This function computes the 2D scalar product of a matrix
    * and a vector.
    */
-  void plas_CalcMatVectScalarProduct_2D(double *value, double **m, double *a);
+  void pillaz_CalcMatVectScalarProduct_2D(double *value, double **m, double *a);
 
   /**
    * This function computes the 3D scalar product of a matrix
    * and a vector.
    */
-  void plas_CalcMatVectScalarProduct_3D(double *value, double **m, double *a);
+  void pillaz_CalcMatVectScalarProduct_3D(double *value, double **m, double *a);
 
   /**
    * This file includes all functinality to perform an element
@@ -525,62 +542,62 @@ class plas {
    * This function computes the node impact factors of an
    * element according to the entity position.
    */
-  void plas_CalcNodeImpactFactors(const LOCAL_ENTITY_VARIABLES *ent, double *imp);
+  void pillaz_CalcNodeImpactFactors(const LOCAL_ENTITY_VARIABLES *ent, double *imp);
 
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity Nusselt number.
    */
-  double plas_CalcNusseltNumber(int evapModel, double reynolds, double spalding, double prandtl);
+  double pillaz_CalcNusseltNumber(int evapModel, double reynolds, double spalding, double prandtl);
 
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity Prandtl number.
    */
-  double plas_CalcPrandtlNumber();
+  double pillaz_CalcPrandtlNumber();
 
   /**
    * This file includes functions to compute flow coefficients.
    */
-  double plas_CalcPressBubble(double diameter, double pressure);
+  double pillaz_CalcPressBubble(double diameter, double pressure);
 
   /**
    * This file includes functions to compute flow coefficients.
    */
-  double plas_CalcRhoBubble(double temperature, double pressBubble);
+  double pillaz_CalcRhoBubble(double temperature, double pressBubble);
 
   /**
    * This function computes a rotation matrix in 2D.
    */
-  void plas_CalcRotationMatrix_2D(double phi, double **m);
+  void pillaz_CalcRotationMatrix_2D(double phi, double **m);
 
   /**
    * This function computes a rotation matrix in 3D.
    */
-  void plas_CalcRotationMatrix_3D(double phi, double **m, int axis);
+  void pillaz_CalcRotationMatrix_3D(double phi, double **m, int axis);
 
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity Schmidt number.
    */
-  double plas_CalcSchmidtNumber();
+  double pillaz_CalcSchmidtNumber();
 
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity Sherwood number.
    */
-  double plas_CalcSherwoodNumber(int evapModel, double reynolds, double schmidt, double spalding);
+  double pillaz_CalcSherwoodNumber(int evapModel, double reynolds, double schmidt, double spalding);
 
   /**
    * This file includes functions to compute flow coefficients.
    *
    * This function computes the entity Spalding number.
    */
-  double plas_CalcSpaldingNumber(double pressure);
+  double pillaz_CalcSpaldingNumber(double pressure);
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -588,7 +605,7 @@ class plas {
    * This function computes the thermal response time of the
    * dispersed entity.
    */
-  double plas_CalcThermalResponseTime(double diameter);
+  double pillaz_CalcThermalResponseTime(double diameter);
 
   /**
    * This file includes the functionality to perform  trajectory
@@ -596,27 +613,27 @@ class plas {
    *
    * This function composes the trajectory equation.
    */
-  void plas_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double dtLagr);
+  void pillaz_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double dtLagr);
 
   /**
    * This function computes the angle between two vectors.
    */
-  double plas_CalcVectorAngle(int numDim, double *a, double *b);
+  double pillaz_CalcVectorAngle(int numDim, double *a, double *b);
 
   /**
    * This function computes the length of a vector.
    */
-  double plas_CalcVectorLength(int numDim, double *a);
+  double pillaz_CalcVectorLength(int numDim, double *a);
 
   /**
    * This function rotates a 3D vector.
    */
-  void plas_CalcVectorRotation_3D(double phi, double **m, double *a);
+  void pillaz_CalcVectorRotation_3D(double phi, double **m, double *a);
 
   /**
    * This function computes the scalar product of two vectors.
    */
-  double plas_CalcVectorScalarProduct(int numDim, double *a, double *b);
+  double pillaz_CalcVectorScalarProduct(int numDim, double *a, double *b);
 
   /**
    * Calculates the size of a triangle (area)
@@ -625,7 +642,7 @@ class plas {
    * @param[in] n3 element node index 3
    * @return area of the triangle
    */
-  double plas_CalcSizeTriangle(const unsigned n1, const unsigned n2, const unsigned n3);
+  double pillaz_CalcSizeTriangle(const unsigned n1, const unsigned n2, const unsigned n3);
 
   /**
    * Calculates the size of a tetrahedron (volume)
@@ -635,7 +652,7 @@ class plas {
    * @param[in] n4 element node index 4
    * @return volume of the tetrahedron
    */
-  double plas_CalcSizeTetrahedron(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4);
+  double pillaz_CalcSizeTetrahedron(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4);
 
   /**
    * Calculates the size (volume/area) of an element
@@ -643,12 +660,12 @@ class plas {
    * @param[in] ie element index in the zone
    * @return volume/area of the given element
    */
-  double plas_CalcElmSize(const unsigned iz, const unsigned ie);
+  double pillaz_CalcElmSize(const unsigned iz, const unsigned ie);
 
   /**
    * This function computes the vorticity of the fluid flow.
    */
-  void plas_CalcVorticity(int numDim, LOCAL_FLOW_VARIABLES *flow);
+  void pillaz_CalcVorticity(int numDim, LOCAL_FLOW_VARIABLES *flow);
 
   /**
    * This file includes all functionality concerning entities
@@ -658,7 +675,7 @@ class plas {
    * This function calculates the distance of an entity to a
    * wall face.
    */
-  double plas_CalcWallFaceDistance(int numDim, double *pos, int ibnd, int ifac);
+  double pillaz_CalcWallFaceDistance(int numDim, double *pos, int ibnd, int ifac);
 
   /**
    * This file includes the functionality to perform  trajectory
@@ -667,7 +684,7 @@ class plas {
    * This function performs a not-a-number check for the entity
    * position and velocity.
    */
-  void plas_CheckNaN(LOCAL_ENTITY_VARIABLES *ent);
+  void pillaz_CheckNaN(LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * This function computes coalescense of bubbles according
@@ -676,21 +693,21 @@ class plas {
    * The routine is not used for the time being. Before using
    * it, please check carefully the implementation.
    */
-  int plas_Coalescence(double dj, double di, double *uijRelPrPr, double *x, double *y, double *z, double Mi, double Mj, double *uiPrPr, double *uiPrPrNew, double *uiNew, double *ui);
+  int pillaz_Coalescence(double dj, double di, double *uijRelPrPr, double *x, double *y, double *z, double Mi, double Mj, double *uiPrPr, double *uiPrPrNew, double *uiNew, double *ui);
 
   /**
    * This function computes inter-entity collisions based on the
    * stochastic model of Sommerfeld.
    */
-  void plas_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double dtLagr);
+  void pillaz_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double dtLagr);
 
   /**
    * This file contains all write functionality, to the screen,
    * to output files and to Tecplot.
    *
-   * This function writes the PLaS statistics to a file.
+   * This function writes the Pillaz statistics to a file.
    */
-  void plas_CreateStatsFile(const std::string &outpString);
+  void pillaz_CreateStatsFile(const std::string &outpString);
 
   /**
    * This file contains all write functionality, to the screen,
@@ -699,7 +716,7 @@ class plas {
    * This function creates a Tecplot file of the dispersed
    * phase entities.
    */
-  void plas_CreateTecplotFile(const std::string &outpString);
+  void pillaz_CreateTecplotFile(const std::string &outpString);
 
   /**
    * This file includes all functionality concerning entities
@@ -709,7 +726,7 @@ class plas {
    * This function finds the index of the boundary face through
    * which an entity left the computational domain.
    */
-  bool plas_FindExitFace(LOCAL_ENTITY_VARIABLES *ent, int *i, int *j);
+  bool pillaz_FindExitFace(LOCAL_ENTITY_VARIABLES *ent, int *i, int *j);
 
   /**
    * This file includes all functinality to perform an element
@@ -718,7 +735,7 @@ class plas {
    * This function finds the smallest element face distance to
    * an entity.
    */
-  void plas_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARIABLES *ent, int *idx, double *dmin);
+  void pillaz_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARIABLES *ent, int *idx, double *dmin);
 
   /**
    * This file includes all functinality to perform an element
@@ -726,15 +743,7 @@ class plas {
    *
    * This function finds the closest element node to an entity.
    */
-  int plas_FindNearestElementNode(LOCAL_ENTITY_VARIABLES *ent);
-
-  /**
-   * Provide domain element associated to boundary face to PLaS
-   * @param[in] bnd boundary index
-   * @param[in] bface face of the boundary
-   * @return element index
-   */
-  int plas_getBndDomElm(int bnd, int bface);
+  int pillaz_FindNearestElementNode(LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * Provide component of element face middle-point vector
@@ -743,7 +752,7 @@ class plas {
    * @param[in] iface element face index
    * @param[out] coordinates of the face middle-point (preallocated)
    */
-  void plas_getElmFaceMiddlePoint(const int iz, const int ie, const int iface, double *fmp);
+  void pillaz_getElmFaceMiddlePoint(const int iz, const int ie, const int iface, double *fmp);
 
   /**
    * This function gets the nodes of a boundary face of a given element
@@ -753,7 +762,7 @@ class plas {
    * @param[out] fnodes element face node indices array (preallocated)
    * @return returned face element type
    */
-  void plas_getElmFaceNodes(const int iz, const int ie, const int iface, int *fnodes);
+  void pillaz_getElmFaceNodes(const int iz, const int ie, const int iface, int *fnodes);
 
   /**
    * This function gets the face type of a given element
@@ -761,52 +770,29 @@ class plas {
    * @param[in] iface element face index
    * @return returned face element type
    */
-  plas_elmtype_t plas_getElmFaceType(const plas_elmtype_t et, const int iface);
-
-  /**
-   * Provide neighbour of an element to PLaS
-   * @param[in] elm element index
-   * @param[in] eface face of the element
-   * @return neighbour element index
-   */
-  int plas_getElmNeighbour(int elm, int eface);
+  pillaz_elmtype_t pillaz_getElmFaceType(const pillaz_elmtype_t et, const int iface);
 
   /**
    * Provide element number of nodes
    * @param[in] element type
    * @return element number of faces
    */
-  int plas_getElmNFaces(const plas_elmtype_t et);
+  int pillaz_getElmNFaces(const pillaz_elmtype_t et);
 
   /**
    * Provide element number of nodes
    * @param[in] element type
    * @return element number of nodes
    */
-  int plas_getElmNNodes(const plas_elmtype_t et);
+  int pillaz_getElmNNodes(const pillaz_elmtype_t et);
 
   /**
-   * Provide nodal quantity at time step n-1 (previous) to PLaS
-   * @param[in] Q quantity to provide (as simple index)
-   * @param[in] nod node index
-   * @param[out] v quantity value
-   * @param[in] d quantity dimension, for tensor quantities
-   * @return first entry in quantity value pointer (for scalar quantities)
+   * Provide inner element type to Pillaz
+   * @param[in] ea element address (structure)
+   * @return element type
    */
-  double plas_getOldQuantity(const int q, const int nod, double *v=NULL, const int d=1) {
-    return getOldQuantity(plas_quantity_t(q),nod,v,d);
-  }
-
-  /**
-   * Provide nodal quantity at time step n (current) to PLaS
-   * @param[in] Q quantity to provide (as simple index)
-   * @param[in] nod node index
-   * @param[out] v quantity value
-   * @param[in] d quantity dimension, for tensor quantities
-   * @return first entry in quantity value pointer (for scalar quantities)
-   */
-  double plas_getQuantity(const int q, const int nod, double *v=NULL, const int d=1) {
-    return getQuantity(plas_quantity_t(q),nod,v,d);
+  pillaz_elmtype_t pillaz_getElmType(const pillaz_elementaddress& ea) {
+    return getElmType(ea.izone,ea.iface);
   }
 
   /**
@@ -817,7 +803,7 @@ class plas {
    * This function imposes entities that were generated by an
    * external code module (e.g. electrochemistry).
    */
-  void plas_ImposeExternal();
+  void pillaz_ImposeExternal();
 
   /**
    * This file contains routines for the generation of entities,
@@ -827,35 +813,13 @@ class plas {
    * This function generates entites in specified spatial
    * domains of the computational space.
    */
-  void plas_ImposeProductionDomains();
+  void pillaz_ImposeProductionDomains();
 
   /**
    * This function manages the interpolation of variables from
    * the fluid flow solver.
    */
-  void plas_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
-
-  /**
-   * This function calculates all the quantities interpolation
-   * @param[in] Q quantity to interpolate (as quantity enumerated index)
-   * @param[in] ent local entity description
-   * @param[in] fold factor to weigh the quantity old value with
-   * @param[in] new factor to weigh the quantity new value with
-   * @return quantity interpolated value
-   */
-  double plas_InterpolateQuantity(const plas_quantity_t &Q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew);
-
-  /**
-   * This function calculates all the quantities interpolation
-   * @param[in] q quantity to interpolate (as simple index)
-   * @param[in] ent local entity description
-   * @param[in] fold factor to weigh the quantity old value with
-   * @param[in] new factor to weigh the quantity new value with
-   * @return quantity interpolated value
-   */
-  double plas_InterpolateQuantity(const int &q, const LOCAL_ENTITY_VARIABLES &ent, const std::vector< double >& en_impactfactor, double fold, double fnew) {
-    return plas_InterpolateQuantity(plas_quantity_t(q),ent,en_impactfactor,fold,fnew);
-  }
+  void pillaz_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
 
   /**
    * This file contains routines for the generation of entities,
@@ -864,17 +828,17 @@ class plas {
    *
    * This function loads a distribution of entities from a file.
    */
-  void plas_LoadInitialDistribution(const std::string &inpString);
+  void pillaz_LoadInitialDistribution(const std::string &inpString);
 
   /**
    * This function normalizes a vector to length one
    */
-  void plas_NormalizeVector(int numDim, double *a);
+  void pillaz_NormalizeVector(int numDim, double *a);
 
   /**
    * This function generates random doubles in a given range
    */
-  double plas_RandomDouble(double _min=0., double _max=1.);
+  double pillaz_RandomDouble(double _min=0., double _max=1.);
 
   /**
    * Generate a random position inside an element in a given zone
@@ -882,7 +846,7 @@ class plas {
    * @param[in] elm element index in the zone
    * @param[out] p random position (preallocated to number of dimensions)
    */
-  void plas_RandomElmPosition(const int zone, const int elm, double *p);
+  void pillaz_RandomElmPosition(const int zone, const int elm, double *p);
 
   /**
    * This file contains routines to generate random numbers.
@@ -895,7 +859,7 @@ class plas {
    * for any application provided this copyright notice
    * is preserved.
    */
-  double plas_RandomGaussian(float m, float s);
+  double pillaz_RandomGaussian(float m, float s);
 
   /**
    * This file contains routines for the generation of entities,
@@ -905,22 +869,22 @@ class plas {
    * This function performs a random initial distribution of
    * dispersed entites.
    */
-  void plas_RandomInitialDistribution();
+  void pillaz_RandomInitialDistribution();
 
   /**
    * This file contains routines to generate random numbers.
    *
    * This functions generates random integers.
    */
-  int plas_RandomInteger(int min, int max);
+  int pillaz_RandomInteger(int min, int max);
 
   /**
    * This file contains all functionality to read in data from
-   * the PLaS.conf data file.
+   * the Pillaz.conf data file.
    *
-   * This function reads the PLaS.conf data file.
+   * This function reads the Pillaz.conf data file.
    */
-  void plas_ReadParameters(const XMLNode& x);
+  void pillaz_ReadParameters(const XMLNode& x);
 
   /**
    * This file includes all functinality to perform an element
@@ -929,7 +893,7 @@ class plas {
    * This function performs a successive neigbour search routine
    * following the algorithm of Loehner et al.
    */
-  void plas_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent);
+  void pillaz_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * This file contains routines for the generation of entities,
@@ -939,13 +903,13 @@ class plas {
    * This function sets an entity diameter according to a
    * distribution function.
    */
-  double plas_SetDiameter();
+  double pillaz_SetDiameter();
 
   /**
    * This function sets the geometry of an element assigned to
    * a dispersed entity.
    */
-  void plas_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent);
+  void pillaz_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * This file includes the functionality to perform  trajectory
@@ -953,16 +917,16 @@ class plas {
    *
    * This function solves the trajectory equation.
    */
-  void plas_SolveGaussSeidel(int numDim, double **mat, double *s, double *rhs);
+  void pillaz_SolveGaussSeidel(int numDim, double **mat, double *s, double *rhs);
 
   /**
    * This file contains all write functionality, to the screen,
    * to output files and to Tecplot.
    *
-   * This routine terminates PLaS due to a fatal error. It
+   * This routine terminates Pillaz due to a fatal error. It
    * writes out an error message.
    */
-  void plas_TerminateOnError(const std::string& errMessage);
+  void pillaz_TerminateOnError(const std::string& errMessage);
 
   /**
    * This file includes all functionality concerning entities
@@ -973,15 +937,15 @@ class plas {
    * crossed a wall face of the domain boundary in the last
    * trajectory updata. Position and velocity are corrected.
    */
-  void plas_WallBounce(int numDim, double elasticity, LOCAL_ENTITY_VARIABLES *ent, int ibnd, int ifac);
+  void pillaz_WallBounce(int numDim, double elasticity, LOCAL_ENTITY_VARIABLES *ent, int ibnd, int ifac);
 
   /**
    * This file contains all write functionality, to the screen,
    * to output files and to Tecplot.
    *
-   * This function writes the PLaS statistics to a file.
+   * This function writes the Pillaz statistics to a file.
    */
-  void plas_WriteStatsFile(const std::string &outpString, int iter, double time);
+  void pillaz_WriteStatsFile(const std::string &outpString, int iter, double time);
 
   /**
    * This file contains all write functionality, to the screen,
@@ -990,23 +954,23 @@ class plas {
    * This function appends Tecplot output of the dispersed
    * phase entities into the previously created file
    */
-  void plas_WriteTecplotFile(const std::string &outpString, int iter, double time);
+  void pillaz_WriteTecplotFile(const std::string &outpString, int iter, double time);
 
 
- public: // internal data (PLAS_DATA)
+ public: // internal data (PILLAZ_DATA)
 
-  PLAS_ENTITY_DATA      *ed;          // Entity data structure (per entity)
-  PLAS_PHASE_DATA       *pd;          // Phase data structure (per node)
-  PLAS_STATS            sd;           // Statistics data structure
-  PLAS_INPUT_PARAM      ip;           // Input file parameter structure
-  PLAS_FLOWSOLVER_PARAM fp;           // Flowsolver parameter structure
+  PILLAZ_ENTITY_DATA      *ed;          // Entity data structure (per entity)
+  PILLAZ_PHASE_DATA       *pd;          // Phase data structure (per node)
+  PILLAZ_STATS            sd;           // Statistics data structure
+  PILLAZ_INPUT_PARAM      ip;           // Input file parameter structure
+  PILLAZ_FLOWSOLVER_PARAM fp;           // Flowsolver parameter structure
   int                   numExtEnt;    // Number of bubbles coming from external code
   double                *extEntPos;   // Positions of bubbles coming from external code
   double                *extEntVel;   // Velocities of bubbles coming from external code
   double                *extEntTemp;  // Temperatures of bubbles coming from external code
   double                *extEntDiam;  // Diameters of bubbles coming from external code
   double *massResid;                  // Mass flux residual
-  PLAS_MATERIAL_DATA
+  PILLAZ_MATERIAL_DATA
     *mdd,                             // Material data, for the dispersed phase
     *mdc;                             // Material data, for the continuous phase
 
@@ -1022,32 +986,25 @@ class plas {
   > > > > m_innerelem_normals;
 
   // map of boundary elements to (inner) elements
-  struct s_boundtoinner {
-    s_boundtoinner() : inner_iz(-1), inner_ie(-1), inner_if(-1) {}
-    int
-      inner_iz,
-      inner_ie,
-      inner_if;
-  };
-  std::vector<        // per (boundary) zone
-    std::vector<      // per element
-      s_boundtoinner  // with element zone/index/face
+  std::vector<               // per (boundary) zone
+    std::vector<             // per element
+      pillaz_elementaddress  // (inner) element address
   > > m_boundtoinner;
 
   // map of nodes to (inner) elements
   std::vector<               // per node
     std::vector<             // list of neighbors
-      std::pair< int,int >   // with element zone/index
+      pillaz_elementaddress  // (inner) element address
   > > m_nodetoelem;
 
   // map of (inner) elements to elements (sharing a face)
-  std::vector<                // per (inner) zone
-    std::vector<              // per element
-      std::vector<            // per face
-        std::pair< int,int >  // with element zone/index
+  std::vector<                 // per (inner) zone
+    std::vector<               // per element
+      std::vector<             // per face
+        pillaz_elementaddress  // (inner) element address
   > > > m_elemtoelem;
 
 };
 
-#endif  // PLAS_PLAS_H
+#endif  // PILLAZ_PILLAZ_H
 

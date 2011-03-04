@@ -1,27 +1,27 @@
 
-#include "plas.h"
+#include "pillaz.h"
 
 
 
-double plas::plas_CalcSizeTriangle(const unsigned n1, const unsigned n2, const unsigned n3)
+double pillaz::pillaz_CalcSizeTriangle(const unsigned n1, const unsigned n2, const unsigned n3)
 {
   double c[3][2];
-  plas_getQuantity(COORD,n1,c[0],2);
-  plas_getQuantity(COORD,n2,c[1],2);
-  plas_getQuantity(COORD,n3,c[2],2);
+  getQuantityVector(COORD,n1,2,c[0]);
+  getQuantityVector(COORD,n2,2,c[1]);
+  getQuantityVector(COORD,n3,2,c[2]);
   return c[0][0]*(c[1][1]-c[2][1])
        + c[1][0]*(c[2][1]-c[0][1])
        + c[2][0]*(c[0][1]-c[1][1]);
 }
 
 
-double plas::plas_CalcSizeTetrahedron(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4)
+double pillaz::pillaz_CalcSizeTetrahedron(const unsigned n1, const unsigned n2, const unsigned n3, const unsigned n4)
 {
   double c[4][3];
-  plas_getQuantity(COORD,n1,c[0],3);
-  plas_getQuantity(COORD,n2,c[1],3);
-  plas_getQuantity(COORD,n3,c[2],3);
-  plas_getQuantity(COORD,n4,c[3],3);
+  getQuantityVector(COORD,n1,3,c[0]);
+  getQuantityVector(COORD,n2,3,c[1]);
+  getQuantityVector(COORD,n3,3,c[2]);
+  getQuantityVector(COORD,n4,3,c[3]);
 
   double v1[3], v2[3], v3[3], v4[3];
   for (int d=0; d<3; ++d) {
@@ -29,32 +29,32 @@ double plas::plas_CalcSizeTetrahedron(const unsigned n1, const unsigned n2, cons
     v2[d] = c[2][d] - c[0][d];
     v3[d] = c[3][d] - c[0][d];
   }
-  plas_CalcCrossProduct_3D(v4,v1,v2);
-  return (plas_CalcVectorScalarProduct(3,v3,v4)/6.);
+  pillaz_CalcCrossProduct_3D(v4,v1,v2);
+  return (pillaz_CalcVectorScalarProduct(3,v3,v4)/6.);
 }
 
 
-double plas::plas_CalcElmSize(const unsigned iz, const unsigned ie)
+double pillaz::pillaz_CalcElmSize(const unsigned iz, const unsigned ie)
 {
-  plas_elmtype_t et(getElmType(iz,ie));
-  std::vector< int > n(plas_getElmNNodes(et),-1);
+  pillaz_elmtype_t et(getElmType(iz,ie));
+  std::vector< int > n(pillaz_getElmNNodes(et),-1);
   getElmNodes(iz,ie,&n[0]);
 
   switch (et) {
-  case ELM_TRIANGLE:    return plas_CalcSizeTriangle(n[0],n[1],n[2]);
-  case ELM_TETRAHEDRON: return plas_CalcSizeTetrahedron(n[0],n[1],n[2],n[3]);
-  case ELM_WEDGE:       return plas_CalcSizeTetrahedron(n[0],n[1],n[2],n[5])
-                             + plas_CalcSizeTetrahedron(n[0],n[1],n[5],n[4])
-                             + plas_CalcSizeTetrahedron(n[0],n[4],n[5],n[3]);
-  case ELM_QUAD:        return plas_CalcSizeTriangle(n[0],n[1],n[2])
-                             + plas_CalcSizeTriangle(n[0],n[2],n[3]);
-  case ELM_BRICK:       return plas_CalcSizeTetrahedron(n[0],n[1],n[3],n[5])
-                             + plas_CalcSizeTetrahedron(n[0],n[3],n[6],n[5])
-                             + plas_CalcSizeTetrahedron(n[0],n[3],n[2],n[6])
-                             + plas_CalcSizeTetrahedron(n[0],n[5],n[6],n[4])
-                             + plas_CalcSizeTetrahedron(n[3],n[6],n[5],n[7]);
-  case ELM_PYRAMID:     return plas_CalcSizeTetrahedron(n[0],n[1],n[3],n[4])
-                             + plas_CalcSizeTetrahedron(n[0],n[3],n[2],n[4]);
+  case ELM_TRIANGLE:    return pillaz_CalcSizeTriangle(n[0],n[1],n[2]);
+  case ELM_TETRAHEDRON: return pillaz_CalcSizeTetrahedron(n[0],n[1],n[2],n[3]);
+  case ELM_WEDGE:       return pillaz_CalcSizeTetrahedron(n[0],n[1],n[2],n[5])
+                             + pillaz_CalcSizeTetrahedron(n[0],n[1],n[5],n[4])
+                             + pillaz_CalcSizeTetrahedron(n[0],n[4],n[5],n[3]);
+  case ELM_QUAD:        return pillaz_CalcSizeTriangle(n[0],n[1],n[2])
+                             + pillaz_CalcSizeTriangle(n[0],n[2],n[3]);
+  case ELM_BRICK:       return pillaz_CalcSizeTetrahedron(n[0],n[1],n[3],n[5])
+                             + pillaz_CalcSizeTetrahedron(n[0],n[3],n[6],n[5])
+                             + pillaz_CalcSizeTetrahedron(n[0],n[3],n[2],n[6])
+                             + pillaz_CalcSizeTetrahedron(n[0],n[5],n[6],n[4])
+                             + pillaz_CalcSizeTetrahedron(n[3],n[6],n[5],n[7]);
+  case ELM_PYRAMID:     return pillaz_CalcSizeTetrahedron(n[0],n[1],n[3],n[4])
+                             + pillaz_CalcSizeTetrahedron(n[0],n[3],n[2],n[4]);
   case ELM_EDGE:
   case ELM_UNDEFINED:
   case ALL_ELEMENTS:
@@ -64,21 +64,21 @@ double plas::plas_CalcElmSize(const unsigned iz, const unsigned ie)
 }
 
 
-void plas::plas_RandomElmPosition(const int zone, const int elm, double *p)
+void pillaz::pillaz_RandomElmPosition(const int zone, const int elm, double *p)
 {
   // random numbers
   const double
-    rand1 = plas_RandomDouble(),
-    rand2 = plas_RandomDouble(),
-    rand3 = plas_RandomDouble(),
-    rand4 = plas_RandomDouble();
+    rand1 = pillaz_RandomDouble(),
+    rand2 = pillaz_RandomDouble(),
+    rand3 = pillaz_RandomDouble(),
+    rand4 = pillaz_RandomDouble();
 
   // get element nodes and coordinates
-  std::vector< int > n(plas_getElmNNodes(getElmType(zone,elm)),-1);
+  std::vector< int > n(pillaz_getElmNNodes(getElmType(zone,elm)),-1);
   std::vector< std::vector< double > > c(n.size(),std::vector< double >(fp.numDim,0.));
   getElmNodes(zone,elm,&n[0]);
   for (size_t i=0; i<n.size(); ++i)
-    plas_getQuantity(COORD,n[i],&(c[i])[0],fp.numDim);
+    getQuantityVector(COORD,n[i],fp.numDim,&(c[i])[0]);
 
   switch (getElmType(zone,elm)) {
   case ELM_TRIANGLE: {
@@ -123,17 +123,17 @@ void plas::plas_RandomElmPosition(const int zone, const int elm, double *p)
 }
 
 
-void plas::plas_getElmFaceMiddlePoint(const int iz, const int ie, const int iface, double *fmp)
+void pillaz::pillaz_getElmFaceMiddlePoint(const int iz, const int ie, const int iface, double *fmp)
 {
   // initialize
-  plas_elmtype_t ft = plas_getElmFaceType(getElmType(iz,ie),iface);
-  std::vector< int > fn(plas_getElmNNodes(ft),-1);
+  pillaz_elmtype_t ft = pillaz_getElmFaceType(getElmType(iz,ie),iface);
+  std::vector< int > fn(pillaz_getElmNNodes(ft),-1);
   std::vector< std::vector< double > > c(fn.size(),std::vector< double >(fp.numDim,0.));
 
   // get element nodes and coordinates
-  plas_getElmFaceNodes(iz,ie,iface,&fn[0]);
+  pillaz_getElmFaceNodes(iz,ie,iface,&fn[0]);
   for (size_t i=0; i<fn.size(); ++i)
-    plas_getQuantity(COORD,fn[i],&(c[i])[0],fp.numDim);
+    getQuantityVector(COORD,fn[i],fp.numDim,&(c[i])[0]);
 
   // calculate middle point
   for (int d=0; d<fp.numDim; ++d) {
@@ -145,7 +145,7 @@ void plas::plas_getElmFaceMiddlePoint(const int iz, const int ie, const int ifac
 }
 
 
-plas_elmtype_t plas::plas_getElmFaceType(const plas_elmtype_t et, const int iface)
+pillaz_elmtype_t pillaz::pillaz_getElmFaceType(const pillaz_elmtype_t et, const int iface)
 {
   return (et==ELM_TRIANGLE?    ELM_EDGE     :
          (et==ELM_TETRAHEDRON? ELM_TRIANGLE :
@@ -157,11 +157,11 @@ plas_elmtype_t plas::plas_getElmFaceType(const plas_elmtype_t et, const int ifac
 }
 
 
-void plas::plas_getElmFaceNodes(const int iz, const int ie, const int iface, int *fnodes)
+void pillaz::pillaz_getElmFaceNodes(const int iz, const int ie, const int iface, int *fnodes)
 {
   // get element nodes
-  const plas_elmtype_t et = getElmType(iz,ie);
-  std::vector< int > en(plas_getElmNNodes(et),-1);
+  const pillaz_elmtype_t et = getElmType(iz,ie);
+  std::vector< int > en(pillaz_getElmNNodes(et),-1);
   getElmNodes(iz,ie,&en[0]);
 
   // get face nodes
@@ -217,7 +217,7 @@ void plas::plas_getElmFaceNodes(const int iz, const int ie, const int iface, int
 }
 
 
-int plas::plas_getElmNFaces(const plas_elmtype_t et)
+int pillaz::pillaz_getElmNFaces(const pillaz_elmtype_t et)
 {
   return (et==ELM_TRIANGLE?    3 :
          (et==ELM_TETRAHEDRON? 4 :
@@ -228,7 +228,7 @@ int plas::plas_getElmNFaces(const plas_elmtype_t et)
 }
 
 
-int plas::plas_getElmNNodes(const plas_elmtype_t et)
+int pillaz::pillaz_getElmNNodes(const pillaz_elmtype_t et)
 {
   return (et==ELM_TRIANGLE?    3 :
          (et==ELM_TETRAHEDRON? 4 :
@@ -239,21 +239,21 @@ int plas::plas_getElmNNodes(const plas_elmtype_t et)
 }
 
 
-void plas::plas_CalcElmFaceNormal(const int zone, const int elm, const int eface, double *normal)
+void pillaz::pillaz_CalcElmFaceNormal(const int zone, const int elm, const int eface, double *normal)
 {
   // initialize
   for (int d=0; d<fp.numDim; ++d)
     normal[d] = 0.;
-  const plas_elmtype_t
+  const pillaz_elmtype_t
     et = getElmType(zone,elm),
-    ft = plas_getElmFaceType(et,eface);
-  std::vector< int > fn(plas_getElmNNodes(ft),-1);
+    ft = pillaz_getElmFaceType(et,eface);
+  std::vector< int > fn(pillaz_getElmNNodes(ft),-1);
   std::vector< std::vector< double > > c(fn.size(),std::vector< double >(fp.numDim,0.));
 
   // get element nodes and coordinates
-  plas_getElmFaceNodes(zone,elm,eface,&fn[0]);
+  pillaz_getElmFaceNodes(zone,elm,eface,&fn[0]);
   for (size_t i=0; i<fn.size(); ++i)
-    plas_getQuantity(COORD,fn[i],&(c[i])[0],fp.numDim);
+    getQuantityVector(COORD,fn[i],fp.numDim,&(c[i])[0]);
 
   // calculate element face normal
   if (et==ELM_TRIANGLE) {

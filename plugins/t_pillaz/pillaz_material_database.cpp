@@ -1,18 +1,18 @@
 
 #include <cmath>
 #include "mfactory.h"
-#include "plas.h"
+#include "pillaz.h"
 
 
 namespace aux {
 
 
 // define some materials
-struct air : PLAS_MATERIAL_DATA
+struct air : PILLAZ_MATERIAL_DATA
 {
   void update(double _T, double _p)
   {
-    PLAS_MATERIAL_DATA::update(_T,_p);
+    PILLAZ_MATERIAL_DATA::update(_T,_p);
     rho     = (28.97e-3)/(Ru*T)*(p-exp((-6096.9385/T)+21.2409642-2.711193e-2*T+1.673952e-5*pow(T,2.0)+2.433502*log(T))+4.0*0.075/2e-5);
     satPres = exp((-6096.9385/T)+21.2409642-2.711193e-2*T+1.673952e-5*pow(T,2.0)+2.433502*log(T));
     He      = 2.1583e-7*exp(1342.0*(1.0/T-1.0/293.15));
@@ -40,7 +40,7 @@ struct air : PLAS_MATERIAL_DATA
 };
 
 
-struct copper : PLAS_MATERIAL_DATA
+struct copper : PILLAZ_MATERIAL_DATA
 {
   copper()
   {
@@ -64,7 +64,7 @@ struct copper : PLAS_MATERIAL_DATA
 };
 
 
-struct hydrogen : PLAS_MATERIAL_DATA
+struct hydrogen : PILLAZ_MATERIAL_DATA
 {
   hydrogen()
   {
@@ -88,11 +88,11 @@ struct hydrogen : PLAS_MATERIAL_DATA
 };
 
 
-struct nheptane : PLAS_MATERIAL_DATA
+struct nheptane : PILLAZ_MATERIAL_DATA
 {
   void update(double _T, double _p)
   {
-    PLAS_MATERIAL_DATA::update(_T,_p);
+    PILLAZ_MATERIAL_DATA::update(_T,_p);
     rho     = -941.03+19.9618*T-0.08612051*pow(T,2.0)+1.579494e-4*pow(T,3.0)-1.089345e-7*pow(T,4.0);
     cp      = 799.3401062-126.5095282565*T+0.5279613848638*pow(T,2.0)-1664.890863e-8*pow(T,3.0)+644.6826474e-11*pow(T,4.0);
     k       = 0.25844890110-4.5549450549e-4*T;
@@ -113,7 +113,7 @@ struct nheptane : PLAS_MATERIAL_DATA
   //cp              = dependent
   //k               = dependent
   //sig             = dependent
-    eps             = 1.;  // FIXME T and D dependent
+    eps             = 1.;  // TODO T and D dependent
   //satPres         = dependent
   //vapPres         = ?
   //latHeat         = dependent
@@ -126,11 +126,11 @@ struct nheptane : PLAS_MATERIAL_DATA
 };
 
 
-struct nitrogen : PLAS_MATERIAL_DATA
+struct nitrogen : PILLAZ_MATERIAL_DATA
 {
   void update(double _T, double _p)
   {
-    PLAS_MATERIAL_DATA::update(_T,_p);
+    PILLAZ_MATERIAL_DATA::update(_T,_p);
     mu  = (6.5592e-7*pow(T,0.6081))/(1.0+54.715/T);
     cp  = (6.50+0.001*T)*4.184/(28.01e-3);
     k   = 2.5*(6.5592e-7*pow(T,0.6081))/(1.0+54.715/T)*((6.50+0.001*T)*4.184/(28.01e-3)-8.314)/28.01;
@@ -158,7 +158,7 @@ struct nitrogen : PLAS_MATERIAL_DATA
 };
 
 
-struct oxygen : PLAS_MATERIAL_DATA
+struct oxygen : PILLAZ_MATERIAL_DATA
 {
   oxygen()
   {
@@ -182,7 +182,7 @@ struct oxygen : PLAS_MATERIAL_DATA
 };
 
 
-struct poly : PLAS_MATERIAL_DATA
+struct poly : PILLAZ_MATERIAL_DATA
 {
   poly()
   {
@@ -206,10 +206,10 @@ struct poly : PLAS_MATERIAL_DATA
 };
 
 
-struct water : PLAS_MATERIAL_DATA
+struct water : PILLAZ_MATERIAL_DATA
 {
   void update(double _T, double _p) {
-    PLAS_MATERIAL_DATA::update(_T,_p);
+    PILLAZ_MATERIAL_DATA::update(_T,_p);
     mu = 2.414e-5*pow(10.0,(247.8/(T-140.0)));
     cp = (1.0/18.015)*(276376.0-2090.1*T+8.125*pow(T,2.0)-0.014116*pow(T,3.0)+9.3701e-6*pow(T,4.0));
     k  = (2.9041*(3.0+pow(1.0-(T/611.966),2.0/3.0)))/(3.0+20.0*pow(1.0-(273.0/611.966),2.0/3.0));
@@ -242,14 +242,14 @@ struct water : PLAS_MATERIAL_DATA
 }  // namespace aux
 
 
-void plas_material_database()
+void pillaz_material_database()
 {
-  m::Register< PLAS_MATERIAL_DATA, aux::air      > mat01(1,          "air",      "");
-  m::Register< PLAS_MATERIAL_DATA, aux::copper   > mat02(2,"Cu",  "","copper",   "");
-  m::Register< PLAS_MATERIAL_DATA, aux::hydrogen > mat03(2,"H2",  "","hydrogen", "");
-  m::Register< PLAS_MATERIAL_DATA, aux::nheptane > mat04(1,          "n-Heptane","");
-  m::Register< PLAS_MATERIAL_DATA, aux::nitrogen > mat05(2,"N2",  "","nitrogen", "");
-  m::Register< PLAS_MATERIAL_DATA, aux::oxygen   > mat06(2,"O2",  "","oxygen",   "");
-  m::Register< PLAS_MATERIAL_DATA, aux::poly     > mat07(1,"C8H8",""               );
-  m::Register< PLAS_MATERIAL_DATA, aux::water    > mat08(2,"H2O", "","water",    "");
+  m::Register< PILLAZ_MATERIAL_DATA, aux::air      > mat01(1,          "air",      "");
+  m::Register< PILLAZ_MATERIAL_DATA, aux::copper   > mat02(2,"Cu",  "","copper",   "");
+  m::Register< PILLAZ_MATERIAL_DATA, aux::hydrogen > mat03(2,"H2",  "","hydrogen", "");
+  m::Register< PILLAZ_MATERIAL_DATA, aux::nheptane > mat04(1,          "n-Heptane","");
+  m::Register< PILLAZ_MATERIAL_DATA, aux::nitrogen > mat05(2,"N2",  "","nitrogen", "");
+  m::Register< PILLAZ_MATERIAL_DATA, aux::oxygen   > mat06(2,"O2",  "","oxygen",   "");
+  m::Register< PILLAZ_MATERIAL_DATA, aux::poly     > mat07(1,"C8H8",""               );
+  m::Register< PILLAZ_MATERIAL_DATA, aux::water    > mat08(2,"H2O", "","water",    "");
 }

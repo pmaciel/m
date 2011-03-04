@@ -4,7 +4,7 @@
  <!ENTITY author "Vrije Universiteit Brussel">
  <!ENTITY author-note "&author;, &year;">
 ]>
-<plas label="testcirprism"
+<pillaz label="testcube"
 
   iterations="100"
   dt="0.01"
@@ -30,14 +30,20 @@
   gravity.x="0."
   gravity.y="0."
   gravity.z="0."
-  output.statistics="testcirprism.plas.txt"
-  output.results="testcirprism.plas.plt"
+  output.statistics="testcube.pillaz.txt"
+  output.results="testcube.pillaz.plt"
   >
 
-  <wall zone="wall"/>
+  <wall zone="element_side.1"/>
+  <wall zone="element_side.2"/>
+  <wall zone="element_side.3_t2"/>
+  <wall zone="element_side.3_t3"/>
+  <wall zone="element_side.5_t2"/>
+  <wall zone="element_side.5_t3"/>
 
-  <production type="ellipse" massflux="1.e-15"
-    x0="0.0" y0="-0.2" z0="-0.2"
-    x1="0.0" y1=" 0.2" z1=" 0.2" />
 
-</plas>
+  <production type="rectangle" massflux="1.e-15"
+    x0="-0.40" y0="-0.45" z0="-0.45"
+    x1="-0.40" y1=" 0.45" z1=" 0.45" />
+
+</pillaz>
