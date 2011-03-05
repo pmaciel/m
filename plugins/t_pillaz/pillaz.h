@@ -39,22 +39,15 @@ enum pillaz_quantityvector_t { QVECTOR_UNDEFINED, COORD, VELOCITY, VELOCITY_X_D,
 
 
 /// Description of an element address
-struct pillaz_elementaddress {
-  pillaz_elementaddress(const int _izone, const int _ielem, const int _iface=-1) : izone(_izone), ielem(_ielem), iface(_iface) {}
-  pillaz_elementaddress() : izone(-1), ielem(-1), iface(-1) { reset(); }
+struct PILLAZ_ELEMENT_ADDRESS {
+  PILLAZ_ELEMENT_ADDRESS(const int _izone, const int _ielem, const int _iface=-1) : izone(_izone), ielem(_ielem), iface(_iface) {}
+  PILLAZ_ELEMENT_ADDRESS() : izone(-1), ielem(-1), iface(-1) {}
   int
     izone,
     ielem,
     iface;
-  void reset() { izone = ielem = iface = -1; }
   bool valid() const { return (izone>=0 && ielem>=0); }
-  pillaz_elementaddress& operator=(const pillaz_elementaddress& other) {
-    this->izone = other.izone;
-    this->ielem = other.ielem;
-    this->iface = other.iface;
-    return *this;
-  }
-  bool operator==(const pillaz_elementaddress& other) {
+  bool operator==(const PILLAZ_ELEMENT_ADDRESS& other) {
     // does not compare faces
     return (this->izone==other.izone && this->ielem==other.ielem);
   }
@@ -64,34 +57,53 @@ struct pillaz_elementaddress {
 /// Data of a dispersed entity (particle, droplet or bubble)
 struct PILLAZ_ENTITY_DATA
 {
-  pillaz_elementaddress eaddress;
-  int flag;             // Entity enabled/disabled flag
-  int node;             // Nearest grid node to the entity
-  double diameter;      // Entity diameter
-  double *position;     // Entity position coordiantes
-  double *velocity;     // Entity velocity components
-  double *velocityOld;  // Entity velocity components of time step n-1
-  double temperature;   // Entity temperature;
+  PILLAZ_ENTITY_DATA(const int _dim) : flag(DFLAG_DISABLED), node(-1), position(_dim,0.), velocity(_dim,0.), velocityOld(_dim,0.) {}
+  PILLAZ_ELEMENT_ADDRESS eaddress;
+  int
+    flag,         // Entity enabled/disabled flag
+    node;         // Nearest grid node to the entity
+  double
+    diameter,     // Entity diameter
+    temperature;  // Entity temperature;
+  std::vector< double >
+    position,     // Entity position coordiantes
+    velocity,     // Entity velocity components
+    velocityOld;  // Entity velocity components of time step n-1
 };
 
 
 /// Data of the dispersed phase (per node)
 struct PILLAZ_PHASE_DATA
 {
-  int numDens;         // Number density of entities (per node)
-  double volFrac;      // Volume fraction (per node)
-  double volFracDt;    // Volume fraction change rate (per node)
-  double *volFracDx;   // Volume fraction gradient (per node)
-  double avgDiam;      // Mean diameter (per node)
-  double stdDiam;      // Diameter standard deviation (per node)
-  double *avgVel;      // Mean entity velocity (per node)
-  double *stdVel;      // Entity velocity standard deviation (per node)
-  double *dispForce;   // Momentum force of the entities (per node)
-  double avgRespTime;  // Average response time (per node)
+  PILLAZ_PHASE_DATA(const int _dim, const int _unk) : avgVel(_dim,0.), dispForce(_unk,0.), stdVel(_dim,0.), volFracDx(_dim,0.) {}
+  int numDens;    // Number density of entities
+  double
+    avgDiam,      // Mean diameter
+    avgRespTime,  // Average response time
+    stdDiam,      // Diameter standard deviation
+    volFrac,      // Volume fraction
+    volFracDt;    // Volume fraction change rate
+  std::vector< double >
+    avgVel,       // Mean entity velocity
+    dispForce,    // Momentum force of the entities
+    stdVel,       // Entity velocity standard deviation
+    volFracDx;    // Volume fraction gradient
 };
 
 
-/// Statistics data of Pillaz
+/// Description of a production domain
+struct PILLAZ_PRODDOMAIN {
+  PILLAZ_PRODDOMAIN() : type(0), massFlux(0.), massResid(0.) {}
+  int type;
+  double
+    x0, y0, z0,
+    x1, y1, z1,
+    massFlux,
+    massResid;
+};
+
+
+/// Statistics data
 struct PILLAZ_STATS
 {
   int enabled;         // Number of active entities
@@ -108,15 +120,11 @@ struct PILLAZ_STATS
 };
 
 
-/// Pillaz input parameters (read from Pillaz input file)
+/// Input parameters
 struct PILLAZ_INPUT_PARAM
 {
   int numMaxEnt;           // Maximum number of entities per process
   int numIniEnt;           // Number of initially distributed entities:
-  int numProdDom;          // Number of entity production zones
-  int *prodDom;            // Geometrical shape of entity inlets
-  double **prodParam;      // Coordinates of entity inlets
-  double *massFluxes;      // Secondary phase mass flux of entity inlets
   int iniDiamType;         // Type of diameter distribution
   double iniDiam;          // Diameter of dispersed entities
   double iniDiamStd;       // Diameter standard deviation
@@ -130,6 +138,7 @@ struct PILLAZ_INPUT_PARAM
   int evapModel;           // Flag: Evaporation model (only for droplet flow)
   int saturModel;          // Flag: Saturation model (only for bubbly flow)
   double gravVec[3];       // Gravity vector
+  std::vector< PILLAZ_PRODDOMAIN > proddom;
 
   double lagrTimeFactor;   // Lagrangian time factor (constant)
   double errTol;           // Error tolerance
@@ -161,29 +170,29 @@ struct PILLAZ_FLOWSOLVER_PARAM
 
 
 /// Entity element data structures
-struct ENTITY_ELEMENT_DATA
+struct PILLAZ_ENTITY_ELEMENT_DATA
 {
-  std::vector< int > elmNodes;                          // element nodes
+  std::vector< int                   > elmNodes;        // element nodes
   std::vector< std::vector< double > > elmFaceVectors;  // element face middle points
   std::vector< std::vector< double > > elmNorms;        // element face normals
 };
 
 
 /// Local entity variables data structure
-struct LOCAL_ENTITY_VARIABLES
+struct PILLAZ_LOCAL_ENTITY_VARIABLES
 {
-  LOCAL_ENTITY_VARIABLES(const int dim) :
+  PILLAZ_LOCAL_ENTITY_VARIABLES(const int _dim) :
     node(-1),
-    pos   (dim,0.),
-    posOld(dim,0.),
-    vel   (dim,0.),
-    velOld(dim,0.),
-    relVel(dim,0.) {}
-  ~LOCAL_ENTITY_VARIABLES() {}
+    pos   (_dim,0.),
+    posOld(_dim,0.),
+    vel   (_dim,0.),
+    velOld(_dim,0.),
+    relVel(_dim,0.) {}
+  ~PILLAZ_LOCAL_ENTITY_VARIABLES() {}
   int
     flag,           // Flag to determine if the entity is active
     node;           // Number of corresponding grid node
-  pillaz_elementaddress eaddress;
+  PILLAZ_ELEMENT_ADDRESS eaddress;
 
   double
     diam,           // Diameter
@@ -212,19 +221,19 @@ struct LOCAL_ENTITY_VARIABLES
     velOld,                   // Entity velocity at time step n-1
     relVel;                   // Relative velocity
 
-  ENTITY_ELEMENT_DATA edata;  // Corresponding grid element data
+  PILLAZ_ENTITY_ELEMENT_DATA edata;  // Corresponding grid element data
 };
 
 
 /// Local flow variables data structure
-struct LOCAL_FLOW_VARIABLES
+struct PILLAZ_LOCAL_FLOW_VARIABLES
 {
-  LOCAL_FLOW_VARIABLES(const int dim) :
-    vel  (dim,0.),
-    velDt(dim,0.),
-    vort (dim,0.),
-    velDx(dim,std::vector< double >(dim,0.)) {}
-  ~LOCAL_FLOW_VARIABLES() {}
+  PILLAZ_LOCAL_FLOW_VARIABLES(const int _dim) :
+    vel  (_dim,0.),
+    velDt(_dim,0.),
+    vort (_dim,0.),
+    velDx(_dim,std::vector< double >(_dim,0.)) {}
+  ~PILLAZ_LOCAL_FLOW_VARIABLES() {}
   std::vector< double >
     vel,       // Local instantaneous flow velocity
     velDt,     // Flow velocity time derivative
@@ -293,12 +302,6 @@ class pillaz {
    * called at each time step of the driving flow solver.
    */
   void run();
-
-  /**
-   * This routine terminates Pillaz. It has to be called after
-   * the last run of Pillaz from the driving flow solver.
-   */
-  virtual ~pillaz();
 
 
  private:  // interface methods to implement in derived class
@@ -418,7 +421,7 @@ class pillaz {
    * This function computes the mass and momentum back coupling
    * terms for a dispersed entity.
    */
-  void pillaz_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double *force, double tFactor);
+  void pillaz_CalcBackCoupling(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double *force, double tFactor);
 
   /**
    * This file includes all functionality concerning entities
@@ -454,7 +457,7 @@ class pillaz {
    * This function computes the momentum back coupling forces
    * for a bubble.
    */
-  void pillaz_CalcCouplingForcesBubble(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
+  void pillaz_CalcCouplingForcesBubble(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double tFactor);
 
   /**
    * This file includes the computation of back-coupling terms
@@ -463,7 +466,7 @@ class pillaz {
    * This function calculates the momentum back coupling forces
    * for a particle or droplet.
    */
-  void pillaz_CalcCouplingForcesParticle(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor);
+  void pillaz_CalcCouplingForcesParticle(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double tFactor);
 
   /**
    * This function computes the 3D cross product of two vectors.
@@ -498,7 +501,7 @@ class pillaz {
    *
    * This function computes all flow coefficients.
    */
-  void pillaz_CalcEntityCoefficients(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow);
+  void pillaz_CalcEntityCoefficients(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow);
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -506,7 +509,7 @@ class pillaz {
    * This function computes the kinematic response time of the
    * dispersed entity.
    */
-  double pillaz_CalcKinematicResponseTime(LOCAL_ENTITY_VARIABLES *ent);
+  double pillaz_CalcKinematicResponseTime(PILLAZ_LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -542,7 +545,7 @@ class pillaz {
    * This function computes the node impact factors of an
    * element according to the entity position.
    */
-  void pillaz_CalcNodeImpactFactors(const LOCAL_ENTITY_VARIABLES *ent, double *imp);
+  void pillaz_CalcNodeImpactFactors(const PILLAZ_LOCAL_ENTITY_VARIABLES *ent, double *imp);
 
   /**
    * This file includes functions to compute flow coefficients.
@@ -613,7 +616,7 @@ class pillaz {
    *
    * This function composes the trajectory equation.
    */
-  void pillaz_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double dtLagr);
+  void pillaz_CalcTrajectory(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double dtLagr);
 
   /**
    * This function computes the angle between two vectors.
@@ -665,7 +668,7 @@ class pillaz {
   /**
    * This function computes the vorticity of the fluid flow.
    */
-  void pillaz_CalcVorticity(int numDim, LOCAL_FLOW_VARIABLES *flow);
+  void pillaz_CalcVorticity(int numDim, PILLAZ_LOCAL_FLOW_VARIABLES *flow);
 
   /**
    * This file includes all functionality concerning entities
@@ -684,7 +687,7 @@ class pillaz {
    * This function performs a not-a-number check for the entity
    * position and velocity.
    */
-  void pillaz_CheckNaN(LOCAL_ENTITY_VARIABLES *ent);
+  void pillaz_CheckNaN(PILLAZ_LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * This function computes coalescense of bubbles according
@@ -699,7 +702,7 @@ class pillaz {
    * This function computes inter-entity collisions based on the
    * stochastic model of Sommerfeld.
    */
-  void pillaz_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double dtLagr);
+  void pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDens, double dtLagr);
 
   /**
    * This file contains all write functionality, to the screen,
@@ -726,7 +729,7 @@ class pillaz {
    * This function finds the index of the boundary face through
    * which an entity left the computational domain.
    */
-  bool pillaz_FindExitFace(LOCAL_ENTITY_VARIABLES *ent, int *i, int *j);
+  bool pillaz_FindExitFace(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int *i, int *j);
 
   /**
    * This file includes all functinality to perform an element
@@ -735,7 +738,7 @@ class pillaz {
    * This function finds the smallest element face distance to
    * an entity.
    */
-  void pillaz_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARIABLES *ent, int *idx, double *dmin);
+  void pillaz_FindMinimumElementFaceDistance(int numDim, PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int *idx, double *dmin);
 
   /**
    * This file includes all functinality to perform an element
@@ -743,7 +746,7 @@ class pillaz {
    *
    * This function finds the closest element node to an entity.
    */
-  int pillaz_FindNearestElementNode(LOCAL_ENTITY_VARIABLES *ent);
+  int pillaz_FindNearestElementNode(PILLAZ_LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * Provide component of element face middle-point vector
@@ -791,7 +794,7 @@ class pillaz {
    * @param[in] ea element address (structure)
    * @return element type
    */
-  pillaz_elmtype_t pillaz_getElmType(const pillaz_elementaddress& ea) {
+  pillaz_elmtype_t pillaz_getElmType(const PILLAZ_ELEMENT_ADDRESS& ea) {
     return getElmType(ea.izone,ea.iface);
   }
 
@@ -819,7 +822,7 @@ class pillaz {
    * This function manages the interpolation of variables from
    * the fluid flow solver.
    */
-  void pillaz_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step);
+  void pillaz_Interpolate(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double step);
 
   /**
    * This file contains routines for the generation of entities,
@@ -887,13 +890,11 @@ class pillaz {
   void pillaz_ReadParameters(const XMLNode& x);
 
   /**
-   * This file includes all functinality to perform an element
-   * search for a dispersed entity.
-   *
-   * This function performs a successive neigbour search routine
-   * following the algorithm of Loehner et al.
+   * This function search for an element containing a dispersed entity, by the
+   * algorithm of Loehner et al. (successive neigbour search)
+   * @param[in] ent description of the entity to search for
    */
-  void pillaz_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent);
+  void pillaz_SearchSuccessive(PILLAZ_LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * This file contains routines for the generation of entities,
@@ -909,7 +910,7 @@ class pillaz {
    * This function sets the geometry of an element assigned to
    * a dispersed entity.
    */
-  void pillaz_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent);
+  void pillaz_SetElementGeometry(int numDim, PILLAZ_LOCAL_ENTITY_VARIABLES *ent);
 
   /**
    * This file includes the functionality to perform  trajectory
@@ -937,7 +938,7 @@ class pillaz {
    * crossed a wall face of the domain boundary in the last
    * trajectory updata. Position and velocity are corrected.
    */
-  void pillaz_WallBounce(int numDim, double elasticity, LOCAL_ENTITY_VARIABLES *ent, int ibnd, int ifac);
+  void pillaz_WallBounce(int numDim, double elasticity, PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int ibnd, int ifac);
 
   /**
    * This file contains all write functionality, to the screen,
@@ -959,23 +960,25 @@ class pillaz {
 
  public: // internal data (PILLAZ_DATA)
 
-  PILLAZ_ENTITY_DATA      *ed;          // Entity data structure (per entity)
-  PILLAZ_PHASE_DATA       *pd;          // Phase data structure (per node)
-  PILLAZ_STATS            sd;           // Statistics data structure
-  PILLAZ_INPUT_PARAM      ip;           // Input file parameter structure
-  PILLAZ_FLOWSOLVER_PARAM fp;           // Flowsolver parameter structure
-  int                   numExtEnt;    // Number of bubbles coming from external code
-  double                *extEntPos;   // Positions of bubbles coming from external code
-  double                *extEntVel;   // Velocities of bubbles coming from external code
-  double                *extEntTemp;  // Temperatures of bubbles coming from external code
-  double                *extEntDiam;  // Diameters of bubbles coming from external code
-  double *massResid;                  // Mass flux residual
+  std::vector< PILLAZ_ENTITY_DATA > ed;  // Entity data structure (per entity)
+  std::vector< PILLAZ_PHASE_DATA  > pd;  // Phase data structure (per node)
+  PILLAZ_STATS                      sd;  // Statistics data structure
+  PILLAZ_INPUT_PARAM                ip;  // Input file parameter structure
+  PILLAZ_FLOWSOLVER_PARAM           fp;  // Flowsolver parameter structure
   PILLAZ_MATERIAL_DATA
-    *mdd,                             // Material data, for the dispersed phase
-    *mdc;                             // Material data, for the continuous phase
+    *mdd,                                // Material data, for the dispersed phase
+    *mdc;                                // Material data, for the continuous phase
 
-  std::vector< double > volumeNod;                 // nodal volume (dual mesh)
-  std::vector< std::vector< double > > volumeElm;  // elements volume
+  // TODO: make a vector of structs out of this
+  int numExtEnt;  // Number of bubbles coming from external code
+  double
+    *extEntPos,   // Positions of bubbles coming from external code
+    *extEntVel,   // Velocities of bubbles coming from external code
+    *extEntTemp,  // Temperatures of bubbles coming from external code
+    *extEntDiam;  // Diameters of bubbles coming from external code
+
+  std::vector< double                > volumeNod;  // volume, per node (dual mesh)
+  std::vector< std::vector< double > > volumeElm;  // volume, per element
 
   // inner element faces normal vectors
   std::vector<        // per (inner) zone
@@ -986,22 +989,22 @@ class pillaz {
   > > > > m_innerelem_normals;
 
   // map of boundary elements to (inner) elements
-  std::vector<               // per (boundary) zone
-    std::vector<             // per element
-      pillaz_elementaddress  // (inner) element address
+  std::vector<                // per (boundary) zone
+    std::vector<              // per element
+      PILLAZ_ELEMENT_ADDRESS  // (inner) element address
   > > m_boundtoinner;
 
   // map of nodes to (inner) elements
-  std::vector<               // per node
-    std::vector<             // list of neighbors
-      pillaz_elementaddress  // (inner) element address
+  std::vector<                // per node
+    std::vector<              // list of neighbors
+      PILLAZ_ELEMENT_ADDRESS  // (inner) element address
   > > m_nodetoelem;
 
   // map of (inner) elements to elements (sharing a face)
-  std::vector<                 // per (inner) zone
-    std::vector<               // per element
-      std::vector<             // per face
-        pillaz_elementaddress  // (inner) element address
+  std::vector<                  // per (inner) zone
+    std::vector<                // per element
+      std::vector<              // per face
+        PILLAZ_ELEMENT_ADDRESS  // (inner) element address
   > > > m_elemtoelem;
 
 };

@@ -18,12 +18,7 @@ void pillaz_material_database();
 
 void pillaz::initialize(const XMLNode& x)
 {
-  // utility variables
-  long unsigned count = 0;
-  boost::progress_display pbar(count);
-
-
-  screenOutput("initializing Pillaz...");
+  screenOutput("initializing...");
 
 
   screenOutput("initialize materials database...");
@@ -52,7 +47,7 @@ void pillaz::initialize(const XMLNode& x)
       std::vector< int > en( pillaz_getElmNNodes(getElmType(iz,ie)) );
       getElmNodes(iz,ie,&en[0]);
       for (std::vector< int >::const_iterator n=en.begin(); n!=en.end(); ++n)
-        m_nodetoelem[ *n ].push_back(pillaz_elementaddress(iz,ie));
+        m_nodetoelem[ *n ].push_back(PILLAZ_ELEMENT_ADDRESS(iz,ie));
     }
   }
   screenOutput("recreating map of nodes to (inner) elements.");
@@ -61,7 +56,7 @@ void pillaz::initialize(const XMLNode& x)
   screenOutput("recreating map of (inner) elements to elements (sharing a face)...");
 
   // allocate
-  count = 0;
+  long unsigned count = 0;
   m_elemtoelem.resize(fp.nInnerElements.size());
   for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
     if (fp.nInnerElements[iz])
@@ -73,10 +68,10 @@ void pillaz::initialize(const XMLNode& x)
   }
 
   // hold information about elements on a boundary
-  std::list< pillaz_elementaddress > list_boundelems;
+  std::list< PILLAZ_ELEMENT_ADDRESS > list_boundelems;
 
   // perform the (inner) element to element search
-  pbar.restart(count);
+  boost::progress_display pbar(count);
   for (size_t iz=0; iz<m_elemtoelem.size(); ++iz) {
     for (size_t ie=0; ie<m_elemtoelem[iz].size(); ++ie) {
       for (size_t iface=0; iface<m_elemtoelem[iz][ie].size(); ++iface, ++pbar) {
@@ -89,7 +84,7 @@ void pillaz::initialize(const XMLNode& x)
         // create set of searcheable elements (those sharing a node)
         std::set< std::pair< int,int > > neighelems;
         for (std::vector< int >::const_iterator n=fn.begin(); n!=fn.end(); ++n)
-          for (std::vector< pillaz_elementaddress >::const_iterator e=m_nodetoelem[*n].begin(); e!=m_nodetoelem[*n].end(); ++e)
+          for (std::vector< PILLAZ_ELEMENT_ADDRESS >::const_iterator e=m_nodetoelem[*n].begin(); e!=m_nodetoelem[*n].end(); ++e)
             neighelems.insert( neighelems.end(), std::pair< int,int >(e->izone,e->ielem));
         neighelems.erase(std::pair< int,int >(iz,ie));  // avoid self-search
 
@@ -105,7 +100,7 @@ void pillaz::initialize(const XMLNode& x)
 
             // if neighbor face matches, it must be that one
             if (std::equal(fn.begin(),fn.end(),nfn.begin())) {
-              m_elemtoelem[iz][ie][iface] = pillaz_elementaddress(ne->first,ne->second);
+              m_elemtoelem[iz][ie][iface] = PILLAZ_ELEMENT_ADDRESS(ne->first,ne->second);
               isneighborfacefound = true;
             }
 
@@ -114,11 +109,12 @@ void pillaz::initialize(const XMLNode& x)
 
         // if neighbor face is not found, it just might touch a boundary :)
         if (!isneighborfacefound)
-          list_boundelems.insert(list_boundelems.end(),pillaz_elementaddress(iz,ie));
+          list_boundelems.insert(list_boundelems.end(),PILLAZ_ELEMENT_ADDRESS(iz,ie));
 
       }
     }
   }
+
   screenOutput("recreating map of (inner) elements to elements (sharing a face).");
 
 
@@ -145,8 +141,8 @@ void pillaz::initialize(const XMLNode& x)
 
       // find the element with a face with the same nodes
       bool isinnerfacefound = false;
-      for (std::list< pillaz_elementaddress >::iterator be=list_boundelems.begin(); be!=list_boundelems.end() && !isinnerfacefound; ++be) {
-        for (int jface=0; jface<pillaz_getElmNFaces(getElmType(be->izone,be->ielem)) && !isinnerfacefound; ++jface) {
+      for (std::list< PILLAZ_ELEMENT_ADDRESS >::iterator be=list_boundelems.begin(); be!=list_boundelems.end(); ++be) {
+        for (int jface=0; jface<pillaz_getElmNFaces(getElmType(be->izone,be->ielem)); ++jface) {
 
           // get inner element face nodes
           std::vector< int > befn( pillaz_getElmNNodes(pillaz_getElmFaceType(getElmType(be->izone,be->ielem),jface)), -1 );
@@ -159,9 +155,12 @@ void pillaz::initialize(const XMLNode& x)
             m_boundtoinner[iz][ie].iface = jface;
             list_boundelems.erase(be);
             isinnerfacefound = true;
+            break;
           }
 
         }
+        if (isinnerfacefound)
+          break;
       }
 
     }
@@ -207,33 +206,14 @@ void pillaz::initialize(const XMLNode& x)
   screenOutput("calculating nodal volumes (dual cell)...");
   volumeNod.assign(fp.numNod,0.);
   for (int in=0; in<fp.numNod; ++in)
-    for (std::vector< pillaz_elementaddress >::const_iterator e=m_nodetoelem[in].begin(); e!=m_nodetoelem[in].end(); ++e)
+    for (std::vector< PILLAZ_ELEMENT_ADDRESS >::const_iterator e=m_nodetoelem[in].begin(); e!=m_nodetoelem[in].end(); ++e)
       volumeNod[in] += volumeElm[e->izone][e->ielem] / double(pillaz_getElmNNodes(getElmType(e->izone,e->ielem)));
   screenOutput("calculating nodal volumes (dual cell).");
 
 
-  // allocate memory for dispersed phase data
-  ed = new PILLAZ_ENTITY_DATA[ip.numMaxEnt];
-  for (int ient=0; ient<ip.numMaxEnt; ++ient) {
-    ed[ient].flag        = DFLAG_DISABLED;
-    ed[ient].position    = new double[fp.numDim];
-    ed[ient].velocity    = new double[fp.numDim];
-    ed[ient].velocityOld = new double[fp.numDim];
-    ed[ient].node        = -1;
-  }
-
-  pd = new PILLAZ_PHASE_DATA[fp.numNod];
-  for (int inod=0; inod<fp.numNod; ++inod) {
-    pd[inod].volFracDx = new double[fp.numDim];
-    pd[inod].avgVel    = new double[fp.numDim];
-    pd[inod].stdVel    = new double[fp.numDim];
-    pd[inod].dispForce = new double[fp.numUnk];
-  }
-
-
-  //***Initialize variable runtime parameters***//
-  if (ip.numProdDom>0)
-    massResid = new double[ip.numProdDom];
+  // allocate memory for entities and dispersed phase data
+  ed.assign(ip.numMaxEnt,PILLAZ_ENTITY_DATA(fp.numDim));
+  pd.assign(fp.numNod,   PILLAZ_PHASE_DATA (fp.numDim,fp.numUnk));
 
 
   //***Initialize material data from database***//
@@ -257,17 +237,17 @@ void pillaz::initialize(const XMLNode& x)
     pillaz_CreateStatsFile(ip.writeStatsFilename);
 
 
-  screenOutput("initializing Pillaz.");
+  screenOutput("initializing.");
 }
 
 
 void pillaz::run()
 {
-  screenOutput("perform Pillaz iteration...");
+  screenOutput("perform iteration...");
 
 
-  LOCAL_ENTITY_VARIABLES ent(fp.numDim);
-  LOCAL_FLOW_VARIABLES flow(fp.numDim);
+  PILLAZ_LOCAL_ENTITY_VARIABLES ent(fp.numDim);
+  PILLAZ_LOCAL_FLOW_VARIABLES flow(fp.numDim);
   char errMessage[100];
   int idx,ient,jent,inod,idim,iunk,ibnd,ifac,subIter,avgctr;
   double cellSize,minCellSize,entVel,dtLagr,dtRemaining;
@@ -316,7 +296,7 @@ void pillaz::run()
   idx = ip.numMaxEnt-1;
   for(ient=0; ient<ip.numMaxEnt; ient++){
     if(ed[ient].flag==DFLAG_ENABLED || ed[ient].flag==DFLAG_CREATED){
-      sd.enabled++;
+      ++sd.enabled;
       continue;
     }
     for(jent=idx; jent>ient; jent--){
@@ -324,29 +304,22 @@ void pillaz::run()
         idx--;
         continue;
       }
-      ed[ient].eaddress = ed[jent].eaddress;
-      ed[ient].node    = ed[jent].node;
-      for(idim=0; idim<fp.numDim; idim++){
-        ed[ient].position[idim] = ed[jent].position[idim];
-        ed[ient].velocity[idim] = ed[jent].velocity[idim];
-      }
-      ed[ient].diameter = ed[jent].diameter;
-      ed[ient].flag = ed[jent].flag;
+      ed[ient] = ed[jent];
       ed[jent].flag = DFLAG_DISABLED;
       idx = jent-1;
-      sd.enabled++;
+      ++sd.enabled;
       break;
     }
   }
 
 
   //***Entity production***//
-  if (ip.numProdDom>0){
+  if (ip.proddom.size()) {
     screenOutput("imposing new entities in production domains...");
     pillaz_ImposeProductionDomains();
   }
 
-  if (numExtEnt>0){
+  if (numExtEnt>0) {
     screenOutput("imposing externally generated entities...");
     pillaz_ImposeExternal();
   }
@@ -491,10 +464,9 @@ void pillaz::run()
 
 
     //***Put back entity information to global data structure***//
-    ed[ient].flag = ent.flag;
-    ed[ient].diameter = ent.diam;
+    ed[ient].flag        = ent.flag;
+    ed[ient].diameter    = ent.diam;
     ed[ient].temperature = ent.temp;
-
     for(idim=0; idim<fp.numDim; idim++){
       ed[ient].velocity[idim] = ent.vel[idim];
       ed[ient].position[idim] = ent.pos[idim];
@@ -502,9 +474,10 @@ void pillaz::run()
 
     if(ent.flag==DFLAG_ENABLED){
       ed[ient].eaddress = ent.eaddress;
-      ed[ient].node = ent.node;
-    } else{
-      ed[ient].eaddress.reset();
+      ed[ient].node     = ent.node;
+    }
+    else{
+      ed[ient].eaddress = PILLAZ_ELEMENT_ADDRESS();
       ed[ient].node = -1;
     }
 
@@ -535,79 +508,36 @@ void pillaz::run()
   pillaz_CalcCellwiseData();
 
 
-  //***Write Pillaz output to files***//
+  //***Write output to files***//
   if (ip.writeStatsFilename.length())
     pillaz_WriteStatsFile(ip.writeStatsFilename,fp.iter,fp.time);
   if (ip.writeTecplotFilename.length())
     pillaz_WriteTecplotFile(ip.writeTecplotFilename,fp.iter,fp.time);
 
 
-  screenOutput("perform Pillaz iteration.");
+  screenOutput("perform iteration.");
 }
 
 
-pillaz::~pillaz()
+void pillaz::pillaz_CalcBackCoupling(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double *force, double tFactor)
 {
-  // free dynamic memory
-
-  for (int i=0; i<ip.numMaxEnt; ++i) {
-    delete[] ed[i].position;
-    delete[] ed[i].velocity;
-    delete[] ed[i].velocityOld;
-  }
-  delete[] ed;
-
-  for (int i=0; i<fp.numNod; ++i) {
-    delete[] pd[i].volFracDx;
-    delete[] pd[i].avgVel;
-    delete[] pd[i].stdVel;
-    delete[] pd[i].dispForce;
-  }
-  delete[] pd;
-
-  if (ip.numProdDom>0) {
-    for (int i=0; i<ip.numProdDom; ++i)
-      delete[] ip.prodParam[i];
-    delete[] ip.prodParam;
-    delete[] ip.prodDom;
-    delete[] ip.massFluxes;
-    delete[] massResid;
-  }
-}
-
-
-void pillaz::pillaz_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double *force, double tFactor)
-{
-  double limitFrac = 0.95;
-  int idim,jdim;
-  double contVol,iFrac,jFrac,rhsTerm;
+  double contVol,rhsTerm;
 
   std::vector< double > impFac(pillaz_getElmNNodes(getElmType(ent->eaddress.izone,ent->eaddress.ielem)),0.);
 
   //***Volume fraction trigger***//
-  if(ip.volfracCoupl){
-    if(pd[ent->node].volFrac>limitFrac){
-      iFrac = limitFrac;
-    } else{
-      iFrac = pd[ent->node].volFrac;
-    }
-  } else{
-    iFrac = 0.0;
-  }
+  const double
+    limitFrac = 0.95,
+    iFrac = (ip.volfracCoupl? std::min(limitFrac,pd[ent->node].volFrac) : 0.),
+    jFrac = (pd[ent->node].volFrac>1.? 1./pd[ent->node].volFrac : 1.);
 
-  if(pd[ent->node].volFrac>1.0){
-    jFrac = 1.0/pd[ent->node].volFrac;
-  } else{
-    jFrac = 1.0;
-  }
 
   //***Compute back-coupling force contribution (m/s^2) for fluid momentum equation (negative sign)***//
   if(ip.momentumCoupl==FORCE_PIC){
 
     contVol = volumeNod[ent->node];
-    for(idim=0; idim<fp.numDim; idim++){
+    for (int idim=0; idim<fp.numDim; ++idim)
       pd[ent->node].dispForce[idim+1] -= tFactor*force[idim]*jFrac/((1.0-iFrac)*contVol * mdc->rho);
-    }
 
   }
   else if(ip.momentumCoupl==FORCE_PROJ){
@@ -616,9 +546,8 @@ void pillaz::pillaz_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VAR
     for(size_t idim=0; idim<ent->edata.elmNodes.size(); idim++){
       const int inod = ent->edata.elmNodes[idim];
       contVol = volumeNod[inod];
-      for(jdim=0; jdim<fp.numDim; jdim++){
+      for (int jdim=0; jdim<fp.numDim; ++jdim)
         pd[inod].dispForce[jdim+1] -= tFactor*impFac[idim]*force[jdim]*jFrac/((1.0-iFrac)*contVol * mdc->rho);
-      }
     }
   }
 
@@ -627,11 +556,11 @@ void pillaz::pillaz_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VAR
 
     const int inod = ent->node;
     rhsTerm = pd[inod].volFracDt;
-    for(idim=0; idim<fp.numDim; idim++)
+    for (int idim=0; idim<fp.numDim; ++idim)
       rhsTerm += flow->vel[idim]*pd[inod].volFracDx[idim];
 
     pd[inod].dispForce[0] += tFactor*jFrac*rhsTerm/(1.0-iFrac);
-    for(idim=1; idim<fp.numDim; idim++)
+    for (int idim=1; idim<fp.numDim; ++idim)
       pd[inod].dispForce[idim] += tFactor*jFrac*rhsTerm*flow->vel[idim]/(1.0-iFrac);
 
   }
@@ -641,7 +570,7 @@ void pillaz::pillaz_CalcBackCoupling(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VAR
 void pillaz::pillaz_CalcBoundaryUnitNormal(int numDim, int ibnd, int ifac, double *unitVec)
 {
   // get normal vector of a boundary face
-  const pillaz_elementaddress &in = m_boundtoinner[ibnd][ifac];
+  const PILLAZ_ELEMENT_ADDRESS &in = m_boundtoinner[ibnd][ifac];
   for (int idim=0; idim<numDim; ++idim)
     unitVec[idim] = m_innerelem_normals[in.izone][in.ielem][in.iface][idim];
 
@@ -777,7 +706,7 @@ double pillaz::pillaz_CalcConcInterf(double pressBubble)
 }
 
 
-void pillaz::pillaz_CalcCouplingForcesBubble(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor)
+void pillaz::pillaz_CalcCouplingForcesBubble(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double tFactor)
 {
   int idim,jdim;
   double densityRatio,bubbleVol,bubbleMass,vmCoeff;
@@ -826,7 +755,7 @@ void pillaz::pillaz_CalcCouplingForcesBubble(LOCAL_ENTITY_VARIABLES *ent, LOCAL_
 }
 
 
-void pillaz::pillaz_CalcCouplingForcesParticle(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double tFactor)
+void pillaz::pillaz_CalcCouplingForcesParticle(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double tFactor)
 {
   int idim;
   double densityRatio,particleVol,particleMass;
@@ -917,7 +846,7 @@ double pillaz::pillaz_CalcDragCoeff(int flowType, double reynolds)
 }
 
 
-void pillaz::pillaz_CalcEntityCoefficients(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow)
+void pillaz::pillaz_CalcEntityCoefficients(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow)
 {
   //***Compute flow coefficients***//
 
@@ -938,7 +867,7 @@ void pillaz::pillaz_CalcEntityCoefficients(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FL
 }
 
 
-double pillaz::pillaz_CalcKinematicResponseTime(LOCAL_ENTITY_VARIABLES *ent)
+double pillaz::pillaz_CalcKinematicResponseTime(PILLAZ_LOCAL_ENTITY_VARIABLES *ent)
 {
   double tau = 0.;
 
@@ -986,7 +915,7 @@ void pillaz::pillaz_CalcMatVectScalarProduct_3D(double *value, double **m, doubl
 }
 
 
-void pillaz::pillaz_CalcNodeImpactFactors(const LOCAL_ENTITY_VARIABLES *ent, double *imp)
+void pillaz::pillaz_CalcNodeImpactFactors(const PILLAZ_LOCAL_ENTITY_VARIABLES *ent, double *imp)
 {
   double sum = 0.;
   double distance[fp.numDim];
@@ -1114,7 +1043,7 @@ double pillaz::pillaz_CalcThermalResponseTime(double diameter)
 }
 
 
-void pillaz::pillaz_CalcTrajectory(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double dtLagr)
+void pillaz::pillaz_CalcTrajectory(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double dtLagr)
 {
   const pillaz_flowtype_t flowType(mdd->flowtype);
 
@@ -1307,7 +1236,7 @@ double pillaz::pillaz_CalcVectorScalarProduct(int numDim, double *a, double *b)
 }
 
 
-void pillaz::pillaz_CalcVorticity(int numDim, LOCAL_FLOW_VARIABLES *flow)
+void pillaz::pillaz_CalcVorticity(int numDim, PILLAZ_LOCAL_FLOW_VARIABLES *flow)
 {
   if(numDim==2){
     flow->vort[0] = 0.0;
@@ -1341,7 +1270,7 @@ double pillaz::pillaz_CalcWallFaceDistance(int numDim, double *pos, int ibnd, in
 }
 
 
-void pillaz::pillaz_CheckNaN(LOCAL_ENTITY_VARIABLES *ent)
+void pillaz::pillaz_CheckNaN(PILLAZ_LOCAL_ENTITY_VARIABLES *ent)
 {
   int idim;
 
@@ -1420,7 +1349,7 @@ int pillaz::pillaz_Coalescence(double dj, double di, double *uijRelPrPr, double 
 }
 
 
-void pillaz::pillaz_CollisionModel(LOCAL_ENTITY_VARIABLES *ent, int numDens, double dtLagr)
+void pillaz::pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDens, double dtLagr)
 {
   int idim;
   double
@@ -1662,12 +1591,12 @@ void pillaz::pillaz_CreateTecplotFile(const std::string &outpString)
 }
 
 
-bool pillaz::pillaz_FindExitFace(LOCAL_ENTITY_VARIABLES *ent, int *i, int *j)
+bool pillaz::pillaz_FindExitFace(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int *i, int *j)
 {
   // loop over boundaries and faces to find the exit face
   for (size_t ibnd=0; ibnd<fp.nBoundElements.size(); ++ibnd) {
     for (size_t ifac=0; ifac<fp.nBoundElements[ibnd]; ++ifac) {
-      const pillaz_elementaddress& beaddress = m_boundtoinner[ibnd][ifac];
+      const PILLAZ_ELEMENT_ADDRESS& beaddress = m_boundtoinner[ibnd][ifac];
       if (ent->eaddress == beaddress &&
           pillaz_CalcWallFaceDistance(fp.numDim,&ent->pos[0],ibnd,ifac)<0.) {
         *i = ibnd;
@@ -1680,7 +1609,7 @@ bool pillaz::pillaz_FindExitFace(LOCAL_ENTITY_VARIABLES *ent, int *i, int *j)
 }
 
 
-void pillaz::pillaz_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARIABLES *ent, int *idx, double *dmin)
+void pillaz::pillaz_FindMinimumElementFaceDistance(int numDim, PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int *idx, double *dmin)
 {
   std::vector< double >
     posvec(numDim,0.),
@@ -1702,7 +1631,7 @@ void pillaz::pillaz_FindMinimumElementFaceDistance(int numDim, LOCAL_ENTITY_VARI
 }
 
 
-int pillaz::pillaz_FindNearestElementNode(LOCAL_ENTITY_VARIABLES *ent)
+int pillaz::pillaz_FindNearestElementNode(PILLAZ_LOCAL_ENTITY_VARIABLES *ent)
 {
   std::vector< double > impFac(pillaz_getElmNNodes(pillaz_getElmType(ent->eaddress)),0.);
   pillaz_CalcNodeImpactFactors(ent,&impFac[0]);
@@ -1722,8 +1651,8 @@ int pillaz::pillaz_FindNearestElementNode(LOCAL_ENTITY_VARIABLES *ent)
 
 void pillaz::pillaz_ImposeExternal()
 {
-  LOCAL_ENTITY_VARIABLES ent(fp.numDim);
-  LOCAL_FLOW_VARIABLES flow(fp.numDim);
+  PILLAZ_LOCAL_ENTITY_VARIABLES ent(fp.numDim);
+  PILLAZ_LOCAL_FLOW_VARIABLES flow(fp.numDim);
   int ient,idim;
   double *newPos,*newVel,*newDiam,*newTemp;
 
@@ -1763,10 +1692,10 @@ void pillaz::pillaz_ImposeExternal()
       pillaz_SetElementGeometry(fp.numDim,&ent);
       pillaz_Interpolate(&ent,&flow,0.0);
 
-      ed[sd.enabled].flag = DFLAG_CREATED;
-      ed[sd.enabled].eaddress = ent.eaddress;
-      ed[sd.enabled].node = pillaz_FindNearestElementNode(&ent);
-      ed[sd.enabled].diameter = ent.diam;
+      ed[sd.enabled].flag        = DFLAG_CREATED;
+      ed[sd.enabled].eaddress    = ent.eaddress;
+      ed[sd.enabled].node        = pillaz_FindNearestElementNode(&ent);
+      ed[sd.enabled].diameter    = ent.diam;
       ed[sd.enabled].temperature = ent.temp;
       for(idim=0; idim<fp.numDim; idim++){
         ed[sd.enabled].position[idim] = ent.pos[idim];
@@ -1786,7 +1715,7 @@ void pillaz::pillaz_ImposeExternal()
 
 void pillaz::pillaz_ImposeProductionDomains()
 {
-  int ient,ipd,idim,bCtr;
+  int idim,bCtr;
   double p,s,p1[3],p2[3];
   char msg[100];
 
@@ -1800,23 +1729,21 @@ void pillaz::pillaz_ImposeProductionDomains()
 
   //***Loop over production domains***//
 
-  for(ipd=0; ipd<ip.numProdDom; ipd++){
-
-    if(ip.prodDom[ipd]==0){continue;}
+  for (std::vector< PILLAZ_PRODDOMAIN >::iterator pdi=ip.proddom.begin(); pdi!=ip.proddom.end(); ++pdi) {
+    if (!pdi->type)
+      continue;
 
     //***Accumulate produced secondary phase mass***//
-    massResid[ipd] += ip.massFluxes[ipd]*fp.dtEul;
-    if (massResid[ipd]<=0.)
+    pdi->massResid += pdi->massFlux * fp.dtEul;
+    if (pdi->massResid<=0.)
       continue;
 
     //***Copy production parameters to local data structure***//
-    for(idim=0; idim<3; idim++){
-      p1[idim] = ip.prodParam[ipd][idim];
-      p2[idim] = ip.prodParam[ipd][idim+3];
-    }
+    p1[0]=pdi->x0;  p1[1]=pdi->y0; p1[2]=pdi->z0;
+    p2[0]=pdi->x1;  p2[1]=pdi->y1; p2[2]=pdi->z1;
 
     //***Iteratively generate entities according to mass flux***//
-    for (; massResid[ipd]>0. && bCtr<ip.numMaxEnt; ++bCtr) {
+    for (; pdi->massResid>0. && bCtr<ip.numMaxEnt; ++bCtr) {
 
       //***Set diameter***//
       newDiam[bCtr] = pillaz_SetDiameter();
@@ -1825,12 +1752,12 @@ void pillaz::pillaz_ImposeProductionDomains()
       const double mass =
         (fp.numDim==2?  mdd->rho *PI*newDiam[bCtr]*newDiam[bCtr]              /4. :
         (fp.numDim==3?  mdd->rho *PI*newDiam[bCtr]*newDiam[bCtr]*newDiam[bCtr]/6. :
-                       0. ));
+                        0. ));
 
-      massResid[ipd] -= mass;
+      pdi->massResid -= mass;
 
       //***Compute position***//
-      if(ip.prodDom[ipd]==1){
+      if(pdi->type==1){
 
         //***Line production domain***//
         s = pillaz_RandomDouble();
@@ -1839,7 +1766,7 @@ void pillaz::pillaz_ImposeProductionDomains()
         }
 
       }
-      else if(ip.prodDom[ipd]==2){
+      else if(pdi->type==2){
 
         //***Rectangle production domain***//
         for(idim=0; idim<fp.numDim; idim++){
@@ -1848,7 +1775,7 @@ void pillaz::pillaz_ImposeProductionDomains()
         }
 
       }
-      else if(ip.prodDom[ipd]==3){
+      else if(pdi->type==3){
 
         //***Ellipse production domain***//
         do{
@@ -1867,15 +1794,15 @@ void pillaz::pillaz_ImposeProductionDomains()
 
 
   //***Generate entities***//
-  LOCAL_FLOW_VARIABLES flow(fp.numDim);
-  LOCAL_ENTITY_VARIABLES ent(fp.numDim);
-  for(ient=0; ient<bCtr; ient++){
+  PILLAZ_LOCAL_FLOW_VARIABLES flow(fp.numDim);
+  PILLAZ_LOCAL_ENTITY_VARIABLES ent(fp.numDim);
+  for (int ient=0; ient<bCtr; ++ient) {
 
     // find a starting (inner) element
-    ent.eaddress.reset();
+    ent.eaddress = PILLAZ_ELEMENT_ADDRESS();
     for (size_t iz=0; iz<fp.nInnerElements.size() && !ent.eaddress.valid(); ++iz)
       if (fp.nInnerElements[iz])
-        ent.eaddress = pillaz_elementaddress(iz,0);
+        ent.eaddress = PILLAZ_ELEMENT_ADDRESS(iz,pillaz_RandomInteger(0,fp.nInnerElements[iz]));
 
     ent.diam = newDiam[ient];
     ent.temp = ip.iniTempDisp;
@@ -1911,7 +1838,7 @@ void pillaz::pillaz_ImposeProductionDomains()
 }
 
 
-void pillaz::pillaz_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLES *flow, double step)
+void pillaz::pillaz_Interpolate(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double step)
 {
   // node impact factors for interpolation
   const std::vector< int >& en = ent->edata.elmNodes;
@@ -1972,7 +1899,7 @@ void pillaz::pillaz_Interpolate(LOCAL_ENTITY_VARIABLES *ent, LOCAL_FLOW_VARIABLE
 void pillaz::pillaz_LoadInitialDistribution(const std::string &inpString)
 {
 #if 0
-  LOCAL_ENTITY_VARIABLES ent(fp.numDim);
+  PILLAZ_LOCAL_ENTITY_VARIABLES ent(fp.numDim);
   int numIni;
   char buffer[200],*search;
 
@@ -2083,8 +2010,8 @@ double pillaz::pillaz_RandomGaussian(float m, float s)
 
 void pillaz::pillaz_RandomInitialDistribution()
 {
-  LOCAL_ENTITY_VARIABLES ent (fp.numDim);
-  LOCAL_FLOW_VARIABLES   flow(fp.numDim);
+  PILLAZ_LOCAL_ENTITY_VARIABLES ent (fp.numDim);
+  PILLAZ_LOCAL_FLOW_VARIABLES   flow(fp.numDim);
 
 
   // initializations
@@ -2107,14 +2034,14 @@ void pillaz::pillaz_RandomInitialDistribution()
     // 1. calculate total volume (Vtotal)
     // 2. pick a value within ]0.;Vtotal[ (Vpick)
     // 3. sequentially accumulate element volumes (Vacc) until overcoming Vpick
-    ent.eaddress.reset();
+    ent.eaddress = PILLAZ_ELEMENT_ADDRESS();
     double
       Vpick  = pillaz_RandomDouble(0.,Vtotal),
       Vacc   = 0.;
     for (size_t iz=0; iz<fp.nInnerElements.size() && !ent.eaddress.valid(); ++iz)
       for (size_t ie=0; ie<fp.nInnerElements[iz] && !ent.eaddress.valid(); Vacc += volumeElm[iz][ie], ++ie)
         if (Vacc>Vpick)
-          ent.eaddress = pillaz_elementaddress(iz,ie);
+          ent.eaddress = PILLAZ_ELEMENT_ADDRESS(iz,ie);
     pillaz_SetElementGeometry(fp.numDim,&ent);
 
     // set diameter and random position inside element
@@ -2178,8 +2105,8 @@ void pillaz::pillaz_ReadParameters(const XMLNode& x)
 
   ip.writeStatsFilename   = x.getAttribute< std::string >("output.statistics","pillaz.txt");
   ip.writeTecplotFilename = x.getAttribute< std::string >("output.results","pillaz.plt");
-  mdd = m::Create< PILLAZ_MATERIAL_DATA >(x.getAttribute< std::string >("entities.material", "air"  ));
-  mdc = m::Create< PILLAZ_MATERIAL_DATA >(x.getAttribute< std::string >("continuum.material","water"));
+  mdd = m::Create< PILLAZ_MATERIAL_DATA >(x.getAttribute< std::string >("material.entities", "air"  ));
+  mdc = m::Create< PILLAZ_MATERIAL_DATA >(x.getAttribute< std::string >("material.continuum","water"));
 
   ip.lagrTimeFactor = x.getAttribute< double >("lagrangeantimefactor",0.3);
   ip.errTol         = x.getAttribute< double >("errortolerance",      1.e-6);
@@ -2197,65 +2124,66 @@ void pillaz::pillaz_ReadParameters(const XMLNode& x)
   ip.collisionModel = (m_collision=="uncorrelated"? 1 :
                       (m_collision=="correlated"?   2 : 0 ));
 
-  if ((ip.numProdDom = x.nChildNode("production"))) {
-    ip.prodDom    = new int    [ip.numProdDom];
-    ip.massFluxes = new double [ip.numProdDom];
-    ip.prodParam  = new double*[ip.numProdDom];
-    for (int i=0; i<ip.numProdDom; ++i)
-      ip.prodParam[i] = new double[6];
-  }
-  for (int i=0; i<ip.numProdDom; ++i) {
+  const int nproddom = x.nChildNode("production");
+  if (nproddom)
+    ip.proddom.resize(nproddom);
+  for (int i=0; i<nproddom; ++i) {
     XMLNode p = x.getChildNode("production",i);
-    ip.prodDom[i] = (p.getAttribute< std::string >("type")=="line"?      1 :
-                    (p.getAttribute< std::string >("type")=="rectangle"? 2 :
-                    (p.getAttribute< std::string >("type")=="ellipse"?   3 : 0)));
-    ip.massFluxes[i] = std::max(p.getAttribute< double >("massflux",0.),0.);
-    ip.prodParam[i][0] = p.getAttribute< double >("x0",0.);
-    ip.prodParam[i][1] = p.getAttribute< double >("y0",0.);
-    ip.prodParam[i][2] = p.getAttribute< double >("z0",0.);
-    ip.prodParam[i][3] = p.getAttribute< double >("x1",0.);
-    ip.prodParam[i][4] = p.getAttribute< double >("y1",0.);
-    ip.prodParam[i][5] = p.getAttribute< double >("z1",0.);
+    ip.proddom[i].type = (p.getAttribute< std::string >("type")=="line"?      1 :
+                         (p.getAttribute< std::string >("type")=="rectangle"? 2 :
+                         (p.getAttribute< std::string >("type")=="ellipse"?   3 : 0)));
+    ip.proddom[i].massFlux = std::max(p.getAttribute< double >("massflux",0.),0.);
+    ip.proddom[i].x0 = p.getAttribute< double >("x0",0.);
+    ip.proddom[i].y0 = p.getAttribute< double >("y0",0.);
+    ip.proddom[i].z0 = p.getAttribute< double >("z0",0.);
+    ip.proddom[i].x1 = p.getAttribute< double >("x1",0.);
+    ip.proddom[i].y1 = p.getAttribute< double >("y1",0.);
+    ip.proddom[i].z1 = p.getAttribute< double >("z1",0.);
   }
 }
 
 
-void pillaz::pillaz_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent)
+void pillaz::pillaz_SearchSuccessive(PILLAZ_LOCAL_ENTITY_VARIABLES *ent)
 {
-  // successive neighbour search
+  bool elmFound   = false;
+  bool leftDomain = false;
   int lastNode = ent->node;
-  pillaz_elementaddress lastElm;
-  bool
-    elmFound(false),
-    leftDomain(false);
+  PILLAZ_ELEMENT_ADDRESS lastElmAddress = ent->eaddress;
+
+  // successive neighbour search
   do {
 
     // set geometry of current element
     pillaz_SetElementGeometry(fp.numDim,ent);
 
     // find the face with the minimum distance to the entity
-    int eface = -1;
-    double dist = 1.e99;
-    pillaz_FindMinimumElementFaceDistance(fp.numDim,ent,&eface,&dist);
+    double dist  = 0.;
+    int    iface = -1;
+    pillaz_FindMinimumElementFaceDistance(fp.numDim,ent,&iface,&dist);
 
-    // in case the minimum distance is positive, the element is found
-    elmFound = (dist > 0. - ip.errTol);
+    if (dist > 0.-ip.errTol) {
 
-    if (!elmFound) {
-      // search the neighbour element in direction of the minimum face distance
-      const pillaz_elementaddress neighborElm = m_elemtoelem[ent->eaddress.izone][ent->eaddress.ielem][eface];
-      leftDomain = !neighborElm.valid();
-      if (!leftDomain) {
-        ent->eaddress = neighborElm;
-        if (lastElm.valid()) {
-          lastElm = neighborElm;
+      // in case the minimum distance is positive, the element is found
+      elmFound = true;
+
+    }
+    else {
+
+      // search the neighbour element in directin of the minimum face distance
+      const PILLAZ_ELEMENT_ADDRESS& neighbourElm = m_elemtoelem[ent->eaddress.izone][ent->eaddress.ielem][iface];
+      if (!neighbourElm.valid()) {
+        leftDomain = true;
+      }
+      else {
+        ent->eaddress = neighbourElm;
+        if (lastElmAddress.valid()) {
+          lastElmAddress = neighbourElm;
         }
       }
-    }
 
+    }
   }
   while (!elmFound && !leftDomain);
-
 
   // disable entity in case of not found
   if (elmFound) {
@@ -2264,8 +2192,8 @@ void pillaz::pillaz_SearchSuccessive(LOCAL_ENTITY_VARIABLES *ent)
   }
   else {
     ent->flag     = DFLAG_LEFT;
-    ent->eaddress = lastElm;
     ent->node     = lastNode;
+    ent->eaddress = lastElmAddress;
   }
 }
 
@@ -2306,7 +2234,7 @@ double pillaz::pillaz_SetDiameter()
 }
 
 
-void pillaz::pillaz_SetElementGeometry(int numDim, LOCAL_ENTITY_VARIABLES *ent)
+void pillaz::pillaz_SetElementGeometry(int numDim, PILLAZ_LOCAL_ENTITY_VARIABLES *ent)
 {
   // set element number of nodes/faces and element nodes
   ent->edata.elmNodes      .resize( pillaz_getElmNNodes(getElmType(ent->eaddress.izone,ent->eaddress.ielem)) );
@@ -2361,7 +2289,7 @@ void pillaz::pillaz_TerminateOnError(const std::string& errMessage)
 }
 
 
-void pillaz::pillaz_WallBounce(int numDim, double elasticity, LOCAL_ENTITY_VARIABLES *ent, int ibnd, int ifac)
+void pillaz::pillaz_WallBounce(int numDim, double elasticity, PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int ibnd, int ifac)
 {
   int idim;
   double unitVec[numDim];
@@ -2421,16 +2349,22 @@ void pillaz::pillaz_WriteStatsFile(const std::string &outpString, int iter, doub
 
 void pillaz::pillaz_WriteTecplotFile(const std::string &outpString, int iter, double time)
 {
+  // count active entities
+  unsigned enabled = 0;
+  for (int i=0; i<ip.numMaxEnt; ++i)
+    if (ed[i].flag==DFLAG_ENABLED || ed[i].flag==DFLAG_CREATED)
+      ++enabled;
+
   // write header (if no entities are active, write dummy)
   std::ofstream f(outpString.c_str(),std::ios::app);
-  f << "ZONE T=\"Entities (dispersed)\" I=" << (sd.enabled? sd.enabled:1) << " AUXDATA ITER=\"" << iter << "\" SOLUTIONTIME=" << time << " DATAPACKING=POINT" << std::endl;
-  if (!sd.enabled) {
+  f << "ZONE T=\"Entities (dispersed)\" I=" << (enabled? enabled:1) << " AUXDATA ITER=\"" << iter << "\" SOLUTIONTIME=" << time << " DATAPACKING=POINT" << std::endl;
+  if (!enabled) {
     for (int idim=0; idim<fp.numDim*2+3; ++idim)
       f << " 0";
     f << std::endl;
   }
 
-  for (int ient=0; ient<ip.numMaxEnt && sd.enabled; ++ient) {
+  for (int ient=0; ient<ip.numMaxEnt && enabled; ++ient) {
     if (ed[ient].flag==DFLAG_ENABLED || ed[ient].flag==DFLAG_CREATED) {
       const PILLAZ_ENTITY_DATA &e = ed[ient];
 
