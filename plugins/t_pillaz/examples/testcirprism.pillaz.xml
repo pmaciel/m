@@ -8,11 +8,11 @@
 
   iterations="100"
   dt="0.01"
-  continuum.material="water"
 
+  material.continuum="water"
+  material.entities="air"
   entities.max="10000"
   entities.init="0"
-  entities.material="air"
   entities.production.diameter.distribution="constant"
   entities.production.diameter.mean="1.e-5"
   entities.production.diameter.std="7.55e-5"

@@ -4,15 +4,15 @@
  <!ENTITY author "Vrije Universiteit Brussel">
  <!ENTITY author-note "&author;, &year;">
 ]>
-<pillaz label="testcube"
+<pillaz label="testchannel"
 
   iterations="100"
-  dt="0.01"
-  continuum.material="water"
+  dt="0.1"
 
+  material.continuum="water"
+  material.entities="air"
   entities.max="10000"
   entities.init="0"
-  entities.material="air"
   entities.production.diameter.distribution="constant"
   entities.production.diameter.mean="1.e-5"
   entities.production.diameter.std="7.55e-5"
@@ -30,20 +30,17 @@
   gravity.x="0."
   gravity.y="0."
   gravity.z="0."
-  output.statistics="testcube.pillaz.txt"
-  output.results="testcube.pillaz.plt"
+  output.statistics="testchannel.pillaz.txt"
+  output.results="testchannel.pillaz.plt"
   >
 
-  <wall zone="element_side.1"/>
-  <wall zone="element_side.2"/>
-  <wall zone="element_side.3_t2"/>
-  <wall zone="element_side.3_t3"/>
-  <wall zone="element_side.5_t2"/>
-  <wall zone="element_side.5_t3"/>
+  <wall zone="wall3"/>
+  <wall zone="wall4"/>
+  <wall zone="wall5"/>
+  <wall zone="wall6"/>
 
-
-  <production type="rectangle" massflux="1.e-15"
-    x0="-0.40" y0="-0.45" z0="-0.45"
-    x1="-0.40" y1=" 0.45" z1=" 0.45" />
+  <production type="rectangle" massflux="2.e-16"
+    x0="0.0" y0="-0.1" z0="-0.1"
+    x1="0.0" y1=" 0.1" z1=" 0.1" />
 
 </pillaz>

@@ -1,0 +1,3 @@
+
+m -i testchannel.smurf -tvadd "p=101325.:vx=0.25:vy=sqrt(z*z+y*y)*cos(atan2(y,z)):vz=-sqrt(z*z+y*y)*sin(atan2(y,z))" -tpillaz testchannel.pillaz.xml
+
