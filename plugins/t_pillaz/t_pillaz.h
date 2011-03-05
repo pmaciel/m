@@ -39,9 +39,8 @@ class t_pillaz : public m::mtransform,
      for (int i=0; i<dim; ++i)
        v[i] = (m_quantityvector[Q]<0? 0. : M->vv[m_quantityvector[Q]+i][nod]);
    }
-   int    getWallBndFlag      (int bnd)                           { return m_ziswall[bnd]? 1:0; }
-   void   screenOutput        (const std::string& text)           { std::cout << "t_pillaz: info: " << text << std::endl; }
-   void   screenWarning       (const std::string& text)           { std::cout << "t_pillaz: warn: " << text << std::endl; }
+   int    getWallBndFlag(int bnd)               { return m_ziswall[bnd]? 1:0; }
+   void   screenOutput(const std::string& text) { std::cout << "t_pillaz: info: " << text << std::endl; }
 
  private:  // member variables
   m::mmesh *M;

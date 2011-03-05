@@ -246,14 +246,13 @@ void pillaz::run()
   screenOutput("perform iteration...");
 
 
-  PILLAZ_LOCAL_ENTITY_VARIABLES ent(fp.numDim);
-  PILLAZ_LOCAL_FLOW_VARIABLES flow(fp.numDim);
-  char errMessage[100];
-  int idx,ient,jent,inod,idim,iunk,ibnd,ifac,subIter,avgctr;
-  double cellSize,minCellSize,entVel,dtLagr,dtRemaining;
+  PILLAZ_LOCAL_ENTITY_VARIABLES ent (fp.numDim);
+  PILLAZ_LOCAL_FLOW_VARIABLES   flow(fp.numDim);
+  int idim,ibnd,ifac,subIter,avgctr;
+  double dtLagr,dtRemaining;
 
 
-  //***Flow solver parameters that have to be set at every time step***//
+  // parameters that have to be set at every time step
   fp.time += fp.dtEul;
   ++fp.iter;
 
@@ -272,34 +271,22 @@ void pillaz::run()
   sd.subIterAvg  = 0.;
   avgctr         = 0;
 
-  // find minimum cell size
-  {
-    double min_volumeElm = 1.e99;
-    for (size_t iz=0; iz<volumeElm.size(); ++iz)
-      for  (size_t ie=0; ie<volumeElm[iz].size(); ++ie)
-        min_volumeElm = std::min(min_volumeElm,volumeElm[iz][ie]);
-    minCellSize = pow(min_volumeElm,(1./fp.numDim));
-  }
-
   if(fp.iter==1){
     pillaz_CalcCellwiseData();
   }
 
-  for(inod=0; inod<fp.numNod; inod++){
-    for(iunk=0; iunk<fp.numUnk; iunk++){
-      pd[inod].dispForce[iunk] = 0.0;
-    }
-  }
+  for (int inod=0; inod<fp.numNod; ++inod)
+    pd[inod].dispForce.assign(fp.numUnk,0.);
 
 
   //***Sort and count active entities***//
-  idx = ip.numMaxEnt-1;
-  for(ient=0; ient<ip.numMaxEnt; ient++){
+  int idx = ip.numMaxEnt-1;
+  for (int ient=0; ient<ip.numMaxEnt; ient++) {
     if(ed[ient].flag==DFLAG_ENABLED || ed[ient].flag==DFLAG_CREATED){
       ++sd.enabled;
       continue;
     }
-    for(jent=idx; jent>ient; jent--){
+    for (int jent=idx; jent>ient; jent--) {
       if(ed[jent].flag==DFLAG_DISABLED){
         idx--;
         continue;
@@ -327,20 +314,17 @@ void pillaz::run()
 
   //***Loop over dispersed entities to update trajectories***//
   screenOutput("updating trajectories...");
-  for(ient=0; ient<sd.enabled; ient++){
+  for (int ient=0; ient<ip.numMaxEnt; ++ient){
+    if (ed[ient].flag!=DFLAG_ENABLED && ed[ient].flag!=DFLAG_CREATED)
+      continue;
 
 
     //***Get entity information from global data structure***//
-    ent.flag = ed[ient].flag;
-    if (ent.flag!=DFLAG_ENABLED && ent.flag!=DFLAG_CREATED) {
-      sprintf(errMessage,"entity %i had bad flag %d.",ient,ent.flag);
-      pillaz_TerminateOnError(errMessage);
-    }
-
+    ent.flag     = ed[ient].flag;
     ent.eaddress = ed[ient].eaddress;
-    ent.node = ed[ient].node;
-    ent.diam = ed[ient].diameter;
-    ent.temp = ed[ient].temperature;
+    ent.node     = ed[ient].node;
+    ent.diam     = ed[ient].diameter;
+    ent.temp     = ed[ient].temperature;
 
     for(idim=0; idim<fp.numDim; idim++){
       ent.pos[idim] = ed[ient].position[idim];
@@ -352,13 +336,13 @@ void pillaz::run()
     //***Subiterations of the trajectory increment***//
     subIter = 0;
     dtRemaining = fp.dtEul;
-
-    do{
+    do {
 
 
       //***Determine Lagrangian time step size***//
-      entVel   = std::max(ip.errTol, pillaz_CalcVectorLength(fp.numDim,&ent.vel[0]) );
-      cellSize = std::max(ip.errTol, pow( volumeElm[ent.eaddress.izone][ent.eaddress.ielem], 1./fp.numDim) );
+      const double
+        entVel   = std::max(ip.errTol, pillaz_CalcVectorLength(fp.numDim,&ent.vel[0]) ),
+        cellSize = std::max(ip.errTol, pow( volumeElm[ent.eaddress.izone][ent.eaddress.ielem], 1./fp.numDim) );
       dtLagr   = std::min(dtRemaining, ip.lagrTimeFactor*(cellSize/entVel) );
       dtRemaining -= dtLagr;
       subIter++;
@@ -464,9 +448,9 @@ void pillaz::run()
 
 
     //***Put back entity information to global data structure***//
-    ed[ient].flag        = ent.flag;
-    ed[ient].diameter    = ent.diam;
-    ed[ient].temperature = ent.temp;
+    ed[ient].flag             = ent.flag;
+    ed[ient].diameter         = ent.diam;
+    ed[ient].temperature      = ent.temp;
     for(idim=0; idim<fp.numDim; idim++){
       ed[ient].velocity[idim] = ent.vel[idim];
       ed[ient].position[idim] = ent.pos[idim];
@@ -1272,20 +1256,14 @@ double pillaz::pillaz_CalcWallFaceDistance(int numDim, double *pos, int ibnd, in
 
 void pillaz::pillaz_CheckNaN(PILLAZ_LOCAL_ENTITY_VARIABLES *ent)
 {
-  int idim;
+  double check = 0.;
+  for (int idim=0; idim<fp.numDim; idim++)
+    check += ent->pos[idim] + ent->vel[idim];
 
-  double checkNanPos = 0.0;
-  double checkNanVel = 0.0;
-
-  for(idim=0; idim<fp.numDim; idim++){
-    checkNanPos += ent->pos[idim];
-    checkNanVel += ent->vel[idim];
-  }
-
-  if(isnan(checkNanPos) || isnan(checkNanVel)){
+  if (isnan(check)) {
     ent->flag = DFLAG_DISABLED;
-    sd.lost++;
-    screenWarning("not-a-number detected");
+    ++sd.lost;
+    screenOutput("warning: not-a-number detected");
   }
 }
 
@@ -2278,14 +2256,6 @@ void pillaz::pillaz_SolveGaussSeidel(int numDim, double **mat, double *s, double
       sOld[idim] = s[idim];
     }
   }while(errMax>1e-6);
-}
-
-
-void pillaz::pillaz_TerminateOnError(const std::string& errMessage)
-{
-  screenWarning(errMessage);
-  screenWarning("fatal error!");
-  throw 42;
 }
 
 

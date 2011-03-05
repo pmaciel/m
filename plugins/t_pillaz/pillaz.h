@@ -405,12 +405,6 @@ class pillaz {
    */
   virtual void screenOutput(const std::string& text) = 0;
 
-  /**
-   * Pass data for a screen warning
-   * @param[in] text screen warning
-   */
-  virtual void screenWarning(const std::string& text) = 0;
-
 
  protected:  // internal methods
 
@@ -919,15 +913,6 @@ class pillaz {
    * This function solves the trajectory equation.
    */
   void pillaz_SolveGaussSeidel(int numDim, double **mat, double *s, double *rhs);
-
-  /**
-   * This file contains all write functionality, to the screen,
-   * to output files and to Tecplot.
-   *
-   * This routine terminates Pillaz due to a fatal error. It
-   * writes out an error message.
-   */
-  void pillaz_TerminateOnError(const std::string& errMessage);
 
   /**
    * This file includes all functionality concerning entities
