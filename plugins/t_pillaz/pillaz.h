@@ -4,6 +4,9 @@
 
 #include <string>
 #include <vector>
+#include <list>
+#include <cmath>
+
 #include "ext/xmlParser.h"
 
 
@@ -57,10 +60,11 @@ struct PILLAZ_ELEMENT_ADDRESS {
 /// Data of a dispersed entity (particle, droplet or bubble)
 struct PILLAZ_ENTITY_DATA
 {
+  static bool isdisabled(const PILLAZ_ENTITY_DATA& ent) { return ent.flag==DFLAG_DISABLED; }
   PILLAZ_ENTITY_DATA(const int _dim) : flag(DFLAG_DISABLED), node(-1), position(_dim,0.), velocity(_dim,0.), velocityOld(_dim,0.) {}
   PILLAZ_ELEMENT_ADDRESS eaddress;
   int
-    flag,         // Entity enabled/disabled flag
+    flag,         // Entity status flag
     node;         // Nearest grid node to the entity
   double
     diameter,     // Entity diameter
@@ -106,7 +110,6 @@ struct PILLAZ_PRODDOMAIN {
 /// Statistics data
 struct PILLAZ_STATS
 {
-  int enabled;         // Number of active entities
   int in;              // Number of entities added
   int out;             // Number of entities removed
   int bounce;          // Number of wall bounces
@@ -123,7 +126,6 @@ struct PILLAZ_STATS
 /// Input parameters
 struct PILLAZ_INPUT_PARAM
 {
-  int numMaxEnt;           // Maximum number of entities per process
   int numIniEnt;           // Number of initially distributed entities:
   int iniDiamType;         // Type of diameter distribution
   double iniDiam;          // Diameter of dispersed entities
@@ -181,6 +183,17 @@ struct PILLAZ_ENTITY_ELEMENT_DATA
 /// Local entity variables data structure
 struct PILLAZ_LOCAL_ENTITY_VARIABLES
 {
+
+  // check if position and velocity are valid
+  bool check() {
+    if (diam<0.)
+      return false;
+    for (size_t d=0; d<pos.size(); ++d)
+      if (!std::isfinite(pos[d] + vel[d]))
+        return false;
+    return true;
+  }
+
   PILLAZ_LOCAL_ENTITY_VARIABLES(const int _dim) :
     node(-1),
     pos   (_dim,0.),
@@ -675,15 +688,6 @@ class pillaz {
   double pillaz_CalcWallFaceDistance(int numDim, double *pos, int ibnd, int ifac);
 
   /**
-   * This file includes the functionality to perform  trajectory
-   * integrations of dispersed entities.
-   *
-   * This function performs a not-a-number check for the entity
-   * position and velocity.
-   */
-  void pillaz_CheckNaN(PILLAZ_LOCAL_ENTITY_VARIABLES *ent);
-
-  /**
    * This function computes coalescense of bubbles according
    * to the thin film theory.
    *
@@ -726,19 +730,12 @@ class pillaz {
   bool pillaz_FindExitFace(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int *i, int *j);
 
   /**
-   * This file includes all functinality to perform an element
-   * search for a dispersed entity.
-   *
-   * This function finds the smallest element face distance to
-   * an entity.
+   * Find the smallest element face distance to an entity
    */
   void pillaz_FindMinimumElementFaceDistance(int numDim, PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int *idx, double *dmin);
 
   /**
-   * This file includes all functinality to perform an element
-   * search for a dispersed entity.
-   *
-   * This function finds the closest element node to an entity.
+   * Find the closest element node to an entity
    */
   int pillaz_FindNearestElementNode(PILLAZ_LOCAL_ENTITY_VARIABLES *ent);
 
@@ -945,7 +942,7 @@ class pillaz {
 
  public: // internal data (PILLAZ_DATA)
 
-  std::vector< PILLAZ_ENTITY_DATA > ed;  // Entity data structure (per entity)
+  std::list<   PILLAZ_ENTITY_DATA > ed;  // Entity data structure (per entity)
   std::vector< PILLAZ_PHASE_DATA  > pd;  // Phase data structure (per node)
   PILLAZ_STATS                      sd;  // Statistics data structure
   PILLAZ_INPUT_PARAM                ip;  // Input file parameter structure
@@ -978,12 +975,6 @@ class pillaz {
     std::vector<              // per element
       PILLAZ_ELEMENT_ADDRESS  // (inner) element address
   > > m_boundtoinner;
-
-  // map of nodes to (inner) elements
-  std::vector<                // per node
-    std::vector<              // list of neighbors
-      PILLAZ_ELEMENT_ADDRESS  // (inner) element address
-  > > m_nodetoelem;
 
   // map of (inner) elements to elements (sharing a face)
   std::vector<                  // per (inner) zone

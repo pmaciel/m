@@ -1,11 +1,9 @@
 
 #include <iostream>
 #include <fstream>
-#include <cmath>
 #include <algorithm>
 #include <numeric>
 #include <set>
-#include <list>
 
 #include "boost/progress.hpp"
 #include "mfactory.h"
@@ -38,18 +36,21 @@ void pillaz::initialize(const XMLNode& x)
 
   screenOutput("recreating map of nodes to (inner) elements...");
 
-  // allocate
-  m_nodetoelem.resize(fp.numNod);
-
-  // push back all the elements to their composing node indices
+  // build map of nodes to (inner) elements by pushing back all the elements to
+  // their composing node indices
+  std::vector<                // per node
+    std::vector<              // list of neighbors
+      PILLAZ_ELEMENT_ADDRESS  // (inner) element address
+  > > map_nodetoelem(fp.numNod);
   for (size_t iz=0; iz<fp.nInnerElements.size(); ++iz) {
     for (size_t ie=0; ie<fp.nInnerElements[iz]; ++ie) {
       std::vector< int > en( pillaz_getElmNNodes(getElmType(iz,ie)) );
       getElmNodes(iz,ie,&en[0]);
       for (std::vector< int >::const_iterator n=en.begin(); n!=en.end(); ++n)
-        m_nodetoelem[ *n ].push_back(PILLAZ_ELEMENT_ADDRESS(iz,ie));
+        map_nodetoelem[ *n ].push_back(PILLAZ_ELEMENT_ADDRESS(iz,ie));
     }
   }
+
   screenOutput("recreating map of nodes to (inner) elements.");
 
 
@@ -84,7 +85,7 @@ void pillaz::initialize(const XMLNode& x)
         // create set of searcheable elements (those sharing a node)
         std::set< std::pair< int,int > > neighelems;
         for (std::vector< int >::const_iterator n=fn.begin(); n!=fn.end(); ++n)
-          for (std::vector< PILLAZ_ELEMENT_ADDRESS >::const_iterator e=m_nodetoelem[*n].begin(); e!=m_nodetoelem[*n].end(); ++e)
+          for (std::vector< PILLAZ_ELEMENT_ADDRESS >::const_iterator e=map_nodetoelem[*n].begin(); e!=map_nodetoelem[*n].end(); ++e)
             neighelems.insert( neighelems.end(), std::pair< int,int >(e->izone,e->ielem));
         neighelems.erase(std::pair< int,int >(iz,ie));  // avoid self-search
 
@@ -206,14 +207,13 @@ void pillaz::initialize(const XMLNode& x)
   screenOutput("calculating nodal volumes (dual cell)...");
   volumeNod.assign(fp.numNod,0.);
   for (int in=0; in<fp.numNod; ++in)
-    for (std::vector< PILLAZ_ELEMENT_ADDRESS >::const_iterator e=m_nodetoelem[in].begin(); e!=m_nodetoelem[in].end(); ++e)
+    for (std::vector< PILLAZ_ELEMENT_ADDRESS >::const_iterator e=map_nodetoelem[in].begin(); e!=map_nodetoelem[in].end(); ++e)
       volumeNod[in] += volumeElm[e->izone][e->ielem] / double(pillaz_getElmNNodes(getElmType(e->izone,e->ielem)));
   screenOutput("calculating nodal volumes (dual cell).");
 
 
-  // allocate memory for entities and dispersed phase data
-  ed.assign(ip.numMaxEnt,PILLAZ_ENTITY_DATA(fp.numDim));
-  pd.assign(fp.numNod,   PILLAZ_PHASE_DATA (fp.numDim,fp.numUnk));
+  // allocate dispersed phase data
+  pd.assign(fp.numNod,PILLAZ_PHASE_DATA(fp.numDim,fp.numUnk));
 
 
   //***Initialize material data from database***//
@@ -248,8 +248,9 @@ void pillaz::run()
 
   PILLAZ_LOCAL_ENTITY_VARIABLES ent (fp.numDim);
   PILLAZ_LOCAL_FLOW_VARIABLES   flow(fp.numDim);
-  int idim,ibnd,ifac,subIter,avgctr;
+  int ibnd,ifac,subIter;
   double dtLagr,dtRemaining;
+  char msg[100];
 
 
   // parameters that have to be set at every time step
@@ -258,7 +259,6 @@ void pillaz::run()
 
 
   //***Initializations***//
-  sd.enabled     = 0;
   sd.in          = 0;
   sd.out         = 0;
   sd.bounce      = 0;
@@ -269,35 +269,12 @@ void pillaz::run()
   sd.reynoldsAvg = 0.;
   sd.nusseltAvg  = 0.;
   sd.subIterAvg  = 0.;
-  avgctr         = 0;
 
-  if(fp.iter==1){
+  if (fp.iter==1)
     pillaz_CalcCellwiseData();
-  }
 
-  for (int inod=0; inod<fp.numNod; ++inod)
-    pd[inod].dispForce.assign(fp.numUnk,0.);
-
-
-  //***Sort and count active entities***//
-  int idx = ip.numMaxEnt-1;
-  for (int ient=0; ient<ip.numMaxEnt; ient++) {
-    if(ed[ient].flag==DFLAG_ENABLED || ed[ient].flag==DFLAG_CREATED){
-      ++sd.enabled;
-      continue;
-    }
-    for (int jent=idx; jent>ient; jent--) {
-      if(ed[jent].flag==DFLAG_DISABLED){
-        idx--;
-        continue;
-      }
-      ed[ient] = ed[jent];
-      ed[jent].flag = DFLAG_DISABLED;
-      idx = jent-1;
-      ++sd.enabled;
-      break;
-    }
-  }
+  for (int i=0; i<fp.numNod; ++i)
+    pd[i].dispForce.assign(fp.numUnk,0.);
 
 
   //***Entity production***//
@@ -314,23 +291,19 @@ void pillaz::run()
 
   //***Loop over dispersed entities to update trajectories***//
   screenOutput("updating trajectories...");
-  for (int ient=0; ient<ip.numMaxEnt; ++ient){
-    if (ed[ient].flag!=DFLAG_ENABLED && ed[ient].flag!=DFLAG_CREATED)
-      continue;
+  for (std::list< PILLAZ_ENTITY_DATA >::iterator ei=ed.begin(); ei!=ed.end(); ++ei) {
 
 
     //***Get entity information from global data structure***//
-    ent.flag     = ed[ient].flag;
-    ent.eaddress = ed[ient].eaddress;
-    ent.node     = ed[ient].node;
-    ent.diam     = ed[ient].diameter;
-    ent.temp     = ed[ient].temperature;
+    ent.flag     = ei->flag;
+    ent.eaddress = ei->eaddress;
+    ent.node     = ei->node;
+    ent.diam     = ei->diameter;
+    ent.temp     = ei->temperature;
+    ent.pos      = ei->position;
+    ent.vel      = ei->velocity;
 
-    for(idim=0; idim<fp.numDim; idim++){
-      ent.pos[idim] = ed[ient].position[idim];
-      ent.vel[idim] = ed[ient].velocity[idim];
-      ed[ient].velocityOld[idim] = ed[ient].velocity[idim];
-    }
+    ei->velocityOld = ei->velocity;
 
 
     //***Subiterations of the trajectory increment***//
@@ -351,10 +324,8 @@ void pillaz::run()
       //***Entity production***//
       if ((ent.flag==DFLAG_CREATED) && (pillaz_RandomDouble()<=((fp.dtEul-dtRemaining)/fp.dtEul)))
         ent.flag = DFLAG_ENABLED;
-
-      if(ent.flag!=DFLAG_ENABLED){
+      if (ent.flag!=DFLAG_ENABLED)
         continue;
-      }
 
 
       //***Interpolate continuous phase velocity and pressure at entity position***//
@@ -365,73 +336,70 @@ void pillaz::run()
 
       //***Solve Lagrangian trajectory equation***//
       pillaz_CalcTrajectory(&ent,&flow,dtLagr);
-      pillaz_CheckNaN(&ent);
 
 
       //***Check for evaporated, burned or collapsed entity***//
-      if (ent.diam<ip.errTol) {
+      if (!ent.check()) {
         ent.flag = DFLAG_DISABLED;
+        ++sd.lost;
+        break;
       }
 
 
       //***Re-calculate material data from database***//
-      if(ip.energyCoupl){
+      if (ip.energyCoupl)
         mdd->update(ent.temp,flow.pressure);
-      }
-
-      if(ent.flag!=DFLAG_DISABLED){
 
 
-        //***Perform neighbour element search routine***//
-        pillaz_SearchSuccessive(&ent);
+      //***Perform neighbour element search routine***//
+      pillaz_SearchSuccessive(&ent);
 
 
-        // treat entities that left the domain after unsuccessful element search
-        if (ent.flag==DFLAG_LEFT) {
-          if (pillaz_FindExitFace(&ent,&ibnd,&ifac) && getWallBndFlag(ibnd)) {
+      // treat entities that left the domain after unsuccessful element search
+      if (ent.flag==DFLAG_LEFT) {
+        if (pillaz_FindExitFace(&ent,&ibnd,&ifac) && getWallBndFlag(ibnd)) {
 
-            // perform wall bounce
-            pillaz_WallBounce(fp.numDim,ip.wallElasticity,&ent,ibnd,ifac);
-            sd.bounce++;
-            ent.flag = DFLAG_ENABLED;
+          // perform wall bounce
+          pillaz_WallBounce(fp.numDim,ip.wallElasticity,&ent,ibnd,ifac);
+          sd.bounce++;
+          ent.flag = DFLAG_ENABLED;
 
-          }
-          else {
-
-            // entity left computational domain through outlet
-            ent.flag = DFLAG_DISABLED;
-            sd.out++;
-
-          }
         }
+        else {
 
+          // entity left computational domain through outlet
+          ent.flag = DFLAG_DISABLED;
+          sd.out++;
+          break;
 
-        //***Stochastic collision model***//
-        if(fp.numDim==3 && ent.flag==DFLAG_ENABLED && ip.collisionModel && pd[ent.node].volFrac>1e-3){
-          pillaz_CollisionModel(&ent,pd[ent.node].numDens,dtLagr);
-          pillaz_CheckNaN(&ent);
         }
       }
 
-      if(ent.flag==DFLAG_ENABLED){
 
-
-        //***Interpolate continuous phase velocity and pressure to new entity position***//
-        pillaz_SetElementGeometry(fp.numDim,&ent);
-        pillaz_Interpolate(&ent,&flow,(fp.dtEul-dtRemaining)/fp.dtEul);
-        pillaz_CalcEntityCoefficients(&ent,&flow);
-
-
-        //***Compute back-coupling terms to flow solver***//
-        const pillaz_flowtype_t flowType(mdd->flowtype);
-        if(flowType==FLOW_PARTIC || flowType==FLOW_DROPLET){
-          pillaz_CalcCouplingForcesParticle(&ent,&flow,dtLagr/fp.dtEul);
-        } else if (flowType==FLOW_BUBBLY){
-          pillaz_CalcCouplingForcesBubble(&ent,&flow,dtLagr/fp.dtEul);
+      //***Stochastic collision model***//
+      if(fp.numDim==3 && ip.collisionModel && pd[ent.node].volFrac>1e-3){
+        pillaz_CollisionModel(&ent,pd[ent.node].numDens,dtLagr);
+        if (!ent.check()) {
+          ent.flag = DFLAG_DISABLED;
+          ++sd.lost;
+          break;
         }
       }
 
-    } while(dtRemaining>0.0); /***End subiteration loop***/
+      //***Interpolate continuous phase velocity and pressure to new entity position***//
+      pillaz_SetElementGeometry(fp.numDim,&ent);
+      pillaz_Interpolate(&ent,&flow,(fp.dtEul-dtRemaining)/fp.dtEul);
+      pillaz_CalcEntityCoefficients(&ent,&flow);
+
+      //***Compute back-coupling terms to flow solver***//
+      const pillaz_flowtype_t flowType(mdd->flowtype);
+      if (flowType==FLOW_PARTIC || flowType==FLOW_DROPLET)
+        pillaz_CalcCouplingForcesParticle(&ent,&flow,dtLagr/fp.dtEul);
+      else if (flowType==FLOW_BUBBLY)
+        pillaz_CalcCouplingForcesBubble(&ent,&flow,dtLagr/fp.dtEul);
+
+    }
+    while(dtRemaining>0.); /***End subiteration loop***/
 
 
     //***Re-calculate and update statistics***//
@@ -443,27 +411,17 @@ void pillaz::run()
       sd.nusseltAvg  += ent.nusselt;
       sd.dtLagrAvg   += (fp.dtEul/subIter);
       sd.subIterAvg  += (double)subIter;
-      avgctr++;
     }
 
 
     //***Put back entity information to global data structure***//
-    ed[ient].flag             = ent.flag;
-    ed[ient].diameter         = ent.diam;
-    ed[ient].temperature      = ent.temp;
-    for(idim=0; idim<fp.numDim; idim++){
-      ed[ient].velocity[idim] = ent.vel[idim];
-      ed[ient].position[idim] = ent.pos[idim];
-    }
-
-    if(ent.flag==DFLAG_ENABLED){
-      ed[ient].eaddress = ent.eaddress;
-      ed[ient].node     = ent.node;
-    }
-    else{
-      ed[ient].eaddress = PILLAZ_ELEMENT_ADDRESS();
-      ed[ient].node = -1;
-    }
+      ei->flag        = ent.flag;
+      ei->diameter    = ent.diam;
+      ei->temperature = ent.temp;
+      ei->velocity    = ent.vel;
+      ei->position    = ent.pos;
+      ei->eaddress    = (ent.flag==DFLAG_ENABLED? ent.eaddress : PILLAZ_ELEMENT_ADDRESS());
+      ei->node        = (ent.flag==DFLAG_ENABLED? ent.node     : -1);
 
   } //***End trajectory loop***//
 
@@ -472,21 +430,28 @@ void pillaz::run()
   screenOutput("post-processing...");
 
 
-  //***Update statistics***//
-  sd.enabled  -= sd.out;
-  sd.enabled  -= sd.lost;
-  if(sd.enabled>0){
-    sd.reynoldsAvg /= avgctr;
-    sd.nusseltAvg  /= avgctr;
-    sd.dtLagrAvg   /= avgctr;
-    sd.subIterAvg  /= avgctr;
-  } else{
+  // remove disabled entities and update statistics
+  size_t numRemoved = ed.size();
+  ed.remove_if(PILLAZ_ENTITY_DATA::isdisabled);
+  const size_t numEnabled = ed.size();
+  numRemoved -= numEnabled;
+  if (numEnabled) {
+    sd.reynoldsAvg /= numEnabled;
+    sd.nusseltAvg  /= numEnabled;
+    sd.dtLagrAvg   /= numEnabled;
+    sd.subIterAvg  /= numEnabled;
+  }
+  else {
     sd.reynoldsAvg = 0.;
     sd.nusseltAvg  = 0.;
     sd.dtLagrAvg   = 0.;
     sd.subIterAvg  = 0.;
   }
 
+  if (numRemoved || sd.lost) {
+    sprintf(msg,"removed/lost entities: %d/%d",(int) numRemoved,(int) sd.lost);
+    screenOutput(msg);
+  }
 
   //**Compute dispersed phase cellwise data***//
   pillaz_CalcCellwiseData();
@@ -586,22 +551,18 @@ void pillaz::pillaz_CalcCellwiseData()
 
 
   //***Assemble cellwise data by looping over all active entities***//
-  for (int ient=0; ient<ip.numMaxEnt; ++ient) {
-    if(ed[ient].flag==DFLAG_ENABLED){
-      const int inod = ed[ient].node;
-      pd[inod].numDens++;
+  for (std::list< PILLAZ_ENTITY_DATA >::const_iterator ei=ed.begin(); ei!=ed.end(); ++ei) {
+    const int n = ei->node;
+    pd[n].numDens;
 
-      const double ivol = (fp.numDim==2? PI*ed[ient].diameter*ed[ient].diameter/4. :
-                          (fp.numDim==3? PI*ed[ient].diameter*ed[ient].diameter*ed[ient].diameter/6. :
-                                         0. ));
-      pd[inod].volFrac += ivol/volumeNod[inod];
-      pd[inod].avgDiam += ed[ient].diameter;
-      pd[inod].avgRespTime += (2.0 * mdd->rho + mdc->rho)
-                                   *ed[ient].diameter*ed[ient].diameter/(24.*mdc->mu);
-      for (int idim=0; idim<fp.numDim; ++idim) {
-        pd[inod].avgVel[idim] += ed[ient].velocity[idim];
-      }
-    }
+    const double ivol = (fp.numDim==2? PI*ei->diameter*ei->diameter/4. :
+                        (fp.numDim==3? PI*ei->diameter*ei->diameter*ei->diameter/6. :
+                                       0. ));
+    pd[n].volFrac += ivol/volumeNod[n];
+    pd[n].avgDiam += ei->diameter;
+    pd[n].avgRespTime += (2. * mdd->rho + mdc->rho) * ei->diameter * ei->diameter/(24.*mdc->mu);
+    for (int d=0; d<fp.numDim; ++d)
+      pd[n].avgVel[d] += ei->velocity[d];
   }
 
 
@@ -620,23 +581,18 @@ void pillaz::pillaz_CalcCellwiseData()
   //***Compute standard deviations of averaged quantities***//
   if(ip.collisionModel){
 
-    for (int ient=0; ient<ip.numMaxEnt; ++ient) {
-      if(ed[ient].flag==DFLAG_ENABLED){
-        const int inod = ed[ient].node;
-
-        pd[inod].stdDiam += pow(ed[ient].diameter-pd[inod].avgDiam,2.0);
-        for (int idim=0; idim<fp.numDim; ++idim) {
-          pd[inod].stdVel[idim] += pow(ed[ient].velocity[idim]-pd[inod].avgVel[idim],2.0);
-        }
-      }
+    for (std::list< PILLAZ_ENTITY_DATA >::const_iterator ei=ed.begin(); ei!=ed.end(); ++ei) {
+        const int n = ei->node;
+        pd[n].stdDiam += pow(ei->diameter - pd[n].avgDiam,2.);
+        for (int d=0; d<fp.numDim; ++d)
+          pd[n].stdVel[d] += pow(ei->velocity[d] - pd[n].avgVel[d],2.);
     }
 
-    for (int inod=0; inod<fp.numNod; inod++){
-      if(pd[inod].numDens>0){
-        pd[inod].stdDiam = sqrt(pd[inod].stdDiam/pd[inod].numDens);
-        for (int idim=0; idim<fp.numDim; ++idim) {
-          pd[inod].stdVel[idim] = sqrt(pd[inod].stdVel[idim]/pd[inod].numDens);
-        }
+    for (int n=0; n<fp.numNod; ++n) {
+      if(pd[n].numDens>0){
+        pd[n].stdDiam = sqrt(pd[n].stdDiam/pd[n].numDens);
+        for (int idim=0; idim<fp.numDim; ++idim)
+          pd[n].stdVel[idim] = sqrt(pd[n].stdVel[idim]/pd[n].numDens);
       }
     }
   }
@@ -1030,7 +986,6 @@ double pillaz::pillaz_CalcThermalResponseTime(double diameter)
 void pillaz::pillaz_CalcTrajectory(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double dtLagr)
 {
   const pillaz_flowtype_t flowType(mdd->flowtype);
-
   int idim,jdim;
   double
     vmCoeff,
@@ -1251,20 +1206,6 @@ double pillaz::pillaz_CalcWallFaceDistance(int numDim, double *pos, int ibnd, in
     posVec[d] = pos[d] - posVec[d];
 
   return pillaz_CalcVectorScalarProduct(numDim,posVec,unitVec);
-}
-
-
-void pillaz::pillaz_CheckNaN(PILLAZ_LOCAL_ENTITY_VARIABLES *ent)
-{
-  double check = 0.;
-  for (int idim=0; idim<fp.numDim; idim++)
-    check += ent->pos[idim] + ent->vel[idim];
-
-  if (isnan(check)) {
-    ent->flag = DFLAG_DISABLED;
-    ++sd.lost;
-    screenOutput("warning: not-a-number detected");
-  }
 }
 
 
@@ -1629,81 +1570,52 @@ int pillaz::pillaz_FindNearestElementNode(PILLAZ_LOCAL_ENTITY_VARIABLES *ent)
 
 void pillaz::pillaz_ImposeExternal()
 {
-  PILLAZ_LOCAL_ENTITY_VARIABLES ent(fp.numDim);
-  PILLAZ_LOCAL_FLOW_VARIABLES flow(fp.numDim);
-  int ient,idim;
-  double *newPos,*newVel,*newDiam,*newTemp;
+  PILLAZ_LOCAL_ENTITY_VARIABLES ent (fp.numDim);
+  PILLAZ_LOCAL_FLOW_VARIABLES   flow(fp.numDim);
 
+  // loop over entities to generate
+  for (int ient=0; ient<numExtEnt; ++ient){
 
-  //***Broadcast entity data***//
-  newDiam = new double[numExtEnt];
-  newTemp = new double[numExtEnt];
-  newPos  = new double[numExtEnt*fp.numDim];
-  newVel  = new double[numExtEnt*fp.numDim];
-
-  newDiam = extEntDiam;
-  newTemp = extEntTemp;
-  newPos = extEntPos;
-  newVel = extEntVel;
-
-  //***Loop over entities to generate***//
-
-  for(ient=0; ient<numExtEnt; ient++){
-
-    for(idim=0; idim<fp.numDim; idim++){
-      ent.pos[idim] = newPos[fp.numDim*ient+idim];
+    for (int d=0; d<fp.numDim; ++d) {
+      ent.pos[d] = extEntPos[fp.numDim*ient+d];
+      ent.vel[d] = extEntVel[fp.numDim*ient+d];
     }
-    for(idim=0; idim<fp.numDim; idim++){
-      ent.vel[idim] = newVel[fp.numDim*ient+idim];
-    }
-    ent.diam = newDiam[ient];
-    ent.temp = newTemp[ient];
+    ent.diam = extEntDiam[ient];
+    ent.temp = extEntTemp[ient];
 
-    //***Element search***//
-
+    // element search
     pillaz_SearchSuccessive(&ent);
 
-    //***Initialize entity***//
-
-    if(ent.flag==DFLAG_ENABLED && sd.enabled<ip.numMaxEnt){
+    // initialize entity
+    if (ent.flag==DFLAG_ENABLED) {
 
       pillaz_SetElementGeometry(fp.numDim,&ent);
       pillaz_Interpolate(&ent,&flow,0.0);
 
-      ed[sd.enabled].flag        = DFLAG_CREATED;
-      ed[sd.enabled].eaddress    = ent.eaddress;
-      ed[sd.enabled].node        = pillaz_FindNearestElementNode(&ent);
-      ed[sd.enabled].diameter    = ent.diam;
-      ed[sd.enabled].temperature = ent.temp;
-      for(idim=0; idim<fp.numDim; idim++){
-        ed[sd.enabled].position[idim] = ent.pos[idim];
-        ed[sd.enabled].velocity[idim] = flow.vel[idim]+ent.vel[idim];
-      }
-      sd.enabled++;
+      PILLAZ_ENTITY_DATA e(fp.numDim);
+      e.flag        = DFLAG_CREATED;
+      e.eaddress    = ent.eaddress;
+      e.node        = pillaz_FindNearestElementNode(&ent);
+      e.diameter    = ent.diam;
+      e.temperature = ent.temp;
+      e.position    = ent.pos;
+      e.velocity    = ent.vel;
+      for (int d=0; d<fp.numDim; ++d)
+        e.velocity[d] += flow.vel[d];
+      ed.insert(ed.end(),e);
+
       sd.in++;
     }
   }
-
-  delete[] newDiam;
-  delete[] newTemp;
-  delete[] newPos;
-  delete[] newVel;
 }
 
 
 void pillaz::pillaz_ImposeProductionDomains()
 {
-  int idim,bCtr;
-  double p,s,p1[3],p2[3];
+  double p1[3],p2[3];
   char msg[100];
+  std::vector< double > newDiam, newPos;
 
-  std::vector< double >
-    newDiam(ip.numMaxEnt,0.),
-    newPos(ip.numMaxEnt*fp.numDim);
-
-
-  //***Creation of bubbles***//
-  bCtr = 0;
 
   //***Loop over production domains***//
 
@@ -1721,50 +1633,53 @@ void pillaz::pillaz_ImposeProductionDomains()
     p2[0]=pdi->x1;  p2[1]=pdi->y1; p2[2]=pdi->z1;
 
     //***Iteratively generate entities according to mass flux***//
-    for (; pdi->massResid>0. && bCtr<ip.numMaxEnt; ++bCtr) {
+    for (; pdi->massResid>0.; ) {
 
       //***Set diameter***//
-      newDiam[bCtr] = pillaz_SetDiameter();
+      newDiam.push_back(pillaz_SetDiameter());
+      const double &D = newDiam.back();
 
       //***Calculate mass of generated entity***//
       const double mass =
-        (fp.numDim==2?  mdd->rho *PI*newDiam[bCtr]*newDiam[bCtr]              /4. :
-        (fp.numDim==3?  mdd->rho *PI*newDiam[bCtr]*newDiam[bCtr]*newDiam[bCtr]/6. :
+        (fp.numDim==2?  mdd->rho *PI/4.*D*D   :
+        (fp.numDim==3?  mdd->rho *PI/6.*D*D*D :
                         0. ));
 
       pdi->massResid -= mass;
 
       //***Compute position***//
-      if(pdi->type==1){
+      if(pdi->type==1) {
 
         //***Line production domain***//
-        s = pillaz_RandomDouble();
-        for(idim=0; idim<fp.numDim; idim++){
-          newPos[fp.numDim*bCtr+idim] = p1[idim]+s*(p2[idim]-p1[idim]);
-        }
+        const double s = pillaz_RandomDouble();
+        for (int d=0; d<fp.numDim; ++d)
+          newPos.push_back( p1[d]+s*(p2[d]-p1[d]) );
 
       }
-      else if(pdi->type==2){
+      else if(pdi->type==2) {
 
         //***Rectangle production domain***//
-        for(idim=0; idim<fp.numDim; idim++){
-          s = pillaz_RandomDouble();
-          newPos[fp.numDim*bCtr+idim] = p1[idim]+s*(p2[idim]-p1[idim]);
+        for (int d=0; d<fp.numDim; ++d) {
+          const double s = pillaz_RandomDouble();
+          newPos.push_back( p1[d]+s*(p2[d]-p1[d]) );
         }
 
       }
-      else if(pdi->type==3){
+      else if(pdi->type==3) {
 
         //***Ellipse production domain***//
-        do{
-          p = 0.0;
-          for(idim=0; idim<fp.numDim; idim++){
-            s = 2.0*pillaz_RandomDouble()-1.0;
-            newPos[fp.numDim*bCtr+idim] = p1[idim]+s*p2[idim];
-            if (p2[idim]>ip.errTol)
-              p += (newPos[fp.numDim*bCtr+idim]-p1[idim])*(newPos[fp.numDim*bCtr+idim]-p1[idim])/(p2[idim]*p2[idim]);
+        double p;
+        do {
+          p = 0.;
+          for (int d=0; d<fp.numDim; ++d) {
+            const double s = 2. * pillaz_RandomDouble() - 1.;
+            newPos.push_back( p1[d]+s*p2[d] );
+            const double &C = newPos.back();
+            if (p2[d]>ip.errTol)
+              p += (C-p1[d])*(C-p1[d])/(p2[d]*p2[d]);
           }
-        } while(p>1.0);
+        }
+        while(p>1.);
       }
     }
 
@@ -1774,7 +1689,7 @@ void pillaz::pillaz_ImposeProductionDomains()
   //***Generate entities***//
   PILLAZ_LOCAL_FLOW_VARIABLES flow(fp.numDim);
   PILLAZ_LOCAL_ENTITY_VARIABLES ent(fp.numDim);
-  for (int ient=0; ient<bCtr; ++ient) {
+  for (size_t ient=0; ient<newDiam.size(); ++ient) {
 
     // find a starting (inner) element
     ent.eaddress = PILLAZ_ELEMENT_ADDRESS();
@@ -1784,34 +1699,36 @@ void pillaz::pillaz_ImposeProductionDomains()
 
     ent.diam = newDiam[ient];
     ent.temp = ip.iniTempDisp;
-    for(idim=0; idim<fp.numDim; idim++){
-      ent.pos[idim] = newPos[fp.numDim*ient+idim];
-      ent.vel[idim] = ip.iniVel[idim];
+    for (int d=0; d<fp.numDim; ++d) {
+      ent.pos[d] = newPos[fp.numDim*ient+d];
+      ent.vel[d] = ip.iniVel[d];
     }
 
     //***Element search***//
     pillaz_SearchSuccessive(&ent);
 
     //***Initialize entity***//
-    if(ent.flag==DFLAG_ENABLED && sd.enabled<ip.numMaxEnt){
+    if (ent.flag==DFLAG_ENABLED) {
 
       pillaz_SetElementGeometry(fp.numDim,&ent);
       pillaz_Interpolate(&ent,&flow,0.0);
 
-      ed[sd.enabled].flag        = DFLAG_CREATED;
-      ed[sd.enabled].eaddress    = ent.eaddress;
-      ed[sd.enabled].node        = pillaz_FindNearestElementNode(&ent);
-      ed[sd.enabled].diameter    = ent.diam;
-      ed[sd.enabled].temperature = ent.temp;
-      for(idim=0; idim<fp.numDim; idim++){
-        ed[sd.enabled].position[idim] = ent.pos[idim];
-        ed[sd.enabled].velocity[idim] = flow.vel[idim]+ent.vel[idim];
-      }
-      sd.enabled++;
-      sd.in++;
+      PILLAZ_ENTITY_DATA e(fp.numDim);
+      e.flag        = DFLAG_CREATED;
+      e.eaddress    = ent.eaddress;
+      e.node        = pillaz_FindNearestElementNode(&ent);
+      e.diameter    = ent.diam;
+      e.temperature = ent.temp;
+      e.position    = ent.pos;
+      e.velocity    = ent.vel;
+      for (int d=0; d<fp.numDim; ++d)
+        e.velocity[d] += flow.vel[d];
+      ed.insert(ed.end(),e);
+
+      ++sd.in;
     }
   }
-  sprintf(msg,"imposed entities: %d",bCtr);
+  sprintf(msg,"imposed entities: %d",(int) newDiam.size());
   screenOutput(msg);
 }
 
@@ -1900,7 +1817,6 @@ void pillaz::pillaz_LoadInitialDistribution(const std::string &inpString)
       fpos = ftell(inpFile);
     }
   }
-  numIni = (numIni<ip.numMaxEnt? numIni:ip.numMaxEnt);
   fseek(inpFile,fpos,SEEK_SET);
 
 
@@ -1992,10 +1908,6 @@ void pillaz::pillaz_RandomInitialDistribution()
   PILLAZ_LOCAL_FLOW_VARIABLES   flow(fp.numDim);
 
 
-  // initializations
-  ip.numIniEnt = (ip.numIniEnt>ip.numMaxEnt? ip.numMaxEnt : ip.numIniEnt);
-
-
   // calculate total volume and find maximum cell volume
   const double Vtotal = std::accumulate(volumeNod.begin(),volumeNod.end(),0.);
   double maxCellSize = 0.;
@@ -2027,15 +1939,17 @@ void pillaz::pillaz_RandomInitialDistribution()
 
     // initialize entity
     pillaz_Interpolate(&ent,&flow,0.0);
-    ed[ient].flag        = DFLAG_CREATED;
-    ed[ient].eaddress    = ent.eaddress;
-    ed[ient].node        = pillaz_FindNearestElementNode(&ent);
-    ed[ient].diameter    = pillaz_SetDiameter();
-    ed[ient].temperature = ip.iniTempDisp;
-    for (int d=0; d<fp.numDim; ++d) {
-      ed[ient].position[d] = ent.pos[d];
-      ed[ient].velocity[d] = flow.vel[d]+ip.iniVel[d];
-    }
+
+    PILLAZ_ENTITY_DATA e(fp.numDim);
+    e.flag        = DFLAG_CREATED;
+    e.eaddress    = ent.eaddress;
+    e.node        = pillaz_FindNearestElementNode(&ent);
+    e.diameter    = pillaz_SetDiameter();
+    e.temperature = ip.iniTempDisp;
+    e.position    = ent.pos;
+    for (int d=0; d<fp.numDim; ++d)
+      e.velocity[d] = flow.vel[d] + ip.iniVel[d];
+    ed.insert(ed.end(),e);
     ++sd.in;
   }
 }
@@ -2056,7 +1970,6 @@ int pillaz::pillaz_RandomInteger(int min, int max)
 void pillaz::pillaz_ReadParameters(const XMLNode& x)
 {
   // read parameters
-  ip.numMaxEnt  = std::max(0, x.getAttribute< int    >("entities.max",1000));
   ip.numIniEnt  = std::max(0, x.getAttribute< int    >("entities.init",0));
   ip.iniDiam    = std::max(0.,x.getAttribute< double >("entities.production.diameter.mean",1.));
   ip.iniDiamStd = std::max(0.,x.getAttribute< double >("entities.production.diameter.std", 0.));
@@ -2163,10 +2076,10 @@ void pillaz::pillaz_SearchSuccessive(PILLAZ_LOCAL_ENTITY_VARIABLES *ent)
   }
   while (!elmFound && !leftDomain);
 
-  // disable entity in case of not found
+  // signal that entity has left, in case constaining element wasn't found
   if (elmFound) {
-    ent->flag = DFLAG_ENABLED;
-    ent->node = pillaz_FindNearestElementNode(ent);
+    ent->flag     = DFLAG_ENABLED;
+    ent->node     = pillaz_FindNearestElementNode(ent);
   }
   else {
     ent->flag     = DFLAG_LEFT;
@@ -2303,7 +2216,7 @@ void pillaz::pillaz_WriteStatsFile(const std::string &outpString, int iter, doub
   std::ofstream f(outpString.c_str(),std::ios::app);
   f << '\t' << iter
     << '\t' << time
-    << '\t' << sd.enabled
+    << '\t' << ed.size()
     << '\t' << sd.in
     << '\t' << sd.out
     << '\t' << sd.bounce
@@ -2319,33 +2232,28 @@ void pillaz::pillaz_WriteStatsFile(const std::string &outpString, int iter, doub
 
 void pillaz::pillaz_WriteTecplotFile(const std::string &outpString, int iter, double time)
 {
-  // count active entities
-  unsigned enabled = 0;
-  for (int i=0; i<ip.numMaxEnt; ++i)
-    if (ed[i].flag==DFLAG_ENABLED || ed[i].flag==DFLAG_CREATED)
-      ++enabled;
-
   // write header (if no entities are active, write dummy)
   std::ofstream f(outpString.c_str(),std::ios::app);
-  f << "ZONE T=\"Entities (dispersed)\" I=" << (enabled? enabled:1) << " AUXDATA ITER=\"" << iter << "\" SOLUTIONTIME=" << time << " DATAPACKING=POINT" << std::endl;
-  if (!enabled) {
+  const size_t enabled = ed.size();
+  if (enabled) {
+
+    f << "ZONE T=\"Entities (dispersed)\" I=" << enabled << " AUXDATA ITER=\"" << iter << "\" SOLUTIONTIME=" << time << " DATAPACKING=POINT" << std::endl;
+    for (std::list< PILLAZ_ENTITY_DATA >::const_iterator ei=ed.begin(); ei!=ed.end(); ++ei) {
+      for (int d=0; d<fp.numDim; ++d)  f << ' ' << ei->position[d];
+      for (int d=0; d<fp.numDim; ++d)  f << ' ' << ei->velocity[d];
+      f << ' ' << ei->diameter
+        << ' ' << ei->temperature
+        << ' ' << 0.
+        << std::endl;
+    }
+
+  }
+  else {
+
+    f << "ZONE T=\"Entities (dispersed)\" I=1 AUXDATA ITER=\"" << iter << "\" SOLUTIONTIME=" << time << " DATAPACKING=POINT" << std::endl;
     for (int idim=0; idim<fp.numDim*2+3; ++idim)
       f << " 0";
     f << std::endl;
-  }
 
-  for (int ient=0; ient<ip.numMaxEnt && enabled; ++ient) {
-    if (ed[ient].flag==DFLAG_ENABLED || ed[ient].flag==DFLAG_CREATED) {
-      const PILLAZ_ENTITY_DATA &e = ed[ient];
-
-      for (int d=0; d<fp.numDim; ++d)  f << ' ' << e.position[d];
-      for (int d=0; d<fp.numDim; ++d)  f << ' ' << e.velocity[d];
-      f << ' ' << e.diameter
-        << ' ' << e.temperature
-        << ' ' << 0.
-        << std::endl;
-
-    }
   }
 }
-
