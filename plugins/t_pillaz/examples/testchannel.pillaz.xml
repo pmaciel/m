@@ -24,11 +24,11 @@
   couple.energy="no"
   model.collision="no"
   model.droplets.thinfilmevaporation="no"
-  model.bubbles.saturation="yes"
+  model.bubbles.saturation="no"
   model.bubbles.slip-shearliftforce="no"
   gravity.x="0."
   gravity.y="0."
-  gravity.z="0."
+  gravity.z="-9.8"
   output.statistics="testchannel.pillaz.txt"
   output.results="testchannel.pillaz.plt"
   >

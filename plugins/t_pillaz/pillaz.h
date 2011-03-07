@@ -904,12 +904,12 @@ class pillaz {
   void pillaz_SetElementGeometry(int numDim, PILLAZ_LOCAL_ENTITY_VARIABLES *ent);
 
   /**
-   * This file includes the functionality to perform  trajectory
-   * integrations of dispersed entities.
-   *
    * This function solves the trajectory equation.
+   * @param[in] mat linear system matrix
+   * @param[in,out] sol solution vector, updated on output
+   * @param[in] rhs linear system right-hand side vector
    */
-  void pillaz_SolveGaussSeidel(int numDim, double **mat, double *s, double *rhs);
+  void pillaz_SolveGaussSeidel(const std::vector< std::vector< double > > &mat, std::vector< double > &sol, const std::vector< double > & rhs);
 
   /**
    * This file includes all functionality concerning entities

@@ -289,8 +289,11 @@ void pillaz::run()
   }
 
 
+  sprintf(msg,"tracking entities: %d...",(int) ed.size());
+  screenOutput(msg);
+
+
   //***Loop over dispersed entities to update trajectories***//
-  screenOutput("updating trajectories...");
   for (std::list< PILLAZ_ENTITY_DATA >::iterator ei=ed.begin(); ei!=ed.end(); ++ei) {
 
 
@@ -405,7 +408,7 @@ void pillaz::run()
     //***Re-calculate and update statistics***//
     if(ent.flag==DFLAG_ENABLED){
       pillaz_SetElementGeometry(fp.numDim,&ent);
-      pillaz_Interpolate(&ent,&flow,1.0);
+      pillaz_Interpolate(&ent,&flow,1.);
       pillaz_CalcEntityCoefficients(&ent,&flow);
       sd.reynoldsAvg += ent.reynolds;
       sd.nusseltAvg  += ent.nusselt;
@@ -431,10 +434,8 @@ void pillaz::run()
 
 
   // remove disabled entities and update statistics
-  size_t numRemoved = ed.size();
   ed.remove_if(PILLAZ_ENTITY_DATA::isdisabled);
   const size_t numEnabled = ed.size();
-  numRemoved -= numEnabled;
   if (numEnabled) {
     sd.reynoldsAvg /= numEnabled;
     sd.nusseltAvg  /= numEnabled;
@@ -448,10 +449,8 @@ void pillaz::run()
     sd.subIterAvg  = 0.;
   }
 
-  if (numRemoved || sd.lost) {
-    sprintf(msg,"removed/lost entities: %d/%d",(int) numRemoved,(int) sd.lost);
-    screenOutput(msg);
-  }
+  sprintf(msg,"tracking entities: %d.",(int) ed.size());
+  screenOutput(msg);
 
   //**Compute dispersed phase cellwise data***//
   pillaz_CalcCellwiseData();
@@ -486,7 +485,7 @@ void pillaz::pillaz_CalcBackCoupling(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_
 
     contVol = volumeNod[ent->node];
     for (int idim=0; idim<fp.numDim; ++idim)
-      pd[ent->node].dispForce[idim+1] -= tFactor*force[idim]*jFrac/((1.0-iFrac)*contVol * mdc->rho);
+      pd[ent->node].dispForce[idim+1] -= tFactor*force[idim]*jFrac/((1.-iFrac)*contVol * mdc->rho);
 
   }
   else if(ip.momentumCoupl==FORCE_PROJ){
@@ -496,7 +495,7 @@ void pillaz::pillaz_CalcBackCoupling(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_
       const int inod = ent->edata.elmNodes[idim];
       contVol = volumeNod[inod];
       for (int jdim=0; jdim<fp.numDim; ++jdim)
-        pd[inod].dispForce[jdim+1] -= tFactor*impFac[idim]*force[jdim]*jFrac/((1.0-iFrac)*contVol * mdc->rho);
+        pd[inod].dispForce[jdim+1] -= tFactor*impFac[idim]*force[jdim]*jFrac/((1.-iFrac)*contVol * mdc->rho);
     }
   }
 
@@ -508,9 +507,9 @@ void pillaz::pillaz_CalcBackCoupling(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_
     for (int idim=0; idim<fp.numDim; ++idim)
       rhsTerm += flow->vel[idim]*pd[inod].volFracDx[idim];
 
-    pd[inod].dispForce[0] += tFactor*jFrac*rhsTerm/(1.0-iFrac);
+    pd[inod].dispForce[0] += tFactor*jFrac*rhsTerm/(1.-iFrac);
     for (int idim=1; idim<fp.numDim; ++idim)
-      pd[inod].dispForce[idim] += tFactor*jFrac*rhsTerm*flow->vel[idim]/(1.0-iFrac);
+      pd[inod].dispForce[idim] += tFactor*jFrac*rhsTerm*flow->vel[idim]/(1.-iFrac);
 
   }
 }
@@ -537,11 +536,11 @@ void pillaz::pillaz_CalcCellwiseData()
   for (int inod=0; inod<fp.numNod; ++inod){
     pd[inod].numDens = 0;
     volFracOld[inod] = pd[inod].volFrac;
-    pd[inod].volFrac = 0.0;
-    pd[inod].volFracDt = 0.0;
-    pd[inod].avgDiam = 0.0;
-    pd[inod].stdDiam = 0.0;
-    pd[inod].avgRespTime = 0.0;
+    pd[inod].volFrac = 0.;
+    pd[inod].volFracDt = 0.;
+    pd[inod].avgDiam = 0.;
+    pd[inod].stdDiam = 0.;
+    pd[inod].avgRespTime = 0.;
     for (int idim=0; idim<fp.numDim; ++idim) {
       pd[inod].volFracDx[idim] = 0.;
       pd[inod].avgVel[idim]    = 0.;
@@ -656,20 +655,20 @@ void pillaz::pillaz_CalcCouplingForcesBubble(PILLAZ_LOCAL_ENTITY_VARIABLES *ent,
 
   if(ip.momentumCoupl){
 
-    bubbleVol = PI*ent->diam*ent->diam*ent->diam/6.0;
+    bubbleVol = PI*ent->diam*ent->diam*ent->diam/6.;
     bubbleMass = mdd->rho * bubbleVol;
     densityRatio = (mdc->rho / mdd->rho);
 
     if(fp.numDim==2){
-      uxw[0] = 0.0;
-      uxw[1] = 0.0;
+      uxw[0] = 0.;
+      uxw[1] = 0.;
     } else if(fp.numDim==3){
       uxw[0] = ent->relVel[1]*flow->vort[2]-ent->relVel[2]*flow->vort[1];
       uxw[1] = ent->relVel[2]*flow->vort[0]-ent->relVel[0]*flow->vort[2];
       uxw[2] = ent->relVel[0]*flow->vort[1]-ent->relVel[1]*flow->vort[0];
     }
 
-    vmCoeff = 0.5*(1.0+2.786*pd[ent->node].volFrac);
+    vmCoeff = 0.5*(1.+2.786*pd[ent->node].volFrac);
 
     for(idim=0; idim<fp.numDim; idim++){
       dudt[idim] = flow->velDt[idim];
@@ -682,7 +681,7 @@ void pillaz::pillaz_CalcCouplingForcesBubble(PILLAZ_LOCAL_ENTITY_VARIABLES *ent,
     //**Compute surface force on particle (positive sign)***//
 
     for(idim=0; idim<fp.numDim; idim++){
-      entForce[idim] = bubbleMass*(3.0/4.0)*(ent->dragCoeff/ent->diam)*densityRatio*ent->normVel*ent->relVel[idim]
+      entForce[idim] = bubbleMass*(3./4.)*(ent->dragCoeff/ent->diam)*densityRatio*ent->normVel*ent->relVel[idim]
                      + bubbleMass*ent->liftCoeff*densityRatio*uxw[idim]
                      + bubbleMass*vmCoeff*densityRatio*(dudt[idim]-dvdt[idim]);
     }
@@ -705,13 +704,13 @@ void pillaz::pillaz_CalcCouplingForcesParticle(PILLAZ_LOCAL_ENTITY_VARIABLES *en
 
   if(ip.momentumCoupl){
 
-    particleVol = PI*ent->diam*ent->diam*ent->diam/6.0;
+    particleVol = PI*ent->diam*ent->diam*ent->diam/6.;
     particleMass = mdd->rho * particleVol;
     densityRatio = (mdc->rho / mdd->rho);
 
     if(fp.numDim==2){
-      uxw[0] = 0.0;
-      uxw[1] = 0.0;
+      uxw[0] = 0.;
+      uxw[1] = 0.;
     } else if(fp.numDim==3){
       uxw[0] = ent->relVel[1]*flow->vort[2]-ent->relVel[2]*flow->vort[1];
       uxw[1] = ent->relVel[2]*flow->vort[0]-ent->relVel[0]*flow->vort[2];
@@ -721,7 +720,7 @@ void pillaz::pillaz_CalcCouplingForcesParticle(PILLAZ_LOCAL_ENTITY_VARIABLES *en
     //**Compute surface force on particle (positive sign)***//
 
     for(idim=0; idim<fp.numDim; idim++){
-      entForce[idim] = particleMass*(3.0/4.0)*(ent->dragCoeff/ent->diam)*densityRatio*ent->normVel*ent->relVel[idim]
+      entForce[idim] = particleMass*(3./4.)*(ent->dragCoeff/ent->diam)*densityRatio*ent->normVel*ent->relVel[idim]
                      + particleMass*ent->liftCoeff*densityRatio*uxw[idim];
     }
   }
@@ -753,36 +752,24 @@ double pillaz::pillaz_CalcDispReynolds(double viscosity, double diameter, double
 
 double pillaz::pillaz_CalcDragCoeff(int flowType, double reynolds)
 {
-  double dragCoeff = 0.;
+  if (flowType==FLOW_BUBBLY) {
 
-  if(flowType==FLOW_BUBBLY){
+    // empirical drag coefficient correlations for a fluid sphere
+    return (reynolds<1.5?                    16./reynolds            :
+           (reynolds>=1.5 && reynolds<80.?   14.9/pow(reynolds,0.78) :
+           (reynolds>=80. && reynolds<1530.? 49.9/reynolds * (1.-(2.21/pow(reynolds,0.5))) + 1.17e-5*pow(reynolds,1.675) :
+                                             2.61 )));
 
-    //***Empirical drag coefficient correlations for a fluid sphere***//
-
-    if(reynolds<1.5){
-      dragCoeff = 16.0/reynolds;
-    } else if(reynolds>=1.5 && reynolds<80.0){
-      dragCoeff = 14.9/pow(reynolds,0.78);
-    } else if(reynolds>=80.0 && reynolds<1530.0){
-      dragCoeff = (49.9/reynolds)*(1.0-(2.21/pow(reynolds,0.5))) + (1.17e-5)*pow(reynolds,1.675);
-    } else{
-      dragCoeff = 2.61;
-    }
-
-  } else if(flowType==FLOW_PARTIC || flowType==FLOW_DROPLET){
-
-    //Empirical drag coefficient correlations for a rigid sphere***//
-
-    if(reynolds<0.5){
-      dragCoeff = 24.0/reynolds;
-    } else if(reynolds>=0.5 && reynolds<1000.0){
-      dragCoeff = 24.0*(1.0+0.15*pow(reynolds,0.687))/reynolds;
-    } else{
-      dragCoeff = 0.44;
-    }
   }
+  else if (flowType==FLOW_PARTIC || flowType==FLOW_DROPLET) {
 
-  return dragCoeff;
+    // empirical drag coefficient correlations for a rigid sphere
+    return (reynolds<0.5?                    24./reynolds :
+           (reynolds>=0.5 && reynolds<1000.? 24.*(1.+0.15*pow(reynolds,0.687))/reynolds :
+                                             0.44 ));
+
+  }
+  return 0.;
 }
 
 
@@ -813,9 +800,9 @@ double pillaz::pillaz_CalcKinematicResponseTime(PILLAZ_LOCAL_ENTITY_VARIABLES *e
 
   const pillaz_flowtype_t flowType(mdd->flowtype);
   if(flowType==FLOW_PARTIC || flowType==FLOW_DROPLET){
-    tau = 4.0 * mdd->rho * ent->diam*ent->diam/(3.*mdc->mu*ent->reynolds*ent->dragCoeff);
+    tau = 4. * mdd->rho * ent->diam*ent->diam/(3.*mdc->mu*ent->reynolds*ent->dragCoeff);
   } else if(flowType==FLOW_BUBBLY){
-    tau = 2.0*ent->diam*ent->diam/(3. * mdc->mu / mdc->rho * ent->reynolds * ent->dragCoeff);
+    tau = 2.*ent->diam*ent->diam/(3. * mdc->mu / mdc->rho * ent->reynolds * ent->dragCoeff);
   }
 
   return tau;
@@ -834,9 +821,9 @@ double pillaz::pillaz_CalcLiftCoeff(int flowType)
 
 double pillaz::pillaz_CalcMassTransferCoeff(double sherwood, double spalding)
 {
-  double omega = log(1.0+spalding);
+  double omega = log(1.+spalding);
 
-  return (2.0*(mdc->rho / mdd->rho) * mdd->binaryDiffCoeff * sherwood*omega);
+  return (2.*(mdc->rho / mdd->rho) * mdd->binaryDiffCoeff * sherwood*omega);
 }
 
 
@@ -865,7 +852,7 @@ void pillaz::pillaz_CalcNodeImpactFactors(const PILLAZ_LOCAL_ENTITY_VARIABLES *e
     imp[in] = pillaz_CalcVectorLength(fp.numDim,distance);
     if (imp[in]<ip.errTol)
       imp[in] = ip.errTol;
-    sum += 1.0/imp[in];
+    sum += 1./imp[in];
   }
 
   for (unsigned in=0; in<ent->edata.elmNodes.size(); in++)
@@ -875,10 +862,10 @@ void pillaz::pillaz_CalcNodeImpactFactors(const PILLAZ_LOCAL_ENTITY_VARIABLES *e
 
 double pillaz::pillaz_CalcNusseltNumber(int evapModel, double reynolds, double spalding, double prandtl)
 {
- double Nu = 2.0 + 0.6*sqrt(reynolds)*pow(prandtl,(1.0/3.0));
+ double Nu = 2. + 0.6*sqrt(reynolds)*pow(prandtl,1./3.);
 
  if(evapModel){
-   Nu *= (log(1.0+spalding)/spalding);
+   Nu *= (log(1.+spalding)/spalding);
  }
 
  return Nu;
@@ -915,35 +902,35 @@ void pillaz::pillaz_CalcRotationMatrix_2D(double phi, double **m)
 void pillaz::pillaz_CalcRotationMatrix_3D(double phi, double **m, int axis)
 {
   if(axis==0){
-    m[0][0] = 1.0;
-    m[0][1] = 0.0;
-    m[0][2] = 0.0;
-    m[1][0] = 0.0;
+    m[0][0] = 1.;
+    m[0][1] = 0.;
+    m[0][2] = 0.;
+    m[1][0] = 0.;
     m[1][1] = cos(phi);
     m[1][2] = -sin(phi);
-    m[2][0] = 0.0;
+    m[2][0] = 0.;
     m[2][1] = sin(phi);
     m[2][2] = cos(phi);
   }else if(axis==1){
     m[0][0] = cos(phi);
-    m[0][1] = 0.0;
+    m[0][1] = 0.;
     m[0][2] = -sin(phi);
-    m[1][0] = 0.0;
-    m[1][1] = 1.0;
-    m[1][2] = 0.0;
+    m[1][0] = 0.;
+    m[1][1] = 1.;
+    m[1][2] = 0.;
     m[2][0] = sin(phi);
-    m[2][1] = 0.0;
+    m[2][1] = 0.;
     m[2][2] = cos(phi);
   }else if(axis==2){
     m[0][0] = cos(phi);
     m[0][1] = -sin(phi);
-    m[0][2] = 0.0;
+    m[0][2] = 0.;
     m[1][0] = sin(phi);
     m[1][1] = cos(phi);
-    m[1][2] = 0.0;
-    m[2][0] = 0.0;
-    m[2][1] = 0.0;
-    m[2][2] = 1.0;
+    m[1][2] = 0.;
+    m[2][0] = 0.;
+    m[2][1] = 0.;
+    m[2][2] = 1.;
   }
 }
 
@@ -956,11 +943,11 @@ double pillaz::pillaz_CalcSchmidtNumber()
 
 double pillaz::pillaz_CalcSherwoodNumber(int evapModel, double reynolds, double schmidt, double spalding)
 {
-  double Sh = 2.0 + 0.6*pow(reynolds,(1.0/2.0))*pow(schmidt,(1.0/3.0));
+  double Sh = 2. + 0.6*pow(reynolds,1./2.)*pow(schmidt,1./3.);
 
   if(evapModel){
-    double F_M = pow(1.0+spalding,0.7)*log(1.0+spalding)/spalding;
-    Sh = 2.0+(Sh-2.0)/F_M;
+    double F_M = pow(1.+spalding,0.7)*log(1.+spalding)/spalding;
+    Sh = 2.+(Sh-2.)/F_M;
   }
 
   return Sh;
@@ -972,170 +959,146 @@ double pillaz::pillaz_CalcSpaldingNumber(double pressure)
   if ( mdd->satPres <1.e-20 ||  mdd->molarMass <1.e-20)
     return 0.;
 
-  double Y_s = 1.0/(1.0+(pressure/ mdd->satPres -1.0)*(mdd->molarMassVap / mdd->molarMass ));
-  return ((Y_s)/(1.0-Y_s));
+  double Y_s = 1./(1.+(pressure / mdd->satPres -1.)*(mdd->molarMassVap / mdd->molarMass ));
+  return ((Y_s)/(1.-Y_s));
 }
 
 
 double pillaz::pillaz_CalcThermalResponseTime(double diameter)
 {
-  return (1.0/(12. * mdc->k))*( mdd->rho *diameter*diameter* mdd->cp );
+  return (1./(12. * mdc->k))*( mdd->rho *diameter*diameter* mdd->cp );
 }
 
 
 void pillaz::pillaz_CalcTrajectory(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, PILLAZ_LOCAL_FLOW_VARIABLES *flow, double dtLagr)
 {
   const pillaz_flowtype_t flowType(mdd->flowtype);
-  int idim,jdim;
-  double
-    vmCoeff,
-    pvmTerm,
-    convTerm,
-    radTerm,
-    massTerm,
-    concTerm,
-    solvec[fp.numDim+2],
-    rhsvec[fp.numDim+2],
+  const double
     eps       = 1e-9,
     theta     = 0.5,
     boltzmann = 5.670400e-8;
 
 
-  double **mat = new double*[fp.numDim+2];
-  for (int r=0; r<fp.numDim+2; ++r)
-    mat[r] = new double[fp.numDim+2];
+  // linear system
+  std::vector< std::vector< double > > mat(fp.numDim+2,std::vector< double >(fp.numDim+2,0.));
+  std::vector< double >
+    solvec(fp.numDim+2),     // current solution (u,v,w,T,d)
+    rhsvec(fp.numDim+2,0.);  // right-hand side vector
+  for (size_t d=0; d<ent->vel.size(); ++d)
+    solvec[d] = ent->vel[d];
+  solvec[fp.numDim]   = ent->temp;
+  solvec[fp.numDim+1] = ent->diam;
+
+
+  // backup older values
+  ent->velOld = ent->vel;
+  ent->posOld = ent->pos;
 
 
   // TODO: Concentration definition depends on saturation model
   double alpha = 1.25;
   double flow_concentration = flow->pressure * mdd->He * alpha;
 
-  //***Initialize data structures (u,v,w,T,d)***//
 
-  for(idim=0; idim<fp.numDim; idim++){
-    solvec[idim] = ent->vel[idim];
-  }
-  solvec[fp.numDim] = ent->temp;
-  solvec[fp.numDim+1] = ent->diam;
+  // add contribution (matrix): time
+  for (int d=0; d<fp.numDim+2; ++d)
+    mat[d][d] += 1./dtLagr;
 
-  for(idim=0; idim<fp.numDim+2; idim++){
-    for(jdim=0; jdim<fp.numDim+2; jdim++){
-      mat[idim][jdim] = 0.0;
-    }
-    rhsvec[idim] = 0.0;
+
+  // add contribution (matrix & rhs): drag force
+  for (int d=0; d<fp.numDim; ++d){
+    mat[d][d] += theta/ent->kinRespTime;
+    rhsvec[d] += ent->relVel[d]/ent->kinRespTime;
   }
 
-  //***Add time contribution to matrix***//
 
-  for(idim=0; idim<fp.numDim+2; idim++){
-    mat[idim][idim] += 1.0/dtLagr;
+  // add contribution (matrix & rhs): lift force
+  if (ip.liftForce && flowType==FLOW_BUBBLY && fp.numDim==3) {
+    mat[0][1] += 2.*ent->liftCoeff*theta*flow->vort[2];
+    mat[0][2] -= 2.*ent->liftCoeff*theta*flow->vort[1];
+    mat[1][0] -= 2.*ent->liftCoeff*theta*flow->vort[2];
+    mat[1][2] += 2.*ent->liftCoeff*theta*flow->vort[0];
+    mat[2][0] += 2.*ent->liftCoeff*theta*flow->vort[1];
+    mat[2][1] -= 2.*ent->liftCoeff*theta*flow->vort[0];
+    rhsvec[0] += 2.*ent->liftCoeff*(ent->relVel[1]*flow->vort[2]-ent->relVel[2]*flow->vort[1]);
+    rhsvec[1] += 2.*ent->liftCoeff*(ent->relVel[2]*flow->vort[0]-ent->relVel[0]*flow->vort[2]);
+    rhsvec[2] += 2.*ent->liftCoeff*(ent->relVel[0]*flow->vort[1]-ent->relVel[1]*flow->vort[0]);
   }
 
-  //***Drag force contribution to matrix and RHS***//
 
-  for(idim=0; idim<fp.numDim; idim++){
-    mat[idim][idim] += theta/ent->kinRespTime;
-    rhsvec[idim] += ent->relVel[idim]/ent->kinRespTime;
-  }
-
-  //***Lift force contribution to matrix and RHS***//
-
-  if(ip.liftForce && flowType==FLOW_BUBBLY && fp.numDim==3){
-    mat[0][1] += theta*2.0*ent->liftCoeff*flow->vort[2];
-    mat[0][2] -= theta*2.0*ent->liftCoeff*flow->vort[1];
-    mat[1][0] -= theta*2.0*ent->liftCoeff*flow->vort[2];
-    mat[1][2] += theta*2.0*ent->liftCoeff*flow->vort[0];
-    mat[2][0] += theta*2.0*ent->liftCoeff*flow->vort[1];
-    mat[2][1] -= theta*2.0*ent->liftCoeff*flow->vort[0];
-    rhsvec[0] += 2.0*ent->liftCoeff*(ent->relVel[1]*flow->vort[2]-ent->relVel[2]*flow->vort[1]);
-    rhsvec[1] += 2.0*ent->liftCoeff*(ent->relVel[2]*flow->vort[0]-ent->relVel[0]*flow->vort[2]);
-    rhsvec[2] += 2.0*ent->liftCoeff*(ent->relVel[0]*flow->vort[1]-ent->relVel[1]*flow->vort[0]);
-  }
-
-  //***Virtual mass & pressure force contribution to RHS***//
-
+  // add contribution (rhs): virtual mass & pressure force
   if(flowType==FLOW_BUBBLY){
-    vmCoeff = 0.5*(1.0+2.786*pd[ent->node].volFrac);
-    pvmTerm = 2.0*(1.0+0.5*(1.0+2.786*pd[ent->node].volFrac));
-    for(idim=0; idim<fp.numDim; idim++){
-      rhsvec[idim] += pvmTerm*flow->velDt[idim];
-      for(jdim=0; jdim<fp.numDim; jdim++){
-        rhsvec[idim] += pvmTerm*flow->vel[jdim]*flow->velDx[idim][jdim];
+    const double
+      vmCoeff = 0.5*(1.+2.786*pd[ent->node].volFrac),
+      pvmTerm = 2.*(1.+vmCoeff);
+    for (int i=0; i<fp.numDim; ++i){
+      rhsvec[i] += pvmTerm*flow->velDt[i];
+      for (int j=0; j<fp.numDim; ++j){
+        rhsvec[i] += pvmTerm*flow->vel[j]*flow->velDx[i][j];
       }
     }
   }
 
-  //***Gravitational force contribution to RHS***//
 
-  for(idim=0; idim<fp.numDim; idim++){
-    if(flowType==FLOW_PARTIC || flowType==FLOW_DROPLET){
-      rhsvec[idim] += ip.gravVec[idim];
-    } else if(flowType==FLOW_BUBBLY){
-      rhsvec[idim] -= 2.0*ip.gravVec[idim];
-    }
+  // add contribution (rhs): gravitational force
+  for (int d=0; d<fp.numDim; ++d) {
+    rhsvec[d] += ip.gravVec[d] * (flowType==FLOW_PARTIC?   1. :
+                                 (flowType==FLOW_DROPLET?  1. :
+                                 (flowType==FLOW_BUBBLY?  -2. : 0. )));
   }
 
-  //***Temperature equation contribution to matrix and RHS***//
 
+  // add contribution (matrix & rhs): temperature equation
   if(ip.energyCoupl && (flowType==FLOW_PARTIC || flowType==FLOW_DROPLET)){
-    convTerm = ent->nusselt/(2.0*ent->thermRespTime);
-    radTerm = (6.0*boltzmann* mdd->eps )/( mdd->rho * mdd->cp *ent->diam);
-    if(ip.evapModel && flowType==FLOW_DROPLET){
-      massTerm = (3.0)*(ent->massTrCoeff/pow(ent->diam,2.0))*(mdd->latHeat / mdd->cp );
-    } else{
-      massTerm = 0.0;
-    }
-    mat[fp.numDim][fp.numDim] += theta*(convTerm-radTerm*4.0*pow(ent->temp,3.0));
+    const double
+      convTerm = ent->nusselt/(2.*ent->thermRespTime),
+      radTerm  = (6.*boltzmann* mdd->eps )/( mdd->rho * mdd->cp *ent->diam),
+      massTerm = (ip.evapModel && flowType==FLOW_DROPLET?
+                    3. * (ent->massTrCoeff/pow(ent->diam,2.)) * (mdd->latHeat / mdd->cp ) :
+                    0. );
+    mat[fp.numDim][fp.numDim] += theta*(convTerm-radTerm*4.*pow(ent->temp,3.));
     mat[fp.numDim][fp.numDim+1] -=
-      theta*(-((1.0/(4.0*ent->thermRespTime*ent->diam))*(2.0+3.0*ent->nusselt)*(ent->relTemp))
-   + ((radTerm/ent->diam)*(pow(ent->temp,4.0)-pow(flow->temp,4.0)))-((massTerm/ent->diam)*(1.5+1.0/ent->sherwood)));
-    rhsvec[fp.numDim] += (convTerm*ent->relTemp)-(radTerm*(pow(ent->temp,4.0)-pow(flow->temp,4.0)))-massTerm;
+      theta*(-((1./(4.*ent->thermRespTime*ent->diam))*(2.+3.*ent->nusselt)*(ent->relTemp))
+   + ((radTerm/ent->diam)*(pow(ent->temp,4.)-pow(flow->temp,4.)))-((massTerm/ent->diam)*(1.5+1./ent->sherwood)));
+    rhsvec[fp.numDim] += (convTerm*ent->relTemp)-(radTerm*(pow(ent->temp,4.)-pow(flow->temp,4.)))-massTerm;
   }
 
-  //***Diameter equation contribution to matrix and RHS***//
 
-  if(ip.evapModel && flowType==FLOW_DROPLET ){
-    mat[fp.numDim+1][fp.numDim+1] -= theta*(ent->massTrCoeff/pow(ent->diam,2.0))*(1.5-1.0/ent->sherwood);
+  // add contribution (matrix & rhs): diameter equation
+  if(ip.evapModel && flowType==FLOW_DROPLET) {
+    mat[fp.numDim+1][fp.numDim+1] -= theta*(ent->massTrCoeff/pow(ent->diam,2.))*(1.5-1./ent->sherwood);
     rhsvec[fp.numDim+1] += -ent->massTrCoeff/ent->diam;
   }
 
-  //***Concentration Boundary Layer Model Payvar for bubble growth and Epstein & Plesset for Bubble shrink
 
-  if(ip.saturModel && flowType==FLOW_BUBBLY ){
-   concTerm  = 4.0 * mdd->massDiffCoeff * mdc->rho * (flow_concentration-ent->concInterf)/(ent->rhoBubble*(mdc->rho - ent->concInterf));
-
-    if(flow_concentration > ent->concInterf){
-      rhsvec[fp.numDim+1] += concTerm/ent->diam*(1.0+1.0/(pow(1.0+( flow_concentration - mdc->rho )/(ent->concInterf-flow_concentration)*( ent->rhoBubble / mdc->rho )*(1.0-( mdd->rho /ent->rhoBubble)*pow(2.0e-5/ent->diam,3.0)),0.5)-1.0));
-      mat[fp.numDim+1][fp.numDim+1] -= concTerm*((1.0/(ent->diam+eps)+1.0/((ent->diam+eps)*pow(1.0+(flow_concentration - mdc->rho)/(ent->concInterf-flow_concentration)*(ent->rhoBubble / mdc->rho)*(1.0-( mdd->rho /ent->rhoBubble)*pow(2.0e-5/(ent->diam+eps),3.0)),0.5)-1.0))-(1.0/ent->diam+1.0/(ent->diam*pow(1.0+(flow_concentration - mdc->rho)/(ent->concInterf-flow_concentration)*(ent->rhoBubble / mdc->rho)*(1.0-( mdd->rho /ent->rhoBubble)*pow(2.0e-5/ent->diam,3.0)),0.5)-1.0)))/eps;
-
-      }else{
+  // add contribution (matrix & rhs): concentration boundary layer model
+  // (Payvar for bubble growth and Epstein & Plesset for Bubble shrink)
+  // FIXME there seems to be problems when using this!
+  if (ip.saturModel && flowType==FLOW_BUBBLY) {
+    const double concTerm = 4. * mdd->massDiffCoeff * mdc->rho * (flow_concentration-ent->concInterf)/(ent->rhoBubble*(mdc->rho - ent->concInterf));
+    if (flow_concentration > ent->concInterf) {
+      rhsvec[fp.numDim+1] += concTerm/ent->diam*(1.+1./(pow(1.+( flow_concentration - mdc->rho )/(ent->concInterf-flow_concentration)*( ent->rhoBubble / mdc->rho )*(1.-( mdd->rho /ent->rhoBubble)*pow(2.e-5/ent->diam,3.)),0.5)-1.));
+      mat[fp.numDim+1][fp.numDim+1] -= concTerm*((1./(ent->diam+eps)+1./((ent->diam+eps)*pow(1.+(flow_concentration - mdc->rho)/(ent->concInterf-flow_concentration)*(ent->rhoBubble / mdc->rho)*(1.-( mdd->rho /ent->rhoBubble)*pow(2.e-5/(ent->diam+eps),3.)),0.5)-1.))-(1./ent->diam+1./(ent->diam*pow(1.+(flow_concentration - mdc->rho)/(ent->concInterf-flow_concentration)*(ent->rhoBubble / mdc->rho)*(1.-( mdd->rho /ent->rhoBubble)*pow(2.e-5/ent->diam,3.)),0.5)-1.)))/eps;
+    }
+    else{
       rhsvec[fp.numDim+1] += concTerm/ent->diam;
       mat[fp.numDim+1][fp.numDim+1] -= ((concTerm/(ent->diam+eps))-(concTerm/ent->diam))/eps;
-        }
+    }
   }
 
-  //***Solve linear system for velocity, temperature & diameter***//
 
-  pillaz_SolveGaussSeidel(fp.numDim+2,mat,solvec,rhsvec);
+  // solve linear system for velocity, temperature & diameter
+  pillaz_SolveGaussSeidel(mat,solvec,rhsvec);
 
-  for(idim=0; idim<fp.numDim; idim++){
-    ent->velOld[idim] = ent->vel[idim];
-    ent->vel[idim] += solvec[idim];
-  }
+
+  // update solved variables and entity position
+  for (int d=0; d<fp.numDim; ++d)
+    ent->vel[d] += solvec[d];
   ent->temp += solvec[fp.numDim];
   ent->diam += solvec[fp.numDim+1];
 
-  //***Update entity position***//
-
-  for(idim=0; idim<fp.numDim; idim++){
-    ent->posOld[idim] = ent->pos[idim];
-    ent->pos[idim] += 0.5*(ent->velOld[idim]+ent->vel[idim])*dtLagr;
-  }
-
-
-  for (int r=0; r<fp.numDim+2; ++r)
-    delete[] mat[r];
-  delete[] mat;
+  for (int d=0; d<fp.numDim; ++d)
+    ent->pos[d] += 0.5*(ent->velOld[d]+ent->vel[d])*dtLagr;
 }
 
 
@@ -1178,8 +1141,8 @@ double pillaz::pillaz_CalcVectorScalarProduct(int numDim, double *a, double *b)
 void pillaz::pillaz_CalcVorticity(int numDim, PILLAZ_LOCAL_FLOW_VARIABLES *flow)
 {
   if(numDim==2){
-    flow->vort[0] = 0.0;
-    flow->vort[1] = 0.0;
+    flow->vort[0] = 0.;
+    flow->vort[1] = 0.;
   } else if(numDim==3){
     flow->vort[0] = flow->velDx[2][1]-flow->velDx[1][2];
     flow->vort[1] = flow->velDx[0][2]-flow->velDx[2][0];
@@ -1216,13 +1179,13 @@ int pillaz::pillaz_Coalescence(double dj, double di, double *uijRelPrPr, double 
   double hf = 1e-8;
   double Cc = 0.5;
   double sigma = 0.06;
-  double Rij = 2.0*1/(2/dj+2/di);
+  double Rij = 2./(2/dj+2/di);
   double T = sqrt(Rij*Rij*Rij * mdc->rho/(16*sigma))*log(h0/hf);
   double Tau_ij = Cc*Rij/uijRelPrPr[0];
   int idim,isCoal;
   double diStar;
 
-  //***Coalescense model***//
+  //***Coalescence model***//
 
   if(Tau_ij>T){
 
@@ -1273,9 +1236,9 @@ void pillaz::pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDe
   int idim;
   double
     c_T = 0.3,
-    e = 1.0,
-    mu_static = 0.0,
-    mu_dynamic = 0.0,
+    e = 1.,
+    mu_static = 0.,
+    mu_dynamic = 0.,
     ui[fp.numDim],
     uiFluct[fp.numDim],
     uj[fp.numDim],
@@ -1352,11 +1315,11 @@ void pillaz::pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDe
 
     tau_f = c_T*getEulerianTimeScale(ent->node);
     stokes = ent->kinRespTime/tau_f;
-    epsilon = pillaz_RandomGaussian(0.0,1.0);
+    epsilon = pillaz_RandomGaussian(0.,1.);
     R = exp(-0.55*pow(stokes,0.4));
 
     for(idim=0; idim<fp.numDim; idim++){
-      rms = sqrt(pow(pd[ent->node].avgVel[idim],2.0)+pow(pd[ent->node].stdVel[idim],2.0));
+      rms = sqrt(pow(pd[ent->node].avgVel[idim],2.)+pow(pd[ent->node].stdVel[idim],2.));
       ujFluct[idim] = R*uiFluct[idim]+rms*sqrt(1-R*R)*epsilon;
       uj[idim] += ujFluct[idim];
     }
@@ -1371,7 +1334,7 @@ void pillaz::pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDe
   //***Collision probability criterion***//
 
   conc = numDens/volumeNod[ent->node];
-  FreqColl = PI/4.0*(di+dj)*(di+dj)*pillaz_CalcVectorLength(fp.numDim,uijRel)*conc;
+  FreqColl = PI/4.*(di+dj)*(di+dj)*pillaz_CalcVectorLength(fp.numDim,uijRel)*conc;
   Pcoll = FreqColl*dtLagr;
 
   //***Perform collision***//
@@ -1380,8 +1343,8 @@ void pillaz::pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDe
 
     //***Transform into 2nd coordinate system***//
 
-    x[0] = y[1] = z[2] = 1.0;
-    x[1] = x[2] = y[0] = y[2] = z[0] = z[1] = 0.0;
+    x[0] = y[1] = z[2] = 1.;
+    x[1] = x[2] = y[0] = y[2] = z[0] = z[1] = 0.;
 
     for(idim=0; idim<fp.numDim; idim++){
       xPr[idim] = uijRel[idim]/pillaz_CalcVectorLength(fp.numDim,uijRel);
@@ -1409,7 +1372,7 @@ void pillaz::pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDe
     pillaz_CalcMatVectScalarProduct_3D(pos2Pr,mat,pos2Pr);
 
     for(idim=0; idim<fp.numDim; idim++){
-      pos2Pr[idim] *= (dj+di)/2.0;
+      pos2Pr[idim] *= (dj+di)/2.;
     }
 
     pos2[0] = pillaz_CalcVectorScalarProduct(fp.numDim,pos2Pr,x);
@@ -1446,14 +1409,14 @@ void pillaz::pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDe
 
     //***Sliding or non-sliding collision***//
 
-    Mi =  mdd->rho *PI*(dj/2.0)*(dj/2.0);
-    Mj =  mdd->rho *PI*(dj/2.0)*(dj/2.0);
-    Jx = -(1.0-e)*uiPrPr[1]*(Mi*Mj)/(Mi+Mj);
+    Mi =  mdd->rho *PI*(dj/2.)*(dj/2.);
+    Mj =  mdd->rho *PI*(dj/2.)*(dj/2.);
+    Jx = -(1.-e)*uiPrPr[1]*(Mi*Mj)/(Mi+Mj);
     length = pillaz_CalcVectorLength(fp.numDim,uijRel);
 
-    if(std::abs(length)<7.0/2.0*mu_static*(1.0+e)*std::abs(uiPrPr[0])){
-      Jy = -2.0/7.0*uijRelPrPr[1]*Mi*Mj/(Mi+Mj);
-      Jz = -2.0/7.0*uijRelPrPr[2]*Mi*Mj/(Mi+Mj);
+    if(std::abs(length)<7./2.*mu_static*(1.+e)*std::abs(uiPrPr[0])){
+      Jy = -2./7.*uijRelPrPr[1]*Mi*Mj/(Mi+Mj);
+      Jz = -2./7.*uijRelPrPr[2]*Mi*Mj/(Mi+Mj);
     }else{
       Jy = -mu_dynamic*uijRelPrPr[1]/length*std::abs(Jx);
       Jz = -mu_dynamic*uijRelPrPr[2]/length*std::abs(Jx);
@@ -1590,7 +1553,7 @@ void pillaz::pillaz_ImposeExternal()
     if (ent.flag==DFLAG_ENABLED) {
 
       pillaz_SetElementGeometry(fp.numDim,&ent);
-      pillaz_Interpolate(&ent,&flow,0.0);
+      pillaz_Interpolate(&ent,&flow,0.);
 
       PILLAZ_ENTITY_DATA e(fp.numDim);
       e.flag        = DFLAG_CREATED;
@@ -1613,8 +1576,9 @@ void pillaz::pillaz_ImposeExternal()
 void pillaz::pillaz_ImposeProductionDomains()
 {
   double p1[3],p2[3];
-  char msg[100];
-  std::vector< double > newDiam, newPos;
+  std::vector< double >
+    newDiam,
+    newPos;
 
 
   //***Loop over production domains***//
@@ -1711,7 +1675,7 @@ void pillaz::pillaz_ImposeProductionDomains()
     if (ent.flag==DFLAG_ENABLED) {
 
       pillaz_SetElementGeometry(fp.numDim,&ent);
-      pillaz_Interpolate(&ent,&flow,0.0);
+      pillaz_Interpolate(&ent,&flow,0.);
 
       PILLAZ_ENTITY_DATA e(fp.numDim);
       e.flag        = DFLAG_CREATED;
@@ -1728,8 +1692,6 @@ void pillaz::pillaz_ImposeProductionDomains()
       ++sd.in;
     }
   }
-  sprintf(msg,"imposed entities: %d",(int) newDiam.size());
-  screenOutput(msg);
 }
 
 
@@ -1887,12 +1849,12 @@ double pillaz::pillaz_RandomGaussian(float m, float s)
     use_last = 0;
   } else{
     do {
-      xx1 = 2.0 * pillaz_RandomDouble() - 1.0;
-      xx2 = 2.0 * pillaz_RandomDouble() - 1.0;
+      xx1 = 2. * pillaz_RandomDouble() - 1.;
+      xx2 = 2. * pillaz_RandomDouble() - 1.;
       w = xx1 * xx1 + xx2 * xx2;
-    } while ( w >= 1.0 );
+    } while ( w >= 1. );
 
-    w = sqrt( (-2.0 * log( w ) ) / w );
+    w = sqrt( (-2. * log( w ) ) / w );
     yy1 = xx1 * w;
     yy2 = xx2 * w;
     use_last = 1;
@@ -1938,7 +1900,7 @@ void pillaz::pillaz_RandomInitialDistribution()
     pillaz_RandomElmPosition(ent.eaddress.izone,ent.eaddress.ielem,&ent.pos[0]);
 
     // initialize entity
-    pillaz_Interpolate(&ent,&flow,0.0);
+    pillaz_Interpolate(&ent,&flow,0.);
 
     PILLAZ_ENTITY_DATA e(fp.numDim);
     e.flag        = DFLAG_CREATED;
@@ -2114,7 +2076,7 @@ double pillaz::pillaz_SetDiameter()
 
       // log-normal distribution
       const double
-        sigLn = sqrt(log((sigN*sigN/(muN*muN))+1.0)),
+        sigLn = sqrt(log((sigN*sigN/(muN*muN))+1.)),
         muLn  = log(muN)-0.5*sigLn*sigLn;
       diameter = exp(pillaz_RandomGaussian(muLn,sigLn));
 
@@ -2142,33 +2104,25 @@ void pillaz::pillaz_SetElementGeometry(int numDim, PILLAZ_LOCAL_ENTITY_VARIABLES
 }
 
 
-void pillaz::pillaz_SolveGaussSeidel(int numDim, double **mat, double *s, double *rhs)
+void pillaz::pillaz_SolveGaussSeidel(const std::vector< std::vector< double > > &mat, std::vector< double > &sol, const std::vector< double > & rhs)
 {
-  int idim,jdim;
-  double errLoc,errMax,sOld[numDim];
+  std::vector< double > old(sol);
 
-  for(idim=0; idim<numDim; idim++){
-    sOld[idim] = s[idim];
-  }
-
-  do{
-    errMax = 0.0;
-    for(idim=0; idim<numDim; idim++){
-      s[idim] = 0.0;
-      for(jdim=0; jdim<numDim; jdim++){
-        if(jdim<idim){
-          s[idim] += mat[idim][jdim]*s[jdim];
-        }
-        if(jdim>idim){
-          s[idim] += mat[idim][jdim]*sOld[jdim];
-        }
+  double errMax;
+  do {
+    errMax = 0.;
+    for (size_t i=0; i<mat.size(); ++i) {
+      sol[i] = 0.;
+      for (size_t j=0; j<mat[i].size(); ++j) {
+        if(j<i)  sol[i] += mat[i][j]*sol[j];
+        if(j>i)  sol[i] += mat[i][j]*old[j];
       }
-      s[idim] = (rhs[idim]-s[idim])/mat[idim][idim];
-      errLoc = std::abs(s[idim]-sOld[idim]);
-      if(errLoc>errMax){errMax = errLoc;}
-      sOld[idim] = s[idim];
+      sol[i] = (rhs[i]-sol[i])/mat[i][i];
+      old[i] = sol[i];
+      errMax = std::max(errMax,std::abs(sol[i] - old[i]));
     }
-  }while(errMax>1e-6);
+  }
+  while (errMax>1e-6);
 }
 
 
@@ -2205,8 +2159,8 @@ void pillaz::pillaz_WallBounce(int numDim, double elasticity, PILLAZ_LOCAL_ENTIT
 
   //***Mirror position and velocity vectors on wall segment***//
   for(idim=0; idim<numDim; idim++){
-    ent->pos[idim] = ent->pos[idim]-2.0*wallDistancePositionVector*unitVec[idim];
-    ent->vel[idim] = ent->vel[idim]-2.0*wallDistanceVelocityVector*unitVec[idim]-ent->pos[idim];
+    ent->pos[idim] = ent->pos[idim]-2.*wallDistancePositionVector*unitVec[idim];
+    ent->vel[idim] = ent->vel[idim]-2.*wallDistanceVelocityVector*unitVec[idim]-ent->pos[idim];
   }
 }
 
