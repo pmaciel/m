@@ -2,6 +2,7 @@
 #define __MLOG_H__
 
 
+#include <ctime>
 #include <sstream>
 #include <vector>
 
@@ -25,7 +26,7 @@ struct LogChannel
     const std::string& tim,
     const std::string& msg ) = 0;
   virtual void indent  (const std::string& name="") {}
-  virtual void deindent(const std::string& name="") {}
+  virtual void deindent(const float& duration=0.f)  {}
 };
 
 
@@ -57,7 +58,7 @@ class LogChannelXML : public LogChannelStream
     const std::string& tim,
     const std::string& m );
   void indent  (const std::string &name="");
-  void deindent(const std::string &name="");
+  void deindent(const float& duration=0.f);
 };
 
 
@@ -74,6 +75,7 @@ extern nl;
 struct scope {
   scope(const std::string& name="");
   ~scope();
+  clock_t begin;
 };
 
 
@@ -100,7 +102,7 @@ class facility {
 
   /// Apply indentation/deindentation (and notify channels)
   void indent(const std::string& name);
-  void deindent();
+  void deindent(const float& duration=0.f);
 
  public:
 
@@ -113,9 +115,6 @@ class facility {
   /// Defer operator<< to the internal stream
   template< typename T >
   facility& operator<<(const T& t) { m_stream << (t); return instance(); }
-
-  /// Access internal stream (for convenience with boost::progress)
-  static std::ostream& stream() { return instance().m_stream; }
 
  private:
 

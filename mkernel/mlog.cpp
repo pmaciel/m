@@ -1,16 +1,15 @@
 
-#include <ctime>
 #include "mlog.h"
 
 
 // text format: number of spaces per indentation and time stamp
 // ('clock' [0] is over 50% faster than 'date' [1])
 #define MLOG_INDENT_SIZE    2
-#define MLOG_TIMESTAMP_DATE 1
+#define MLOG_TIMESTAMP_DATE 0
 
 // error/warning messages exception throw integer value ([0] doesn't throw)
-#define MLOG_MESSAGE_ERROR_THROWS 1
-#define MLOG_MESSAGE_WARN_THROWS  0
+#define MLOG_MESSAGE_ERROR_THROWS 42
+#define MLOG_MESSAGE_WARN_THROWS   0
 
 
 namespace mlog {
@@ -39,11 +38,11 @@ namespace mlog {
       c->second->indent(m_indent.back());
   }
 
-  void facility::deindent()
+  void facility::deindent(const float& duration)
   {
     if (m_indent.size()) {
       for (t_lvl_channel_it c=m_channels.begin(); c!=m_channels.end(); ++c)
-        c->second->deindent(m_indent.back());
+        c->second->deindent(duration);
       m_indent.pop_back();
     }
   }
@@ -79,10 +78,12 @@ namespace mlog {
   // logging manipulator: implementation of stream flushing (new line)
   void log_manip_nl::operator()(facility& l)
   {
+    std::ostringstream& s = l.m_stream;
+
     // provide indentation and message
     const size_t indent(l.m_indent.size() * MLOG_INDENT_SIZE);
-    const std::string msg(l.m_stream.str());
-    l.m_stream.str("");
+    const std::string msg(s.str());
+    s.str("");
 
     // provide a time stamp
 #if MLOG_TIMESTAMP_DATE
@@ -91,9 +92,17 @@ namespace mlog {
     strftime(systime_cptr,22,"[%Y/%m/%d %H:%M:%S]",localtime(&systime_time));
     const std::string timestamp(systime_cptr);
 #else
-    l.m_stream << double(clock())/CLOCKS_PER_SEC;
-    const std::string timestamp("[" + l.m_stream.str() + "s]");
-    l.m_stream.str("");
+    const std::istream::fmtflags old_flags = s.setf(std::istream::right | std::istream::fixed);
+    const std::streamsize        old_prec  = s.precision(2),
+                                 old_width = s.width(8);
+
+    s << float(clock())/CLOCKS_PER_SEC;
+    const std::string timestamp("[" + s.str() + "s]");
+    s.str("");
+
+    s.flags    (old_flags);
+    s.precision(old_prec);
+    s.width    (old_width);
 #endif
 
     // broadcast on registered channels, according to their levels
@@ -110,8 +119,14 @@ namespace mlog {
 
 
   // implementation of scope notification cons/destructor
-  scope::scope(const std::string& name) { facility::instance().indent(name); }
-  scope::~scope()                       { facility::instance().deindent();   }
+  scope::scope(const std::string& name) : begin(clock())
+  {
+    facility::instance().indent(name);
+  }
+  scope::~scope()
+  {
+    facility::instance().deindent(float(clock()-begin)/CLOCKS_PER_SEC);
+  }
 
 
   // channels: implementation of included stream channel member function
@@ -140,9 +155,10 @@ namespace mlog {
   {
     s <<  "<scope" << (name.length()? " name=\""+name+'"':"") << '>' << std::endl;
   }
-  void LogChannelXML::deindent(const std::string &name)
+  void LogChannelXML::deindent(const float& duration)
   {
-    s << "</scope>" << std::endl;
+    s << "<scope duration=\"" << duration << "s\"/>" << '\n'
+      << "</scope>" << std::endl;
   }
 
 
