@@ -26,7 +26,7 @@ void ls_gauss::solve()
     // put row with highest diagonal element on top
     C = A(m,m);
     for (unsigned n=m+1; n<N; n++) {
-      if (abs(A(n,m)) > abs(C)) {
+      if (std::fabs(A(n,m)) > std::fabs(C)) {
         for (unsigned p=m; p<N; p++) {
           C = A(m,p);
           A(m,p) = A(n,p);
@@ -40,8 +40,8 @@ void ls_gauss::solve()
     }
 
     // check if diagonal element is (close to) zero
-    if (std::abs(C)<1.e-32) {
-      std::cerr << "error: matrix is singular (line:" << m << ",C:" << std::abs(C) << ")" << std::endl;
+    if (std::fabs(C)<1.e-32) {
+      std::cerr << "error: matrix is singular (line:" << m << ",C:" << std::fabs(C) << ")" << std::endl;
       throw 42;
     }
 
