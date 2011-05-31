@@ -7,7 +7,8 @@ using namespace std;
 using namespace m;
 
 
-Register< mfinput,f_miotras >  mf_miotras1(".grid","Miotras input format");
+Register< mfinput,f_miotras >  mf_miotras1(2,".grid","Miotras input format (mesh)",
+                                             ".flow","Miotras input format (mesh and solution)");
 Register< mfoutput,f_miotras > mf_miotras2(4,".miotras","Miotras output format",
                                              "","--miotras-boundaries [i:i:...] output boundary types",
                                              "","  0:insulator, 1:electrode, 2:wall, 3:inlet, 4:outlet",
@@ -26,91 +27,32 @@ const unsigned BCTypePriority[] = {
 
 void f_miotras::read(GetPot& o, mmesh& m)
 {
+  // try to access file
   const string fn(o.get(o.inc_cursor(),""));
   ifstream f(fn.c_str());
   if (!f) {
-    cerr << "error accessing file: \"" << fn << "\"" << endl;
+    cerr << "error accessing file: \"" << fn << "\"." << endl;
     throw 42;
   }
 
+  // detect line ending type, read first line to detect file type, and choose
+  // appropriate reading method
+  string
+    line,
+    line_cr;
+  getline(f,line,   '\n');  f.seekg(0,ios::beg);
+  getline(f,line_cr,'\r');  f.seekg(0,ios::beg);
+  if (line.length()>line_cr.length())
+    line = line_cr;
 
-  unsigned dummy, Nnode, Nelem, Nbelem;
-  string s;
-
-  // skip 4 initial lines
-  for (int i=0; i<4; ++i)
-    getline(f,s);
-
-  // allocate memory for node coordinates
-  {
-    getline(f,s);
-    istringstream ss(s);
-    ss >> Nnode;
-    m.vv.assign(2,vector< double >(Nnode,0.));
-    m.vn.resize(2);
-    m.vn[0] = "x";
-    m.vn[1] = "y";
+  if      (line=="Miotras Genereated Grid") read_grid(f,m);
+  else if (line=="Fluid flow witk k-omega") read_flow(f,m);
+  else {
+    cerr << "error: the provided file: \"" << fn << "\" is not of the expected format." << endl;
+    throw 42;
   }
 
-  // skip node zone flags
-  for (unsigned i=0; i<Nnode; ++i)
-    getline(f,s);
-
-  // read node coordinates
-  for (unsigned i=0; i<Nnode; ++i) {
-    getline(f,s);
-    istringstream ss(s);
-    for (unsigned d=0; d<2; ++d)
-      ss >> m.vv[d][i];
-  }
-
-  // set volume/boundary elements zone map
-  vector< unsigned > vezonemap;
-  {
-    getline(f,s);
-    istringstream ss1(s);
-    ss1 >> dummy >> Nelem >> Nbelem;
-
-    vezonemap.assign(Nelem+Nbelem,0);
-    for (unsigned i=0; i<Nelem+Nbelem; ++i) {
-      getline(f,s);
-      istringstream ss2(s);
-      ss2 >> vezonemap[i];
-    }
-  }
-
-  // read elements flags and allocate memory for zones
-  m.vz.resize(1+*max_element(vezonemap.begin(),vezonemap.end()));
-  melem e;
-  e.n.assign(3,0);
-  m.vz[0].n = "InnerCells";
-  m.vz[0].e2n.assign(Nelem,e);
-  m.vz[0].t = FETRIANGLE;
-  for (unsigned t=1; t<m.vz.size(); ++t) {
-    ostringstream name;
-    name << "boundary" << t;
-    e.n.assign(2,0);
-    m.vz[t].n = name.str();
-    m.vz[t].e2n.assign(count(vezonemap.begin(),vezonemap.end(),t),e);
-    m.vz[t].t = FELINESEG;
-  }
-
-  // read elements connectivity
-  vector< unsigned > vccounter(m.vz.size(),0); // element counter, per zone
-  for (unsigned i=0; i<vezonemap.size(); ++i) {
-    const unsigned c = vccounter[ vezonemap[i] ]++;
-    vector< unsigned >& en = m.vz[ vezonemap[i] ].e2n[ c ].n;
-    getline(f,s);
-    istringstream ss(s);
-    if (en.size()==3)
-      ss >> dummy >> dummy >> en[0] >> en[1] >> en[2];
-    else if (en.size()==2)
-      ss >> dummy >> dummy >> en[1] >> en[0];
-    for (unsigned j=0; j<en.size(); ++j)
-      --en[j];  // 0-based index
-  }
-  vezonemap.clear();
-
+  // close file
   f.close();
 }
 
@@ -346,6 +288,174 @@ void f_miotras::write(GetPot& o, const mmesh& m)
   fgrid.close();
   fflow.close();
   fdat.close();
+}
+
+
+void f_miotras::read_flow(std::ifstream& f, mmesh& m)
+{
+  unsigned dummy, Nnode, Nelem, Nbelem;
+  string s;
+
+  // skip initial line
+  getline(f,s);
+
+  // allocate memory for node coordinates and solution fields
+  {
+    getline(f,s);
+    istringstream ss(s);
+    ss >> Nnode;
+    m.vv.assign(7,vector< double >(Nnode,0.));
+    m.vn.resize(7);
+    m.vn[0] = "x";
+    m.vn[1] = "y";
+    m.vn[2] = "vx";
+    m.vn[3] = "vy";
+    m.vn[4] = "p";
+    m.vn[5] = "k";
+    m.vn[6] = "omega";
+  }
+
+  // read node coordinates and solution field
+  for (unsigned i=0; i<Nnode; ++i) {
+    getline(f,s);
+    istringstream ss(s);
+    ss >> dummy;
+    for (unsigned d=0; d<7; ++d)
+      ss >> m.vv[d][i];
+  }
+
+  // set volume/boundary elements zone map and connectivity lists
+  vector< unsigned > vezonemap;
+  vector< vector< unsigned > > veconn;
+  {
+    getline(f,s);
+    istringstream ss1(s);
+    ss1 >> dummy >> Nelem >> Nbelem;
+
+    vezonemap.assign(Nelem+Nbelem,0);
+    veconn.resize(Nelem+Nbelem);
+    for (unsigned i=0; i<Nelem+Nbelem; ++i) {
+      getline(f,s);
+      istringstream ss2(s);
+      ss2 >> vezonemap[i];
+
+      unsigned Nenode, n;
+      ss2 >> Nenode;
+      if (Nenode==2) {
+        veconn[i].resize(2);
+        ss2 >> n; veconn[i][1] = n-1;
+        ss2 >> n; veconn[i][0] = n-1;
+      }
+      else if (Nenode==3) {
+        veconn[i].resize(3);
+        ss2 >> n; veconn[i][0] = n-1;
+        ss2 >> n; veconn[i][1] = n-1;
+        ss2 >> n; veconn[i][2] = n-1;
+      }
+    }
+  }
+
+  // allocate memory for zones
+  m.vz.resize(1+*max_element(vezonemap.begin(),vezonemap.end()));
+  melem e;
+  m.vz[0].n = "InnerCells";
+  m.vz[0].e2n.reserve(Nelem);
+  m.vz[0].t = FETRIANGLE;
+  for (unsigned t=1; t<m.vz.size(); ++t) {
+    ostringstream name;
+    name << "boundary" << t;
+    e.n.assign(2,0);
+    m.vz[t].n = name.str();
+    m.vz[t].e2n.reserve(count(vezonemap.begin(),vezonemap.end(),t));
+    m.vz[t].t = FELINESEG;
+  }
+
+  // fill elements connectivity
+  for (unsigned ie=0; ie<Nelem+Nbelem; ++ie) {
+    m.vz[ vezonemap[ie] ].e2n.push_back(e);
+    m.vz[ vezonemap[ie] ].e2n.back().n.swap( veconn[ie] );
+  }
+}
+
+
+void f_miotras::read_grid(std::ifstream& f, mmesh& m)
+{
+  unsigned dummy, Nnode, Nelem, Nbelem;
+  string s;
+
+  // skip 4 initial lines
+  for (int i=0; i<4; ++i)
+    getline(f,s);
+
+  // allocate memory for node coordinates
+  {
+    getline(f,s);
+    istringstream ss(s);
+    ss >> Nnode;
+    m.vv.assign(2,vector< double >(Nnode,0.));
+    m.vn.resize(2);
+    m.vn[0] = "x";
+    m.vn[1] = "y";
+  }
+
+  // skip node zone flags
+  for (unsigned i=0; i<Nnode; ++i)
+    getline(f,s);
+
+  // read node coordinates
+  for (unsigned i=0; i<Nnode; ++i) {
+    getline(f,s);
+    istringstream ss(s);
+    for (unsigned d=0; d<2; ++d)
+      ss >> m.vv[d][i];
+  }
+
+  // set volume/boundary elements zone map
+  vector< unsigned > vezonemap;
+  {
+    getline(f,s);
+    istringstream ss1(s);
+    ss1 >> dummy >> Nelem >> Nbelem;
+
+    vezonemap.assign(Nelem+Nbelem,0);
+    for (unsigned i=0; i<Nelem+Nbelem; ++i) {
+      getline(f,s);
+      istringstream ss2(s);
+      ss2 >> vezonemap[i];
+    }
+  }
+
+  // read elements flags and allocate memory for zones
+  m.vz.resize(1+*max_element(vezonemap.begin(),vezonemap.end()));
+  melem e;
+  e.n.assign(3,0);
+  m.vz[0].n = "InnerCells";
+  m.vz[0].e2n.assign(Nelem,e);
+  m.vz[0].t = FETRIANGLE;
+  for (unsigned t=1; t<m.vz.size(); ++t) {
+    ostringstream name;
+    name << "boundary" << t;
+    e.n.assign(2,0);
+    m.vz[t].n = name.str();
+    m.vz[t].e2n.assign(count(vezonemap.begin(),vezonemap.end(),t),e);
+    m.vz[t].t = FELINESEG;
+  }
+
+  // read elements connectivity
+  vector< unsigned > vccounter(m.vz.size(),0); // element counter, per zone
+  for (unsigned i=0; i<vezonemap.size(); ++i) {
+    const unsigned c = vccounter[ vezonemap[i] ]++;
+    vector< unsigned >& en = m.vz[ vezonemap[i] ].e2n[ c ].n;
+    getline(f,s);
+    istringstream ss(s);
+    if (en.size()==3)
+      ss >> dummy >> dummy >> en[0] >> en[1] >> en[2];
+    else if (en.size()==2)
+      ss >> dummy >> dummy >> en[1] >> en[0];
+    for (unsigned j=0; j<en.size(); ++j)
+      --en[j];  // 0-based index
+  }
+  vezonemap.clear();
 }
 
 
