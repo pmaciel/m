@@ -46,7 +46,7 @@ void ls_samg::initialize(const std::vector< std::vector< unsigned > >& nz)
   char* nth = getenv("OMP_NUM_THREADS");
   char* lic = getenv("LM_LICENSE_FILE");
   cout << "info: number of threads: " << (nth? nth:"")            << " (OMP_NUM_THREADS: " << (nth? "":"not ") << "set)" << endl;
-  cout << "info: license file: "      << (lic? lic:"license.dat") << " (LM_LICENSE_FILE: " << (nth? "":"not ") << "set)" << endl;
+  cout << "info: license file: "      << (lic? lic:"license.dat") << " (LM_LICENSE_FILE: " << (lic? "":"not ") << "set)" << endl;
 }
 
 
