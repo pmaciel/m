@@ -16,7 +16,7 @@ using namespace std;
 using namespace m;
 
 
-Register< mtransform,t_ren > mt_ren(10,"-tren","[str] [int] renumber nodes using boost graph library,",
+Register< mtransform,t_ren > mt_ren(11,"-tren","[str] [int] renumber nodes using boost graph library,",
                                        "",     "with [str] method:",
                                        "",     "  \"rcm\"/\"cm\", for reversed/normal Cuthill-McKee, or",
                                        "",     "  \"rking\"/\"king\", for reversed/normal King, or",
@@ -25,7 +25,8 @@ Register< mtransform,t_ren > mt_ren(10,"-tren","[str] [int] renumber nodes using
                                        "",     "  [i] for start node i, or",
                                        "",     "  [-i] for automatic start node, or",
                                        "",     "  \"b\" for minimum bandwidth nodes, or",
-                                       "",     "  \"d\" for minimum degree node");
+                                       "",     "  \"d\" for minimum degree node, or",
+                                       "",     "  \"zone_name\" for starting nodes within zone");
 
 
 // auxiliary definitions
@@ -226,7 +227,8 @@ void t_ren::transform(GetPot& o, mmesh& m)
   cout << "info: set method." << endl;
 
 
-  int start = (int) Nnodes;
+  int start    = (int) Nnodes;
+  int fromzone = -1;
   if (o_node=="b") {
     unsigned min_b = Nnodes;
     cout << "info: finding minimum bandwidth..." << endl;
@@ -256,13 +258,43 @@ void t_ren::transform(GetPot& o, mmesh& m)
     cout << "info: finding minimum degree." << endl;
   }
   else {
-    // use given index instead
-    istringstream is(o_node);
-    is >> start;
+    // try zone names to see if one matches
+    for (unsigned iz=0; iz<m.z(); ++iz)
+      if (o_node==m.vz[iz].n)
+        fromzone = (int) iz;
+    if (fromzone>=0) {
+
+      cout << "info: finding minimum bandwidth (in zone)..." << endl;
+      unsigned min_b = Nnodes;
+
+      cout << "info: building zone node set..." << endl;
+      std::set< unsigned > nodeset;
+      for (unsigned ie=0; ie<m.e(fromzone); ++ie)
+        for (std::vector< unsigned >::const_iterator n=m.vz[fromzone].e2n[ie].n.begin(); n!=m.vz[fromzone].e2n[ie].n.end(); ++n)
+          nodeset.insert(*n);
+      cout << "info: building zone node set." << endl;
+
+      boost::progress_display pbar((unsigned long) nodeset.size());
+      for (std::set< unsigned >::const_iterator n=nodeset.begin(); n!=nodeset.end(); ++n, ++pbar) {
+        const unsigned calc_b = renumber->calc(new2old,old2new,*n,G);
+        if (calc_b<min_b) {
+          min_b = calc_b;
+          start = *n;
+        }
+      }
+      cout << "info: found s:" << start << " bw: " << min_b << endl;
+      cout << "info: finding minimum bandwidth (in zone)." << endl;
+
+    }
+    else {
+      // if no zones match, use given index instead
+      istringstream is(o_node);
+      is >> start;
+    }
   }
 
 
-  if (start>=(int) Nnodes) {
+  if (fromzone<0 && start>=(int) Nnodes) {
     cout << "warn: can't find start node, not renumbering." << endl;
     return;
   }
@@ -278,13 +310,10 @@ void t_ren::transform(GetPot& o, mmesh& m)
     ostringstream os;
     os << "renumbering  s:" << start << "  bw:" << orig_b << ">" << calc_b;
     cout << "info: " << os.str() << endl;
-    if (calc_b<orig_b) {
-      apply(old2new,m);
-      dump(f,os.str(),G,old2new);
-    }
-    else {
-      cout << "warn: bandwidth not improved, not renumbering." << endl;
-    }
+    if (calc_b>=orig_b)
+      cout << "warn: bandwidth not improved, but renumbering anyway." << endl;
+    apply(old2new,m);
+    dump(f,os.str(),G,old2new);
   }
   cout << "info: renumbering."  << endl;
 
