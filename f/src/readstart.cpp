@@ -94,8 +94,8 @@ void readstart(const std::string& ccase)
   iv_turb1 = (!turmod?      0 : Ncoupled + (temperature? 1:0));
   iv_turb2 = (!turmod?      0 : Ncoupled + (temperature? 1:0) + 1);
 
-  wall_functions = turmod==ITKEHR || turmod==ITKEHG || turmod==ITKWWF?                              1:0;
-  walldist       = turmod==ITKWHR || turmod==ITKWLR || turmod==ITKWPD || !turmod || wall_functions? 0:1;
+  wall_functions = turmod==ITKEHR || turmod==ITKEHG || turmod==ITKWWF? 1:0;
+  walldist       = turmod && !wall_functions?                          1:0;
 
 
   // <mitremassembler/>
