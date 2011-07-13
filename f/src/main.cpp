@@ -208,7 +208,7 @@ int main(int argc, char **argv)
               No_W[iv][Nobg[ig][inb].node] = No_W[iv][Nobg[ig][inb].twin];
     }
 
-    if (Jacobian>=0 && turmod) {
+    if (turmod) {
       if (turbulence_coupling==0)
         Update_turbulence_sequential();  /* Update_turbulence_uncoupled(); */
       else if (turbulence_coupling==1) {
