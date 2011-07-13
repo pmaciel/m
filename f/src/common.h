@@ -105,7 +105,7 @@ void scacde(int ic, int iv, local_node_struct *No_loc, double vol, int inc_min, 
 void turb_init(ITid model);
 void turb_source_D(int model, double k, double turb2, double nu_l, double wd, double len, double gradkw, double *source_k, double *source_ew, double *deriv_k, double *deriv_ew, double *deriv_kew, double *deriv_ewk);
 void turb_source_node();
-void turb_source_P(int model, double k, double turb2, double nu_t, double nu_l, double wd, double G, double gradkw, double *source_k, double *source_ew, double v2);
+void turb_source_P(int model, double k, double turb2, double nu_t, double nu_l, double wd, double G, double gradkw, double *source_k, double *source_ew);
 double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, double vol);
 void turb_wallbc(int iv1, int iv2, LS *ls1, LS *ls2);
 void turb_wfuncs(double *res);

@@ -13,8 +13,7 @@ void turb_source_P(
   double G,
   double gradkw,
   double *source_k,
-  double *source_ew,
-  double v2 )
+  double *source_ew )
 {
   double Pk;
   double fmu;

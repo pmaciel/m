@@ -89,10 +89,9 @@ void turb_source_node()
         No_dkdw[No_loc[inc].node] += dkdw*vol/dNvtcell;
     }
 
-    double v2turb = 0.;
     double SP1 = 0.;
     double SP2 = 0.;
-    turb_source_P(turmod,kturb,turb2,nuturb,nulam,dwall,Gfunc,dkdw,&SP1,&SP2,v2turb);
+    turb_source_P(turmod,kturb,turb2,nuturb,nulam,dwall,Gfunc,dkdw,&SP1,&SP2);
 
     /* Add cell-based sources and Jacobian entries */
     for (int inc=0; inc<Nvtcell; ++inc) {
