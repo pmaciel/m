@@ -32,7 +32,7 @@ class RealVector : public std::vector< double >
 
   // unary minus operator
   const RealVector& operator-() {
-    for (size_t i=0; i<size(); ++i)
+    for (std::size_t i=0; i<size(); ++i)
       operator[](i) = - operator[](i);
     return *this;
   }
@@ -40,9 +40,9 @@ class RealVector : public std::vector< double >
   // binary operator on RealVector implementations, returning new RealVector
 #define REALVECTOR_OP_REALVECTOR(__op__) \
   RealVector operator __op__ (const RealVector& other) { \
-    const size_t s = std::min(size(),other.size()); \
+    const std::size_t s = std::min(size(),other.size()); \
     RealVector r(0.,s); \
-    for (size_t i=0; i<s; ++i) \
+    for (std::size_t i=0; i<s; ++i) \
       r[i] = operator[](i) __op__ other[i]; \
     return r; \
   }
@@ -55,8 +55,8 @@ REALVECTOR_OP_REALVECTOR(/)
   // binary operator on RealVector implementations, returning this RealVector
 #define REALVECTOR_OP_REALVECTOR(__op__) \
   const RealVector& operator __op__ (const RealVector& v) { \
-    const size_t s = std::min(size(),v.size()); \
-    for (size_t i=0; i<s; ++i) \
+    const std::size_t s = std::min(size(),v.size()); \
+    for (std::size_t i=0; i<s; ++i) \
       operator[](i) __op__ v[i]; \
     return *this; \
   }
@@ -71,7 +71,7 @@ REALVECTOR_OP_REALVECTOR(/=)
 #define REALVECTOR_OP_REAL(__op__) \
   RealVector operator __op__ (const double& v) { \
     RealVector r(0.,size()); \
-    for (size_t i=0; i<size(); ++i) \
+    for (std::size_t i=0; i<size(); ++i) \
       r[i] = operator[](i) __op__ v; \
     return r; \
   }
@@ -84,7 +84,7 @@ REALVECTOR_OP_REAL(/)
   // binary operator on double implementations, returning this RealVector
 #define REALVECTOR_OP_REAL(__op__) \
   const RealVector& operator __op__ (const double& v) { \
-    for (size_t i=0; i<size(); ++i) \
+    for (std::size_t i=0; i<size(); ++i) \
       operator[](i) __op__ v; \
     return *this; \
   }

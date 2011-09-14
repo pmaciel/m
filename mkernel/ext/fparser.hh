@@ -1,5 +1,5 @@
 /***************************************************************************\
-|* Function Parser for C++ v4.2                                            *|
+|* Function Parser for C++ v4.4                                            *|
 |*-------------------------------------------------------------------------*|
 |* Copyright: Juha Nieminen, Joel Yliluoma                                 *|
 |*                                                                         *|
@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-#ifdef FUNCTIONPARSER_SUPPORT_DEBUG_OUTPUT
+#ifdef FUNCTIONPARSER_SUPPORT_DEBUGGING
 #include <iostream>
 #endif
 
@@ -29,7 +29,7 @@ namespace FPoptimizer_CodeTree { template<typename Value_t> class CodeTree; }
 template<typename Value_t>
 class FunctionParserBase
 {
-public:
+ public:
     enum ParseErrorType
     {
         SYNTAX_ERROR=0, MISM_PARENTH, MISSING_PARENTH, EMPTY_PARENTH,
@@ -51,15 +51,19 @@ public:
     void setDelimiterChar(char);
 
     const char* ErrorMsg() const;
-    inline ParseErrorType GetParseErrorType() const { return parseErrorType; }
+    ParseErrorType GetParseErrorType() const;
 
     Value_t Eval(const Value_t* Vars);
-    inline int EvalError() const { return evalErrorType; }
+    int EvalError() const;
 
     bool AddConstant(const std::string& name, Value_t value);
     bool AddUnit(const std::string& name, Value_t value);
 
+#ifndef FP_USER_DEFINED_FUNCTION_TYPE
     typedef Value_t (*FunctionPtr)(const Value_t*);
+#else
+    typedef FP_USER_DEFINED_FUNCTION_TYPE;
+#endif
 
     bool AddFunction(const std::string& name,
                      FunctionPtr, unsigned paramsAmount);
@@ -94,32 +98,39 @@ public:
     void ForceDeepCopy();
 
 
-#ifdef FUNCTIONPARSER_SUPPORT_DEBUG_OUTPUT
-    // For debugging purposes only:
+
+#ifdef FUNCTIONPARSER_SUPPORT_DEBUGGING
+    // For debugging purposes only.
+    // Performs no sanity checks or anything. If the values are wrong, the
+    // library will crash. Do not use unless you know what you are doing.
+    void InjectRawByteCode(const unsigned* bytecode, unsigned bytecodeAmount,
+                           const Value_t* immed, unsigned immedAmount,
+                           unsigned stackSize);
+
     void PrintByteCode(std::ostream& dest, bool showExpression = true) const;
 #endif
 
 
 
 //========================================================================
-private:
+ protected:
 //========================================================================
+    // A derived class can implement its own evaluation logic by using
+    // the parser data (found in fptypes.hh).
+    struct Data;
+    Data* getParserData();
 
-// Private data:
-// ------------
-    char delimiterChar;
-    ParseErrorType parseErrorType;
-    int evalErrorType;
+
+//========================================================================
+ private:
+//========================================================================
 
     friend class FPoptimizer_CodeTree::CodeTree<Value_t>;
 
-    struct Data;
-    Data* data;
-
-    bool useDegreeConversion;
-    unsigned evalRecursionLevel;
-    unsigned StackPtr;
-    const char* errorLocation;
+// Private data:
+// ------------
+    Data* mData;
+    unsigned mStackPtr;
 
 
 // Private methods:
@@ -151,11 +162,26 @@ private:
     inline const char* CompileFunction(const char*, unsigned);
     inline const char* CompileParenthesis(const char*);
     inline const char* CompileLiteral(const char*);
+    template<bool SetFlag>
+    inline void PushOpcodeParam(unsigned);
+    template<bool SetFlag>
+    inline void PutOpcodeParamAt(unsigned, unsigned offset);
+    const char* Compile(const char*);
+
+protected:
+    // Parsing utility functions
+    static std::pair<const char*, Value_t> ParseLiteral(const char*);
+    static unsigned ParseIdentifier(const char*);
 };
 
 class FunctionParser: public FunctionParserBase<double> {};
 class FunctionParser_f: public FunctionParserBase<float> {};
 class FunctionParser_ld: public FunctionParserBase<long double> {};
 class FunctionParser_li: public FunctionParserBase<long> {};
+
+#include <complex>
+class FunctionParser_cd: public FunctionParserBase<std::complex<double> > {};
+class FunctionParser_cf: public FunctionParserBase<std::complex<float> > {};
+class FunctionParser_cld: public FunctionParserBase<std::complex<long double> > {};
 
 #endif
