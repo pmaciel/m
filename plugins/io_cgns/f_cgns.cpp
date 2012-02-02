@@ -7,8 +7,8 @@ using namespace std;
 using namespace m;
 
 
-Register< mfinput,f_cgns  > mf_cgns1(".cgns","CGNS input format");
-Register< mfoutput,f_cgns > mf_cgns2(".cgns","CGNS output format");
+Register< mfinput, f_cgns > mf_cgns1(".cgns","CGNS input format (MARIN, GridPro and Hexpress variants)");
+Register< mfoutput,f_cgns > mf_cgns2(".cgns","CGNS output format (MARIN variant)");
 
 
 void f_cgns::read(GetPot& o,mmesh& m)
