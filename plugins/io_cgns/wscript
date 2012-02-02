@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  conf.env.m_mlibraries.append('io_cgns')
+
+
+def build(bld):
+  bld.shlib(
+    target   = 'io_cgns',
+    includes = ['../../mkernel'],
+    source   = ['f_cgns.cpp'] )
+
