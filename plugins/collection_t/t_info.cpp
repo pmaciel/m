@@ -14,7 +14,11 @@ void t_info::transform(GetPot& o, mmesh& m)
   using std::cout;
   using std::endl;
 
-  cout << "  mesh:  d=" << m.d() << "  n=" << m.n() << "  v=" << m.v() << endl;
+  cout << "  mesh:"
+       << "  d=" << m.d()
+       << "  n=" << m.n()
+       << "  v=" << m.v()
+       << "  z=" << m.z() << endl;
   for (unsigned t=0; t<m.v(); ++t)
     cout << "  variable[" << t << "]: \"" << m.vn[t] << "\"" << endl;
   for (unsigned t=0; t<m.z(); ++t)
