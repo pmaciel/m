@@ -22,9 +22,9 @@ ElectrolyteModel::~ElectrolyteModel()
 {
 }
 //---------------------------------------------------------------------------
-void ElectrolyteModel::init(bool verbose)
+void ElectrolyteModel::init(bool verbose_)
 {
-  this->verbose = verbose;
+  this->verbose = verbose_;
   T = electrolyteSolution->getSolutionTemperature();
 }
 //---------------------------------------------------------------------------

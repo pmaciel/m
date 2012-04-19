@@ -210,9 +210,9 @@ inline double MITReM::getSolutionPotential() const
   return electrolyteSolution->getSolutionPotential();
 }
 //---------------------------------------------------------------------------
-inline void MITReM::setConductivity(double conductivity)
+inline void MITReM::setConductivity(double conductivity_)
 {
-  this->conductivity = conductivity;
+  this->conductivity = conductivity_;
   setConductivityCorrectionFactor();
 }
 //---------------------------------------------------------------------------

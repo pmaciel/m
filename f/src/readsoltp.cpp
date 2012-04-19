@@ -11,7 +11,7 @@
  * comparison of boundary element with "inner cells" connectivity, returning the
  * "inner cell" index and respective opposite node global/local indices.
  * note: it only checks cells which touch a boundary
- * @param[in] e2n "inner" connectivity
+ * @param[in] e2n_ "inner" connectivity
  * @param[in] e2n_isbnd marker for cells sitting on the boundary
  * @param[in] ben boundary element to compare
  * @param[out] bcell "inner" corresponding cell (0-based)
@@ -19,15 +19,15 @@
  * @param[out] binc ... cell opposite node, local index (0-based)
  */
 void fab(
-  const std::vector< m::melem >& e2n, const std::vector< bool >& e2n_isbnd,
+  const std::vector< m::melem >& e2n_, const std::vector< bool >& e2n_isbnd,
   const std::vector< unsigned >& ben,
   int *bcell, int *bnode, int *binc )
 {
   bool match = false;
-  for (unsigned c=0; c<e2n.size() && !match; ++c) {
+  for (unsigned c=0; c<e2n_.size() && !match; ++c) {
     if (!e2n_isbnd[c])
       continue;
-    const std::vector< unsigned >& cell = e2n[c].n;
+    const std::vector< unsigned >& cell = e2n_[c].n;
 
     // check for "inner" element matching all nodes from the boundary element
     int n_match = 0;
@@ -279,9 +279,9 @@ void readsoltp(const std::string& infile, int read_soln)
         nz[ en[i] ].push_back( en[j] );
         nz[ en[j] ].push_back( en[i] );
         if (periodic) {
-          const vector< unsigned >& en = e2n_periodic[c].n;
-          nz[ en[i] ].push_back( en[j] );
-          nz[ en[j] ].push_back( en[i] );
+          const vector< unsigned >& peren = e2n_periodic[c].n;
+          nz[ peren[i] ].push_back( peren[j] );
+          nz[ peren[j] ].push_back( peren[i] );
         }
       }
   }
@@ -852,8 +852,7 @@ void readsoltp(const std::string& infile, int read_soln)
 
     cout << "wall functions: find nearest wall node (assumed to be neighbour)..." << endl;
     WFnodes.resize(Nwfnode);  // allocate
-    int inwf=-1;
-    for (int inu=0; inu<Nnode; inu++)
+    for (int inu=0, inwf=-1; inu<Nnode; inu++) {
       if (BCgroup[No_group[inu]].type==IBWLFN) {
         inwf++;
         WFnodes[inwf].node = inu;
@@ -876,6 +875,7 @@ void readsoltp(const std::string& infile, int read_soln)
           }
         }
       }
+    }
     cout << "wall functions: find nearest wall node (assumed to be neighbour)." << endl;
 
 

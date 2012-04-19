@@ -56,20 +56,20 @@ private :
 
 
 //--- SET METHODS -----------------------------------------------------------
-inline void HomReactionFit::setMinimumEquilibriumConstant(double KMin)
+inline void HomReactionFit::setMinimumEquilibriumConstant(double KMin_)
 {
-  this->KMin = KMin;
+  this->KMin = KMin_;
 }
 //---------------------------------------------------------------------------
-inline void HomReactionFit::setMaximumEquilibriumConstant(double KMax)
+inline void HomReactionFit::setMaximumEquilibriumConstant(double KMax_)
 {
-  this->KMax = KMax;
+  this->KMax = KMax_;
 }
 //---------------------------------------------------------------------------
-inline void HomReactionFit::setEquilibriumConstant(double K)
+inline void HomReactionFit::setEquilibriumConstant(double K_)
 {
-  this->K = K;
-  homReactionReference.electrolyte->setHomReactionEquilibriumConstant(homReactionReference.reactionIndex,K);
+  this->K = K_;
+  homReactionReference.electrolyte->setHomReactionEquilibriumConstant(homReactionReference.reactionIndex,K_);
 }
 //---------------------------------------------------------------------------
 

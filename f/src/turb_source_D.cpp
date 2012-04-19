@@ -25,7 +25,6 @@ void turb_source_D(
   double fk;
   double T;
   double F1;
-  double Beta;
 
   if ( model==ITKELB ) {
     Rt = k*k/(nu_l*turb2) ;
@@ -109,24 +108,24 @@ void turb_source_D(
     F1 = F1_function(k,turb2,nu_l,wd,gradkw) ;
     if ( iter<=turb_iterinit)
       F1 = 1. ;
-    Beta = F1*Beta1 + (1.-F1)*Beta2 ;
+    const double Beta_ = F1*Beta1 + (1.-F1)*Beta2 ;
 
     *source_k  = -Betas*k*turb2 ;
-    *source_ew = -Beta*turb2*turb2 ;
+    *source_ew = -Beta_*turb2*turb2 ;
 
     *deriv_k  = -Betas*turb2 ;
-    *deriv_ew = -2.*Beta*turb2 ;
+    *deriv_ew = -2.*Beta_*turb2 ;
     *deriv_kew = -Betas*k ;
   }
   else if ( model==ITKWSS ) {
     F1 = F1_function(k,turb2,nu_l,wd,gradkw) ;
-    Beta = F1*Beta1 + (1.-F1)*Beta2 ;
+    const double Beta_ = F1*Beta1 + (1.-F1)*Beta2 ;
 
     *source_k  = -Betas*k*turb2 ;
-    *source_ew = -Beta*turb2*turb2 ;
+    *source_ew = -Beta_*turb2*turb2 ;
 
     *deriv_k  = -Betas*turb2 ;
-    *deriv_ew = -2.*Beta*turb2 ;
+    *deriv_ew = -2.*Beta_*turb2 ;
     *deriv_kew = -Betas*k ;
   }
 

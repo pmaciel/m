@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, double vol)
+double turb_viscosity(local_node_struct *No_loc, int turmod_, int cell_type, double vol)
 {
   double nuturb = 0.;
   double eturb  = 0.;
@@ -40,25 +40,25 @@ double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, doub
   kturb /= dNvtcell;
   turb2 /= dNvtcell;
 
-  if ( (turmod/10)==ITMGKE )
+  if ( (turmod_/10)==ITMGKE )
     eturb=turb2;
-  else if ( (turmod/10)==ITMGKW )
+  else if ( (turmod_/10)==ITMGKW )
     wturb=turb2;
 
 /* Calculate cell-average turbulent viscosity */
-  if ( turmod==ITKEHR || turmod==ITKEHG ) {       /* high-Re k-e model */
+  if ( turmod_==ITKEHR || turmod_==ITKEHG ) {       /* high-Re k-e model */
     if ( cell_type==1 )
       nuturb = 0. ;
     else
       nuturb = Cmu*kturb*kturb/eturb ;
   }
-  else if ( turmod==ITKE2L ) {                    /* two-layer model */
+  else if ( turmod_==ITKE2L ) {                    /* two-layer model */
     Ry = sqrt(kturb)*dwallc/nulam ;
     nuturb = Cmu*kturb*kturb/eturb ;
     if ( nuturb/nulam<20.0 )
       nuturb = pow(Cmu,0.25)*sqrt(kturb)*0.41*dwallc*(1.-exp(-Ry/70.0)) ;
   }
-  else if ( turmod==ITKELB ) {                    /* Lam-Bremhorst */
+  else if ( turmod_==ITKELB ) {                    /* Lam-Bremhorst */
     Rt = kturb*kturb/(nulam*eturb) ;
     Ry = sqrt(kturb)*dwallc/nulam ;
 
@@ -67,7 +67,7 @@ double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, doub
 
     nuturb = fmu*Cmu*kturb*kturb/eturb ;
   }
-  else if ( turmod==ITKENA ) {                    /* Abe-Kondoh-Nagano */
+  else if ( turmod_==ITKENA ) {                    /* Abe-Kondoh-Nagano */
     ystar = pow(nulam*eturb,0.25)*dwallc/nulam ;
     Rt = kturb*kturb/(nulam*eturb) ;
 
@@ -76,20 +76,20 @@ double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, doub
 
     nuturb = Cmu*fmu*kturb*kturb/eturb ;
   }
-  else if ( turmod==ITKELS ) {                    /* Launder-Sharma (Durbin version) */
+  else if ( turmod_==ITKELS ) {                    /* Launder-Sharma (Durbin version) */
     kturb = std::max< double >(1.e-10,kturb) ;
     eturb = std::max< double >(1.e-10,eturb) ;
     T = std::max< double >(kturb/eturb,6.0*sqrt(nulam/eturb)) ;
     fmu = 1.-exp(-0.01*std::abs(kturb*T/nulam)) ;
     nuturb = 0.09*kturb*T*fmu ; // should be Cmu, but Cmu=0.19 for ITKELS?
   }
-  else if ( turmod==ITKWHR || turmod==ITKWWF ) {  /* Standard k-w model */
+  else if ( turmod_==ITKWHR || turmod_==ITKWWF ) {  /* Standard k-w model */
     nuturb = kturb/wturb ;
   }
-  else if ( turmod==ITKWBS ) {                    /* k-w BSL model */
+  else if ( turmod_==ITKWBS ) {                    /* k-w BSL model */
     nuturb = kturb/wturb ;
   }
-  else if ( turmod==ITKWSS ) {                    /* k-w SST model */
+  else if ( turmod_==ITKWSS ) {                    /* k-w SST model */
     double gradv[3][3];
     for (int i=0; i<3; ++i)
       for (int j=0; j<3; ++j)
@@ -112,12 +112,12 @@ double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, doub
     F2 = tanh(arg2*arg2) ;
     nuturb = A1*kturb/std::max< double >(A1*wturb,Omega*F2) ;
   }
-  else if ( turmod==ITKWLR ) {                    /* Low-Re k-w model */
+  else if ( turmod_==ITKWLR ) {                    /* Low-Re k-w model */
     Rt     = kturb/(nulam*wturb) ;
     fmu = (0.15+Rt)/(6.0+Rt) ;
     nuturb = fmu*kturb/wturb ;
   }
-  else if ( turmod==ITKWPD ) {                    /* Peng-Davidson-Holmberg k-w model */
+  else if ( turmod_==ITKWPD ) {                    /* Peng-Davidson-Holmberg k-w model */
     Rt     = kturb/(nulam*wturb) ;
     fmu    = pow(0.1*Rt,0.75) ;
     fmu    = 1. - exp(-fmu) ;
@@ -128,10 +128,10 @@ double turb_viscosity(local_node_struct *No_loc, int turmod, int cell_type, doub
   else
     nrerror("Turbulence model not defined !!!\n") ;
 
-  if (turmod/10==ITMGKE && iter<=turb_iterinit && !wall_functions)
+  if (turmod_/10==ITMGKE && iter<=turb_iterinit && !wall_functions)
     nuturb = 1.125*fmu*sqrt(kturb)*len;
 
-  if (turmod/10==ITMGKW && iter<=turb_iterinit)
+  if (turmod_/10==ITMGKW && iter<=turb_iterinit)
     nuturb = 1000.0*nulam ;
 
   return(nuturb) ;

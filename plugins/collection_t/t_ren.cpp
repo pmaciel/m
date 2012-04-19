@@ -48,7 +48,7 @@ struct renumber {
     // outputs: bandwidth, renumbering maps new-to-old and old-to-new,
     // inputs: start node (negative for automatic) and mesh graph
     vector< unsigned >& B2A, vector< unsigned >& A2B,
-    const int start, Graph& G ) = 0;
+    const int start, RenumberingGraph& G ) = 0;
   virtual void adjustperm(vector< unsigned >& perm) {}
 };
 
@@ -56,7 +56,7 @@ struct renumber {
 // renumbering method: Cuthill-McKee
 struct ren_rcm : renumber {
   unsigned calc( vector< unsigned >& B2A, vector< unsigned >& A2B,
-    const int start, Graph& G )
+    const int start, RenumberingGraph& G )
   {
     // calculate permutation (B2A)
     for (unsigned i=0; i<B2A.size(); ++i)
@@ -85,12 +85,12 @@ struct ren_rcm : renumber {
 // renumbering method: King
 struct ren_rking : renumber {
   unsigned calc( vector< unsigned >& B2A, vector< unsigned >& A2B,
-    const int start, Graph& G )
+    const int start, RenumberingGraph& G )
   {
     // calculate permutation (B2A)
     for (unsigned i=0; i<B2A.size(); ++i)
       B2A[i] = i;
-    boost::property_map< Graph,vertex_index_t >::type index_map =
+    boost::property_map< RenumberingGraph,vertex_index_t >::type index_map =
       get(vertex_index,G);
     if (start<0) {
       boost::king_ordering( G,
@@ -131,7 +131,7 @@ void t_ren::transform(GetPot& o, mmesh& m)
   cout << "info: building graph..." << endl;
 #if 1
   const unsigned Nnodes = m.n();
-  Graph G(Nnodes);
+  RenumberingGraph G(Nnodes);
 
   {
     vector< vector< unsigned > > M(Nnodes);
@@ -165,7 +165,7 @@ void t_ren::transform(GetPot& o, mmesh& m)
 #else
 #if 1 // test graph 1: small graph
   enum NODES {N1,N2,N3,N4,N5,N6,N7,N8,Nnodes};
-  Graph G(Nnodes);
+  RenumberingGraph G(Nnodes);
   boost::add_edge(N1,N5,G);
   boost::add_edge(N5,N3,G);
   boost::add_edge(N3,N2,G);
@@ -176,7 +176,7 @@ void t_ren::transform(GetPot& o, mmesh& m)
   boost::add_edge(N4,N5,G); // connects its two components
 #else // test graph 2: small graph, three disconnected components
   enum NODES {N1,N2,N3,N4,N5,N6,Nnodes};
-  Graph G(Nnodes);
+  RenumberingGraph G(Nnodes);
   boost::add_edge(N1,N2,G);
   boost::add_edge(N2,N5,G);
   boost::add_edge(N5,N1,G);
@@ -320,21 +320,21 @@ void t_ren::transform(GetPot& o, mmesh& m)
 }
 
 
-void t_ren::dump(ostream& o, const string& t, const Graph& G, const vector< unsigned >& A2B)
+void t_ren::dump(ostream& o, const string& t, const RenumberingGraph& G, const vector< unsigned >& A2B)
 {
   o << "ZONE T=\"" << t << "\" I="
     << boost::num_edges(G)*2 + boost::num_vertices(G)
     << endl;
 
   // upper/lower diagonal then diagonal entries
-  boost::graph_traits< Graph >::edge_iterator e, ef;
+  boost::graph_traits< RenumberingGraph >::edge_iterator e, ef;
   for (tie(e,ef) = boost::edges(G); e!=ef; ++e) {
     const int u = (int) A2B[ boost::source(*e,G) ];
     const int v = (int) A2B[ boost::target(*e,G) ];
     o << u << ' ' << -v << endl
       << v << ' ' << -u << endl;
   }
-  boost::graph_traits< Graph >::vertex_iterator v, vf;
+  boost::graph_traits< RenumberingGraph >::vertex_iterator v, vf;
   for (tie(v,vf) = boost::vertices(G); v!=vf; ++v) {
     const int u = (int) A2B[ *v ];
     o << u << ' ' << -u << endl;

@@ -101,24 +101,24 @@ private :
 
 
 //--- SOLUTION --------------------------------------------------------------
-inline void ElectrolyteSolution::setSolutionDensity(double solutionDensity)
+inline void ElectrolyteSolution::setSolutionDensity(double solutionDensity_)
 {
-  this->solutionDensity = solutionDensity;
+  this->solutionDensity = solutionDensity_;
 }
 //---------------------------------------------------------------------------
-inline void ElectrolyteSolution::setSolutionKinematicViscosity(double solutionKinematicViscosity)
+inline void ElectrolyteSolution::setSolutionKinematicViscosity(double solutionKinematicViscosity_)
 {
-  this->solutionKinematicViscosity = solutionKinematicViscosity;
+  this->solutionKinematicViscosity = solutionKinematicViscosity_;
 }
 //---------------------------------------------------------------------------
-inline void ElectrolyteSolution::setSolutionTemperature(double solutionTemperature)
+inline void ElectrolyteSolution::setSolutionTemperature(double solutionTemperature_)
 {
-  this->solutionTemperature = solutionTemperature;
+  this->solutionTemperature = solutionTemperature_;
 }
 //---------------------------------------------------------------------------
-inline void ElectrolyteSolution::setSolutionPotential(double solutionPotential)
+inline void ElectrolyteSolution::setSolutionPotential(double solutionPotential_)
 {
-  this->solutionPotential = solutionPotential;
+  this->solutionPotential = solutionPotential_;
 }
 //---------------------------------------------------------------------------
 inline double ElectrolyteSolution::getSolutionDensity() const
@@ -144,14 +144,14 @@ inline double ElectrolyteSolution::getSolutionPotential() const
 
 
 //--- SOLVENT ----------------------------------------------------------------
-inline void ElectrolyteSolution::setSolventDielectricConstant(double solventDielectricConst)
+inline void ElectrolyteSolution::setSolventDielectricConstant(double solventDielectricConst_)
 {
-  this->solventDielectricConst = solventDielectricConst;
+  this->solventDielectricConst = solventDielectricConst_;
 }
 //---------------------------------------------------------------------------
-inline void ElectrolyteSolution::setSolventDynamicViscosity(double solventDynamicViscosity)
+inline void ElectrolyteSolution::setSolventDynamicViscosity(double solventDynamicViscosity_)
 {
-  this->solventDynamicViscosity = solventDynamicViscosity;
+  this->solventDynamicViscosity = solventDynamicViscosity_;
 }
 //---------------------------------------------------------------------------
 inline double ElectrolyteSolution::getSolventDielectricConstant() const

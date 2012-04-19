@@ -56,9 +56,9 @@ ElectrolyteModel_DH::~ElectrolyteModel_DH()
   delete[] M;
 }
 //---------------------------------------------------------------------------
-void ElectrolyteModel_DH::init(bool verbose)
+void ElectrolyteModel_DH::init(bool verbose_)
 {
-  this->verbose = verbose;
+  this->verbose = verbose_;
   T = electrolyteSolution->getSolutionTemperature();
   viscosity = electrolyteSolution->getSolventDynamicViscosity();
   dielectricConstant = electrolyteSolution->getSolventDielectricConstant();
@@ -470,13 +470,13 @@ double ElectrolyteModel_DH::calcDiffusionFactor(unsigned i, unsigned j) const
   {
     contrib += c[l]*dlnf[l][j];
   }
-  double D = lm[i][j]/c[j];
+  double D_ = lm[i][j]/c[j];
   for (unsigned k=0; k<nIons; k++)
   {
-    D += lm[i][k]*(dlnf[k][j] + M[k]/Mscs*(1. + contrib));
+    D_ += lm[i][k]*(dlnf[k][j] + M[k]/Mscs*(1. + contrib));
   }
-  D *= R_CONST*T;
-  return D;
+  D_ *= R_CONST*T;
+  return D_;
 }
 //---------------------------------------------------------------------------
 // Wi = zi*F*ui

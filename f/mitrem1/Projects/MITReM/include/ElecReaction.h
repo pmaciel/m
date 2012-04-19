@@ -68,9 +68,9 @@ protected :
 
 
 //--- SET METHODS -----------------------------------------------------------
-inline void ElecReaction::setLabel (const std::string &label)
+inline void ElecReaction::setLabel (const std::string &label_)
 {
-  this->label = label;
+  this->label = label_;
 }
 //---------------------------------------------------------------------------
 inline void ElecReaction::setKinParam (unsigned index, double value)
@@ -78,9 +78,9 @@ inline void ElecReaction::setKinParam (unsigned index, double value)
   kineticParameters[index] = value;
 }
 //---------------------------------------------------------------------------
-inline void ElecReaction::setNElectrons (unsigned nElectrons)
+inline void ElecReaction::setNElectrons (unsigned nElectrons_)
 {
-  this->nElectrons = nElectrons;
+  this->nElectrons = nElectrons_;
 }
 //---------------------------------------------------------------------------
 inline void ElecReaction::setAgentsRed (unsigned i, unsigned agent)

@@ -70,24 +70,24 @@ private :
 
 
 //--- SET METHODS -----------------------------------------------------------
-inline void IonFit::setMinimumDiameter(double dMin)
+inline void IonFit::setMinimumDiameter(double dMin_)
 {
-  this->dMin = dMin;
+  this->dMin = dMin_;
 }
 //---------------------------------------------------------------------------
-inline void IonFit::setMaximumDiameter(double dMax)
+inline void IonFit::setMaximumDiameter(double dMax_)
 {
-  this->dMax = dMax;
+  this->dMax = dMax_;
 }
 //---------------------------------------------------------------------------
-inline void IonFit::setMinimumDiffusionConstant(double DMin)
+inline void IonFit::setMinimumDiffusionConstant(double DMin_)
 {
-  this->DMin = DMin;
+  this->DMin = DMin_;
 }
 //---------------------------------------------------------------------------
-inline void IonFit::setMaximumDiffusionConstant(double DMax)
+inline void IonFit::setMaximumDiffusionConstant(double DMax_)
 {
-  this->DMax = DMax;
+  this->DMax = DMax_;
 }
 //---------------------------------------------------------------------------
 

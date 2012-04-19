@@ -71,8 +71,7 @@ MITReM::MITReM(const std::string &name)
   std::string choiceElectrolyteModel;
   std::string choiceElectrostaticsModel;
 
-  DatFileReader datFile(electrolyteSolutionFile);
-  unsigned nIons = datFile.readMultipleVector_nVectors("[nIons]");
+  unsigned nIons = DatFileReader(electrolyteSolutionFile).readMultipleVector_nVectors("[nIons]");
   electrolyteSolution = new ElectrolyteSolution(nIons);
 
   // read models

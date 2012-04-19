@@ -261,10 +261,9 @@ void MeshReader::readMainHeader(string& htitle, vector< string >& hvnames)
 
   // byte order, filetype and title
   {
-    int i;
-    i = bread< int >(m_file);    // 1
+    /*int i =*/ bread< int >(m_file);    // 1
     if (m_version>107)
-      i = bread< int >(m_file);  // 0
+      /*int i =*/ bread< int >(m_file);  // 0
   }
   htitle = bread< string >(m_file);
 
@@ -283,19 +282,18 @@ vector< TecZone > MeshReader::readZoneHeaders()
   for (marker=bread< float >(m_file); marker==ZONEMARKER; marker=bread< float >(m_file)) {
     TecZone z = {"",0.,AUTO,ORDERED,BLOCK,0,0,0};
 
-    int i;
     z.title = bread< string >(m_file);      // title
-    i = bread< int >(m_file);               // BAD_SET_VALUE
-    i = bread< int >(m_file);               // strandid: static
+    /*int i =*/ bread< int >(m_file);       // BAD_SET_VALUE
+    /*int i =*/ bread< int >(m_file);       // strandid: static
     z.time  = bread< double >(m_file);      // solution time
     z.color = bread< ZoneColor >(m_file);   // color
     z.type  = bread< ZoneType >(m_file);    // type
     if (m_version<112)
       z.pack = bread< ZonePack >(m_file);   // data packing
-    i = bread< int >(m_file);               // no cell centered vars
-    i = bread< int >(m_file);               // no auto-generated face neighbor array
+    /*int i =*/ bread< int >(m_file);       // no cell centered vars
+    /*int i =*/ bread< int >(m_file);       // no auto-generated face neighbor array
     if (m_version>107)  // i'm not sure this is correct
-      i = bread< int >(m_file);             // no FaceNeighborConnections
+      /*int i =*/ bread< int >(m_file);     // no FaceNeighborConnections
 
     if (z.type==ORDERED) {
       z.i = (unsigned) bread< int >(m_file);
@@ -305,9 +303,9 @@ vector< TecZone > MeshReader::readZoneHeaders()
     else {
       z.i = (unsigned) bread< int >(m_file);
       z.j = (unsigned) bread< int >(m_file);
-      i = bread< int >(m_file);  // no ICellDim, reserved for the future
-      i = bread< int >(m_file);  // ... JCellDim
-      i = bread< int >(m_file);  // ... KCellDim
+      /*int i =*/ bread< int >(m_file);  // no ICellDim, reserved for the future
+      /*int i =*/ bread< int >(m_file);  // ... JCellDim
+      /*int i =*/ bread< int >(m_file);  // ... KCellDim
     }
 
     while (bread< int >(m_file)) {  // skip auxiliary data
@@ -326,9 +324,6 @@ vector< TecZone > MeshReader::readZoneHeaders()
 
 void MeshReader::readZoneData(const TecZone& z, vector< vector< unsigned > >& ve, vector< vector< double > >& vv)
 {
-  double d;
-  int i;
-
   const float marker = bread< float >(m_file);
   if (marker!=ZONEMARKER) {
     cerr << "SmURF: corrupt file!" << endl;
@@ -338,15 +333,14 @@ void MeshReader::readZoneData(const TecZone& z, vector< vector< unsigned > >& ve
   vector< DataType > vtypes(m_nvars,FLOAT);
   for (unsigned j=0; j<m_nvars; ++j)
     vtypes[j] = bread< DataType >(m_file);  // variable data types
-  i = bread< int >(m_file);                 // no passive variables
+  /*int i =*/ bread< int >(m_file);         // no passive variables
 
   // shared variables
   const bool isshared = (bread< int >(m_file)!=0);
-  int sharefrom;
   if (isshared)
     for (unsigned N=0; N<m_nvars; ++N)
-      sharefrom = bread< int >(m_file);  // shares only from first zone only (yet), sharefrom=0
-  i = bread< int >(m_file);  // no shared connectivity
+      /*int sharefrom =*/ bread< int >(m_file);  // shares only from first zone only (yet), sharefrom=0
+  /*int i =*/ bread< int >(m_file);              // no shared connectivity
 
   // data section
   if (!(isshared)) {
@@ -355,8 +349,8 @@ void MeshReader::readZoneData(const TecZone& z, vector< vector< unsigned > >& ve
 
     // variables min/max values
     for (unsigned N=0; N<m_nvars; ++N) {
-      d = bread< double >(m_file);
-      d = bread< double >(m_file);
+      /*double d =*/ bread< double >(m_file);
+      /*double d =*/ bread< double >(m_file);
     }
 
     if (z.pack==BLOCK) {

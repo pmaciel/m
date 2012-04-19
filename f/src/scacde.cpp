@@ -17,7 +17,7 @@ void scacde(
 {
   int i,id,inc,jnc;
   double u[3], k[4], kplus[4], kminus[4], Win, sumkplus, sumkabs, recipsum, beta[4];
-  double convres, diffres, diffac, peclet, res[4], q, ninj, grad[3], h, lwfac;
+  double convres, diffres, diffac, res[4], q, ninj, grad[3], h, lwfac;
 
   for ( inc=0; inc<Nvtcell; inc++ )
     No_loc[inc].Res[iv] = 0.;
@@ -65,12 +65,11 @@ void scacde(
   else
     h = 2.*q*vol/sumkabs;
 
-  peclet = q*h/diffco;
-
-//  if (peclet<2.)
-//    scheme = ISSGAL;
-//  else if (peclet<20.)
-//    scheme = ISSLWS;
+  /*
+    const double peclet = q*h/diffco;
+    scheme = (peclet<2.?  ISSGAL :
+             (peclet<20.? ISSLWS : scheme ));
+  */
 
   /*** CONVECTION ***/
 

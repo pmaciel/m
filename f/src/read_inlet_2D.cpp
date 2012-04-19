@@ -158,5 +158,8 @@ void read_inlet_2D(const std::string& finlet,int ig)
     free_dmatrix(inlet_data_turb1,0,1,1,Nint_turb1);
     free_dmatrix(inlet_data_turb2,0,1,1,Nint_turb2);
   }
+
+  if (ret) ret = 0;
+  if (rec) rec = NULL;
 }
 

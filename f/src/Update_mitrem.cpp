@@ -46,7 +46,7 @@ void Update_mitrem()
 
 
   {
-    boost::progress_timer t(cout);
+    boost::progress_timer time(cout);
     cout << "Update_mitrem: system assembly..." << endl;
 
 
@@ -102,7 +102,7 @@ void Update_mitrem()
 
   cout << "Update_mitrem: solve linear system..." << endl;
   {
-    boost::progress_timer t(cout);
+    boost::progress_timer time(cout);
     (m.ls)->solve();
     cout << "Update_mitrem: timer: ";
   }
@@ -235,13 +235,13 @@ void Update_mitrem()
 }
 
 
-void assembleMITReM(const vector< m::melem >& e2n)
+void assembleMITReM(const vector< m::melem >& e2n_)
 {
   // some shortcuts
   mitremassembler_struct& m = mitremassembler;
-  const int Nenod = (int) e2n[0].n.size();
+  const int Nenod = (int) e2n_[0].n.size();
   const int Nions = m.Nions;
-  const int Nsys  = m.Nions+1;
+  const int Nsys_ = m.Nions+1;
   const vector< double > temperatures (Nenod,(m.m_mitrem)->getSolutionTemperature());
   const vector< double > densities    (Nenod,(m.m_mitrem)->getSolutionDensity());
   const vector< double > voidfractions(Nenod,0.);
@@ -254,12 +254,12 @@ void assembleMITReM(const vector< m::melem >& e2n)
   vector< double > potentials(Nenod,0.);
 
   // element matrix and residual vector contribution
-  double **emat = dmatrix(0,Nenod*Nsys-1,0,Nenod*Nsys-1);
-  vector< double > eres(Nenod*Nsys,0.);
+  double **emat = dmatrix(0,Nenod*Nsys_-1,0,Nenod*Nsys_-1);
+  vector< double > eres(Nenod*Nsys_,0.);
 
   // cycle elements
-  boost::progress_display pbar((unsigned) e2n.size());
-  for (vector< m::melem >::const_iterator e=e2n.begin(); e!=e2n.end(); ++e, ++pbar) {
+  boost::progress_display pbar((unsigned) e2n_.size());
+  for (vector< m::melem >::const_iterator e=e2n_.begin(); e!=e2n_.end(); ++e, ++pbar) {
 
     // set auxiliary variables
     for (int n=0; n<Nenod; ++n) {
@@ -278,17 +278,17 @@ void assembleMITReM(const vector< m::melem >& e2n)
       &temperatures[0], &densities[0], &voidfractions[0], bvectors );
 
     // copy into local matrix
-    for (int ir=0; ir<Nenod*Nsys; ++ir)
-      for (int ic=0; ic<Nenod*Nsys; ++ic)
+    for (int ir=0; ir<Nenod*Nsys_; ++ir)
+      for (int ic=0; ic<Nenod*Nsys_; ++ic)
         emat[ir][ic] = emat_[ir][ic];
 
     // element residual vector contribution (-Ax part of r = b-Ax)
-    for (int ir=0; ir<Nenod*Nsys; ++ir) {
+    for (int ir=0; ir<Nenod*Nsys_; ++ir) {
       double sum = 0.;
       for (int inc=0; inc<Nenod; ++inc) {
         for (int i=0; i<Nions; ++i)
-          sum += emat_[ir][inc*Nsys+i]*concentrations[inc][i];
-        sum += emat_[ir][inc*Nsys+Nions]*potentials[inc];
+          sum += emat_[ir][inc*Nsys_+i]*concentrations[inc][i];
+        sum += emat_[ir][inc*Nsys_+Nions]*potentials[inc];
       }
       eres[ir] = sum;
     }
@@ -300,22 +300,22 @@ void assembleMITReM(const vector< m::melem >& e2n)
       &temperatures[0], &densities[0], &voidfractions[0], bvectors );
 
     // add to element contribution
-    for (int ir=0; ir<Nenod*Nsys; ++ir)
-      for (int ic=0; ic<Nenod*Nsys; ++ic)
+    for (int ir=0; ir<Nenod*Nsys_; ++ir)
+      for (int ic=0; ic<Nenod*Nsys_; ++ic)
         emat[ir][ic] += emat_[ir][ic];
 
     // add to system matrix and residual vector
     for (int iR=0; iR<Nenod; ++iR)
-      for (int ir=0; ir<Nsys; ++ir) {
+      for (int ir=0; ir<Nsys_; ++ir) {
         for (int iC=0; iC<Nenod; ++iC)
-          for (int ic=0; ic<Nsys; ++ic)
-            (m.ls)->A((e->n)[iR],(e->n)[iC],ir,ic) += emat[iR*Nsys+ir][iC*Nsys+ic];
-        (m.ls)->B((e->n)[iR],ir) -= eres[iR*Nsys+ir];
+          for (int ic=0; ic<Nsys_; ++ic)
+            (m.ls)->A((e->n)[iR],(e->n)[iC],ir,ic) += emat[iR*Nsys_+ir][iC*Nsys_+ic];
+        (m.ls)->B((e->n)[iR],ir) -= eres[iR*Nsys_+ir];
       }
   }
 
   // deallocate auxiliary variables
-  free_dmatrix(emat          ,0,Nenod*Nsys-1,0,Nenod*Nsys-1);
+  free_dmatrix(emat          ,0,Nenod*Nsys_-1,0,Nenod*Nsys_-1);
   free_dmatrix(bvectors      ,0,Nenod-1,0,3-1);
   free_dmatrix(concentrations,0,Nenod-1,0,Nions-1);
   free_dmatrix(velocities    ,0,Nenod-1,0,Ndim-1);
@@ -324,12 +324,12 @@ void assembleMITReM(const vector< m::melem >& e2n)
 
 
 void assembleDirichlet(
-  const vector<m::melem> &e2n,
+  const vector<m::melem> &e2n_,
   const vector< unsigned > &vlabels,
   const vector< double   > &vvalues)
 {
   mitremassembler_struct& m = mitremassembler;
-  for (vector< m::melem >::const_iterator e=e2n.begin(); e!=e2n.end(); ++e)
+  for (vector< m::melem >::const_iterator e=e2n_.begin(); e!=e2n_.end(); ++e)
     for (vector< unsigned >::const_iterator n=e->n.begin(); n!=e->n.end(); ++n) {
       // variable index and value iterators
       vector< unsigned >::const_iterator i = vlabels.begin();
@@ -344,19 +344,19 @@ void assembleDirichlet(
 
 
 double assembleElectrode(
-  const vector< m::melem >& e2n,
+  const vector< m::melem >& e2n_,
   const vector< unsigned >& greactions,
   const vector< unsigned >& ereactions,
   const double& v,
   const CALL& action)
 {
-  double r = 0.;
+  double ret = 0.;
 
   // some shortcuts
   mitremassembler_struct& m = mitremassembler;
-  const int Nenod = (int) e2n[0].n.size();
+  const int Nenod = (int) e2n_[0].n.size();
   const int Nions = m.Nions;
-  const int Nsys  = m.Nions+1;
+  const int Nsys_ = m.Nions+1;
   const unsigned* p_ereactions = (ereactions.size()? &ereactions[0]:NULL);
   const unsigned* p_greactions = (greactions.size()? &greactions[0]:NULL);
 
@@ -369,7 +369,7 @@ double assembleElectrode(
   vector< double > sgasfractions(Nenod,0.);
 
   // cycle elements
-  for (vector< m::melem >::const_iterator e=e2n.begin(); e!=e2n.end(); ++e) {
+  for (vector< m::melem >::const_iterator e=e2n_.begin(); e!=e2n_.end(); ++e) {
 
     // set auxiliary variables
     for (int n=0; n<Nenod; ++n) {
@@ -397,16 +397,16 @@ double assembleElectrode(
 
       // add to system matrix and residual vector (b part of r = b-Ax)
       for (int iR=0; iR<Nenod; ++iR)
-        for (int ir=0; ir<Nsys; ++ir) {
+        for (int ir=0; ir<Nsys_; ++ir) {
           for (int iC=0; iC<Nenod; ++iC)
-            for (int ic=0; ic<Nsys; ++ic)
-              (m.ls)->A((e->n)[iR],(e->n)[iC],ir,ic) += fmat[iR*Nsys+ir][iC*Nsys+ic];
-          (m.ls)->B((e->n)[iR],ir) += fres[iR*Nsys+ir];
+            for (int ic=0; ic<Nsys_; ++ic)
+              (m.ls)->A((e->n)[iR],(e->n)[iC],ir,ic) += fmat[iR*Nsys_+ir][iC*Nsys_+ic];
+          (m.ls)->B((e->n)[iR],ir) += fres[iR*Nsys_+ir];
         }
     }
     else if (action==CURRENT) {
       // calculate total current (by accumulation)
-      r += (m.m_assembler)->calcCurrent(
+      ret += (m.m_assembler)->calcCurrent(
         coordinates, concentrations, &potentials[0],
         &temperatures[0], &densities[0], &sgasfractions[0],
         ereactions.size(), p_ereactions, v );
@@ -430,18 +430,18 @@ double assembleElectrode(
     }
     else if (action==GAS) {
       // calculate total gas production rate (by accumulation)
-      r += (m.m_assembler)->calcGasGeneration(
+      ret += (m.m_assembler)->calcGasGeneration(
         coordinates, concentrations, &potentials[0],
         &temperatures[0], &densities[0], &sgasfractions[0],
         greactions.size(), p_greactions);
     }
     else if (action==SIZE) {
       // calculate total volume/area (thus size) by accumulation
-      r += (m.m_assembler)->calcESize(coordinates);
+      ret += (m.m_assembler)->calcESize(coordinates);
     }
     else if (action==BSIZE) {
       // calculate total area/length (thus size) by accumulation
-      r += (m.m_assembler)->calcBESize(coordinates);
+      ret += (m.m_assembler)->calcBESize(coordinates);
     }
   }
 
@@ -449,7 +449,7 @@ double assembleElectrode(
   free_dmatrix(concentrations,0,Nenod-1,0,Nions-1);
   free_dmatrix(coordinates   ,0,Nenod-1,0,Ndim-1);
 
-  return r;
+  return ret;
 }
 
 
@@ -471,11 +471,11 @@ vector< unsigned > getVLabels(const string& l)
 {
   vector< unsigned > r;
   vector< string > list = getVStrings(l);
-  for (vector< string >::const_iterator l=list.begin(); l!=list.end(); ++l)
-    if (*l=="UU")  r.push_back((unsigned) mitremassembler.Nions);
+  for (vector< string >::const_iterator s=list.begin(); s!=list.end(); ++s)
+    if (*s=="UU")  r.push_back((unsigned) mitremassembler.Nions);
     else {
       for (unsigned i=0; i<(mitremassembler.m_mitrem)->getNIons(); ++i)
-        if ((mitremassembler.m_mitrem)->getIonLabel(i)==*l) {
+        if ((mitremassembler.m_mitrem)->getIonLabel(i)==*s) {
           r.push_back(i);
           break;
         }
@@ -488,8 +488,8 @@ vector< double > getVValues(const string& l)
 {
   vector< double > r;
   vector< string > list = getVStrings(l);
-  for (vector< string >::const_iterator l=list.begin(); l!=list.end(); ++l) {
-    istringstream iss(*l);
+  for (vector< string >::const_iterator s=list.begin(); s!=list.end(); ++s) {
+    istringstream iss(*s);
     r.push_back(0.);
     iss >> r.back();
   }

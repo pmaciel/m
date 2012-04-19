@@ -108,9 +108,9 @@ double HomReactionFit::calcDiffusionCoefficientDerivativeEquilibriumConstant(uns
 
 
 //--- ERROR MESSAGES --------------------------------------------------------
-void HomReactionFit::errorHomReactionNotFound(const std::string label)
+void HomReactionFit::errorHomReactionNotFound(const std::string label_)
 {
-  std::cout << "ERROR IN HomReactionFit.cpp.\nTHE REACTION " << label
+  std::cout << "ERROR IN HomReactionFit.cpp.\nTHE REACTION " << label_
     << " WAS NOWHERE FOUND IN THE *.homreactions FILES." << std::endl;
   std::cin.get();
   exit(1);

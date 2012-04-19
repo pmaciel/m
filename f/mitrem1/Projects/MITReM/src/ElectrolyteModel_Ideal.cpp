@@ -30,7 +30,7 @@ ElectrolyteModel_Ideal::~ElectrolyteModel_Ideal()
   delete[] D;
 }
 //---------------------------------------------------------------------------
-void ElectrolyteModel_Ideal::init(bool verbose)
+void ElectrolyteModel_Ideal::init(bool verbose_)
 {
   T = electrolyteSolution->getSolutionTemperature();
   for (unsigned i=0; i<nIons; i++)

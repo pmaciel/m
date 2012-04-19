@@ -45,8 +45,8 @@ void ls_gmres::solve()
     jw[2*n+i] = 0;
   }
 
-  int newiwk = 0;
-  newiwk = iluk(&n,m_A.a,m_A.ja,m_A.ia,&lfil,
+  /*int newiwk = 0;*/
+  /*int newiwk =*/ iluk(&n,m_A.a,m_A.ja,m_A.ia,&lfil,
                 alu,jlu,ju,levs,&iwk,w,jw,&ierr);
 
   delete[] w;
@@ -680,7 +680,7 @@ double ls_gmres::dnrm2(int *n, double *dx, int *incx)
     static double hitest, sum;
 
     /* Assigned format variables */
-    static char *next_fmt;
+    /*static char *next_fmt;*/
 
     /* Parameter adjustments */
     --dx;
@@ -701,7 +701,7 @@ double ls_gmres::dnrm2(int *n, double *dx, int *incx)
 
 L10:
     next = 0;
-    next_fmt = fmt_30;
+    /*static char *next_fmt = fmt_30;*/
     sum = zero;
     nn = *n * *incx;
 /*                                                 begin main loop */
@@ -718,7 +718,7 @@ L30:
   goto L85;
     }
     next = 1;
-    next_fmt = fmt_50;
+    /*static char *next_fmt = fmt_50;*/
     xmax = zero;
 
 /*                        phase 1.  sum is zero */
@@ -733,7 +733,7 @@ L50:
 
 /*                                prepare for phase 2. */
     next = 2;
-    next_fmt = fmt_70;
+    /*static char *next_fmt = fmt_70;*/
     goto L105;
 
 /*                                prepare for phase 4. */
@@ -741,7 +741,7 @@ L50:
 L100:
     i__ = j;
     next = 3;
-    next_fmt = fmt_110;
+    /*static char *next_fmt = fmt_110;*/
     sum = sum / dx[i__] / dx[i__];
 L105:
     xmax = (d__1 = dx[i__], std::abs(d__1));
@@ -1037,7 +1037,7 @@ void ls_gmres::pgmres(int *n, int *im, double *rhs, double *sol, double *vv,
    static int i__, j, k;
    static double s[50], t;
    static int i1, k1;
-   static int n1;
+   /*static int n1;*/
    static double hh[2550]  /* was [51][50] */;
    static int ii, jj;
    static double ro, rs[51], gam;
@@ -1061,7 +1061,7 @@ void ls_gmres::pgmres(int *n, int *im, double *rhs, double *sol, double *vv,
    --jlu;
 
    /* Function Body */
-   n1 = *n + 1;
+   /*static int n1 = *n + 1;*/
    its = 0;
 
    /* compute initial residual vector */

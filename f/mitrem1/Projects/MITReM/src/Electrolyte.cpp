@@ -267,41 +267,41 @@ void Electrolyte::setHomReactionEquilibriumConstant(unsigned r, double K)
   homReactions[r]->setForwardRateConstant(kf);
 }
 //---------------------------------------------------------------------------
-void Electrolyte::setMaximumConcentration(double cMax)
+void Electrolyte::setMaximumConcentration(double cMax_)
 {
-  this->cMax = cMax;
+  this->cMax = cMax_;
 
   unsigned nOsmoticCoefficientsTemp = 0;
   for (unsigned t=0; t<nOsmoticCoefficients; t++) {
-    if (osmoticCoefficients[t].c <= cMax) nOsmoticCoefficientsTemp++;
+    if (osmoticCoefficients[t].c <= cMax_) nOsmoticCoefficientsTemp++;
     else break;
   }
   nOsmoticCoefficients = nOsmoticCoefficientsTemp;
 
   unsigned nActivityCoefficientsTemp = 0;
   for (unsigned t=0; t<nActivityCoefficients; t++) {
-    if (activityCoefficients[t].c <= cMax) nActivityCoefficientsTemp++;
+    if (activityCoefficients[t].c <= cMax_) nActivityCoefficientsTemp++;
     else break;
   }
   nActivityCoefficients = nActivityCoefficientsTemp;
 
   unsigned nConductivitiesTemp = 0;
   for (unsigned t=0; t<nConductivities; t++) {
-    if (conductivities[t].c <= cMax) nConductivitiesTemp++;
+    if (conductivities[t].c <= cMax_) nConductivitiesTemp++;
     else break;
   }
   nConductivities = nConductivitiesTemp;
 
   unsigned nTransportNumbersTemp = 0;
   for (unsigned t=0; t<nTransportNumbers; t++) {
-    if (transportNumbers[t].c <= cMax) nTransportNumbersTemp++;
+    if (transportNumbers[t].c <= cMax_) nTransportNumbersTemp++;
     else break;
   }
   nTransportNumbers = nTransportNumbersTemp;
 
   unsigned nDiffusionCoefficientsTemp = 0;
   for (unsigned t=0; t<nDiffusionCoefficients; t++) {
-    if (diffusionCoefficients[t].c <= cMax) nDiffusionCoefficientsTemp++;
+    if (diffusionCoefficients[t].c <= cMax_) nDiffusionCoefficientsTemp++;
     else break;
   }
   nDiffusionCoefficients = nDiffusionCoefficientsTemp;

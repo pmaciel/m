@@ -13,14 +13,14 @@
 IonFit::IonFit(const std::string &label_, Electrolyte** electrolytes, unsigned nElectrolytes)
 : label(label_)
 {
-  bool found = false;
+  /*bool found = false;*/
   for (unsigned e=0; e<nElectrolytes; e++)
   {
     for (unsigned i=0; i<electrolytes[e]->getNIons(); i++)
     {
       if (label == electrolytes[e]->getIonLabel(i))
       {
-        found = true;
+        /*found = true;*/
         IonReference ionReference;
         ionReference.electrolyte = electrolytes[e];
         ionReference.electrolyteIndex = e;
@@ -40,33 +40,33 @@ IonFit::~IonFit()
 
 
 //--- METHODS ---------------------------------------------------------------
-void IonFit::setDiameter(double d)
+void IonFit::setDiameter(double d_)
 {
-  this->d = d;
+  this->d = d_;
   std::vector<IonReference>::iterator i;
   for (i = ionReferences.begin(); i != ionReferences.end(); i++)
   {
-    i->electrolyte->setIonDiameter(i->ionIndex,d);
+    i->electrolyte->setIonDiameter(i->ionIndex,d_);
   }
 }
 //---------------------------------------------------------------------------
-void IonFit::setDiffusionConstant(double D)
+void IonFit::setDiffusionConstant(double D_)
 {
-  this->D = D;
+  this->D = D_;
   std::vector<IonReference>::iterator i;
   for (i = ionReferences.begin(); i != ionReferences.end(); i++)
   {
-    i->electrolyte->setIonDiffusionConstant(i->ionIndex,D);
+    i->electrolyte->setIonDiffusionConstant(i->ionIndex,D_);
   }
 }
 //---------------------------------------------------------------------------
-void IonFit::setMolarMass(double M)
+void IonFit::setMolarMass(double M_)
 {
-  this->M = M;
+  this->M = M_;
   std::vector<IonReference>::iterator i;
   for (i = ionReferences.begin(); i != ionReferences.end(); i++)
   {
-    i->electrolyte->setIonMolarMass(i->ionIndex,M);
+    i->electrolyte->setIonMolarMass(i->ionIndex,M_);
   }
 }
 //---------------------------------------------------------------------------
@@ -187,9 +187,9 @@ double IonFit::calcDiffusionCoefficientDerivativeDiffusionConstant(unsigned e,un
 
 
 //--- ERROR MESSAGES --------------------------------------------------------
-void IonFit::errorIonNotFound(const std::string label)
+void IonFit::errorIonNotFound(const std::string label_)
 {
-  std::cout << "ERROR IN IonFit.cpp.\nTHE ION " << label
+  std::cout << "ERROR IN IonFit.cpp.\nTHE ION " << label_
     << " WAS NOWHERE FOUND IN THE *.ions FILES." << std::endl;
   std::cin.get();
   exit(1);

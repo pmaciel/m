@@ -922,9 +922,9 @@ DoubleMatrix ElementMatrixAssembler::calcElementJac(DoubleVectorList coordinates
   return jac;
 }
 //---------------------------------------------------------------------------
-DoubleVector ElementMatrixAssembler::calcBoundaryElementVec(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential, unsigned nGasReactions, IndexList gasReactions)
+DoubleVector ElementMatrixAssembler::calcBoundaryElementVec(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions_, IndexList elecReactions, double electrodePotential, unsigned nGasReactions_, IndexList gasReactions)
 {
-  EmptyDoubleVector vec = boundaryElementContribution->calcVec(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions, elecReactions, electrodePotential, nGasReactions, gasReactions);
+  EmptyDoubleVector vec = boundaryElementContribution->calcVec(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions_, elecReactions, electrodePotential, nGasReactions_, gasReactions);
   for (unsigned m=0; m<nBoundaryElementNodes; m++)
   {
     // make linear combination
@@ -949,9 +949,9 @@ DoubleVector ElementMatrixAssembler::calcBoundaryElementVec(DoubleVectorList coo
   return vec;
 }
 //---------------------------------------------------------------------------
-DoubleMatrix ElementMatrixAssembler::calcBoundaryElementJac(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential, unsigned nGasReactions, IndexList gasReactions)
+DoubleMatrix ElementMatrixAssembler::calcBoundaryElementJac(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions_, IndexList elecReactions, double electrodePotential, unsigned nGasReactions_, IndexList gasReactions)
 {
-  EmptyDoubleMatrix jac = boundaryElementContribution->calcJac(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions, elecReactions, electrodePotential, nGasReactions, gasReactions);
+  EmptyDoubleMatrix jac = boundaryElementContribution->calcJac(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions_, elecReactions, electrodePotential, nGasReactions_, gasReactions);
   for (unsigned m=0; m<nBoundaryElementNodes; m++)
   {
     // make linear combination

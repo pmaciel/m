@@ -10,6 +10,7 @@ def build(bld):
   # mitremassembler (from mitrem1) static library
   bld.shlib(
     target   = 'mitremassembler',
+    use      = bld.env.m_mlibraries,
     includes = [
       '../mkernel/ext',  # for xmlParser
       'mitrem1/Projects/DatFileReader/include',

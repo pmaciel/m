@@ -8,7 +8,7 @@
 
 
 //---------------------------------------------------------------------------
-ElectrolyteSolution::ElectrolyteSolution(unsigned nIons/*const std::string &name*/)
+ElectrolyteSolution::ElectrolyteSolution(unsigned nIons_ /*const std::string &name*/)
 {
   // /*
   // Required formats:
@@ -29,8 +29,8 @@ ElectrolyteSolution::ElectrolyteSolution(unsigned nIons/*const std::string &name
   /*electrolyteSolutionFile = name + ".electrolytesolution";
 
   readElectrolyteSolution();*/
-  this->nIons = nIons;
-  ions = new Ion[nIons];
+  this->nIons = nIons_;
+  ions = new Ion[nIons_];
 }
 //---------------------------------------------------------------------------
 ElectrolyteSolution::~ElectrolyteSolution()

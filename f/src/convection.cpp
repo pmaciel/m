@@ -9,7 +9,7 @@
  *          inc_min   node opposite smallest face (local)
  *          celltype  marker for cell types
  *
- * outputs: Beta2     artificial compressibility factor
+ * outputs: Beta2_    artificial compressibility factor
  *          LWfactor  Lax-Wendroff factor
  *          k[inc]    scalar influence coefficients
  *          sbuoy[iv] coefficients for buoyancy source term
@@ -22,7 +22,7 @@ void convection(
   double vol,
   int inc_min,
   int celltype,
-  double *Beta2,
+  double *Beta2_,
   double *LWfactor,
   std::vector< double >& k,
   std::vector< double >& sbuoy,
@@ -45,7 +45,7 @@ void convection(
   double q;
   double h;
   double Tave;
-  double nueff;
+  /*double nueff;*/
 
   /* initialize local nodal residuals to zero */
   for (inc=0; inc<Nvtcell; inc++)
@@ -64,7 +64,7 @@ void convection(
   q = sqrt(q);
 
   betasq=C2;
-  *Beta2=betasq;
+  *Beta2_=betasq;
 
   /* calculate k[i]=a.dot.n[i]/Nvtfce and convective Dt */
   sumkabs = 0.;
@@ -95,9 +95,8 @@ void convection(
    *   h = 2.*q*vol/sumkabs;
    */
 
-  nueff = nulam;
-
   /*
+   * nueff = nulam;
    * if (turmod)
    *   nueff += turb_viscosity(No_loc,turmod,celltype,vol);
    */

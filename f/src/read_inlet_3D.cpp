@@ -173,5 +173,8 @@ void read_inlet_3D(const std::string& finlet,int ig)
   free_dmatrix(inlet_data_ve,1,3,1,Nxid*Nyid);
   if (turmod)
     free_dmatrix(inlet_data_turb,1,2,1,Nxid*Nyid);
+
+  if (ret) ret=0;
+  if (rec) rec=NULL;
 }
 

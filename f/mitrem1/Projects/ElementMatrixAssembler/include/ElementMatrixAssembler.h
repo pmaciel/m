@@ -105,30 +105,30 @@ inline DoubleVectorList ElementMatrixAssembler::calcIonCurrentDensities(DoubleVe
 
 //---------------------------------------------------------------------------
 
-inline DoubleListList ElementMatrixAssembler::calcElecReactionCurrentDensities(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential)
+inline DoubleListList ElementMatrixAssembler::calcElecReactionCurrentDensities(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions_, IndexList elecReactions, double electrodePotential)
 {
-  return boundaryElementContribution->calcElecReactionCurrentDensities(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions, elecReactions, electrodePotential);
+  return boundaryElementContribution->calcElecReactionCurrentDensities(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions_, elecReactions, electrodePotential);
 }
 
 //---------------------------------------------------------------------------
 
-inline DoubleListList ElementMatrixAssembler::calcGasReactionRates(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nGasReactions, IndexList gasReactions)
+inline DoubleListList ElementMatrixAssembler::calcGasReactionRates(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nGasReactions_, IndexList gasReactions)
 {
-  return boundaryElementContribution->calcGasReactionRates(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nGasReactions, gasReactions);
+  return boundaryElementContribution->calcGasReactionRates(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nGasReactions_, gasReactions);
 }
 
 //---------------------------------------------------------------------------
 
-inline double ElementMatrixAssembler::calcCurrent(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions, IndexList elecReactions, double electrodePotential)
+inline double ElementMatrixAssembler::calcCurrent(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nElecReactions_, IndexList elecReactions, double electrodePotential)
 {
-  return boundaryElementContribution->calcCurrent(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions, elecReactions, electrodePotential);
+  return boundaryElementContribution->calcCurrent(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nElecReactions_, elecReactions, electrodePotential);
 }
 
 //---------------------------------------------------------------------------
 
-inline double ElementMatrixAssembler::calcGasGeneration(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nGasReactions, IndexList gasReactions)
+inline double ElementMatrixAssembler::calcGasGeneration(DoubleVectorList coordinates, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList surfaceGasFractions, unsigned nGasReactions_, IndexList gasReactions)
 {
-  return boundaryElementContribution->calcGasGeneration(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nGasReactions, gasReactions);
+  return boundaryElementContribution->calcGasGeneration(coordinates, concentrations, potentials, temperatures, densities, surfaceGasFractions, nGasReactions_, gasReactions);
 }
 
 //---------------------------------------------------------------------------

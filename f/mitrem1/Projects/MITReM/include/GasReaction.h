@@ -41,9 +41,9 @@ protected :
 
 
 //--- SET METHODS -----------------------------------------------------------
-inline void GasReaction::setLabel (const std::string &label)
+inline void GasReaction::setLabel (const std::string &label_)
 {
-  this->label = label;
+  this->label = label_;
 }
 //---------------------------------------------------------------------------
 inline void GasReaction::setKinParam (unsigned index, double value)
@@ -51,9 +51,9 @@ inline void GasReaction::setKinParam (unsigned index, double value)
   kineticParameters[index] = value;
 }
 //---------------------------------------------------------------------------
-inline void GasReaction::setDissolvedGas(unsigned dissolvedGas)
+inline void GasReaction::setDissolvedGas(unsigned dissolvedGas_)
 {
-  this->dissolvedGas = dissolvedGas;
+  this->dissolvedGas = dissolvedGas_;
 }
 //---------------------------------------------------------------------------
 

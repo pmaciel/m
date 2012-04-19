@@ -1256,7 +1256,7 @@ void pillaz::pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDe
     epsilon,
     rms,
     pos1[fp.numDim],
-    pos1Pr[fp.numDim],
+    /*pos1Pr[fp.numDim],*/
     pos2[fp.numDim],
     pos2Pr[fp.numDim],
     posRel[fp.numDim],
@@ -1271,7 +1271,7 @@ void pillaz::pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDe
     zPrPr[fp.numDim],
     uiPrPr[fp.numDim],
     uiPrPrNew[fp.numDim],
-    ujPrPr[fp.numDim],
+    /*ujPrPr[fp.numDim],*/
     uijRelPrPr[fp.numDim],
     Phi,
     Psi,
@@ -1353,9 +1353,9 @@ void pillaz::pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDe
     pillaz_CalcCrossProduct_3D(yPr,xPr,x);
     pillaz_CalcCrossProduct_3D(zPr,xPr,yPr);
 
-    pos1Pr[0] = pillaz_CalcVectorScalarProduct(fp.numDim,&ent->pos[0],xPr);
-    pos1Pr[1] = pillaz_CalcVectorScalarProduct(fp.numDim,&ent->pos[0],yPr);
-    pos1Pr[2] = pillaz_CalcVectorScalarProduct(fp.numDim,&ent->pos[0],zPr);
+    /*double pos1Pr[fp.numDim]; pos1Pr[0] = pillaz_CalcVectorScalarProduct(fp.numDim,&ent->pos[0],xPr);*/
+    /*double pos1Pr[fp.numDim]; pos1Pr[1] = pillaz_CalcVectorScalarProduct(fp.numDim,&ent->pos[0],yPr);*/
+    /*double pos1Pr[fp.numDim]; pos1Pr[2] = pillaz_CalcVectorScalarProduct(fp.numDim,&ent->pos[0],zPr);*/
 
     while(L>1){
       Y = pillaz_RandomDouble();
@@ -1400,9 +1400,9 @@ void pillaz::pillaz_CollisionModel(PILLAZ_LOCAL_ENTITY_VARIABLES *ent, int numDe
     uiPrPr[0] = pillaz_CalcVectorScalarProduct(fp.numDim,ui,xPrPr);
     uiPrPr[1] = pillaz_CalcVectorScalarProduct(fp.numDim,ui,yPrPr);
     uiPrPr[2] = pillaz_CalcVectorScalarProduct(fp.numDim,ui,zPrPr);
-    ujPrPr[0] = pillaz_CalcVectorScalarProduct(fp.numDim,uj,xPrPr);
-    ujPrPr[1] = pillaz_CalcVectorScalarProduct(fp.numDim,uj,yPrPr);
-    ujPrPr[2] = pillaz_CalcVectorScalarProduct(fp.numDim,uj,zPrPr);
+    /*double ujPrPr[fp.numDim]; ujPrPr[0] = pillaz_CalcVectorScalarProduct(fp.numDim,uj,xPrPr);*/
+    /*double ujPrPr[fp.numDim]; ujPrPr[1] = pillaz_CalcVectorScalarProduct(fp.numDim,uj,yPrPr);*/
+    /*double ujPrPr[fp.numDim]; ujPrPr[2] = pillaz_CalcVectorScalarProduct(fp.numDim,uj,zPrPr);*/
     uijRelPrPr[0] = pillaz_CalcVectorScalarProduct(fp.numDim,uijRel,xPrPr);
     uijRelPrPr[1] = pillaz_CalcVectorScalarProduct(fp.numDim,uijRel,yPrPr);
     uijRelPrPr[2] = pillaz_CalcVectorScalarProduct(fp.numDim,uijRel,zPrPr);

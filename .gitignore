@@ -1,0 +1,7 @@
+.gitignore
+.lock-waf*
+.waf-*
+.*.swo
+.*.swp
+build/
+install/

@@ -34,7 +34,7 @@ ElectrolyteModel_Exponential::~ElectrolyteModel_Exponential()
   delete[] DPow;
 }
 //---------------------------------------------------------------------------
-void ElectrolyteModel_Exponential::init(bool verbose)
+void ElectrolyteModel_Exponential::init(bool verbose_)
 {
   cTotal = 0.;
   for (unsigned i=0; i<nIons-1; i++) // don't add the water concentration, which must have index nIons!

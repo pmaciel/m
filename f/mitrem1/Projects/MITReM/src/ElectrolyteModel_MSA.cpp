@@ -34,9 +34,9 @@ ElectrolyteModel_MSA::~ElectrolyteModel_MSA()
   delete[] d;
 }
 //---------------------------------------------------------------------------
-void ElectrolyteModel_MSA::init(bool verbose)
+void ElectrolyteModel_MSA::init(bool verbose_)
 {
-  this->verbose = verbose;
+  this->verbose = verbose_;
   T = electrolyteSolution->getSolutionTemperature();
   viscosity = electrolyteSolution->getSolventDynamicViscosity();
   dielectricConstant = electrolyteSolution->getSolventDielectricConstant();

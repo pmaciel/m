@@ -103,18 +103,15 @@ void IJacobian_N()
     }
 
     /* loop over nodes within cell */
-    int node[4];
     int jnc[4];
     double U[6];
     for (int inc=0; inc<Nvtcell; ++inc) {
       /* loop over variables */
       for (int iv=0; iv<Ncoupled; ++iv) {
 
-        /* Find node numbers of other nodes in cell */
-        for (int i=0; i<Nvtcell; ++i) {
+        /* Find node numbers of other nodes in cell (local indexes!) */
+        for (int i=0; i<Nvtcell; ++i)
           jnc[i] = (inc+i)%Nvtcell;
-          node[i] = e2n[ic].n[jnc[i]];
-        }
 
         /* Perturb value of variable at inc */
         copy(No_local[inc].W,U,Nsys);

@@ -19,18 +19,18 @@ TimeTerm_1D_HCU::~TimeTerm_1D_HCU()
 //---------------------------------------------------------------------------
 void TimeTerm_1D_HCU::calcMat(EmptyDoubleMatrix elementMat, DoubleVectorList coordinates, DoubleVectorList velocities, DoubleVectorList concentrations, DoubleList potentials, DoubleList temperatures, DoubleList densities, DoubleList voidFractions)
 {
-  unsigned inlet = 0;
+  /*unsigned inlet = 0;*/
   const double averageVelocity = 0.5*(velocities[0][0] + velocities[1][0]);
 
   // Confusing in 1D: side 1 is the side lying opposite of node 1, which is node 2!!!
   for (unsigned m=0; m<nNodes; m++)
   {
-    DoubleVector normal = elementProps->calcNormal(m,coordinates);
-    const double k = normal[0]*averageVelocity;
+    DoubleVector normal_ = elementProps->calcNormal(m,coordinates);
+    const double k = normal_[0]*averageVelocity;
     alpha[m] = 0.;
     if (k > 0.)
     {
-      inlet = m;
+      /*inlet = m;*/
       alpha[m] = 1.;
     }
   }

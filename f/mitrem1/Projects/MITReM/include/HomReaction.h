@@ -74,19 +74,19 @@ protected :
 
 
 //--- SET METHODS -----------------------------------------------------------
-inline void HomReaction::setLabel(const std::string &label)
+inline void HomReaction::setLabel(const std::string &label_)
 {
-  this->label = label;
+  this->label = label_;
 }
 //---------------------------------------------------------------------------
-inline void HomReaction::setForwardRateConstant(double kf)
+inline void HomReaction::setForwardRateConstant(double kf_)
 {
-  this->kf = kf;
+  this->kf = kf_;
 }
 //---------------------------------------------------------------------------
-inline void HomReaction::setBackwardRateConstant(double kb)
+inline void HomReaction::setBackwardRateConstant(double kb_)
 {
-  this->kb = kb;
+  this->kb = kb_;
 }
 //---------------------------------------------------------------------------
 inline void HomReaction::setReagents(unsigned i, unsigned agent)
@@ -109,9 +109,9 @@ inline void HomReaction::setStoichProd(unsigned i, int stoich)
   stoichProd[i] = stoich;
 }
 //---------------------------------------------------------------------------
-inline void HomReaction::setEquilibriumConstant(double K)
+inline void HomReaction::setEquilibriumConstant(double K_)
 {
-  this->K = K;
+  this->K = K_;
 }
 //---------------------------------------------------------------------------
 
