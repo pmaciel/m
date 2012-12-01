@@ -195,7 +195,6 @@ namespace boost {
 
     typedef filtered_graph_tag graph_tag;
 
-#ifndef BOOST_GRAPH_NO_BUNDLED_PROPERTIES
     // Bundled properties support
     template<typename Descriptor>
     typename graph::detail::bundled_result<Graph, Descriptor>::type&
@@ -206,11 +205,10 @@ namespace boost {
     typename graph::detail::bundled_result<Graph, Descriptor>::type const&
     operator[](Descriptor x) const
     { return this->m_g[x]; }
-#endif // BOOST_GRAPH_NO_BUNDLED_PROPERTIES
 
     static vertex_descriptor null_vertex()
     {
-       return Graph::null_vertex();
+       return Traits::null_vertex();
     }
 
     //private:
@@ -222,19 +220,21 @@ namespace boost {
   template <typename Graph, 
             typename EdgePredicate,
             typename VertexPredicate>
-  struct vertex_property_type<filtered_graph<Graph, EdgePredicate, VertexPredicate> > {
-    typedef typename vertex_property_type<Graph>::type type;
-  };
+  struct vertex_property_type<filtered_graph<Graph, EdgePredicate, VertexPredicate> >:
+    vertex_property_type<Graph> {};
 
   template <typename Graph, 
             typename EdgePredicate,
             typename VertexPredicate>
-  struct edge_property_type<filtered_graph<Graph, EdgePredicate, VertexPredicate> > {
-    typedef typename edge_property_type<Graph>::type type;
-  };
+  struct edge_property_type<filtered_graph<Graph, EdgePredicate, VertexPredicate> >:
+    edge_property_type<Graph> {};
 
+  template <typename Graph, 
+            typename EdgePredicate,
+            typename VertexPredicate>
+  struct graph_property_type<filtered_graph<Graph, EdgePredicate, VertexPredicate> >:
+    graph_property_type<Graph> {};
 
-#ifndef BOOST_GRAPH_NO_BUNDLED_PROPERTIES
   template<typename Graph, typename EdgePredicate, typename VertexPredicate>
   struct vertex_bundle_type<filtered_graph<Graph, EdgePredicate, 
                                            VertexPredicate> > 
@@ -244,7 +244,11 @@ namespace boost {
   struct edge_bundle_type<filtered_graph<Graph, EdgePredicate, 
                                          VertexPredicate> > 
     : edge_bundle_type<Graph> { };
-#endif // BOOST_GRAPH_NO_BUNDLED_PROPERTIES
+
+  template<typename Graph, typename EdgePredicate, typename VertexPredicate>
+  struct graph_bundle_type<filtered_graph<Graph, EdgePredicate, 
+                                          VertexPredicate> > 
+    : graph_bundle_type<Graph> { };
 
   //===========================================================================
   // Non-member functions for the Filtered Edge Graph
