@@ -6,7 +6,7 @@ def configure(conf):
 
 
 def build(bld):
-  bld.shlib(
+  bld.objects(
     target   = 'ls_gmres',
     includes = ['.','../../mkernel'],
     source   = ['ls_gmres.cpp'] )

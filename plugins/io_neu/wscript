@@ -6,7 +6,7 @@ def configure(conf):
 
 
 def build(bld):
-  bld.shlib(
+  bld.objects(
     target   = 'io_neu',
     includes = ['.','../../mkernel'],
     source   = ['f_neu.cpp'] )

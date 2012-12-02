@@ -10,7 +10,7 @@ def configure(conf):
 
 
 def build(bld):
-  bld.shlib(
+  bld.objects(
     target   = 'ls_samg',
     defines  = ['SAMG_UNIX_LINUX','SAMG_LCASE_USCORE','SAMG_CVF=0'],
     includes = ['.','../../mkernel'],

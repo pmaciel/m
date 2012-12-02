@@ -6,7 +6,7 @@ def configure(conf):
 
 
 def build(bld):
-  bld.shlib(
+  bld.objects(
     target   = 'collection_t',
     use      = ['io_smurf'],
     includes = ['.','../../mkernel','../format_smurf'],

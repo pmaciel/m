@@ -6,14 +6,14 @@ def configure(conf):
 
 
 def build(bld):
-  bld.stlib(
+  bld.objects(
     target='pillaz',
     includes=['.','../../mkernel'],
     source=[
       'pillaz.cpp',
       'pillaz_geometry.cpp',
       'pillaz_material_database.cpp'] )
-  bld.shlib(
+  bld.objects(
     target='t_pillaz',
     includes=['.','../../mkernel'],
     source=['t_pillaz.cpp'],

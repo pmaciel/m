@@ -8,7 +8,7 @@ def configure(conf):
 def build(bld):
 
   # smurf library (does not use m)
-  bld.stlib(
+  bld.objects(
     target   = 'smurf',
     includes = ['.'],
     source   = ['smurf.cpp'] )
@@ -21,7 +21,7 @@ def build(bld):
     use      = ['smurf'] )
 
   # plugin
-  bld.shlib(
+  bld.objects(
     target   = 'io_smurf',
     includes = ['.','../../mkernel'],
     source   = ['f_smurf.cpp','f_plt.cpp'],

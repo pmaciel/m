@@ -6,7 +6,7 @@ def configure(conf):
 
 
 def build(bld):
-  bld.shlib(
+  bld.objects(
     target   = 't_laplace',
     includes = ['.','../../mkernel'],
     source   = ['t_laplace.cpp'] )

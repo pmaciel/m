@@ -662,10 +662,12 @@ double ls_gmres::dnrm2(int *n, double *dx, int *incx)
     static double cuthi = 1.304e19;
 
     /* Format strings */
+/*
     static char fmt_30[] = "";
     static char fmt_50[] = "";
     static char fmt_70[] = "";
     static char fmt_110[] = "";
+*/
 
     /* System generated locals */
     int i__1, i__2;

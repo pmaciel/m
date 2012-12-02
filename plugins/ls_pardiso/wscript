@@ -10,7 +10,7 @@ def configure(conf):
 
 
 def build(bld):
-  bld.shlib(
+  bld.objects(
     target   = 'ls_pardiso',
     includes = ['.','../../mkernel'],
     source   = ['ls_pardiso.cpp'],

@@ -67,6 +67,8 @@ def configure(conf):
   conf.msg('Compilation flags (C++)'                          ,conf.env['CXXFLAGS'])
   if options.enable_c:  conf.msg('Compilation flags (C)'      ,conf.env['CFLAGS'])
   if options.enable_fc: conf.msg('Compilation flags (Fortran)',conf.env['FCFLAGS'])
+  #conf.env.append_unique('LINKFLAGS',['-no_dead_strip_inits_and_terms','-no_order_inits','-no_order_data'])
+  #conf.msg('Link flags'                                       ,conf.env['LINKFLAGS'])
 
 
   # set plugins & libraries

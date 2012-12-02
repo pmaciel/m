@@ -10,7 +10,7 @@ def configure(conf):
 
 
 def build(bld):
-  bld.shlib(
+  bld.objects(
     target   = 'ls_wsmp',
     includes = ['.','../../mkernel'],
     source   = ['ls_wsmp.cpp'],

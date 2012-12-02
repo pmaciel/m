@@ -7,7 +7,7 @@ def configure(conf):
 
 def build(bld):
 
-  bld.stlib(
+  bld.objects(
     target   = 'aztec',
     defines  = ['append_','AZ_SERIAL','lint'],
     includes = ['.'],
@@ -27,7 +27,7 @@ def build(bld):
       'y12mcf.f', 'y12mde.f', 'y12mdf.f', 'y12mfe.f', 'y12mge.f', 'y12mhe.f',
       'y12cck.f' ] )
 
-  bld.shlib(
+  bld.objects(
     target   = 'ls_aztec',
     includes = ['.','aztec','../../mkernel'],
     source   = ['ls_aztec.cpp'],

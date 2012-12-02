@@ -2687,6 +2687,7 @@ void AZ_read_update(int *N_update, int *update[], int proc_config[],
   }
 
 
+  ret = ret;
 } /* AZ_read_update */
 
 /*****************************************************************************/
@@ -3016,6 +3017,7 @@ a file speficied by the input argument datafile instead of .update
   }
 
 
+  ret = ret;
 } /* AZ_input_update */
 
 
@@ -3200,6 +3202,7 @@ int AZ_read_external(int N_external, int external[],
 
   AZ_free(temp_buffer);
 
+  ret = ret;
   return 1;
 
 } /* AZ_read_external */

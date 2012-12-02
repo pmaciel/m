@@ -23,7 +23,7 @@ def build(bld):
   from sys import platform
 
   # mkernel library
-  bld.shlib(
+  bld.stlib(
     target   = 'mkernel',
     includes = ['.'],
     defines  = ['FP_NO_SUPPORT_OPTIMIZER'] if platform=='darwin' else [],
@@ -37,6 +37,7 @@ def build(bld):
   bld.program(
     target   = 'm',
     use      = bld.env.m_mlibraries,
+    lib      = ['lapack','blas'],
     includes = ['.'],
     source   = ['m.cpp'] )
 

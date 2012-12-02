@@ -1,7 +1,12 @@
+.*.swo
+.*.swp
+.DS_Store
 .gitignore
 .lock-waf*
 .waf-*
-.*.swo
-.*.swp
 build/
 install/
+m.creator*
+m.config
+m.files
+m.includes

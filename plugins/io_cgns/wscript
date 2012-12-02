@@ -6,7 +6,7 @@ def configure(conf):
 
 
 def build(bld):
-  bld.shlib(
+  bld.objects(
     target   = 'io_cgns',
     includes = ['../../mkernel'],
     source   = ['f_cgns.cpp'] )
