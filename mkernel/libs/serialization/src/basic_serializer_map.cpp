@@ -16,6 +16,10 @@
 #include <utility>
 
 #define BOOST_ARCHIVE_SOURCE
+// include this to prevent linker errors when the
+// same modules are marked export and import.
+#define BOOST_SERIALIZATION_SOURCE
+
 #include <boost/archive/archive_exception.hpp>
 #include <boost/serialization/throw_exception.hpp>
 
@@ -95,7 +99,7 @@ basic_serializer_map::find(
     map_type::const_iterator it;
     it = m_map.find(& bs);
     if(it == m_map.end()){
-        assert(false);
+        BOOST_ASSERT(false);
         return 0;
     }
     return *it;

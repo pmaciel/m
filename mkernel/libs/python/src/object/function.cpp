@@ -433,23 +433,23 @@ void function::add_to_namespace(
     if (attribute.ptr()->ob_type == &function_type)
     {
         function* new_func = downcast<function>(attribute.ptr());
-        PyObject* dict = 0;
+        handle<> dict;
         
 #if PY_VERSION_HEX < 0x03000000
         // Old-style class gone in Python 3
         if (PyClass_Check(ns))
-            dict = ((PyClassObject*)ns)->cl_dict;
+            dict = handle<>(borrowed(((PyClassObject*)ns)->cl_dict));
         else
 #endif        
         if (PyType_Check(ns))
-            dict = ((PyTypeObject*)ns)->tp_dict;
+            dict = handle<>(borrowed(((PyTypeObject*)ns)->tp_dict));
         else    
-            dict = PyObject_GetAttrString(ns, const_cast<char*>("__dict__"));
+            dict = handle<>(PyObject_GetAttrString(ns, const_cast<char*>("__dict__")));
 
         if (dict == 0)
             throw_error_already_set();
 
-        handle<> existing(allow_null(::PyObject_GetItem(dict, name.ptr())));
+        handle<> existing(allow_null(::PyObject_GetItem(dict.get(), name.ptr())));
         
         if (existing)
         {
@@ -670,11 +670,26 @@ extern "C"
     {
         return python::incref(upcast<PyObject>(&PyCFunction_Type));
     }
+
+    static PyObject* function_get_module(PyObject* op, void*)
+    {
+        function* f = downcast<function>(op);
+        object const& ns = f->get_namespace();
+        if (!ns.is_none()) {
+            return python::incref(ns.ptr());
+        }
+        PyErr_SetString(
+            PyExc_AttributeError, const_cast<char*>(
+                "Boost.Python function __module__ unknown."));
+        return 0;
+    }
 }
 
 static PyGetSetDef function_getsetlist[] = {
     {const_cast<char*>("__name__"), (getter)function_get_name, 0, 0, 0 },
     {const_cast<char*>("func_name"), (getter)function_get_name, 0, 0, 0 },
+    {const_cast<char*>("__module__"), (getter)function_get_module, 0, 0, 0 },
+    {const_cast<char*>("func_module"), (getter)function_get_module, 0, 0, 0 },
     {const_cast<char*>("__class__"), (getter)function_get_class, 0, 0, 0 },    // see note above
     {const_cast<char*>("__doc__"), (getter)function_get_doc, (setter)function_set_doc, 0, 0},
     {const_cast<char*>("func_doc"), (getter)function_get_doc, (setter)function_set_doc, 0, 0},

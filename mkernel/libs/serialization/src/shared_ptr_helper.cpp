@@ -19,6 +19,9 @@
 #include <cstddef> // NULL
 
 #define BOOST_ARCHIVE_SOURCE
+// include this to prevent linker errors when the
+// same modules are marked export and import.
+#define BOOST_SERIALIZATION_SOURCE
 
 #include <boost/serialization/throw_exception.hpp>
 #include <boost/serialization/void_cast.hpp>
@@ -100,7 +103,7 @@ shared_ptr_helper::append(const boost::shared_ptr<const void> &sp){
     if(i == m_pointers->end()){
         std::pair<collection_type::iterator, bool> result;
         result = m_pointers->insert(sp);
-        assert(result.second);
+        BOOST_ASSERT(result.second);
     }
 }
 
