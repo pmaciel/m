@@ -8,11 +8,15 @@ Vec.h
 Class for a constant-length vector
 
 Supports the following operations:
-	vec v1;			// Initialized to (0,0,0)
-	vec v2(1,2,3);		// Initialized to (1,2,3)
-	vec v3(v2);		// Copy constructor
+
+	vec v1;			// Initialized to (0, 0, 0)
+	vec v2(1.23f);		// Initialized to (1.23f, 1.23f, 1.23f)
+	vec v3(1, 2, 3);	// Initialized to (1, 2, 3)
+	vec v4(v3);		// Copy constructor
+
 	float farray[3];
-	vec v4 = vec(farray);	// Explicit: "v4 = farray" won't work
+	vec v5 = vec(farray);	// Explicit: "v4 = farray" won't work
+
 	Vec<3,double> vd;	// The "vec" used above is Vec<3,float>
 	point p1, p2, p3;	// Same as vec
 
@@ -20,9 +24,9 @@ Supports the following operations:
 	v3 = 3.5f * v1;		// Also vec * scalar, vec / scalar
 				// NOTE: scalar has to be the same type:
 				// it won't work to do double * vec<float>
-	v1 = min(v2,v3);	// Componentwise min/max
+	v1 = min(v2, v3);	// Componentwise min/max
 	v1 = sin(v2);		// Componentwise - all the usual functions...
-	swap(v1,v2);		// In-place swap
+	swap(v1, v2);		// In-place swap
 
 	v3 = v1 DOT v2;		// Actually operator^
 	v3 = v1 CROSS v2;	// Actually operator%
@@ -34,29 +38,33 @@ Supports the following operations:
 	f = dist(p1, p2);	// Distance (also dist2 == squared distance)
 	normalize(v1);		// Normalize (i.e., make it unit length)
 				// normalize(vec(0,0,0)) => vec(1,0,0)
-	v1 = trinorm(p1,p2,p3); // Normal of triangle
+	v1 = trinorm(p1,p2,p3); // Normal of triangle (area-weighted)
 
 	cout << v1 << endl;	// iostream output in the form (1,2,3)
 	cin >> v2;		// iostream input using the same syntax
 
 Also defines the utility functions sqr, cube, sgn, fract, clamp, mix,
-step, smoothstep, faceforward, reflect, and refract
+step, smoothstep, faceforward, reflect, refract, and angle
 */
 
 
-// Windows defines these as macros, which prevents us from using the
-// type-safe versions from std::, as well as interfering with method defns
-#undef min
-#undef max
+// Windows defines min and max as macros, which prevents us from using the
+// type-safe versions from std::, as well as interfering with method defns.
+// Also define NOMINMAX, which prevents future bad definitions.
+#ifdef min
+# undef min
+#endif
+#ifdef max
+# undef max
+#endif
+#ifndef NOMINMAX
+# define NOMINMAX
+#endif
 
-
+#include <cstddef>
 #include <cmath>
 #include <iostream>
 #include <algorithm>
-using std::min;
-using std::max;
-using std::swap;
-using std::sqrt;
 
 
 // Let gcc optimize conditional branches a bit better...
@@ -91,12 +99,16 @@ public:
 #define VEC_UNINITIALIZED ((void *) 0)
 	Vec(void *) {}
 
+	// Constructor for one argument - default value.
+	explicit Vec(const T &x)
+		{ for (int i = 0; i < D; i++) v[i] = x; }
+
 	// Constructors for 2-4 arguments
-	Vec(T x, T y)
+	Vec(const T &x, const T &y)
 		{ VEC_STATIC_CHECK(D == 2); v[0] = x; v[1] = y; }
-	Vec(T x, T y, T z)
+	Vec(const T &x, const T &y, const T &z)
 		{ VEC_STATIC_CHECK(D == 3); v[0] = x; v[1] = y; v[2] = z; }
-	Vec(T x, T y, T z, T w)
+	Vec(const T &x, const T &y, const T &z, const T &w)
 		{ VEC_STATIC_CHECK(D == 4); v[0] = x; v[1] = y; v[2] = z; v[3] = w; }
 
 	// Constructor from anything that can be accessed using []
@@ -104,7 +116,7 @@ public:
 	template <class S> explicit Vec(const S &x)
 		{ for (int i = 0; i < D; i++) v[i] = T(x[i]); }
 
-	// No destructor or assignment operator needed
+	// Using default copy constructor, assignment operator, and destructor
 
 	// Array reference and conversion to pointer - no bounds checking
 	const T &operator [] (int i) const
@@ -161,6 +173,12 @@ public:
 			v[i] /= x;
 		return *this;
 	}
+	Vec<D,T> &operator = (const T &x)
+	{
+		for (int i = 0; i < D; i++)
+			v[i] = x;
+		return *this;
+	}
 
 	// Set each component to min/max of this and the other vector
 	Vec<D,T> &min(const Vec<D,T> &x)
@@ -178,51 +196,122 @@ public:
 		return *this;
 	}
 
+	// Swap with another vector.  (Also exists as a global function.)
+	void swap(Vec<D,T> &x)
+	{
+		using namespace std;
+#pragma omp critical
+		for (int i = 0; i < D; i++) swap(v[i], x[i]);
+	}
+
 	// Outside of class: + - * / % ^ << >>
 
-	// Some partial compatibility with valarrays and vectors
+	// Some partial compatibility with std::vector
 	typedef T value_type;
+	typedef T *pointer;
+	typedef const T *const_pointer;
+	typedef T *iterator;
+	typedef const T *const_iterator;
+	typedef T &reference;
+	typedef const T &const_reference;
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+
 	size_t size() const
 		{ return D; }
+	T *begin()
+		{ return &(v[0]); }
+	const T *begin() const
+		{ return &(v[0]); }
+	T *end()
+		{ return begin() + D; }
+	const T *end() const
+		{ return begin() + D; }
+
+	// clear() and empty() - set to zero or check for all zero
+	void clear()
+		{ for (int i = 0; i < D; i++) v[i] = T(0); }
+	bool empty() const
+	{
+		for (int i = 0; i < D; i++)
+			if (v[i]) return false;
+		return true;
+	}
+
+	// Some partial compatibility with std::valarray, plus generalizations
 	T sum() const
-		{ T total = v[0];
-		  for (int i = 1; i < D; i++) total += v[i];
-		  return total; }
+	{
+		T total = v[0];
+		for (int i = 1; i < D; i++)
+			total += v[i];
+		return total;
+	}
+	T sumabs() const
+	{
+		using namespace std; // For fabs()
+		T total = fabs(v[0]);
+		for (int i = 1; i < D; i++)
+			total += fabs(v[i]);
+		return total;
+	}
 	T avg() const
 		{ return sum() / D; }
 	T product() const
-		{ T total = v[0];
-		  for (int i = 1; i < D; i++) total *= v[i];
-		  return total; }
+	{
+		T total = v[0];
+		for (int i = 1; i < D; i++)
+			total *= v[i];
+		return total;
+	}
 	T min() const
-		{ T m = v[0];
-		  for (int i = 1; i < D; i++)
-			if (v[i] < m)  m = v[i];
-		  return m; }
+	{
+		T m = v[0];
+		for (int i = 1; i < D; i++)
+			if (v[i] < m) m = v[i];
+		return m;
+	}
 	T max() const
-		{ T m = v[0];
-		  for (int i = 1; i < D; i++)
-			if (v[i] > m)  m = v[i];
-		  return m; }
-	T *begin() { return &(v[0]); }
-	const T *begin() const { return &(v[0]); }
-	T *end() { return begin() + D; }
-	const T *end() const { return begin() + D; }
-	void clear() { for (int i = 0; i < D; i++) v[i] = T(0); }
-	bool empty() const
-		{ for (int i = 0; i < D; i++)
-			if (v[i]) return false;
-		  return true; }
+	{
+		T m = v[0];
+		for (int i = 1; i < D; i++)
+			if (v[i] > m) m = v[i];
+		return m;
+	}
 	Vec<D,T> apply(T func(T)) const
-		{ Vec<D,T> result(VEC_UNINITIALIZED);
-		  for (int i = 0; i < D; i++) result[i] = func(v[i]);
-		  return result; }
+	{
+		Vec<D,T> result(VEC_UNINITIALIZED);
+		for (int i = 0; i < D; i++) result[i] = func(v[i]);
+		return result;
+	}
 	Vec<D,T> apply(T func(const T&)) const
-		{ Vec<D,T> result(VEC_UNINITIALIZED);
-		  for (int i = 0; i < D; i++) result[i] = func(v[i]);
-		  return result; }
+	{
+		Vec<D,T> result(VEC_UNINITIALIZED);
+		for (int i = 0; i < D; i++) result[i] = func(v[i]);
+		return result;
+	}
+	Vec<D,T> cshift(int n) const
+	{
+		Vec<D,T> result(VEC_UNINITIALIZED);
+		if (n < 0)
+			n = (n % D) + D;
+		for (int i = 0; i < D; i++)
+			result[i] = v[(i+n)%D];
+		return result;
+	}
+	Vec<D,T> shift(int n) const
+	{
+		if (abs(n) >= D)
+			return Vec<D,T>();
+		Vec<D,T> result; // Must be initialized to zero
+		int start = n < 0 ? -n : 0;
+		int stop = n > 0 ? D - n : D;
+		for (int i = start; i < stop; i++) result[i] = v[i+n];
+		return result;
+	}
 };
 
+
+// Shorthands for particular flavors of Vecs
 typedef Vec<3,float> vec;
 typedef Vec<3,float> point;
 typedef Vec<2,float> vec2;
@@ -270,7 +359,8 @@ static inline const Vec<D,T> operator / (const Vec<D,T> &v1, const Vec<D,T> &v2)
 	return result;
 }
 
-// Dot product in any dimension
+
+// Dot product
 template <int D, class T>
 static inline const T operator ^ (const Vec<D,T> &v1, const Vec<D,T> &v2)
 {
@@ -280,6 +370,7 @@ static inline const T operator ^ (const Vec<D,T> &v1, const Vec<D,T> &v2)
 	return sum;
 }
 #define DOT ^
+
 
 // Cross product - only in 3 dimensions
 template <class T>
@@ -310,6 +401,39 @@ static inline bool operator != (const Vec<D,T> &v1, const Vec<D,T> &v2)
 		if (v1[i] != v2[i])
 			return true;
 	return false;
+}
+
+
+// Comparison by lexicographical ordering - not necessarily useful on its own,
+// but necessary in order to put Vecs in sets, maps, etc.
+template <int D, class T>
+static inline bool operator < (const Vec<D,T> &v1, const Vec<D,T> &v2)
+{
+	for (int i = 0; i < D; i++) {
+		if (v1[i] < v2[i])
+			return true;
+		else if (v1[i] > v2[i])
+			return false;
+	}
+	return false;
+}
+
+template <int D, class T>
+static inline bool operator > (const Vec<D,T> &v1, const Vec<D,T> &v2)
+{
+	return v2 < v1;
+}
+
+template <int D, class T>
+static inline bool operator <= (const Vec<D,T> &v1, const Vec<D,T> &v2)
+{
+	return !(v2 < v1);
+}
+
+template <int D, class T>
+static inline bool operator >= (const Vec<D,T> &v1, const Vec<D,T> &v2)
+{
+	return !(v1 < v2);
 }
 
 
@@ -379,9 +503,10 @@ template <int D, class T>
 static inline std::ostream &operator << (std::ostream &os, const Vec<D,T> &v)
 
 {
-	for (int i = 0; i < D; i++)
-		os << ' ' << v[i];
-	return os << ' ';
+	os << "(";
+	for (int i = 0; i < D-1; i++)
+		os << v[i] << ", ";
+	return os << v[D-1] << ")";
 }
 
 template <int D, class T>
@@ -409,68 +534,14 @@ static inline std::istream &operator >> (std::istream &is, Vec<D,T> &v)
 }
 
 
-// Functions on Vecs
-template <int D, class T>
-static inline void swap(const Vec<D,T> &v1, const Vec<D,T> &v2)
-{
+// Swap two Vecs.  Not atomic, unlike class method.
+namespace std {
+  template <int D, class T>
+  static inline void swap(const Vec<D,T> &v1, const Vec<D,T> &v2)
+  {
 	for (int i = 0; i < D; i++)
 		swap(v1[i], v2[i]);
-}
-
-template <int D, class T>
-static inline const T len2(const Vec<D,T> &v)
-{
-	T l2 = v[0] * v[0];
-	for (int i = 1; i < D; i++)
-		l2 += v[i] * v[i];
-	return l2;
-}
-
-template <int D, class T>
-static inline const T len(const Vec<D,T> &v)
-{
-	return sqrt(len2(v));
-}
-
-template <int D, class T>
-static inline const T dist2(const Vec<D,T> &v1, const Vec<D,T> &v2)
-{
-	T d2 = sqr(v2[0]-v1[0]);
-	for (int i = 1; i < D; i++)
-		d2 += sqr(v2[i]-v1[i]);
-	return d2;
-}
-
-template <int D, class T>
-static inline const T dist(const Vec<D,T> &v1, const Vec<D,T> &v2)
-{
-	return sqrt(dist2(v1,v2));
-}
-
-template <int D, class T>
-static inline Vec<D,T> normalize(Vec<D,T> &v)
-{
-	T l = len(v);
-	if (unlikely(l <= T(0))) {
-		v[0] = T(1);
-		for (int i = 1; i < D; i++)
-			v[i] = T(0);
-		return v;
-	}
-
-	l = T(1) / l;
-	for (int i = 0; i < D; i++)
-		v[i] *= l;
-
-	return v;
-}
-
-
-// Area-weighted triangle face normal
-template <class T>
-static inline T trinorm(const T &v0, const T &v1, const T &v2)
-{
-	return (typename T::value_type) 0.5 * ((v1 - v0) CROSS (v2 - v0));
+  }
 }
 
 
@@ -488,7 +559,7 @@ static inline T cube(const T &x)
 }
 
 
-// Sign of a scalar
+// Sign of a scalar.  Note that sgn(0) == 1.
 template <class T>
 static inline T sgn(const T &x)
 {
@@ -522,7 +593,7 @@ static inline T step(const T &x, const T &a)
 }
 
 template <class T>
-static inline T smoothstep(const T &x, const T &a, const T &b)
+static inline T smoothstep(const T &a, const T &b, const T &x)
 {
 	if (b <= a) return step(x,a);
 	T t = (x - a) / (b - a);
@@ -546,18 +617,150 @@ template <int D, class T>
 static inline T refract(const Vec<D,T> &I, const Vec<D,T> &N,
 			const T &eta)
 {
+	using namespace std; // For sqrt
 	T NdotI = N DOT I;
 	T k = T(1) - sqr(eta) * (T(1) - sqr(NdotI));
 	return (k < T(0)) ? T(0) : eta * I - (eta * NdotI * sqrt(k)) * N;
 }
 
 
+// C99 compatibility functions for MSVS
+#ifdef _WIN32
+#ifdef cbrt
+# undef cbrt
+#endif
+inline float cbrt(float x)
+{
+	using namespace std; // For pow
+	return (x < 0.0f) ? -pow(-x, 1.0f / 3.0f) : pow(x, 1.0f / 3.0f);
+}
+inline double cbrt(double x)
+{
+	using namespace std; // For pow
+	return (x < 0.0) ? -pow(-x, 1.0 / 3.0) : pow(x, 1.0 / 3.0);
+}
+inline long double cbrt(long double x)
+{
+	using namespace std; // For pow
+	return (x < 0.0L) ? -pow(-x, 1.0L / 3.0L) : pow(x, 1.0L / 3.0L);
+}
+#ifdef round
+# undef round
+#endif
+inline float round(float x)
+{
+	return (x < 0.0f) ? float(int(x - 0.5f)) : float(int(x + 0.5f));
+}
+inline double round(double x)
+{
+	return (x < 0.0f) ? double(int(x - 0.5)) : double(int(x + 0.5));
+}
+inline long double round(long double x)
+{
+	return (x < 0.0f) ? (long double)(int(x - 0.5L)) : (long double)(int(x + 0.5L));
+}
+#ifdef trunc
+# undef trunc
+#endif
+inline float trunc(float x)
+{
+	return (x < 0.0f) ? float(int(x)) : float(int(x));
+}
+inline double trunc(double x)
+{
+	return (x < 0.0f) ? double(int(x)) : double(int(x));
+}
+inline long double trunc(long double x)
+{
+	return (x < 0.0f) ? (long double)(int(x)) : (long double)(int(x));
+}
+#endif
+
+
+// Squared length
+template <int D, class T>
+static inline const T len2(const Vec<D,T> &v)
+{
+	T l2 = v[0] * v[0];
+	for (int i = 1; i < D; i++)
+		l2 += v[i] * v[i];
+	return l2;
+}
+
+
+// Length
+template <int D, class T>
+static inline const T len(const Vec<D,T> &v)
+{
+	using namespace std; // For sqrt
+	return sqrt(len2(v));
+}
+
+
+// Squared distance
+template <int D, class T>
+static inline const T dist2(const Vec<D,T> &v1, const Vec<D,T> &v2)
+{
+	T d2 = sqr(v2[0]-v1[0]);
+	for (int i = 1; i < D; i++)
+		d2 += sqr(v2[i]-v1[i]);
+	return d2;
+}
+
+
+// Distance
+template <int D, class T>
+static inline const T dist(const Vec<D,T> &v1, const Vec<D,T> &v2)
+{
+	using namespace std; // For sqrt
+	return sqrt(dist2(v1,v2));
+}
+
+
+// In-place normalization to unit length
+template <int D, class T>
+static inline Vec<D,T> normalize(Vec<D,T> &v)
+{
+	T l = len(v);
+	if (unlikely(l <= T(0))) {
+		v[0] = T(1);
+		for (int i = 1; i < D; i++)
+			v[i] = T(0);
+		return v;
+	}
+
+	l = T(1) / l;
+	for (int i = 0; i < D; i++)
+		v[i] *= l;
+
+	return v;
+}
+
+
+// Area-weighted triangle face normal
+template <class T>
+static inline T trinorm(const T &v0, const T &v1, const T &v2)
+{
+	return (typename T::value_type) 0.5 * ((v1 - v0) CROSS (v2 - v0));
+}
+
+
+// Angle between two vectors
+template <int D, class T>
+static inline const T angle(const Vec<D,T> &v1, const Vec<D,T> &v2)
+{
+	using namespace std;
+	return atan2(len(v1 CROSS v2), v1 DOT v2);
+}
+
+
 // Generic macros for declaring 1-, 2-, and 3- argument
-// componentwise functions on vecs
+// componentwise functions on Vecs
 #define VEC_DECLARE_ONEARG(name) \
  template <int D, class T> \
  static inline Vec<D,T> name(const Vec<D,T> &v) \
  { \
+	using namespace std; \
 	Vec<D,T> result(VEC_UNINITIALIZED); \
 	for (int i = 0; i < D; i++) \
 		result[i] = name(v[i]); \
@@ -568,6 +771,7 @@ static inline T refract(const Vec<D,T> &I, const Vec<D,T> &N,
  template <int D, class T> \
  static inline Vec<D,T> name(const Vec<D,T> &v, const T &w) \
  { \
+	using namespace std; \
 	Vec<D,T> result(VEC_UNINITIALIZED); \
 	for (int i = 0; i < D; i++) \
 		result[i] = name(v[i], w); \
@@ -576,15 +780,18 @@ static inline T refract(const Vec<D,T> &I, const Vec<D,T> &N,
  template <int D, class T> \
  static inline Vec<D,T> name(const Vec<D,T> &v, const Vec<D,T> &w) \
  { \
+	using namespace std; \
 	Vec<D,T> result(VEC_UNINITIALIZED); \
 	for (int i = 0; i < D; i++) \
 		result[i] = name(v[i], w[i]); \
 	return result; \
  }
+
 #define VEC_DECLARE_THREEARG(name) \
  template <int D, class T> \
  static inline Vec<D,T> name(const Vec<D,T> &v, const T &w, const T &x) \
  { \
+	using namespace std; \
 	Vec<D,T> result(VEC_UNINITIALIZED); \
 	for (int i = 0; i < D; i++) \
 		result[i] = name(v[i], w, x); \
@@ -593,6 +800,7 @@ static inline T refract(const Vec<D,T> &I, const Vec<D,T> &N,
  template <int D, class T> \
  static inline Vec<D,T> name(const Vec<D,T> &v, const Vec<D,T> &w, const Vec<D,T> &x) \
  { \
+	using namespace std; \
 	Vec<D,T> result(VEC_UNINITIALIZED); \
 	for (int i = 0; i < D; i++) \
 		result[i] = name(v[i], w[i], x[i]); \
@@ -606,10 +814,13 @@ VEC_DECLARE_ONEARG(round)
 VEC_DECLARE_ONEARG(trunc)
 VEC_DECLARE_ONEARG(sin)
 VEC_DECLARE_ONEARG(asin)
+VEC_DECLARE_ONEARG(sinh)
 VEC_DECLARE_ONEARG(cos)
 VEC_DECLARE_ONEARG(acos)
+VEC_DECLARE_ONEARG(cosh)
 VEC_DECLARE_ONEARG(tan)
 VEC_DECLARE_ONEARG(atan)
+VEC_DECLARE_ONEARG(tanh)
 VEC_DECLARE_ONEARG(exp)
 VEC_DECLARE_ONEARG(log)
 VEC_DECLARE_ONEARG(sqrt)
@@ -617,12 +828,14 @@ VEC_DECLARE_ONEARG(sqr)
 VEC_DECLARE_ONEARG(cbrt)
 VEC_DECLARE_ONEARG(cube)
 VEC_DECLARE_ONEARG(sgn)
-VEC_DECLARE_TWOARG(min)
-VEC_DECLARE_TWOARG(max)
 VEC_DECLARE_TWOARG(atan2)
 VEC_DECLARE_TWOARG(pow)
 VEC_DECLARE_TWOARG(fmod)
 VEC_DECLARE_TWOARG(step)
+namespace std {
+ VEC_DECLARE_TWOARG(min)
+ VEC_DECLARE_TWOARG(max)
+}
 VEC_DECLARE_THREEARG(smoothstep)
 VEC_DECLARE_THREEARG(clamp)
 
@@ -631,124 +844,38 @@ VEC_DECLARE_THREEARG(clamp)
 #undef VEC_DECLARE_THREEARG
 
 
+// Inject into std namespace
+namespace std {
+	using ::fabs;
+	using ::floor;
+	using ::ceil;
+	using ::round;
+	using ::trunc;
+	using ::sin;
+	using ::asin;
+	using ::sinh;
+	using ::cos;
+	using ::acos;
+	using ::cosh;
+	using ::tan;
+	using ::atan;
+	using ::tanh;
+	using ::exp;
+	using ::log;
+	using ::sqrt;
+	using ::cbrt;
+	using ::atan2;
+	using ::pow;
+	using ::fmod;
+}
+
+
 // Both valarrays and GLSL use abs() on a vector to mean fabs().
-// Let's be compatible...
+// Let's do the same...
 template <int D, class T>
 static inline Vec<D,T> abs(const Vec<D,T> &v)
 {
 	return fabs(v);
 }
-
-
-/*
-static inline bool operator < (const point& p0,const point& p1)
-{
- //define relative zero
- float scale = 0.5f*(sqrt(p0 DOT p0)+sqrt(p1 DOT p1));
- float zz = ZERO_P*scale;
- if ( fabs( p0[0]- p1[0] ) > zz ) {
-  if ( p0[0] + zz < p1[0] )
-   return true;
-  else
-   return false;
- }
- else {
-  if ( fabs( p0[1] - p1[1] ) > zz ) {
-   if ( p0[1] + zz < p1[1] )
-    return true;
-   else
-    return false;
-  }
-  else {
-   if ( fabs( p0[2] - p1[2] ) > zz ) {
-    if ( p0[2] + zz < p1[2] )
-     return true;
-    else
-     return false;
-   }
-   else {
-    return false;
-   }
-  }
- }
-}
-*/
-
-
-/*
-template <class T>
-static inline bool operator < (const Vec<3,T> &v1, const Vec<3,T> &v2)
-{
-  if      (v1[0]<v2[0]) return true;
- else if (v1[0]==v2[0])
- {
-  if      (v1[1]<v2[1]) return true;
-  else if (v1[1]==v2[1])
-  {
-   return (v1[2]<v2[2]);
-  }
-  else return false;
-  }
- else return false;
-}
-*/
-
-
-/*
-// Sign of a scalar
-template <class T>
-static inline T sgn(const T &x)
-{
-  return (x < T(0)) ? T(-1) : T(1);
-}
-*/
-
-
-/*
-template <int D, class T>
-static inline const T area(const Vec<D,T>& pa,const Vec<D,T>& pb,const Vec<D,T>& pc)
-{
-  return fabs(len((pb - pa) CROSS (pc - pa)) * (T)0.5);
-}
-*/
-
-
-/*
-template <int D, class T>
-static inline const T orient(const Vec<D,T>& pa,const Vec<D,T>& pb,const Vec<D,T>& pc)
-{
-  T acx, bcx, acy, bcy;
-
-  acx = pa[0] - pc[0];
-  bcx = pb[0] - pc[0];
-  acy = pa[1] - pc[1];
-  bcy = pb[1] - pc[1];
-  return acx * bcy - acy * bcx;
-}
-*/
-
-
-/*
-static inline bool operator == (const point& p0,const point& p1)
-{
-#ifndef ZERO_P
-#define ZERO_P 1.0E-6f
- //define relative zero
- float scale = 0.5f*(sqrt(p0 DOT p0)+sqrt(p1 DOT p1));
- float zer = ZERO_P*scale;
-
- float xx,yy,zz;
- xx = p0[0] - p1[0];
- yy = p0[1] - p1[1];
- zz = p0[2] - p1[2];
-
- if ( fabs(xx) > zer ) return false;
- if ( fabs(yy) > zer ) return false;
- if ( fabs(zz) > zer ) return false;
- return true;
-#unddef ZERO_P
-}
-*/
-
 
 #endif
