@@ -118,12 +118,11 @@ void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f, const s
     m.vn.push_back(n);
     m.vv.push_back(vector< double >(Nnode,0.));
   }
-  else {
-    // variable name was found, it exists already
+  if (!f.length()) {
+    // no function was set so just reset it
     m.vv[v_idx].assign(Nnode,0.);
-  }
-  if (!f.length())
     return;
+  }
 
   // set mfunction
   mfunction mf(f,v);
