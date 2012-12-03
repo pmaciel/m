@@ -42,7 +42,7 @@ void t_manip::transform(GetPot& o, mmesh& m)
          if (k=="-tvrm")  { vrm(m,getvindex(m,i->first)); }
     else if (k=="-tvmv")  { vmv(m,getvindex(m,i->first),getvindex(m,i->second)); }
     else if (k=="-tvren") { vren(m,getvindex(m,i->first),i->second); }
-    else if (k=="-tvadd") { vadd(m,i->first,i->second,vector< string >(m.vn.begin(),m.vn.begin()+m.d())); }
+    else if (k=="-tvadd") { vadd(m,i->first,i->second); }
     else if (k=="-tzrm")  { zrm(m,getzindex(m,i->first)); }
     else if (k=="-tzmv")  { zmv(m,getzindex(m,i->first),getzindex(m,i->second)); }
     else if (k=="-tzren") { zren(m,getzindex(m,i->first),i->second); }
@@ -101,42 +101,34 @@ void t_manip::vren(mmesh& m, const unsigned i, const std::string& n)
   m.vn[i] = n;
 }
 
-void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f, const std::vector< std::string >& v)
+void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f)
 {
   using std::string;
   using std::vector;
 
-  // add a new variable (with zeros) in the end
-  const unsigned Nnode = m.n();
-
   // find this variable index (if it doesn't exist set to the end)
-  const unsigned v_idx = std::find(m.vn.begin(),m.vn.end(),n)!=m.vn.end()?
+  unsigned v_idx = std::find(m.vn.begin(),m.vn.end(),n)!=m.vn.end()?
     std::distance(m.vn.begin(),std::find(m.vn.begin(),m.vn.end(),n)) :
     m.v();
   if (v_idx>=m.v()) {
     // variable name wasn't found, push it back
     m.vn.push_back(n);
-    m.vv.push_back(vector< double >(Nnode,0.));
-  }
-  if (!f.length()) {
-    // no function was set so just reset it
-    m.vv[v_idx].assign(Nnode,0.);
-    return;
+    m.vv.push_back(vector< double >(m.n(),0.));
   }
 
   // set mfunction
-  mfunction mf(f,v);
+  mfunction mf(f.length()? f:string("0."),m.vn);
 
   // set variables for this function
-  vector< unsigned > vindex(v.size(),0);
-  for (unsigned i=0; i<v.size(); ++i)
-    vindex[i] = getvindex(m,v[i]);
+  vector< unsigned > vindex(m.v(),0);
+  for (unsigned i=0; i<m.v(); ++i)
+    vindex[i] = getvindex(m,m.vn[i]);
 
   // evaluate at each node
   vector< double >& veval = m.vv[v_idx];
-  vector< double > c(v.size(),0.);
-  for (unsigned i=0; i<Nnode; ++i) {
-    for (unsigned j=0; j<v.size(); ++j)
+  vector< double > c(m.v(),0.);
+  for (unsigned i=0; i<m.n(); ++i) {
+    for (unsigned j=0; j<m.v(); ++j)
       c[j] = m.vv[ vindex[j] ][i];
     veval[i] = mf.eval(&c[0]);
   }
@@ -154,21 +146,17 @@ void t_manip::vaxiz(mmesh& m)
   // transform the coordinates
   const string c_rho  ("axi_"+m.vn[0]+"_rho"  ),  // name for coordinates rho
                c_theta("axi_"+m.vn[0]+"_theta");  // ... and theta
-  vector< string > v(m.vn.begin(),m.vn.begin()+2);
-  vadd(m,c_rho,   "sqrt("+v[0]+"*"+v[0]+"+"+v[1]+"*"+v[1]+")", v);
-  vadd(m,c_theta, "atan2("+v[1]+","+v[0]+")",                  v);
-  v.push_back(c_rho);
-  v.push_back(c_theta);
+  const vector< string >& v(m.vn);
+  vadd(m,c_rho,   "sqrt("+v[0]+"*"+v[0]+"+"+v[1]+"*"+v[1]+")");
+  vadd(m,c_theta, "atan2("+v[1]+","+v[0]+")");
 
   // transform the other vector fields (skipping coordinates)
   const vector< bool > visvector = m.vvectors();
   for (unsigned i=2; i<visvector.size(); ++i)
     if (visvector[i]) {
-      vector< string > w(v);   // { Px,Py, Prho,Ptheta...
-      w.push_back(m.vn[i+0]);  //   Vx,Vy }
-      w.push_back(m.vn[i+1]);
-      vadd(m,"axi_"+w[4]+"_rho",   "("+w[4]+"*"+w[0]+"+"+w[5]+"*"+w[1]+")/"+w[2], w);
-      vadd(m,"axi_"+w[4]+"_theta", "("+w[5]+"*"+w[0]+"-"+w[4]+"*"+w[1]+")/"+w[2], w);
+      const vector< string >& w(m.vn);
+      vadd(m,"axi_"+w[4]+"_rho",   "("+w[4]+"*"+w[0]+"+"+w[5]+"*"+w[1]+")/"+w[2]);
+      vadd(m,"axi_"+w[4]+"_theta", "("+w[5]+"*"+w[0]+"-"+w[4]+"*"+w[1]+")/"+w[2]);
     }
 }
 
