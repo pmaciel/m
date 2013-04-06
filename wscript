@@ -50,18 +50,18 @@ def configure(conf):
     conf.env.append_unique('FCFLAGS',filter(None,conf.env['FCFLAGS']
       + options.m_flags.split(',') + options.m_fcflags.split(',') ))
 
-  if conf.env.m_mbuild=='debug':
-    conf.                      env.append_unique('CXXFLAGS',['-Wall','-O0','-g3'])
-    if options.enable_c:  conf.env.append_unique('CFLAGS',  ['-Wall','-O0','-g3'])
-    if options.enable_fc: conf.env.append_unique('FCFLAGS', ['-Wall','-O0','-g3'])
+  if conf.env.m_mbuild=='optim':
+    conf.                      env.append_unique('CXXFLAGS',['-Wall','-O3','-ffast-math','-fopenmp'])
+    if options.enable_c:  conf.env.append_unique('CFLAGS',  ['-Wall','-O3','-ffast-math','-fopenmp'])
+    if options.enable_fc: conf.env.append_unique('FCFLAGS', ['-Wall','-O3','-ffast-math','-fopenmp'])
+  elif conf.env.m_mbuild=='debug':
+    conf.                      env.append_unique('CXXFLAGS',['-Wall','-O0','-g3','-fopenmp'])
+    if options.enable_c:  conf.env.append_unique('CFLAGS',  ['-Wall','-O0','-g3','-fopenmp'])
+    if options.enable_fc: conf.env.append_unique('FCFLAGS', ['-Wall','-O0','-g3','-fopenmp'])
   elif conf.env.m_mbuild=='devel':
     conf.                      env.append_unique('CXXFLAGS',['-Wall','-O0','-g3','-Wextra','-Wno-unused-parameter','-Wshadow','-Winline','-Wundef','-D_GLIBCXX_DEBUG','-D_GLIBCXX_DEBUG_PEDANTIC'])
     if options.enable_c:  conf.env.append_unique('CFLAGS',  ['-Wall','-O0','-g3','-Wextra','-Wno-unused-parameter','-Wshadow','-Winline','-Wundef'])
     if options.enable_fc: conf.env.append_unique('FCFLAGS', ['-Wall','-O0','-g3','-Wextra','-Wno-unused-parameter','-Wshadow','-Winline'])
-  elif conf.env.m_mbuild=='optim':
-    conf.                      env.append_unique('CXXFLAGS',['-Wall','-O3','-ffast-math'])
-    if options.enable_c:  conf.env.append_unique('CFLAGS',  ['-Wall','-O3','-ffast-math'])
-    if options.enable_fc: conf.env.append_unique('FCFLAGS', ['-Wall','-O3','-ffast-math'])
 
   conf.msg('Build type',conf.env.m_mbuild)
   conf.msg('Compilation flags (C++)'                          ,conf.env['CXXFLAGS'])
@@ -99,7 +99,7 @@ def build(bld):
 
   # force install path to be the same as library search path
   @feature('*')
-  @before('process_rule') 
+  @before('process_rule')
   def process_install_path(self):
     if not getattr(self,'install_path',None):
       self.install_path = bld.env['RPATH']
