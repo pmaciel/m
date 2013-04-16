@@ -95,6 +95,15 @@ void f_smurf::read(GetPot& o, mmesh& m)
         }
       }
     }
+    else if (ve.size() && z.t==FELINESEG) {
+      if (ve[0][0]==ve[0][1]) { //*4
+        m.vz.back().t = ORDERED;
+        for (unsigned c=0; c<ve.size(); ++c) {
+          const unsigned n = ve[c][0];  // retain only first node
+          ve[c].assign(1,n);
+        }
+      }
+    }
     m.vz.back().e2n = convert_to_vtelem(ve);
 
     if (m.vz.size()==1)  // first zone has the variable data
@@ -119,7 +128,7 @@ void f_smurf::write(GetPot& o, const mmesh& m)
   mwriter.writeMainHeader("untitled",m.vn);
   for (unsigned i=0; i<m.z(); ++i) {
     const mzone& z = m.vz[i];
-    const SmURF::ZoneType type = (z.t==ORDERED?         SmURF::ORDERED         :
+    const SmURF::ZoneType type = (z.t==ORDERED?         SmURF::FELINESEG       : //*4
                                  (z.t==FELINESEG?       SmURF::FELINESEG       :
                                  (z.t==FETRIANGLE?      SmURF::FETRIANGLE      :
                                  (z.t==FEQUADRILATERAL? SmURF::FEQUADRILATERAL :
@@ -140,7 +149,7 @@ void f_smurf::write(GetPot& o, const mmesh& m)
   // data section
   for (unsigned i=0; i<m.z(); ++i) {
     const mzone& z = m.vz[i];
-    const SmURF::ZoneType type = (z.t==ORDERED?         SmURF::ORDERED         :
+    const SmURF::ZoneType type = (z.t==ORDERED?         SmURF::FELINESEG       : //*4
                                  (z.t==FELINESEG?       SmURF::FELINESEG       :
                                  (z.t==FETRIANGLE?      SmURF::FETRIANGLE      :
                                  (z.t==FEQUADRILATERAL? SmURF::FEQUADRILATERAL :
@@ -191,6 +200,13 @@ void f_smurf::write(GetPot& o, const mmesh& m)
       for (unsigned c=0; c<ve.size(); ++c) {
         swap(ve[c][2],ve[c][3]);
         swap(ve[c][6],ve[c][7]);
+      }
+    }
+    else if (z.t==ORDERED) { //*4
+      // these are represented by a FELINESEG, with nodes duplication
+      for (unsigned c=0; c<ve.size(); ++c) {
+        const unsigned n = ve[c][0];
+        ve[c].assign(2,n);
       }
     }
     const int sharefrom = (type==SmURF::ORDERED || !i? -1:0);

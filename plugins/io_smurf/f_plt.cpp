@@ -78,7 +78,6 @@ void f_plt::write(GetPot& o, const mmesh& m)
     switch (z.t) {
 
       // these are the naturally supported element types
-      case ORDERED:
       case FELINESEG:
       case FETRIANGLE:
       case FEQUADRILATERAL:
@@ -97,6 +96,26 @@ void f_plt::write(GetPot& o, const mmesh& m)
         f << setZoneHeader(tz,m.v(),solutiontime) << endl;
         writeZoneNodeValues(f,m.vv,isblock,t>0? 0:-1);  // (isblock is an option)
         writeZoneConnectivity(f,z.e2n,z.t);
+
+      } break;
+
+      // these are represented by a FELINESEG, with node duplication
+      case ORDERED: {
+
+        vector< melem > e2n(z.e2n.size());
+        for (unsigned c=0; c<z.e2n.size(); ++c)
+          e2n[c].n.assign(2, z.e2n[c].n[0] );
+
+        TecZone tz(z.n,         // t
+                   2,           // nenodes FIXME see below
+                   m.n(),       // i
+                   e2n.size(),  // j
+                   FELINESEG,   // et
+                   false,       // isblock FIXME see below
+                   t>0);        // isshared
+        f << setZoneHeader(tz,m.v(),solutiontime) << endl;
+        writeZoneNodeValues(f,m.vv,isblock,t>0? 0:-1);
+        writeZoneConnectivity(f,e2n,FELINESEG);
 
       } break;
 
@@ -133,11 +152,11 @@ void f_plt::write(GetPot& o, const mmesh& m)
         }
         mtype et = FEBRICK;
         TecZone tz(z.n,         // t
-                   z.d()+1,     // nenodes
+                   z.d()+1,     // nenodes FIXME: this is wrong, anyway should it be even part of the struct? it's a reading-phase option!
                    m.n(),       // i
                    e2n.size(),  // j
                    et,          // et
-                   false,       // isblock
+                   false,       // isblock FIXME: again this is wrong, should it be even part of the struct? it's a reading-phase option!
                    t>0);        // isshared
         f << setZoneHeader(tz,m.v(),solutiontime) << endl;
         writeZoneNodeValues(f,m.vv,isblock,t>0? 0:-1);
