@@ -40,7 +40,7 @@ void scacde(
     k[inc] = k[inc]/dNvtfce;
 
     kplus[inc] = std::max< double >(k[inc],epsilon);
-    kminus[inc] = std::min< double >(k[inc],epsilon);
+    kminus[inc] = std::min< double >(k[inc],epsilon);  // FIXME: shouldn't it be -epsilon?
 
     sumkabs += std::abs(k[inc]);
     sumkplus += kplus[inc];
