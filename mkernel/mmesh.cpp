@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <boost/foreach.hpp>
 #include "mmesh.h"
 
 using namespace std;
@@ -62,14 +63,50 @@ vector< bool > mmesh::vvectors() const
 
 void mmesh::merge(const mmesh& another)
 {
-/*
-  // -- merge dimensions
-  // -- merge coordinates, other variables are discarded --
-  // -- merge nodes (renumber, removing duplicates) --
-  // -- merge nodes (renumber element > nodes lists) --
-  // -- create inverse connectivity --
-  // -- merge elements (see only elements with renumbered nodes) --
-*/
+  if (n()==another.n()) {
+    // mesh with matching point cloud (according to nb. nodes)
+#define MERGE_CONN 0
+// FIXME: merge connectivities shouldn't be done like this because the merged
+// elements refer to a different coordinate set... what to do?
+
+    // merge variables and zones
+    // (prefix variable/zone names as much as necessary, and copy in)
+    std::string pref;
+    for (bool ok=false; !ok; ) {
+      pref += "_merged_";
+      ok = true;
+      BOOST_FOREACH(const std::string& a, another.vn)
+        ok = ok && (std::find(vn.begin(),vn.end(),pref+a)==vn.end());
+#if MERGE_CONN
+      BOOST_FOREACH(const m::mzone& a, another.vz) {
+        BOOST_FOREACH(const m::mzone& b, vz)
+          ok = ok && (b.n != (pref+a.n));
+      }
+#endif
+    }
+    for (unsigned i=0; i<another.v(); ++i) {
+      vn.push_back(pref+another.vn[i]);
+      vv.push_back(another.vv[i]);
+    }
+#if MERGE_CONN
+    BOOST_FOREACH(const m::mzone& a, another.vz) {
+      vz.push_back(a);
+      vz.back().n = pref+vz.back().n;
+    }
+#endif
+#undef MERGE_CONN
+
+  }
+  else {
+    // mesh without a matching point cloud
+
+    // TODO: merge dimensions and coordinates
+    // TODO: merge nodes (renumber, removing duplicates)
+    // TODO: merge nodes (renumber element > nodes lists)
+    // TODO: create inverse connectivity
+    // TODO: merge elements (see only elements with renumbered nodes)
+
+  }
 }
 
 
