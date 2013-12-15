@@ -1,4 +1,7 @@
 
+#include <set>
+#include <sstream>
+
 #include "mfactory.h"
 #include "mfunction.h"
 #include "t_manip.h"
@@ -6,18 +9,18 @@
 using namespace m;
 
 
-Register< mtransform,t_manip > mt_manip(12,"-tvsort","                variable sort by name (excluding coordinates)",
-                                           "-tvkeep","[str:...]       ... to keep, removing the rest",
-                                           "-tvrm",  "[str:...]       ... removal, by name",
-                                           "-tvmv",  "[str=str:...]   ... moving, from name, to before name",
-                                           "-tvren", "[str=str:...]   ... rename, from name, to name",
-                                           "-tvadd", "[str[=fun]:...] ... addition, optionally set by function (uses only coordinate variables)",
-                                           "-tvaxiz","                ... add new axisymmetric variables (around z axis, 3D only)",
-                                           "-tzsort","                zone sort by name",
-                                           "-tzkeep","[str:...]       ... to keep, removing the rest",
-                                           "-tzrm",  "[str:...]       ... removal, by name",
-                                           "-tzmv",  "[str=str:...]   ... moving, from name, to before name",
-                                           "-tzren", "[str=str:...]   ... rename, from name, to name");
+Register< mtransform,t_manip > mt_manip(12,"-tvsort","                       variable sort by name (excluding coordinates)",
+                                           "-tvkeep","[str:...]              ... to keep, removing the rest",
+                                           "-tvrm",  "[str:...]              ... removal, by name",
+                                           "-tvmv",  "[str=str:...]          ... moving, from name, to before name",
+                                           "-tvren", "[str=str:...]          ... rename, from name, to name",
+                                           "-tvadd", "[str[@zone][=fun]:...] ... addition, optionally set by function (uses only coordinate variables)",
+                                           "-tvaxiz","                       ... add new axisymmetric variables (around z axis, 3D only)",
+                                           "-tzsort","                       zone sort by name",
+                                           "-tzkeep","[str:...]              ... to keep, removing the rest",
+                                           "-tzrm",  "[str:...]              ... removal, by name",
+                                           "-tzmv",  "[str=str:...]          ... moving, from name, to before name",
+                                           "-tzren", "[str=str:...]          ... rename, from name, to name");
 
 
 void t_manip::transform(GetPot& o, mmesh& m)
@@ -42,7 +45,15 @@ void t_manip::transform(GetPot& o, mmesh& m)
          if (k=="-tvrm")  { vrm(m,getvindex(m,i->first)); }
     else if (k=="-tvmv")  { vmv(m,getvindex(m,i->first),getvindex(m,i->second)); }
     else if (k=="-tvren") { vren(m,getvindex(m,i->first),i->second); }
-    else if (k=="-tvadd") { vadd(m,i->first,i->second); }
+    else if (k=="-tvadd") {
+      const vector< string > spl(split(i->first,'@'));
+      if (spl.size()) {
+        vector< unsigned > z;
+        for (vector< string >::const_iterator iz=spl.begin()+1; iz!=spl.end(); ++iz)
+          z.push_back(getzindex(m,*iz));
+        vadd(m,spl[0],i->second,z);
+      }
+    }
     else if (k=="-tzrm")  { zrm(m,getzindex(m,i->first)); }
     else if (k=="-tzmv")  { zmv(m,getzindex(m,i->first),getzindex(m,i->second)); }
     else if (k=="-tzren") { zren(m,getzindex(m,i->first),i->second); }
@@ -101,10 +112,11 @@ void t_manip::vren(mmesh& m, const unsigned i, const std::string& n)
   m.vn[i] = n;
 }
 
-void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f)
+void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f, const std::vector< unsigned > zindex)
 {
   using std::string;
   using std::vector;
+  using std::set;
 
   // find this variable index (if it doesn't exist set to the end)
   unsigned v_idx = std::find(m.vn.begin(),m.vn.end(),n)!=m.vn.end()?
@@ -115,6 +127,7 @@ void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f)
     m.vn.push_back(n);
     m.vv.push_back(vector< double >(m.n(),0.));
   }
+  vector< double >& veval = m.vv[v_idx];
 
   // set mfunction
   mfunction mf(f.length()? f:string("0."),m.vn);
@@ -124,13 +137,32 @@ void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f)
   for (unsigned i=0; i<m.v(); ++i)
     vindex[i] = getvindex(m,m.vn[i]);
 
-  // evaluate at each node
-  vector< double >& veval = m.vv[v_idx];
   vector< double > c(m.v(),0.);
-  for (unsigned i=0; i<m.n(); ++i) {
-    for (unsigned j=0; j<m.v(); ++j)
-      c[j] = m.vv[ vindex[j] ][i];
-    veval[i] = mf.eval(&c[0]);
+  if (!zindex.size()) {
+
+    // evaluate at each node
+    for (unsigned i=0; i<m.n(); ++i) {
+      for (unsigned j=0; j<m.v(); ++j)
+        c[j] = m.vv[ vindex[j] ][i];
+      veval[i] = mf.eval(&c[0]);
+    }
+
+  }
+  else {
+
+    // evaluate only at given zone indices
+    set< unsigned > usednodes;
+    for (vector< unsigned >::const_iterator iz=zindex.begin(); iz!=zindex.end(); ++iz)
+      if (*iz<m.z())
+        for (vector< melem >::const_iterator ie=m.vz[*iz].e2n.begin(); ie!=m.vz[*iz].e2n.end(); ++ie)
+          for (vector< unsigned >::const_iterator in=ie->n.begin(); in!=ie->n.end(); ++in)
+            usednodes.insert(*in);
+    for (set< unsigned >::const_iterator in=usednodes.begin(); in!=usednodes.end(); ++in) {
+      for (unsigned j=0; j<m.v(); ++j)
+        c[j] = m.vv[ vindex[j] ][*in];
+      veval[*in] = mf.eval(&c[0]);
+    }
+
   }
 }
 
@@ -234,6 +266,7 @@ unsigned t_manip::getzindex(const mmesh& m, const std::string& n)
 std::vector< std::pair< std::string,std::string > >
   t_manip::getoperands(const std::string& s)
 {
+  //TODO make use of the (better) split methods
   using std::string;
 
   // split string find a '=' then a ':'
@@ -264,3 +297,22 @@ std::vector< std::pair< std::string,std::string > >
 }
 
 
+std::vector< std::string >& t_manip::split(
+    const std::string &s,
+    char delim,
+    std::vector< std::string > &elems )
+{
+  std::stringstream ss(s);
+  std::string item;
+  while (std::getline(ss,item,delim))
+    elems.push_back(item);
+  return elems;
+}
+
+
+std::vector< std::string > t_manip::split(const std::string &s, char delim)
+{
+  std::vector< std::string > elems;
+  split(s,delim,elems);
+  return elems;
+}

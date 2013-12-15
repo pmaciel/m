@@ -15,7 +15,7 @@ class t_manip : public m::mtransform {
   void vrm(m::mmesh& m, const unsigned i);
   void vmv(m::mmesh& m, const unsigned i, const unsigned j);
   void vren(m::mmesh& m, const unsigned i, const std::string& n);
-  void vadd(m::mmesh& m, const std::string& n, const std::string& f);
+  void vadd(m::mmesh& m, const std::string& n, const std::string& f, const std::vector< unsigned > zindex=std::vector< unsigned >());
   void vaxiz(m::mmesh& m);
 
   // zone operations, per se
@@ -29,6 +29,9 @@ class t_manip : public m::mtransform {
   unsigned getvindex(const m::mmesh& m, const std::string& n);
   unsigned getzindex(const m::mmesh& m, const std::string& n);
   std::vector< std::pair< std::string,std::string > > getoperands(const std::string& s);
+  std::vector< std::string >& split(const std::string& s, char delim, std::vector<std::string>& elems);
+  std::vector< std::string >  split(const std::string& s, char delim);
+
 };
 
 #endif
