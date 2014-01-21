@@ -552,7 +552,7 @@ void pillaz::pillaz_CalcCellwiseData()
   //***Assemble cellwise data by looping over all active entities***//
   for (std::list< PILLAZ_ENTITY_DATA >::const_iterator ei=ed.begin(); ei!=ed.end(); ++ei) {
     const int n = ei->node;
-    pd[n].numDens;
+    /* pd[n].numDens; */
 
     const double ivol = (fp.numDim==2? PI*ei->diameter*ei->diameter/4. :
                         (fp.numDim==3? PI*ei->diameter*ei->diameter*ei->diameter/6. :

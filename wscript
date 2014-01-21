@@ -27,7 +27,7 @@ def options(opt):
 
 def configure(conf):
   from os import path
-  from Options import options
+  options = conf.options
 
   # general things
   conf.env.m_mbuild   = options.m_mbuild if options.m_mbuild else 'user'

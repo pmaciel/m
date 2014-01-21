@@ -315,7 +315,7 @@ void f_plt::getPMBoundaryZoneElementsFromNodeIndices(const mmesh& m, const vecto
     elem.n.clear();
     vector< bool > nfound(en.size(),false);
     for (unsigned j=0; j<en.size(); ++j)
-      if (nfound[j]=(count(vi.begin(),vi.end(),en[j])>0))
+      if ((nfound[j]=(count(vi.begin(),vi.end(),en[j])>0)))
         elem.n.push_back(en[j]);
 
     if (elem.n.size()==2) {

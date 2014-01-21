@@ -22,8 +22,8 @@ void bwrite(FILE *F, T v, bool reverse)
     for (unsigned i=0; i<len; ++i)
       p[i] = r_buffer[i];
   }
-  size_t s = fwrite(&v,sizeof(v),1,F);
-  s=s;
+  if (!fwrite(&v,sizeof(v),1,F))
+    throw 42;
 }
 
 

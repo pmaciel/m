@@ -12,7 +12,6 @@ class f_smurf : public m::mfinput,
  private:
   const std::vector< std::vector< unsigned > > convert_from_vtelem(const std::vector< m::melem >& ve1);
   const std::vector< m::melem > convert_to_vtelem(const std::vector< std::vector< unsigned > >& ve1);
-  bool m_reverse;
 };
 
 #endif

@@ -4,6 +4,7 @@ def configure(conf):
   from sys import platform
 
   conf.env.m_mlibraries.append('mkernel')
+  conf.check_cxx(uselib_store='GOMP', mandatory=False, lib='gomp')
 
   # set configuration header options
   conf.undefine('MVERSION')
@@ -37,7 +38,7 @@ def build(bld):
   bld.program(
     target   = 'm',
     use      = bld.env.m_mlibraries,
-    lib      = ['lapack','blas','gomp'],
+    lib      = ['lapack','blas']+bld.env.LIB_GOMP,
     includes = ['.'],
     source   = ['m.cpp'] )
 
