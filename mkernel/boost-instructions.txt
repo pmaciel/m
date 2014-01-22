@@ -1,0 +1,7 @@
+./bootstrap.sh
+./b2
+./b2 tools/bcp
+
+mkdir boost-mini
+./bin.v2/.../bcp --scan --boost=. mysourcesdir/ boost-mini
+
