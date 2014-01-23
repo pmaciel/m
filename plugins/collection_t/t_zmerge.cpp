@@ -10,7 +10,7 @@ using namespace m;
 Register< mtransform,t_zmerge > mt_zmerge("-tzm","[str:...] zone merge, for zones of the same type");
 
 
-void t_zmerge::transform(GetPot& o, mmesh& m)
+void t_zmerge::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   cout << "::zone merge..." << endl;
 

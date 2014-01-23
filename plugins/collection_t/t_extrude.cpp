@@ -11,7 +11,7 @@ Register< mtransform,t_extrude > mt_extrude(3,"-tz","[z1:n:z2] mesh extrusion fr
                                               "","--extrude-wires: connect extrusion layers with \"wires\" (default: no)");
 
 
-void t_extrude::transform(GetPot& o, mmesh& m2)
+void t_extrude::transform(GetPot& o, mmesh& m2, const XMLNode& x)
 {
   using std::cout;
   using std::cerr;

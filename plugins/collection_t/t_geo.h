@@ -7,7 +7,7 @@
 class t_geo : public m::mtransform {
  public:
   t_geo() : eps(1.e-16) {}
-  void transform(GetPot& o, m::mmesh& m);
+  void transform(GetPot& o, m::mmesh& m, const XMLNode& x);
   // quick check simplex element correctness outside of this module
   static bool cellgeom_ok(const std::vector< std::vector< double > >& coords);
  private:

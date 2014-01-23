@@ -122,7 +122,7 @@ struct ren_king  : ren_rking  { void adjustperm(vector< unsigned >& perm) { std:
 // auxiliary definitions
 
 
-void t_ren::transform(GetPot& o, mmesh& m)
+void t_ren::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   const string o_method = o.get(o.inc_cursor(),"");
         string o_node   = o.get(o.inc_cursor(),"");

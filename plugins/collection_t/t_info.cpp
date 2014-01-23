@@ -9,7 +9,7 @@ using namespace m;
 Register< mtransform,t_info > mt_info("-ti","current mesh information");
 
 
-void t_info::transform(GetPot& o, mmesh& m)
+void t_info::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   using std::cout;
   using std::endl;

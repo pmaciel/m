@@ -7,7 +7,7 @@
 // module with a 2D Laplace equation solver
 class t_meshdef : public m::mtransform {
  public:
-  void transform(GetPot& o, m::mmesh& m);
+  void transform(GetPot& o, m::mmesh& m, const XMLNode& x);
  private:
   // mesh utilities
 //  std::vector< double > getvvalues(const std::string& s);

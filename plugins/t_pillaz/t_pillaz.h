@@ -9,7 +9,7 @@
 class t_pillaz : public m::mtransform,
                public pillaz {
  public:
-  void transform(GetPot& o, m::mmesh& m);
+  void transform(GetPot& o, m::mmesh& m, const XMLNode& x, const XMLNode& x);
 
  private:  // pillaz interface functions
    void setFlowSolverParamOnInit(PILLAZ_FLOWSOLVER_PARAM *_fp);

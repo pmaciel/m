@@ -6,7 +6,7 @@
 // module to check minimum and maximum variable values at given zones
 class t_minmax : public m::mtransform {
  public:
-  void transform(GetPot& o, m::mmesh& m);
+  void transform(GetPot& o, m::mmesh& m, const XMLNode& x);
 };
 
 #endif

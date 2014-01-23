@@ -11,7 +11,7 @@ using namespace m;
 Register< mtransform,t_minmax > mt_minmax("-tminmax","[str:...] [str:...] check variable minimum/maximum values at given zones");
 
 
-void t_minmax::transform(GetPot& o, mmesh& m)
+void t_minmax::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   cout << "::minmax..." << endl;
 

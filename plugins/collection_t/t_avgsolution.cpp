@@ -12,7 +12,7 @@ Register< mtransform,t_avgsolution > mt_avgsolution(2,
   "-tavg",        "[str] ...");
 
 
-void t_avgsolution::transform(GetPot& o, mmesh& m1)
+void t_avgsolution::transform(GetPot& o, mmesh& m1, const XMLNode& x)
 {
   const unsigned D = m1.d();
   const unsigned V = m1.v();

@@ -6,7 +6,7 @@
 // mathematical transform module
 class t_math : public m::mtransform {
  public:
-  void transform(GetPot& o, m::mmesh& m);
+  void transform(GetPot& o, m::mmesh& m, const XMLNode& x);
  private:
   void rotate(std::vector< double >& vx, std::vector< double >& vy, std::vector< std::vector< double >* >& vvx, std::vector< std::vector< double >* >& vvy, const double a);
   void scale(std::vector< double >& v, const double f);

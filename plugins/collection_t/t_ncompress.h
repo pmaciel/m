@@ -6,7 +6,7 @@
 // module to remove unconnected nodes
 class t_ncompress : public m::mtransform {
  public:
-  void transform(GetPot& o, m::mmesh& m);
+  void transform(GetPot& o, m::mmesh& m, const XMLNode& x);
 };
 
 #endif

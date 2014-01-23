@@ -19,7 +19,7 @@ namespace aux {
 }
 
 
-void t_solution::transform(GetPot& o, mmesh& mold)
+void t_solution::transform(GetPot& o, mmesh& mold, const XMLNode& x)
 {
   using namespace std;
   const string k  = o[o.get_cursor()];

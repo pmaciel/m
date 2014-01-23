@@ -61,7 +61,7 @@ struct AElement {
 }
 
 
-void t_meshdef::transform(GetPot& o, mmesh& m)
+void t_meshdef::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   if (m.d()!=2 || !m.z())
     return;
@@ -69,15 +69,15 @@ void t_meshdef::transform(GetPot& o, mmesh& m)
 
   cout << "info: setup meshdef xml..." << endl;
   const string o_xml = o.get(o.inc_cursor(),"");
-  XMLNode x = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"meshdef")
-                                                 : XMLNode::openFileHelper(o_xml.c_str(),"meshdef");
+  XMLNode x_arg = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"meshdef")
+                                                     : XMLNode::openFileHelper(o_xml.c_str(),"meshdef");
   cout << "info: setup meshdef xml." << endl;
 
 
   cout << "info: setup variables and conductivity..." << endl;
 
-  const vector< string > sysv_vnames(getvvalues< string >(x.getAttribute< string >("variables")));
-  const vector< string > cond_vnames(getvvalues< string >(x.getAttribute< string >("conductivity")));
+  const vector< string > sysv_vnames(getvvalues< string >(x_arg.getAttribute< string >("variables")));
+  const vector< string > cond_vnames(getvvalues< string >(x_arg.getAttribute< string >("conductivity")));
   if (sysv_vnames.size() != cond_vnames.size()) {
     cerr << "error: @variables and @conductivity vectors don't have the same size." << endl;
     throw 42;
@@ -96,8 +96,8 @@ void t_meshdef::transform(GetPot& o, mmesh& m)
 
   // create pointer to linear system and update its options from lap2d xml
   auto_ptr< mlinearsystem< double > > ls(
-    Create< mlinearsystem< double > >(x.getAttribute< string >("ls","ls_gauss")) );
-  XMLNode x_ls  = x.getChildNode("ls");
+    Create< mlinearsystem< double > >(x_arg.getAttribute< string >("ls","ls_gauss")) );
+  XMLNode x_ls  = x_arg.getChildNode("ls");
   for (int a=0; a<x_ls.nAttribute(); ++a)
     ls->xml.updateAttribute(x_ls.getAttribute(a).lpszValue,NULL,x_ls.getAttribute(a).lpszName);
   ls->initialize(m.n(),m.n(),Nb);
@@ -134,8 +134,8 @@ void t_meshdef::transform(GetPot& o, mmesh& m)
     boost::progress_timer t(cout);
 
     // assemble zone/elements, with averaged conductivity in element nodes
-    for (int i=0; i<x.nChildNode("i"); ++i) {
-      vector< mzone >::const_iterator z = getzoneit(x.getChildNode("i",i).getAttribute< string >("zone"),m);
+    for (int i=0; i<x_arg.nChildNode("i"); ++i) {
+      vector< mzone >::const_iterator z = getzoneit(x_arg.getChildNode("i",i).getAttribute< string >("zone"),m);
       for (vector< melem >::const_iterator e=z->e2n.begin(); e!=z->e2n.end(); ++e, ++pbar) {
         const vector< unsigned >& en = e->n;
 
@@ -156,9 +156,9 @@ void t_meshdef::transform(GetPot& o, mmesh& m)
 
       }
     }
-    for (int i=0; i<x.nChildNode("b"); ++i) {
-      vector< mzone >::const_iterator z = getzoneit(x.getChildNode("b",i).getAttribute< string >("zone"),m);
-      vector< double > value = getvvalues< double >(x.getChildNode("b",i).getAttribute< string >("value","1."));
+    for (int i=0; i<x_arg.nChildNode("b"); ++i) {
+      vector< mzone >::const_iterator z = getzoneit(x_arg.getChildNode("b",i).getAttribute< string >("zone"),m);
+      vector< double > value = getvvalues< double >(x_arg.getChildNode("b",i).getAttribute< string >("value","1."));
       for (vector< melem >::const_iterator e=z->e2n.begin(); e!=z->e2n.end(); ++e, ++pbar) {
 
         for (vector< unsigned >::const_iterator n=e->n.begin(); n!=e->n.end(); ++n)

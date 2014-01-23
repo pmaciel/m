@@ -18,7 +18,7 @@ Register< mtransform,t_math > mt_math(10,"-tRx","[d] x axis rotation angle, in r
                                          "-tTz","[d] z axis ...");
 
 
-void t_math::transform(GetPot& o, mmesh& m)
+void t_math::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   // get dimensions, key and value
   const unsigned dim = m.d();

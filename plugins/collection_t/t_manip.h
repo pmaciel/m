@@ -6,7 +6,7 @@
 // manipulation of variables and zones module
 class t_manip : public m::mtransform {
  public:
-  void transform(GetPot& o, m::mmesh& m);
+  void transform(GetPot& o, m::mmesh& m, const XMLNode& x);
 
  private:
   // variables operations, per se

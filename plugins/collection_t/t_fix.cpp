@@ -12,7 +12,7 @@ using namespace m;
 Register< mtransform,t_fix > mt_fix("-tfix","very heavy super mesh fix");
 
 
-void t_fix::transform(GetPot& o, mmesh& m)
+void t_fix::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   const unsigned d = m.d();
   for (vector< mzone >::const_iterator iz=m.vz.begin(); iz!=m.vz.end(); ++iz) {

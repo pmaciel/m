@@ -7,7 +7,7 @@
 // module to map a structured grid on a 3D surface mesh
 class t_surfmap : public m::mtransform {
  public:
-  void transform(GetPot& o, m::mmesh& m);
+  void transform(GetPot& o, m::mmesh& m, const XMLNode& x);
  private:
   // triangulation utilities
   double trisplit(const std::vector< double >& vu, const double& u1, const double& u2);

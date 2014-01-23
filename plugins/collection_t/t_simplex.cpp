@@ -10,7 +10,7 @@ using namespace m;
 Register< mtransform,t_simplex > mt_simplex("-tzs","[str:...] split zone elements into simplex");
 
 
-void t_simplex::transform(GetPot& o, mmesh& m)
+void t_simplex::transform(GetPot& o, mmesh& mold, const XMLNode& x)
 {
   cout << "::simplex..." << endl;
 
@@ -21,15 +21,15 @@ void t_simplex::transform(GetPot& o, mmesh& m)
   istringstream is(str);
   string zname;
   while (is >> zname) {
-    for (unsigned j=0; j<m.vz.size(); ++j)
-      if (m.vz[j].n==zname) {
+    for (unsigned j=0; j<mold.vz.size(); ++j)
+      if (mold.vz[j].n==zname) {
         zs.push_back(j);
         break;
       }
   }
 
   for (vector< unsigned >::iterator i=zs.begin(); i!=zs.end(); ++i) {
-    mzone& z = m.vz[*i];
+    mzone& z = mold.vz[*i];
 
     // generate simplexes for this zone (accumulator)
     vector< melem > vs;

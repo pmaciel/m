@@ -9,7 +9,7 @@ using namespace m;
 Register< mtransform,t_geo > mt_geo("-tg","geometry check (output to \"m2m_geometry.plt\")");
 
 
-void t_geo::transform(GetPot& o, mmesh& m)
+void t_geo::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   // number of positive/negative size and normals for reporting
   unsigned n_positivesize = 0;

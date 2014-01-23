@@ -58,7 +58,7 @@ struct AElement {
 }
 
 
-void t_laplace::transform(GetPot& o, mmesh& m)
+void t_laplace::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   if (m.d()!=2 || !m.z())
     return;
@@ -66,22 +66,22 @@ void t_laplace::transform(GetPot& o, mmesh& m)
 
   cout << "info: setup laplace xml..." << endl;
   const string o_xml = o.get(o.inc_cursor(),"");
-  XMLNode x = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"laplace")
-                                                 : XMLNode::openFileHelper(o_xml.c_str(),"laplace");
+  XMLNode x_arg = ((o_xml.size()? o_xml[0]:'?')=='<')? XMLNode::parseString(o_xml.c_str(),"laplace")
+                                                     : XMLNode::openFileHelper(o_xml.c_str(),"laplace");
   cout << "info: setup laplace xml." << endl;
 
 
   // set block size
-  const unsigned Nb = x.getAttribute< unsigned >("Nb",1);
+  const unsigned Nb = x_arg.getAttribute< unsigned >("Nb",1);
 
 
   cout << "info: minimize mesh connectivity..." << endl;
   {
     vector< bool > vused(m.z(),false);
-    for (int i=0; i<x.nChildNode("i"); ++i)
-      vused[ getzoneidx( x.getChildNode("i",i).getAttribute< string >("zone") ,m) ] = true;
-    for (int i=0; i<x.nChildNode("b"); ++i)
-      vused[ getzoneidx( x.getChildNode("b",i).getAttribute< string >("zone") ,m) ] = true;
+    for (int i=0; i<x_arg.nChildNode("i"); ++i)
+      vused[ getzoneidx( x_arg.getChildNode("i",i).getAttribute< string >("zone") ,m) ] = true;
+    for (int i=0; i<x_arg.nChildNode("b"); ++i)
+      vused[ getzoneidx( x_arg.getChildNode("b",i).getAttribute< string >("zone") ,m) ] = true;
     for (int i=m.z()-1; i>=0; --i)
       if (!vused[i] || (m.d(i)!=2 && m.d(i)!=1))
         m.vz.erase( m.vz.begin()+i );
@@ -104,8 +104,8 @@ void t_laplace::transform(GetPot& o, mmesh& m)
 
   // create pointer to linear system and update its options from lap2d xml
   auto_ptr< mlinearsystem< double > > ls(
-    Create< mlinearsystem< double > >(x.getAttribute< string >("ls","ls_gauss")) );
-  XMLNode x_ls  = x.getChildNode("ls");
+    Create< mlinearsystem< double > >(x_arg.getAttribute< string >("ls","ls_gauss")) );
+  XMLNode x_ls  = x_arg.getChildNode("ls");
   for (int a=0; a<x_ls.nAttribute(); ++a)
     ls->xml.updateAttribute(x_ls.getAttribute(a).lpszValue,NULL,x_ls.getAttribute(a).lpszName);
   ls->initialize(m.n(),m.n(),Nb);
@@ -141,9 +141,9 @@ void t_laplace::transform(GetPot& o, mmesh& m)
     boost::progress_timer t(cout);
 
     // assembly
-    for (int i=0; i<x.nChildNode("i"); ++i) {
-      vector< mzone >::const_iterator z = getzoneit(x.getChildNode("i",i).getAttribute< string >("zone"),m);
-      vector< double > conductivity = getvvalues(x.getChildNode("i",i).getAttribute< string >("conductivity","1."));
+    for (int i=0; i<x_arg.nChildNode("i"); ++i) {
+      vector< mzone >::const_iterator z = getzoneit(x_arg.getChildNode("i",i).getAttribute< string >("zone"),m);
+      vector< double > conductivity = getvvalues(x_arg.getChildNode("i",i).getAttribute< string >("conductivity","1."));
       for (vector< melem >::const_iterator e=z->e2n.begin(); e!=z->e2n.end(); ++e, ++pbar) {
 
         const vector< unsigned >& en = e->n;
@@ -156,9 +156,9 @@ void t_laplace::transform(GetPot& o, mmesh& m)
 
       }
     }
-    for (int i=0; i<x.nChildNode("b"); ++i) {
-      vector< mzone >::const_iterator z = getzoneit(x.getChildNode("b",i).getAttribute< string >("zone"),m);
-      vector< double > value = getvvalues(x.getChildNode("b",i).getAttribute< string >("value","1."));
+    for (int i=0; i<x_arg.nChildNode("b"); ++i) {
+      vector< mzone >::const_iterator z = getzoneit(x_arg.getChildNode("b",i).getAttribute< string >("zone"),m);
+      vector< double > value = getvvalues(x_arg.getChildNode("b",i).getAttribute< string >("value","1."));
       for (vector< melem >::const_iterator e=z->e2n.begin(); e!=z->e2n.end(); ++e, ++pbar) {
 
         for (vector< unsigned >::const_iterator n=e->n.begin(); n!=e->n.end(); ++n)

@@ -63,7 +63,7 @@ struct MNODE {
 };
 
 
-void t_surfmap::transform(GetPot& o, mmesh& m)
+void t_surfmap::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   // options
   const string zonename = o.get(o.inc_cursor(),"");

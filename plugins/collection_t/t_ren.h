@@ -18,7 +18,7 @@ typedef boost::adjacency_list<
 // renumber nodes using boost graph library
 class t_ren : public m::mtransform {
  public:
-  void transform(GetPot& o, m::mmesh& m);
+  void transform(GetPot& o, m::mmesh& m, const XMLNode& x);
   void dump(std::ostream& o, const std::string& t, const RenumberingGraph& G, const std::vector< unsigned >& A2B);
  private:
   void apply(const std::vector< unsigned >& A2B, m::mmesh& m);

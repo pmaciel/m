@@ -6,7 +6,7 @@
 // module to calculate wall distance to given boundary zones
 class t_walldistance : public m::mtransform {
  public:
-  void transform(GetPot& o, m::mmesh& m);
+  void transform(GetPot& o, m::mmesh& m, const XMLNode& x);
 };
 
 #endif

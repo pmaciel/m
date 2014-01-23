@@ -12,7 +12,7 @@ using namespace m;
 Register< mtransform,t_walldistance > mt_walldistance("-twd","[str:...] calculate distance to given boundary (wall) zones");
 
 
-void t_walldistance::transform(GetPot& o, mmesh& m)
+void t_walldistance::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   cout << "::walldistance..." << endl;
 

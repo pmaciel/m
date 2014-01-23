@@ -13,7 +13,7 @@ using namespace m;
 Register< mtransform,t_flip > mt_flip("-tflip","fix negative element volumes by flipping nodes");
 
 
-void t_flip::transform(GetPot& o, mmesh& m)
+void t_flip::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   const unsigned Ndim   = m.d();
   if (!Ndim || !m.v() || !m.n())

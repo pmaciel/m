@@ -41,7 +41,7 @@ namespace t_pillaz_aux {
 }
 
 
-void t_pillaz::transform(GetPot& o, m::mmesh& m)
+void t_pillaz::transform(GetPot& o, m::mmesh& m, const XMLNode& x, const XMLNode& x)
 {
 
   // setup xml options

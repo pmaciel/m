@@ -6,7 +6,7 @@
 // Read solution from another file transform module
 class t_solution : public m::mtransform {
  public:
-  void transform(GetPot& o, m::mmesh& m2);
+  void transform(GetPot& o, m::mmesh& m2, const XMLNode& x);
 };
 
 #endif

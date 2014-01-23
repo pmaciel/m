@@ -23,7 +23,7 @@ Register< mtransform,t_manip > mt_manip(12,"-tvsort","                       var
                                            "-tzren", "[str=str:...]          ... rename, from name, to name");
 
 
-void t_manip::transform(GetPot& o, mmesh& m)
+void t_manip::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   using namespace std;
 

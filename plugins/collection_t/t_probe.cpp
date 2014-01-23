@@ -37,7 +37,7 @@ namespace aux {
 }
 
 
-void t_probe::transform(GetPot& o, mmesh& m)
+void t_probe::transform(GetPot& o, mmesh& m, const XMLNode& x)
 {
   using std::cout;
   using std::cerr;

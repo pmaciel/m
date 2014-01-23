@@ -26,7 +26,7 @@ namespace m {
 class M_SYMBOL mtransform {
  public:
   virtual ~mtransform() {}
-  virtual void transform(GetPot& o, mmesh& m /*, const XMLNode& x */) {}
+  virtual void transform(GetPot& o, mmesh& m, const XMLNode& x) {}
 };
 
 
