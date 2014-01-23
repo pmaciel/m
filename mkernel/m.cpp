@@ -130,9 +130,9 @@ int main(int argc, char **argv)
 
     }
     else if (arg.find("-t")==0) {
-      XMLNode x = XMLNode::createXMLTopNode("xml",TRUE);
+      XMLNode x = utils::get_operands_xml(arg);
 
-      const string key(arg);
+      const string key(arg.substr(0,arg.find_first_of(':')));
       if (ft->search(key.c_str())) {
         cout << "::transform \"" << key << "\"..." << endl;
         mtransform* p = ft->Create(key);
@@ -142,7 +142,6 @@ int main(int argc, char **argv)
       }
 
       x.deleteNodeContent();
-      x = XMLNode::emptyXMLNode;
     }
     else if (arg=="-o") {
 

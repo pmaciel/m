@@ -48,14 +48,21 @@ class M_SYMBOL mfoutput {
 
 // utilities
 namespace utils {
+  using std::pair;
+  using std::string;
+  using std::vector;
 
 
-  // std::string splitting/cleaning
-  std::vector< std::pair< std::string,std::string > > getoperands(const std::string& s);
-  std::vector< std::string >& split(const std::string& s, char delim, std::vector<std::string>& elems);
-  std::vector< std::string >  split(const std::string& s, char delim);
-  std::string trim(const std::string& s, const std::string& t=" ");
-  std::string upper(const std::string& s);
+  // string splitting/cleaning
+  vector< string >& split(const string& s, char delim, vector<string>& elems);
+  vector< string >  split(const string& s, char delim);
+  string trim(const string& s, const string& t=" ");
+  string upper(const string& s);
+
+
+  // internal/commands options as vector/xml string
+  vector< pair< string,string > > get_operands_str(const string& s);
+  XMLNode                         get_operands_xml(const string& s);
 
 
 }

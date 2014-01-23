@@ -39,7 +39,7 @@ void t_manip::transform(GetPot& o, mmesh& m, const XMLNode& x)
   else if (k=="-tzkeep") { zkeep(m,v); return; }
 
   // operations that apply multiple times
-  const vector< pair< string,string > > vops = utils::getoperands(v);
+  const vector< pair< string,string > > vops = utils::get_operands_str(v);
   for (vector< pair< string,string > >::const_iterator i=vops.begin(); i<vops.end(); ++i) {
          if (k=="-tvrm")  { vrm(m,getvindex(m,i->first)); }
     else if (k=="-tvmv")  { vmv(m,getvindex(m,i->first),getvindex(m,i->second)); }
@@ -81,7 +81,7 @@ void t_manip::vkeep(m::mmesh& m, const std::string& s)
   using namespace std;
 
   // get list of (variable) names to keep
-  vector< pair< string,string > > vops = utils::getoperands(s);
+  vector< pair< string,string > > vops = utils::get_operands_str(s);
   vector< string > keep;
   for (vector< pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
     keep.push_back(i->first);
@@ -210,7 +210,7 @@ void t_manip::zkeep(m::mmesh& m, const std::string& s)
   using namespace std;
 
   // get list of (zone) names to keep
-  vector< pair< string,string > > vops = utils::getoperands(s);
+  vector< pair< string,string > > vops = utils::get_operands_str(s);
   vector< string > keep;
   for (vector< pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
     keep.push_back(i->first);
