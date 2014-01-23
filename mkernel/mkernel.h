@@ -58,6 +58,7 @@ namespace utils {
   vector< string >  split(const string& s, char delim);
   string trim(const string& s, const string& t=" ");
   string upper(const string& s);
+  string get_file_extension(const string& f);
 
 
   // internal/commands options as vector/xml string

@@ -50,6 +50,13 @@ string upper(const string& s)
 }
 
 
+string get_file_extension(const string& f)
+{
+  const string::size_type idx = f.rfind('.');
+  return f.substr(idx!=string::npos? idx:0);
+}
+
+
 vector< pair< string,string > > get_operands_str(const string &s)
 {
   //TODO make use of the (better) split methods

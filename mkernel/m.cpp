@@ -7,13 +7,6 @@ using namespace std;
 using namespace m;
 
 
-string extension(const string& fn)
-{
-  const string::size_type idx = fn.rfind('.');
-  return fn.substr(idx!=string::npos? idx:0);
-}
-
-
 int main(int argc, char **argv)
 {
   // options, formats and transformations
@@ -106,7 +99,7 @@ int main(int argc, char **argv)
     if (arg=="-i") {
 
       // multiple input merges another mesh into current
-      const string key(extension(val));
+      const string key(utils::get_file_extension(val));
       if (fi->search(key.c_str())) {
         cout << "::read \"" << val << "\"..." << endl;
         mfinput* p = fi->Create(key);
@@ -146,7 +139,7 @@ int main(int argc, char **argv)
     else if (arg=="-o") {
 
       // write current mesh
-      const string key(extension(val));
+      const string key(utils::get_file_extension(val));
       if (fo->search(key.c_str())) {
         cout << "::write \"" << val << "\"..." << endl;
         mfoutput* p = fo->Create(key);
