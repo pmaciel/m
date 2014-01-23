@@ -8,9 +8,16 @@
 #define M_SYMBOL M_SYMBOL_EXPORT
 #endif
 
-#include "ext/GetPot.h"
+
+#include <string>
+#include <utility>  // (for std::pair)
+#include <vector>
+
+#include "ext/GetPot.h"  //TODO: remove
+#include "ext/xmlParser.h"
 #include "mconfig.h"
 #include "mmesh.h"
+
 
 namespace m {
 
@@ -19,7 +26,7 @@ namespace m {
 class M_SYMBOL mtransform {
  public:
   virtual ~mtransform() {}
-  virtual void transform(GetPot& o, mmesh& m) {}
+  virtual void transform(GetPot& o, mmesh& m /*, const XMLNode& x */) {}
 };
 
 
@@ -37,6 +44,13 @@ class M_SYMBOL mfoutput {
   virtual ~mfoutput() {}
   virtual void write(GetPot& o, const mmesh& m) {}
 };
+
+
+namespace utils {
+  std::vector< std::pair< std::string,std::string > > getoperands(const std::string& s);
+  std::vector< std::string >& split(const std::string& s, char delim, std::vector<std::string>& elems);
+  std::vector< std::string >  split(const std::string& s, char delim);
+}
 
 
 }  // namespace m

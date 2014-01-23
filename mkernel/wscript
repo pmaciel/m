@@ -29,10 +29,17 @@ def build(bld):
     includes = ['.'],
     defines  = ['FP_NO_SUPPORT_OPTIMIZER'] if platform=='darwin' else [],
     source   = [
-      'ext/fparser.cc','ext/fpoptimizer.cc',  # function parser
-      'ext/xmlParser.cpp',                    # xml parser
-      'cool/Element.cpp','cool/MathTools.cpp','cool/Framework.cpp',
-      'mlinearsystem.cpp','mlog.cpp','mmesh.cpp','hal.cpp' ] )
+      'ext/fparser.cc',      # function parser
+      'ext/fpoptimizer.cc',  #  ...
+      'ext/xmlParser.cpp',   # xml parser
+      'cool/Element.cpp',    # cool framework
+      'cool/MathTools.cpp',  # ...
+      'cool/Framework.cpp',  # ...
+      'mkernel.cpp',         # m stuff
+      'mlinearsystem.cpp',
+      'mlog.cpp',
+      'mmesh.cpp',
+      'hal.cpp' ] )
 
   # m executable
   bld.program(

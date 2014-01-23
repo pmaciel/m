@@ -40,13 +40,13 @@ void t_manip::transform(GetPot& o, mmesh& m)
   else if (k=="-tzkeep") { zkeep(m,v); return; }
 
   // operations that apply multiple times
-  const vector< std::pair< string,string > > vops = getoperands(v);
+  const vector< std::pair< string,string > > vops = utils::getoperands(v);
   for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i<vops.end(); ++i) {
          if (k=="-tvrm")  { vrm(m,getvindex(m,i->first)); }
     else if (k=="-tvmv")  { vmv(m,getvindex(m,i->first),getvindex(m,i->second)); }
     else if (k=="-tvren") { vren(m,getvindex(m,i->first),i->second); }
     else if (k=="-tvadd") {
-      const vector< string > spl(split(i->first,'@'));
+      const vector< string > spl(utils::split(i->first,'@'));
       if (spl.size()) {
         vector< unsigned > z;
         for (vector< string >::const_iterator iz=spl.begin()+1; iz!=spl.end(); ++iz)
@@ -83,7 +83,7 @@ void t_manip::vkeep(m::mmesh& m, const std::string& s)
   using std::vector;
 
   // get list of (variable) names to keep
-  vector< std::pair< string,string > > vops = getoperands(s);
+  vector< std::pair< string,string > > vops = utils::getoperands(s);
   vector< string > keep;
   for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
     keep.push_back(i->first);
@@ -216,7 +216,7 @@ void t_manip::zkeep(m::mmesh& m, const std::string& s)
   using std::vector;
 
   // get list of (zone) names to keep
-  vector< std::pair< string,string > > vops = getoperands(s);
+  vector< std::pair< string,string > > vops = utils::getoperands(s);
   vector< string > keep;
   for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
     keep.push_back(i->first);
@@ -261,58 +261,4 @@ unsigned t_manip::getzindex(const mmesh& m, const std::string& n)
   std::cerr << "error: zone name not found: \"" << n << "\"" << std::endl;
   throw 42;
   return 0;
-}
-
-std::vector< std::pair< std::string,std::string > >
-  t_manip::getoperands(const std::string& s)
-{
-  //TODO make use of the (better) split methods
-  using std::string;
-
-  // split string find a '=' then a ':'
-  std::vector< std::pair< string,string > > r;
-  string::size_type p1 = 0,
-                         p2 = 0;
-  while (p2!=string::npos) {
-    std::pair< string,string > p("","");
-
-    p2 = std::min(s.find(":",p1),s.find("=",p1));
-    p.first = s.substr(p1,(p2==string::npos? p2:p2-p1));
-    if (s.find("=",p1)<s.find(":",p1)) {
-      p1 = p2+1;
-      p2 = s.find(":",p1);
-
-      p.second = s.substr(p1,(p2==string::npos? p2:p2-p1));
-      /* older version, maybe works better
-        string s2 = s.substr(p1,(p2==string::npos? p2:p2-p1));
-        istringstream ss(s2);
-        ss >> p.second;
-      */
-    }
-
-    p1 = p2+1;
-    r.push_back(p);
-  }
-  return r;
-}
-
-
-std::vector< std::string >& t_manip::split(
-    const std::string &s,
-    char delim,
-    std::vector< std::string > &elems )
-{
-  std::stringstream ss(s);
-  std::string item;
-  while (std::getline(ss,item,delim))
-    elems.push_back(item);
-  return elems;
-}
-
-
-std::vector< std::string > t_manip::split(const std::string &s, char delim)
-{
-  std::vector< std::string > elems;
-  split(s,delim,elems);
-  return elems;
 }
