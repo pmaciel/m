@@ -1,19 +1,17 @@
 
+#include <algorithm>  // for transform
+#include <cctype>     // for toupper
 #include <sstream>
 
 #include "mkernel.h"
 
 
+using namespace std;
 using namespace m;
 
 
 namespace m {
 namespace utils {
-
-
-using std::pair;
-using std::string;
-using std::vector;
 
 
 vector< pair< string,string > > getoperands(const string &s)
@@ -50,7 +48,7 @@ vector< pair< string,string > > getoperands(const string &s)
 
 vector< string >& split(const string &s, char delim, vector< string > &elems)
 {
-  std::stringstream ss(s);
+  stringstream ss(s);
   string item;
   while (std::getline(ss,item,delim))
     elems.push_back(item);
@@ -63,6 +61,22 @@ vector< string > split(const string &s, char delim)
   vector< string > elems;
   split(s,delim,elems);
   return elems;
+}
+
+
+string trim(const string& s, const string& t)
+{
+  string str = s;
+  return str.erase(s.find_last_not_of(t)+1)    // trim right
+            .erase(0,s.find_first_not_of(t));  // trim left
+}
+
+
+string upper(const string& s)
+{
+  string r(s);
+  std::transform(r.begin(),r.end(),r.begin(), (int(*)(int)) toupper);
+  return r;
 }
 
 

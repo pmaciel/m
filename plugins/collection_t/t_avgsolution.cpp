@@ -34,7 +34,7 @@ void t_avgsolution::transform(GetPot& o, mmesh& m1)
   mmesh m2;
   string s;
   while (getline(f,s)) {
-    const string key(f_plt::upper(f_plt::splitstring(s)[0]));
+    const string key(utils::upper(f_plt::splitstring(s)[0]));
     if (key.find("VARIABLES")==0) {
 
       m2.vn = f_plt::getVariables(s);
