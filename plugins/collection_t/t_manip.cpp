@@ -25,8 +25,7 @@ Register< mtransform,t_manip > mt_manip(12,"-tvsort","                       var
 
 void t_manip::transform(GetPot& o, mmesh& m)
 {
-  using std::string;
-  using std::vector;
+  using namespace std;
 
   // get options key
   const string k = o[o.get_cursor()],
@@ -40,8 +39,8 @@ void t_manip::transform(GetPot& o, mmesh& m)
   else if (k=="-tzkeep") { zkeep(m,v); return; }
 
   // operations that apply multiple times
-  const vector< std::pair< string,string > > vops = utils::getoperands(v);
-  for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i<vops.end(); ++i) {
+  const vector< pair< string,string > > vops = utils::getoperands(v);
+  for (vector< pair< string,string > >::const_iterator i=vops.begin(); i<vops.end(); ++i) {
          if (k=="-tvrm")  { vrm(m,getvindex(m,i->first)); }
     else if (k=="-tvmv")  { vmv(m,getvindex(m,i->first),getvindex(m,i->second)); }
     else if (k=="-tvren") { vren(m,getvindex(m,i->first),i->second); }
@@ -79,18 +78,17 @@ void t_manip::vsort(mmesh& m)
 
 void t_manip::vkeep(m::mmesh& m, const std::string& s)
 {
-  using std::string;
-  using std::vector;
+  using namespace std;
 
   // get list of (variable) names to keep
-  vector< std::pair< string,string > > vops = utils::getoperands(s);
+  vector< pair< string,string > > vops = utils::getoperands(s);
   vector< string > keep;
-  for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
+  for (vector< pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
     keep.push_back(i->first);
 
   // remove variables not in that list (apply in reverse for performance)
   for (vector< string >::const_reverse_iterator i=m.vn.rbegin(); i!=m.vn.rend(); ++i)
-    if (!std::count(keep.begin(),keep.end(),*i))
+    if (!count(keep.begin(),keep.end(),*i))
       vrm(m,getvindex(m,*i));
 }
 
@@ -114,13 +112,11 @@ void t_manip::vren(mmesh& m, const unsigned i, const std::string& n)
 
 void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f, const std::vector< unsigned > zindex)
 {
-  using std::string;
-  using std::vector;
-  using std::set;
+  using namespace std;
 
   // find this variable index (if it doesn't exist set to the end)
-  unsigned v_idx = std::find(m.vn.begin(),m.vn.end(),n)!=m.vn.end()?
-    std::distance(m.vn.begin(),std::find(m.vn.begin(),m.vn.end(),n)) :
+  unsigned v_idx = find(m.vn.begin(),m.vn.end(),n)!=m.vn.end()?
+    distance(m.vn.begin(),find(m.vn.begin(),m.vn.end(),n)) :
     m.v();
   if (v_idx>=m.v()) {
     // variable name wasn't found, push it back
@@ -169,7 +165,6 @@ void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f, const s
 void t_manip::vaxiz(mmesh& m)
 {
   using namespace std;
-
   if (m.d()<3) {
     cerr << "error: axisymmetry variables only for 3D" << endl;
     throw 42;
@@ -212,18 +207,17 @@ void t_manip::zsort(mmesh& m)
 
 void t_manip::zkeep(m::mmesh& m, const std::string& s)
 {
-  using std::string;
-  using std::vector;
+  using namespace std;
 
   // get list of (zone) names to keep
-  vector< std::pair< string,string > > vops = utils::getoperands(s);
+  vector< pair< string,string > > vops = utils::getoperands(s);
   vector< string > keep;
-  for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
+  for (vector< pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
     keep.push_back(i->first);
 
   // remove zones not in that list (apply in reverse for performance)
   for (vector< mzone >::const_reverse_iterator i=m.vz.rbegin(); i!=m.vz.rend(); ++i)
-    if (!std::count(keep.begin(),keep.end(),i->n))
+    if (!count(keep.begin(),keep.end(),i->n))
       zrm(m,getzindex(m,i->n));
 }
 
