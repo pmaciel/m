@@ -1,10 +1,9 @@
 
-//include <algorithm>  // for transform
-//include <cctype>     // for toupper
 #include <iostream>
 #include <sstream>
 #include "mfactory.h"
 #include "f_plt.h"
+
 
 using namespace std;
 using namespace m;
@@ -33,7 +32,7 @@ void f_plt::read(GetPot& o, mmesh& m)
 
     string s;
     while (getline(f,s)) {
-      const string key(upper(splitstring(s)[0]));
+      const string key(utils::upper(splitstring(s)[0]));
       if (key.find("VARIABLES")==0) {
 
         m.vn = getVariables(s);
@@ -182,7 +181,7 @@ void f_plt::in_platingmaster_2d(ifstream& f, mmesh& m)
        discardz = false;
 
   while (getline(f,s)) {
-    const string key(upper(splitstring(s)[0]));
+    const string key(utils::upper(splitstring(s)[0]));
     if (key.find("VARIABLES")==0) {
 
       m.vn = getVariables(s);
@@ -353,7 +352,7 @@ vector< string > f_plt::getVariables(const string& s)
   ss >> r.back();
 
   while (ss >> r.back()) {
-    r.back() = trim(r.back(),"\"");
+    r.back() = utils::trim(r.back(),"\"");
     r.push_back("");
   }
   r.pop_back();
@@ -373,14 +372,17 @@ TecZone f_plt::getZoneHeader(const string& s, string& n, mtype& t)
 
   vector< string > vs = splitstring(s);
   for (unsigned k=0; k<vs.size(); ++k) {
-    ss.clear();  ss.str(vs[k]);  ss >> key;  key = upper(key);
+    ss.clear();
+    ss.str(vs[k]);
+    ss >> key;
+    key = utils::upper(key);
 
     if      (key=="T")                                 tz.t = vs[k].substr(4);
     else if (key=="I" || key=="N" || key=="NODES")     ss >> dummy >> tz.i;
     else if (key=="J" || key=="E" || key=="ELEMENTS")  ss >> dummy >> tz.j;
     else if (key=="ZONETYPE" || key=="ET") {
       ss >> dummy >> value;
-      value = upper(value);
+      value = utils::upper(value);
       if      (value=="FELINESEG"       || value=="LINESEG")        { tz.nenodes = 2;  tz.et=FELINESEG;       }
       else if (value=="FETRIANGLE"      || value=="TRIANGLE")       { tz.nenodes = 3;  tz.et=FETRIANGLE;      }
       else if (value=="FEQUADRILATERAL" || value=="QUADRILATERAL")  { tz.nenodes = 4;  tz.et=FEQUADRILATERAL; }
@@ -389,7 +391,7 @@ TecZone f_plt::getZoneHeader(const string& s, string& n, mtype& t)
     }
     else if (key=="DATAPACKING" || key=="F") {
       ss >> dummy >> value;
-      value = upper(value);
+      value = utils::upper(value);
       tz.isblock = (value=="BLOCK");
     }
     else if (key=="VARSHARELIST") {
@@ -583,27 +585,6 @@ void f_plt::writeZoneConnectivity(ofstream& f, const vector< melem >& ve, const 
 // string manipulation -------------------------------------------------------
 
 
-string f_plt::trimright(const string& s, const string& t)
-{
-  string str = s;
-  return str.erase(s.find_last_not_of(t)+1);
-}
-
-
-string f_plt::trimleft(const string& s, const string& t)
-{
-  string str = s;
-  return str.erase(0,s.find_first_not_of(t));
-}
-
-
-string f_plt::trim(const string& s, const string& t)
-{
-  string str = s;
-  return trimleft(trimright(str,t),t);
-}
-
-
 vector< string > f_plt::splitstring(const string& s)
 {
   string y;  // a string easier to parse
@@ -629,7 +610,7 @@ vector< string > f_plt::splitstring(const string& s)
   while (ss >> s2) {
     if (s2=="=") {
       string& line = lines.back();
-      line = trim(line," ");
+      line = utils::trim(line," ");
       if (line.length())
         lines.push_back("");
     }
@@ -638,16 +619,8 @@ vector< string > f_plt::splitstring(const string& s)
   }
   lines.back() += ' ' + s1;
   string& line = lines.back();
-  line = trim(line," ");
+  line = utils::trim(line," ");
 
   return lines;
-}
-
-
-string f_plt::upper(const string& s)
-{
-  string r(s);
-  std::transform(r.begin(),r.end(),r.begin(), (int(*)(int)) toupper);
-  return r;
 }
 

@@ -10,3 +10,4 @@ m.creator*
 m.config
 m.files
 m.includes
+waf-reconfigure-*.sh

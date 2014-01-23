@@ -57,11 +57,7 @@ class f_plt : public m::mfinput,
 
  public:
   // string manipulation
-  static std::string trimright(const std::string& s, const std::string& t=" ");
-  static std::string trimleft(const std::string& s, const std::string& t=" ");
-  static std::string trim(const std::string& s, const std::string& t=" ");
   static std::vector< std::string > splitstring(const std::string& s);
-  static std::string upper(const std::string& s);
 };
 
 #endif
