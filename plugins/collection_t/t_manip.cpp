@@ -14,8 +14,9 @@ Register< mtransform,t_manip > mt_manip(12,"-tvsort","                       var
                                            "-tvrm",  "[str:...]              ... removal, by name",
                                            "-tvmv",  "[str=str:...]          ... moving, from name, to before name",
                                            "-tvren", "[str=str:...]          ... rename, from name, to name",
-                                           "-tvadd", "[str[@zone][=fun]:...] ... addition, optionally set by function (uses only coordinate variables)",
                                            "-tvaxiz","                       ... add new axisymmetric variables (around z axis, 3D only)",
+                                           "-tvadd", "[str[@zone][=fun]:...] ... addition, optionally set by function (uses only coordinate variables), sub-options:",
+                                           "",       "                             file[=real], load from external file variables",
                                            "-tzsort","                       zone sort by name",
                                            "-tzkeep","[str:...]              ... to keep, removing the rest",
                                            "-tzrm",  "[str:...]              ... removal, by name",
@@ -28,7 +29,7 @@ void t_manip::transform(GetPot& o, mmesh& m, const XMLNode& x)
   using namespace std;
 
   // get options key
-  const string k = o[o.get_cursor()],
+  const string k = x.getAttributeName(),
                v = (k=="-tvsort"||k=="-tvaxiz"||k=="-tzsort"? "" : o.get(o.inc_cursor(),""));
 
   // operations that apply in one shot
@@ -46,7 +47,11 @@ void t_manip::transform(GetPot& o, mmesh& m, const XMLNode& x)
     else if (k=="-tvren") { vren(m,getvindex(m,i->first),i->second); }
     else if (k=="-tvadd") {
       const vector< string > spl(utils::split(i->first,'@'));
-      if (spl.size()) {
+      const string file(x.isAttributeSet("file")? x.getAttribute("file"):"");
+      if (file.length() && spl.size()) {
+        vadd_file(m,spl[0],file);
+      }
+      else if (spl.size()) {
         vector< unsigned > z;
         for (vector< string >::const_iterator iz=spl.begin()+1; iz!=spl.end(); ++iz)
           z.push_back(getzindex(m,*iz));
@@ -160,6 +165,30 @@ void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f, const s
     }
 
   }
+}
+
+void t_manip::vadd_file(mmesh& m, const std::string& n, const std::string& file)
+{
+  using namespace std;
+
+#if 0
+  // alternate mesh structure to read into
+  mmesh m2;
+//  mfactory< mfinput >* fi = ;
+  const string key(utils::get_file_extension(file));
+  if (mfactory< mfinput >::instance()->search(key.c_str())) {
+    mfinput* p = mfactory< mfinput >::instance()->Create(key);
+
+    GetPot o;
+    p->read(o,m2,x);
+    delete p;
+  }
+
+  if (m.n()!=m2.n()) {
+    cerr << "error: couldn't read file \"" << file << "\", or number of nodes differ (" << m.n() << "!=" << m2.n() << ")" << endl;
+    throw 42;
+  }
+#endif
 }
 
 void t_manip::vaxiz(mmesh& m)

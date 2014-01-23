@@ -16,6 +16,7 @@ class t_manip : public m::mtransform {
   void vmv(m::mmesh& m, const unsigned i, const unsigned j);
   void vren(m::mmesh& m, const unsigned i, const std::string& n);
   void vadd(m::mmesh& m, const std::string& n, const std::string& f, const std::vector< unsigned > zindex=std::vector< unsigned >());
+  void vadd_file(m::mmesh& m, const std::string& n, const std::string& file);
   void vaxiz(m::mmesh& m);
 
   // zone operations, per se
