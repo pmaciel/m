@@ -1,22 +1,12 @@
 
-#include <memory>
 #include "mfactory.h"
 #include "t_solution.h"
 
 using namespace m;
 
 
-Register< mtransform,t_solution > mt_solution(2,"-tsol","[str]: read solution from another file (substitution)",
-                                                "-tapp","[str]: read solution from another file (append)");
-
-
-namespace aux {
-  std::string extension(const std::string& fn)
-  {
-    const std::string::size_type idx = fn.rfind('.');
-    return fn.substr(idx!=std::string::npos? idx:0);
-  }
-}
+Register< mtransform,t_solution > mt_solution(2,"-tsol","[str] read solution from another file (substitution)",
+                                                "-tapp","[str] read solution from another file (append)");
 
 
 void t_solution::transform(GetPot& o, mmesh& mold, const XMLNode& x)
@@ -29,12 +19,14 @@ void t_solution::transform(GetPot& o, mmesh& mold, const XMLNode& x)
 
   cout << "read: \"" << fn << "\"..." << endl;
   {
+    //FXIME dirty hack creating new command line options, to be removed
     const int argc = 2;
     char*     argv[] = { (char*) "", const_cast< char* >(fn.c_str()) };
     GetPot o2(argc,argv);
-    const string key(aux::extension(fn));
-    auto_ptr< m::mfinput > p(mfactory< mfinput >::instance()->Create(key));
+
+    mfinput* p = mfactory< mfinput >::instance()->Create(utils::get_file_extension(fn));
     p->read(o2,mnew,x);
+    delete p;
   }
   cout << "read: \"" << fn << "\"." << endl;
 
