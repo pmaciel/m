@@ -17,7 +17,7 @@ Register< mfoutput,f_smurf > mf_smurf2(6,".smurf","Tecplot binary output format"
                                          "","--smurf-solutiontime [real]: solution time (default: 0.)");
 
 
-void f_smurf::read(GetPot& o, mmesh& m)
+void f_smurf::read(GetPot& o, mmesh& m, const XMLNode& x)
 {
   // reader
   const string fn(o.get(o.inc_cursor(),""));
@@ -112,7 +112,7 @@ void f_smurf::read(GetPot& o, mmesh& m)
 }
 
 
-void f_smurf::write(GetPot& o, const mmesh& m)
+void f_smurf::write(GetPot& o, const mmesh& m, const XMLNode& x)
 {
   const string fn(o.get(o.inc_cursor(),""));
 

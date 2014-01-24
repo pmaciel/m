@@ -97,6 +97,7 @@ int main(int argc, char **argv)
     const string val(o[i+1]);
     o.set_cursor(i);
     if (arg=="-i") {
+      XMLNode x = utils::get_operands_xml(arg);
 
       // multiple input merges another mesh into current
       const string key(utils::get_file_extension(val));
@@ -105,7 +106,7 @@ int main(int argc, char **argv)
         mfinput* p = fi->Create(key);
         if (m.v()) {
           mmesh m2;
-          p->read(o,m2);
+          p->read(o,m2,x);
           cout << "::merge [d/n/e]: " << m.d() << "+" << m2.d()
                              << " / " << m.n() << "+" << m2.n()
                              << " / " << m.e() << "+" << m2.e() << "..." << endl;
@@ -115,12 +116,13 @@ int main(int argc, char **argv)
                              << " / " << m.e() << "." << endl;
         }
         else {
-          p->read(o,m);
+          p->read(o,m,x);
         }
         delete p;
         cout << "::read \"" << val << "\"." << endl;
       }
 
+      x.deleteNodeContent();
     }
     else if (arg.find("-t")==0) {
       XMLNode x = utils::get_operands_xml(arg);
@@ -137,17 +139,19 @@ int main(int argc, char **argv)
       x.deleteNodeContent();
     }
     else if (arg=="-o") {
+      XMLNode x = utils::get_operands_xml(arg);
 
       // write current mesh
       const string key(utils::get_file_extension(val));
       if (fo->search(key.c_str())) {
         cout << "::write \"" << val << "\"..." << endl;
         mfoutput* p = fo->Create(key);
-        p->write(o,m);
+        p->write(o,m,x);
         delete p;
         cout << "::write \"" << val << "\"." << endl;
       }
 
+      x.deleteNodeContent();
     }
   }
 

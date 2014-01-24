@@ -10,7 +10,7 @@ using namespace m;
 Register< mfinput,f_xpl > mf_xpl(".xpl","xplot input format");
 
 
-void f_xpl::read(GetPot& o, mmesh& m)
+void f_xpl::read(GetPot& o, mmesh& m, const XMLNode& x)
 {
   const string fn(o.get(o.inc_cursor(),""));
   ifstream f(fn.c_str());

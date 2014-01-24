@@ -12,7 +12,7 @@ Register< mfinput,f_cfmesh > mf_cfmesh1(2,".CFmesh","CFmesh input format",
 Register< mfoutput,f_cfmesh > mf_cfmesh2(".CFmesh","CFmesh output format");
 
 
-void f_cfmesh::read(GetPot& o, mmesh& m)
+void f_cfmesh::read(GetPot& o, mmesh& m, const XMLNode& x)
 {
   const string fn(o.get(o.inc_cursor(),""));
   ifstream f(fn.c_str());
@@ -129,7 +129,7 @@ void f_cfmesh::read(GetPot& o, mmesh& m)
 }
 
 
-void f_cfmesh::write(GetPot& o, const mmesh& m)
+void f_cfmesh::write(GetPot& o, const mmesh& m, const XMLNode& x)
 {
   const string fn(o.get(o.inc_cursor(),""));
   ofstream f(fn.c_str());

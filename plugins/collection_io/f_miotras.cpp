@@ -25,7 +25,7 @@ const unsigned BCTypePriority[] = {
   30,  40,  50 };
 
 
-void f_miotras::read(GetPot& o, mmesh& m)
+void f_miotras::read(GetPot& o, mmesh& m, const XMLNode& x)
 {
   // try to access file
   const string fn(o.get(o.inc_cursor(),""));
@@ -57,7 +57,7 @@ void f_miotras::read(GetPot& o, mmesh& m)
 }
 
 
-void f_miotras::write(GetPot& o, const mmesh& m)
+void f_miotras::write(GetPot& o, const mmesh& m, const XMLNode& x)
 {
   const string fn(o.get(o.inc_cursor(),""));
   const unsigned dim = m.d();

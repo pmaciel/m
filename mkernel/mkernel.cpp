@@ -57,7 +57,7 @@ string get_file_extension(const string& f)
 }
 
 
-vector< pair< string,string > > get_operands_str(const string &s)
+vector< pair< string,string > > get_operands(const string &s)
 {
   //TODO make use of the (better) split methods
 
@@ -93,7 +93,7 @@ XMLNode get_operands_xml(const string& s)
 {
   typedef pair< string,string > pstr_t;
   XMLNode x = XMLNode::createXMLTopNode("x");
-  BOOST_FOREACH(const pstr_t& p, get_operands_str(s)) {
+  BOOST_FOREACH(const pstr_t& p, get_operands(s)) {
     x.isAttributeSet(p.first.c_str())?
       x.updateAttribute(p.second.c_str(),NULL,p.first.c_str()) :
       x.addAttribute(p.first.c_str(),p.second.c_str());

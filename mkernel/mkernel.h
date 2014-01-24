@@ -9,9 +9,7 @@
 #endif
 
 
-#include <string>
 #include <utility>  // (for std::pair)
-#include <vector>
 
 #include "ext/GetPot.h"  //TODO: remove
 #include "ext/xmlParser.h"
@@ -34,7 +32,7 @@ class M_SYMBOL mtransform {
 class M_SYMBOL mfinput {
  public:
   virtual ~mfinput() {}
-  virtual void read(GetPot& o, mmesh& m) {}
+  virtual void read(GetPot& o, mmesh& m, const XMLNode& x) {}
 };
 
 
@@ -42,7 +40,7 @@ class M_SYMBOL mfinput {
 class M_SYMBOL mfoutput {
  public:
   virtual ~mfoutput() {}
-  virtual void write(GetPot& o, const mmesh& m) {}
+  virtual void write(GetPot& o, const mmesh& m, const XMLNode& x) {}
 };
 
 
@@ -62,8 +60,8 @@ namespace utils {
 
 
   // internal/commands options as vector/xml string
-  vector< pair< string,string > > get_operands_str(const string& s);
-  XMLNode                         get_operands_xml(const string& s);
+  vector< pair< string,string > > get_operands(const string& s);
+  XMLNode                         get_operands_xml(const string& s);   //FIXME remove
 
 
 }

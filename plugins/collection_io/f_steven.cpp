@@ -13,7 +13,7 @@ Register< mfoutput,f_steven > mf_steven(3,".steven","Steven output format",
                                           "","--steven-vector-b [str]: variable for magnetic field");
 
 
-void f_steven::write(GetPot& o, const mmesh& m)
+void f_steven::write(GetPot& o, const mmesh& m, const XMLNode& x)
 {
   const string fn(o.get(o.inc_cursor(),""));
   const unsigned dim = m.d();

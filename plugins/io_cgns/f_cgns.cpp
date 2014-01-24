@@ -11,7 +11,7 @@ Register< mfinput, f_cgns > mf_cgns1(".cgns","CGNS input format (MARIN, GridPro 
 Register< mfoutput,f_cgns > mf_cgns2(".cgns","CGNS output format (MARIN variant)");
 
 
-void f_cgns::read(GetPot& o,mmesh& m)
+void f_cgns::read(GetPot& o,mmesh& m, const XMLNode& x)
 {
   const string filename(o.get(o.inc_cursor(),""));
   ifstream f(filename.c_str());
@@ -28,7 +28,7 @@ void f_cgns::read(GetPot& o,mmesh& m)
 }
 
 
-void f_cgns::write(GetPot& o, const mmesh& m)
+void f_cgns::write(GetPot& o, const mmesh& m, const XMLNode& x)
 {
   const string fn(o.get(o.inc_cursor(),""));
   ofstream f(fn.c_str());

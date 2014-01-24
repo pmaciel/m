@@ -17,7 +17,7 @@ Register< mfoutput,f_plt > mf_plt2(3,".plt","Tecplot ASCII output format",
                                      "","--plt-solutiontime [real]: solution time (default: 0.)");
 
 
-void f_plt::read(GetPot& o, mmesh& m)
+void f_plt::read(GetPot& o, mmesh& m, const XMLNode& x)
 {
   const string fn(o.get(o.inc_cursor(),""));
   ifstream f(fn.c_str());
@@ -57,7 +57,7 @@ void f_plt::read(GetPot& o, mmesh& m)
 }
 
 
-void f_plt::write(GetPot& o, const mmesh& m)
+void f_plt::write(GetPot& o, const mmesh& m, const XMLNode& x)
 {
   const string fn(o.get(o.inc_cursor(),""));
   ofstream f(fn.c_str());

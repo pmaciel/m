@@ -6,7 +6,7 @@
 // module for xplot
 class f_xpl : public m::mfinput {
  public:
-  void read(GetPot& o, m::mmesh& m);
+  void read(GetPot& o, m::mmesh& m, const XMLNode& x);
 };
 
 #endif

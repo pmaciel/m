@@ -7,8 +7,8 @@
 class f_miotras : public m::mfinput,
                   public m::mfoutput {
  public:
-  void read(GetPot& o, m::mmesh& m);
-  void write(GetPot& o, const m::mmesh& m);
+  void read(GetPot& o, m::mmesh& m, const XMLNode& x);
+  void write(GetPot& o, const m::mmesh& m, const XMLNode& x);
  private:
   void read_flow(std::ifstream& f, m::mmesh& m);
   void read_grid(std::ifstream& f, m::mmesh& m);

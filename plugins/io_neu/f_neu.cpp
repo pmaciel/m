@@ -25,7 +25,7 @@ struct GGroup {
 };
 
 
-void f_neu::read(GetPot& o,mmesh& m)
+void f_neu::read(GetPot& o, mmesh& m, const XMLNode& x)
 {
   const string filename(o.get(o.inc_cursor(),""));
   ifstream f(filename.c_str());

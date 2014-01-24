@@ -34,7 +34,7 @@ void t_solution::transform(GetPot& o, mmesh& mold, const XMLNode& x)
     GetPot o2(argc,argv);
     const string key(aux::extension(fn));
     auto_ptr< m::mfinput > p(mfactory< mfinput >::instance()->Create(key));
-    p->read(o2,mnew);
+    p->read(o2,mnew,x);
   }
   cout << "read: \"" << fn << "\"." << endl;
 

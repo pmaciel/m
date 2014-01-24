@@ -6,7 +6,7 @@
 // module for Steven files
 class f_steven : public m::mfoutput {
  public:
-  void write(GetPot& o, const m::mmesh& m);
+  void write(GetPot& o, const m::mmesh& m, const XMLNode& x);
 };
 
 #endif
