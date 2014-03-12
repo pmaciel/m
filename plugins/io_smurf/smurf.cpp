@@ -99,8 +99,20 @@ void MeshWriter::writeMainHeader(const string& htitle, const vector< string >& v
     bwrite< int >(m_file,0,m_reverse);        // filetype: FULL
   bwrite< string >(m_file,htitle,m_reverse);  // title
   bwrite< int >(m_file,m_nvars,m_reverse);    // variables number
-  for (unsigned i=0; i<m_nvars; ++i)          // variables names
-    bwrite(m_file,vnames[i],m_reverse);
+
+  // variable names (ensuring they are unique)
+  vector< string > vn(vnames);
+  bool is_changing = true;
+  while (is_changing) {
+    is_changing = false;
+    for (vector< string >::iterator n1=vn.begin(); n1!=vn.end() && (!is_changing); ++n1) {
+      for (vector< string >::iterator n2=n1+1; n2!=vn.end(); ++n2)
+        if ((is_changing) || (is_changing=(*n1==*n2)))
+          *n2 += "_copy";
+    }
+  }
+  for (unsigned i=0; i<m_nvars; ++i)
+    bwrite(m_file,vn[i],m_reverse);
 
   m_eohmarker = false;  // only set EOH marker when starting data section
 }
@@ -257,7 +269,9 @@ void MeshReader::readMainHeader(string& htitle, vector< string >& hvnames)
     m_file >> s[i];
   istringstream ss(s.substr(5));
   ss >> m_version;
+#if 0
   cout << "SmURF: version number: \"" << m_version << "\"" << endl;
+#endif
 
   // byte order, filetype and title
   {
@@ -269,9 +283,16 @@ void MeshReader::readMainHeader(string& htitle, vector< string >& hvnames)
 
   // variables
   m_nvars = (unsigned) bread< int >(m_file);
-  hvnames.resize(m_nvars);
-  for (unsigned i=0; i<hvnames.size(); ++i)
-    hvnames[i] = bread< string >(m_file);
+  hvnames.clear();
+  for (unsigned i=0; i<m_nvars; ++i) {
+    const string oldname(bread< string >(m_file));
+    string name(oldname);
+    while (find(hvnames.begin(),hvnames.end(),name)!=hvnames.end())
+      name += "_copy";
+    if (name!=oldname)
+      cerr << "SmURF: renamed variable: \"" << oldname << "\" to \"" << name << "\"" << endl;
+    hvnames.push_back(name);
+  }
 }
 
 
@@ -317,7 +338,9 @@ vector< TecZone > MeshReader::readZoneHeaders()
     vzones.push_back(z);
   }
 
+#if 0
   cout << "SmURF: detected EOHMARKER? " << (marker==EOHMARKER? "yes":"no") << endl;
+#endif
   return vzones;
 }
 

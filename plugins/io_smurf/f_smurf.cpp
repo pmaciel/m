@@ -31,6 +31,7 @@ void f_smurf::read(GetPot& o, mmesh& m)
   // data section
   m.vz.clear();
   for (vector< SmURF::TecZone >::iterator zone=zheaders.begin(); zone!=zheaders.end(); ++zone) {
+#if 0
     cout << "info: ZONE TITLE=\"" << zone->title << "\""
          << " ZONETYPE=" << (zone->type==SmURF::ORDERED?         "ORDERED":
                             (zone->type==SmURF::FELINESEG?       "FELINESEG":
@@ -41,6 +42,7 @@ void f_smurf::read(GetPot& o, mmesh& m)
          << " DATAPACKING=" << (zone->pack==SmURF::BLOCK? "BLOCK":
                                (zone->pack==SmURF::POINT? "POINT":"error") )
          << " I,J,K=" << zone->i << "," << zone->j << "," << zone->k << endl;
+#endif
 
     mzone z;
     z.n = zone->title;
