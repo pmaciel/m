@@ -4,6 +4,10 @@
 #include <algorithm>
 #include "smurf.h"
 
+
+#define ZONEMARKER 299.0
+#define EOHMARKER  357.0
+
 using namespace std;
 namespace SmURF {
 
@@ -22,8 +26,10 @@ void bwrite(FILE *F, T v, bool reverse)
     for (unsigned i=0; i<len; ++i)
       p[i] = r_buffer[i];
   }
-  if (!fwrite(&v,sizeof(v),1,F))
+  if (!fwrite(&v,sizeof(v),1,F)) {
+    cerr << "SmURF: error writing to file!" << endl;
     throw 42;
+  }
 }
 
 
@@ -62,7 +68,11 @@ string bread(ifstream& F)
 // ------------------------------------------------------------------------ //
 // MeshWriter
 
-MeshWriter::MeshWriter(const string& fname, const DataType _datatype, const bool _reverse, const unsigned _version) :
+MeshWriter::MeshWriter(
+    const string& fname,
+    const DataType _datatype,
+    const bool _reverse,
+    const unsigned _version ) :
   m_file(NULL),
   m_datatype(_datatype),
   m_reverse(_reverse),
@@ -118,23 +128,29 @@ void MeshWriter::writeMainHeader(const string& htitle, const vector< string >& v
 }
 
 
-void MeshWriter::writeZoneHeader(const double& time, const ZoneType& type, const ZonePack& pack, const std::string& title, const unsigned I, const unsigned J, const unsigned K)
+void MeshWriter::writeZoneHeader(
+    const ZoneType& type,
+    const ZonePack& pack,
+    const std::string& title,
+    const unsigned I, const unsigned J, const unsigned K,
+    const double& solutiontime,
+    const int& strandid )
 {
   bwrite< float >(m_file,ZONEMARKER,m_reverse);
 
   // zone header information
-  bwrite< string >(m_file,title,m_reverse);  // title
-  bwrite< int >(m_file,-1,m_reverse);        // BAD_SET_VALUE
-  bwrite< int >(m_file,-2,m_reverse);        // strand ID: pending assignment by Tecplot
-  bwrite< double >(m_file,time,m_reverse);   // solution time
-  bwrite< int >(m_file,-1,m_reverse);        // color
-  bwrite< int >(m_file,type,m_reverse);      // type
+  bwrite< string >(m_file,title,m_reverse);         // title
+  bwrite< int >   (m_file,-1,m_reverse);            // BAD_SET_VALUE
+  bwrite< int >   (m_file,strandid,m_reverse);      // strand ID: pending assignment by Tecplot
+  bwrite< double >(m_file,solutiontime,m_reverse);  // solution time
+  bwrite< int >   (m_file,-1,m_reverse);            // color
+  bwrite< int >   (m_file,type,m_reverse);          // type
   if (m_version<112)
-    bwrite< int >(m_file,pack,m_reverse);    // data packing
-  bwrite< int >(m_file,0,m_reverse);         // specify var location: no cell centered vars
+    bwrite< int > (m_file,pack,m_reverse);          // data packing
+  bwrite< int >   (m_file,0,m_reverse);             // specify var location: no cell centered vars
   if (m_version>107)
-    bwrite< int >(m_file,0,m_reverse);       // no face neighbor array
-  bwrite< int >(m_file,0,m_reverse);         // no face neighbor connections
+    bwrite< int > (m_file,0,m_reverse);             // no face neighbor array
+  bwrite< int >   (m_file,0,m_reverse);             // no face neighbor connections
 
   if (type==ORDERED) {
     bwrite< int >(m_file,max< unsigned >(I,1),m_reverse);
@@ -165,7 +181,12 @@ void MeshWriter::writeZoneHeader(const double& time, const ZoneType& type, const
 }
 
 
-void MeshWriter::writeZoneData(const ZoneType& type, const ZonePack& pack, const vector< vector< unsigned > >& ve, const vector< vector< double > >& vv, const int sharefrom)
+void MeshWriter::writeZoneData(
+    const ZoneType& type,
+    const ZonePack& pack,
+    const vector< vector< unsigned > >& ve,
+    const vector< vector< double > >& vv,
+    const int sharefrom )
 {
   // place end of header marker before writing zone data sections
   if (!m_eohmarker) {
@@ -338,9 +359,10 @@ vector< TecZone > MeshReader::readZoneHeaders()
     vzones.push_back(z);
   }
 
-#if 0
-  cout << "SmURF: detected EOHMARKER? " << (marker==EOHMARKER? "yes":"no") << endl;
-#endif
+  if (marker!=EOHMARKER) {
+    cerr << "SmURF: error reading file: did not detect EOHMARKER!" << endl;
+    throw 42;
+  }
   return vzones;
 }
 
@@ -412,4 +434,7 @@ void MeshReader::readZoneData(const TecZone& z, vector< vector< unsigned > >& ve
 // ------------------------------------------------------------------------ //
 
 }
+
+#undef EOHMARKER
+#undef ZONEMARKER
 

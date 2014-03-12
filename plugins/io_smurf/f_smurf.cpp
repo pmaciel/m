@@ -141,11 +141,11 @@ void f_smurf::write(GetPot& o, const mmesh& m)
                                  (z.t==PRISM3?          SmURF::FEBRICK         : //*2
                                  (z.t==PYRAMID4?        SmURF::FEBRICK         : //*3
                                                         SmURF::ORDERED ))))))))));
-    mwriter.writeZoneHeader(solutiontime,type,pack,z.n,m.n(),m.e(i));
+    mwriter.writeZoneHeader(type,pack,z.n,m.n(),m.e(i),solutiontime);
   }
   if (!m.z() && m.v()) {
     // no connectivities present, but there is a point cloud
-    mwriter.writeZoneHeader(solutiontime,SmURF::ORDERED,pack,"point_cloud",m.n());
+    mwriter.writeZoneHeader(SmURF::ORDERED,pack,"point_cloud",m.n(),solutiontime);
   }
 
   // data section
