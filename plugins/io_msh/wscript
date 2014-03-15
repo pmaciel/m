@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  conf.env.m_mlibraries.append('io_msh')
+
+
+def build(bld):
+  bld.objects(
+    target   = 'io_msh',
+    includes = ['.','../../mkernel'],
+    source   = ['f_msh.cpp'] )
+
