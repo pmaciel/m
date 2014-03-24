@@ -6,7 +6,8 @@
 .waf-*
 build/
 install/
-m.creator*
 m.config
+m.creator*
 m.files
 m.includes
+waf-reconfigure-*.sh

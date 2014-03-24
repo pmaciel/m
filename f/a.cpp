@@ -1,5 +1,5 @@
 
-#include "ext/GetPot.h"
+#include "GetPot.h"
 #include "MITReM.h"
 #include "ElementMatrixAssembler.h"
 
