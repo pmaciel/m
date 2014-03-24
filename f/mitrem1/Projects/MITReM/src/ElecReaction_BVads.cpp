@@ -1,16 +1,16 @@
 //---------------------------------------------------------------------------
 
-#define T          electrolyteSolution->getSolutionTemperature()
-#define cRed(j)    electrolyteSolution->getIonConcentration(agentsRed[j])
-#define cOxi(j)    electrolyteSolution->getIonConcentration(agentsOxi[j])
-#define cAds      electrolyteSolution->getIonConcentration(electrolyteSolution->getNIons()-1)
-#define U          electrolyteSolution->getSolutionPotential()
-#define kOxi      kineticParameters[0]
-#define kRed      kineticParameters[1]
-#define aOxi      kineticParameters[2]
-#define aRed      kineticParameters[3]
-#define KAds      kineticParameters[4]
-#define aAds      kineticParameters[5]
+#define Tmp      electrolyteSolution->getSolutionTemperature()
+#define cRed(j)  electrolyteSolution->getIonConcentration(agentsRed[j])
+#define cOxi(j)  electrolyteSolution->getIonConcentration(agentsOxi[j])
+#define cAds     electrolyteSolution->getIonConcentration(electrolyteSolution->getNIons()-1)
+#define U        electrolyteSolution->getSolutionPotential()
+#define kOxi     kineticParameters[0]
+#define kRed     kineticParameters[1]
+#define aOxi     kineticParameters[2]
+#define aRed     kineticParameters[3]
+#define KAds     kineticParameters[4]
+#define aAds     kineticParameters[5]
 
 //---------------------------------------------------------------------------
 
@@ -46,9 +46,9 @@ double ElecReaction_BVads::calcReactionRate(double V) const
   {
     cOxi *= pow(cOxi(j),orderOxi[j]);
   }
-  double thetaFree = 1./(1.+KAds*exp(aAds*F_CONST/(R_CONST*T)*(V-U))*cAds);
-  return (kOxi*exp(aOxi*nElectrons*F_CONST/(R_CONST*T)*(V-U))*cRed
-       - kRed*exp(-aRed*nElectrons*F_CONST/(R_CONST*T)*(V-U))*cOxi) * thetaFree;
+  double thetaFree = 1./(1.+KAds*exp(aAds*F_CONST/(R_CONST*Tmp)*(V-U))*cAds);
+  return (kOxi*exp(aOxi*nElectrons*F_CONST/(R_CONST*Tmp)*(V-U))*cRed
+       - kRed*exp(-aRed*nElectrons*F_CONST/(R_CONST*Tmp)*(V-U))*cOxi) * thetaFree;
 }
 //---------------------------------------------------------------------------
 double ElecReaction_BVads::calcReactionRateDerivativeU(double V) const
@@ -63,9 +63,9 @@ double ElecReaction_BVads::calcReactionRateDerivativeU(double V) const
   {
     cOxi *= pow(cOxi(j),orderOxi[j]);
   }
-  double thetaFree = 1./(1.+KAds*exp(aAds*F_CONST/(R_CONST*T)*(V-U))*cAds);
-  return (- kOxi*aOxi*nElectrons*F_CONST/(R_CONST*T)*exp( aOxi*nElectrons*F_CONST/(R_CONST*T)*(V-U))*cRed
-       - kRed*aRed*nElectrons*F_CONST/(R_CONST*T)*exp(-aRed*nElectrons*F_CONST/(R_CONST*T)*(V-U))*cOxi) * thetaFree;
+  double thetaFree = 1./(1.+KAds*exp(aAds*F_CONST/(R_CONST*Tmp)*(V-U))*cAds);
+  return (- kOxi*aOxi*nElectrons*F_CONST/(R_CONST*Tmp)*exp( aOxi*nElectrons*F_CONST/(R_CONST*Tmp)*(V-U))*cRed
+          - kRed*aRed*nElectrons*F_CONST/(R_CONST*Tmp)*exp(-aRed*nElectrons*F_CONST/(R_CONST*Tmp)*(V-U))*cOxi) * thetaFree;
 }
 //---------------------------------------------------------------------------
 double ElecReaction_BVads::calcReactionRateDerivativeV(double V) const
@@ -80,9 +80,9 @@ double ElecReaction_BVads::calcReactionRateDerivativeV(double V) const
   {
     cOxi *= pow(cOxi(j),orderOxi[j]);
   }
-  double thetaFree = 1./(1.+KAds*exp(aAds*F_CONST/(R_CONST*T)*(V-U))*cAds);
-  return   (kOxi*aOxi*nElectrons*F_CONST/(R_CONST*T)*exp( aOxi*nElectrons*F_CONST/(R_CONST*T)*(V-U))*cRed
-       + kRed*aRed*nElectrons*F_CONST/(R_CONST*T)*exp(-aRed*nElectrons*F_CONST/(R_CONST*T)*(V-U))*cOxi) * thetaFree;
+  double thetaFree = 1./(1.+KAds*exp(aAds*F_CONST/(R_CONST*Tmp)*(V-U))*cAds);
+  return (kOxi*aOxi*nElectrons*F_CONST/(R_CONST*Tmp)*exp( aOxi*nElectrons*F_CONST/(R_CONST*Tmp)*(V-U))*cRed
+        + kRed*aRed*nElectrons*F_CONST/(R_CONST*Tmp)*exp(-aRed*nElectrons*F_CONST/(R_CONST*Tmp)*(V-U))*cOxi) * thetaFree;
 }
 //---------------------------------------------------------------------------
 double ElecReaction_BVads::calcReactionRateDerivativeCRed(double V, unsigned i) const
@@ -93,8 +93,8 @@ double ElecReaction_BVads::calcReactionRateDerivativeCRed(double V, unsigned i) 
     if (j == i) cRed *= pow(cRed(j),orderRed[j]-1);
     else cRed *= pow(cRed(j),orderRed[j]);
   }
-  double thetaFree = 1./(1.+KAds*exp(aAds*F_CONST/(R_CONST*T)*(V-U))*cAds);
-  return orderRed[i]*kOxi*exp(aOxi*nElectrons*F_CONST/(R_CONST*T)*(V-U))*cRed * thetaFree;
+  double thetaFree = 1./(1.+KAds*exp(aAds*F_CONST/(R_CONST*Tmp)*(V-U))*cAds);
+  return orderRed[i]*kOxi*exp(aOxi*nElectrons*F_CONST/(R_CONST*Tmp)*(V-U))*cRed * thetaFree;
 }
 //---------------------------------------------------------------------------
 double ElecReaction_BVads::calcReactionRateDerivativeCOxi(double V, unsigned i) const
@@ -105,8 +105,8 @@ double ElecReaction_BVads::calcReactionRateDerivativeCOxi(double V, unsigned i) 
     if (j == i) cOxi *= pow(cOxi(j),orderOxi[j]-1);
     else cOxi *= pow(cOxi(j),orderOxi[j]);
   }
-  double thetaFree = 1./(1.+KAds*exp(aAds*F_CONST/(R_CONST*T)*(V-U))*cAds);
-  return -orderOxi[i]*kRed*exp(-aRed*nElectrons*F_CONST/(R_CONST*T)*(V-U))*cOxi * thetaFree;
+  double thetaFree = 1./(1.+KAds*exp(aAds*F_CONST/(R_CONST*Tmp)*(V-U))*cAds);
+  return -orderOxi[i]*kRed*exp(-aRed*nElectrons*F_CONST/(R_CONST*Tmp)*(V-U))*cOxi * thetaFree;
 }
 //---------------------------------------------------------------------------
 double ElecReaction_BVads::calcEquilibriumPotential() const
@@ -123,7 +123,7 @@ double ElecReaction_BVads::calcEquilibriumPotential() const
     cOxi *= pow(cOxi(j),orderOxi[j]);
   }
   if (cOxi == 0) cOxi = 1.;
-  return R_CONST*T/(nElectrons*F_CONST)*log(kRed*cOxi/(kOxi*cRed));
+  return R_CONST*Tmp/(nElectrons*F_CONST)*log(kRed*cOxi/(kOxi*cRed));
 }
 //---------------------------------------------------------------------------
 
