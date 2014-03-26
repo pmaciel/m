@@ -32,7 +32,7 @@ class MeshWriter
   MeshWriter(const std::string& fname, const DataType _datatype=DOUBLE, const bool _reverse=false, const unsigned _version=107);
   ~MeshWriter();
   void writeMainHeader(const std::string& htitle, const std::vector< std::string >& hvnames);
-  void writeZoneHeader(const ZoneType& type, const ZonePack& pack, const std::string& title, const unsigned I=1, const unsigned J=1, const unsigned K=1, const double& solutiontime=double(), const int &strandid=int(-2));
+  void writeZoneHeader(const ZoneType& type, const ZonePack& pack, const std::string& title, const double& solutiontime=double(), const unsigned I=1, const unsigned J=1, const unsigned K=1, const int &strandid=int(-2));
   void writeZoneData(const ZoneType& type, const ZonePack& pack, const std::vector< std::vector< unsigned > >& ve, const std::vector< std::vector< double > >& vv=std::vector< std::vector< double > >(), const int sharefrom=0);
  private:
   FILE*          m_file;          // file pointer
