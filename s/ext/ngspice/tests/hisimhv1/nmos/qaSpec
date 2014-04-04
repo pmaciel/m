@@ -1,0 +1,121 @@
+
+//
+// Test specification for HiSIM_HV (version 1.2.3)
+//
+
+//
+// Simulator specific information
+// These arguments are added to the model card
+// specification to invoke the desired model in
+// different simulators (which can have different
+// names or levels for the same model) and to switch
+// between nType and pType polarities.
+// It is assumed that there are no polarity specific
+// parameters.
+//
+
+`ifdef ngspice
+nTypeSelectionArguments     nmos leveL=62 version=1.23
+pTypeSelectionArguments     pmos leveL=62 version=1.23
+`endif
+`ifdef hspice
+nTypeSelectionArguments     hisimhv_n5_va TYPE=1
+pTypeSelectionArguments     hisimhv_n5_va TYPE=-1
+`endif
+`ifdef smartspice
+nTypeSelectionArguments     hisimhv_n5_va TYPE=1
+pTypeSelectionArguments     hisimhv_n5_va TYPE=-1
+`endif
+`ifdef spectre
+nTypeSelectionArguments     hisimhv_n5_va TYPE=1
+pTypeSelectionArguments     hisimhv_n5_va TYPE=-1
+`endif
+
+//
+// General test-independent information
+//
+
+keyLetter                   m
+linearScale                 w l ps pd
+areaScale                   as ad 
+temperature                 27 -50 150
+//checkPolarity             yes
+//symmetricpins		    d s
+scaleParameters             m
+
+//
+// Specific tests for Vsub Node
+//
+pins                        d g s b sub
+
+test                        dcVsub_Id1_vb0
+biases                      V(s)=0 V(g)=10 V(b)=0
+biasList                    V(sub)=-0.6,-5,-10
+biasSweep                   V(d)=1,20,0.2
+outputs                     I(d) I(g) I(s) I(b)
+instanceParameters          W=10.0e-6 L=5e-6
+modelParameters             parameters/nmosParameters
+modelParameters             COSUBNODE=1
+
+test                        dcVsub_Id1_vb1
+biases                      V(s)=0 V(g)=10 V(b)=-5.0
+biasList                    V(sub)=-0.6,-5,-10
+biasSweep                   V(d)=1,20,0.5
+outputs                     I(d) I(g) I(s) I(b)
+instanceParameters          W=10.0e-6 L=5e-6
+modelParameters             parameters/nmosParameters
+modelParameters             COSUBNODE=1
+
+test                        dcVsub_Id1_vb2
+biases                      V(s)=0 V(g)=10 V(b)=-10.0
+biasList                    V(sub)=-0.6,-5,-10
+biasSweep                   V(d)=1,20,0.5
+outputs                     I(d) I(g) I(s) I(b)
+instanceParameters          W=10.0e-6 L=5e-6
+modelParameters             parameters/nmosParameters
+modelParameters             COSUBNODE=1
+
+test                        dcVsub_Id1_vb0_jd
+biases                      V(s)=0 V(g)=10 V(b)=0
+biasList                    V(sub)=-0.6,-5,-10
+biasSweep                   V(d)=1,20,0.2
+outputs                     I(d) I(g) I(s) I(b)
+instanceParameters          W=10.0e-6 L=5.0e-6 AD=20e-12 AS=20e-12 PD=12e-6 PS=12e-6
+modelParameters             parameters/nmosParameters
+modelParameters             COSUBNODE=1
+
+test                        dcVsub_Ig1_vb0
+biases                      V(s)=0 V(d)=10 V(b)=0
+biasList                    V(sub)=-0.6,-5,-10
+biasSweep                   V(g)=1,20,0.2
+outputs                     I(d) I(g) I(s) I(b)
+instanceParameters          W=10.0e-6 L=2e-6
+modelParameters             parameters/nmosParameters
+modelParameters             COSUBNODE=1
+
+test                        dcVsub_Ig1_vb1
+biases                      V(s)=0 V(d)=10 V(b)=-5.0
+biasList                    V(sub)=-0.6,-5,-10
+biasSweep                   V(g)=1,20,0.5
+outputs                     I(d) I(g) I(s) I(b)
+instanceParameters          W=10.0e-6 L=2e-6
+modelParameters             parameters/nmosParameters
+modelParameters             COSUBNODE=1
+
+test                        dcVsub_Ig1_vb2
+biases                      V(s)=0 V(d)=10 V(b)=-10.0
+biasList                    V(sub)=-0.6,-5,-10
+biasSweep                   V(g)=1,20,0.5
+outputs                     I(d) I(g) I(s) I(b)
+instanceParameters          W=10.0e-6 L=2e-6
+modelParameters             parameters/nmosParameters
+modelParameters             COSUBNODE=1
+
+test                        dcVsub_Ig1_vb0_jd
+biases                      V(s)=0 V(d)=10 V(b)=0
+biasList                    V(sub)=-0.6,-5,-10
+biasSweep                   V(g)=1,20,0.2
+outputs                     I(d) I(g) I(s) I(b)
+instanceParameters          W=10.0e-6 L=2.0e-6 AD=20e-12 AS=20e-12 PD=12e-6 PS=12e-6
+modelParameters             parameters/nmosParameters
+modelParameters             COSUBNODE=1
