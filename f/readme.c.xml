@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="testcases.c.xsl"?>
+<!DOCTYPE c [
+ <!ENTITY year "2010">
+ <!ENTITY author "Vrije Universiteit Brussel">
+ <!ENTITY author-note "&author;, &year;">
+]>
+<cdb>
+
+-------------------------------
+INITIAL AND BOUNDARY CONDITIONS
+-------------------------------
+FIXV-P  1.0 0.0 1.0
+FIXV-R  1.0 1 2 0.0 0.0
+FIXP-U  0.0
+WALT-M  100.0 12.0
+WALQ-S  0.0
+WALT-S  2.0
+WALQ-S  0.0
+UNUSED
+SYMM-Y
+-------------------------------
+
+Groups should be numbered from one to the number of groups though not all need
+to be used. These numbers relate directly to the numbering of the boundary faces
+used in the grid definition so that different boundary conditions can be applied
+to the same grid.
+
+These have the following options:
+
+** FIXV
+** ----
+** Velocity is always normal to inlet plane
+** -U: uniform profile
+**     settings: Uin Tin kin len
+**     Uin: uniform velocity normal to inlet plane
+**     Tin: inlet temperature
+**     kin: turbulence intensity = sqrt(2*kin)/Uin
+**     len: turbulence length scale
+** -P: parabolic profile
+**     Uave Rstart Rfinish
+**     e.g. 1.0 0.0 1.0 gives parabola with zero at bottom
+**          inlet and at other end.
+**          1.0 0.0 2.0 gives parabola with zero at bottom
+**          inlet and maximum other end.
+** -R: read and interpolate inlet data. Inlet is assumed to be aligned with one of the
+**     coordinate axes (x, y or z). In 2D the direction is detected automatically
+**     but in 3D the two tangential directions in the plane must be specified.
+**     2D: inlet data interpolated from distributions in inlet.dat file
+**     args: S Offset
+**           S - scales inlet velocity
+**           Offset - displacement in tangential direction along inlet
+**     3D: inlet data interpolated from data on Cartesian grid stored in file 'inlet.xpl'
+**     args: S Xdirn Ydirn OffsetX OffsetY
+**           S - scales inlet velocity
+**           Xdirn, Ydirn - give directions of x, y components
+**           in inlet file: x-0, y-1, z-2
+**           OffsetX, OffsetY - give offsets for x, y components
+**           in inlet file.
+**
+** FIXP
+** ----
+** -U: no restriction on output velocity
+** -X/Y/Z: respective velocity component is set to zero
+** Parameter: uniform outlet pressure
+**
+** WALL/WALT/WALQ
+** --------------
+** -S: stationary wall
+**     args: none
+** -M: moving wall
+**     args-2D: Vwall (tangential speed of wall)
+**         -3D: uwall vwall wwall (3 components of wall velocity)
+**
+** WALT takes the (uniform) wall temperature (K) as setting
+** WALQ takes the (uniform) wall heat flux (W/m2) as setting
+** (In the case of a moving wall these settings precede the wall speed.)
+**
+** SYMM
+** ----
+** -X: plane normal to Cartesian x-direction (y-z plane)
+** -Y: plane normal to Cartesian y-direction (x-z plane)
+** -Z: plane normal to Cartesian z-direction (x-y plane)
+** No parameters required. Plane must be normal to one these 3 directions.
+**
+** PERI
+** ----
+** -X/Y/Z indicates normal direction
+** Parameter: inlet pressure
+**
+** PERE
+** ----
+** -X/Y/Z indicates normal direction
+** Parameter: outlet pressure
+**
+
+ <c label="help">
+  <comment>
+   <p>Comments go here.</p>
+   <p>CAMUS as of October 28th 1999. Nick Waterson, npw@mm-croy.mottmac.com, +44-20-8774-2389.</p>
+   <p>Suggested S.I. units are given but any consistent system of units (or non-dimensionalization) may be used.</p>
+  </comment>
+  <setup
+   dimensions="{2,3} dimension of problem"
+   restart="{false,true} uses initial values set below, or keep solution from grid/solution file"
+   file_input="{text} grid/solution file to read"
+   file_inlet="{text} grid/solution file to read for the inlet, if a bc fixv with option r is set"
+   file_output="{text} grid/solution file to write"
+  />
+  <terms
+   density="{real} The fluid density in kg/m3. For the present incompressible solver this only has the effect of scaling the calculated pressure field."
+   kviscosity="{real} kinematic viscosity nu (mu/rho) in m2/s"
+   prandlt="{real} Prandtl or Schmidt number for heat or mass transfer respectively. At present only one scalar transport equation can be solved whose diffusion coefficient is nu/Pr or nu/Sc."
+   gx="{real} Gravity vector x-component (only used for buoyant calculations)"
+   gy="{real} Gravity vector y-component"
+   gz="{real} Gravity vector z-component"
+   diffusion="{true,false} At present diffusion terms are always activated for pressure-velocity system as no inviscid wall B.C. is implemented (except for a symmetry plane)"
+   temperature="{false,true} Activates scalar transport equation e.g. for temperature or concentration"
+   buoyancy="{false,true} Activates buoyancy terms when temperature equation is solved. Boussinesq approximation is employed giving momentum source term of form: F_buoy[id] = rho*g[id]*beta*(T-To) where T is local temperature and To is global average temperature.  N.B.: Turbulence models do not include any buoyancy terms."
+   vardensity="{false,true} This option is not active in this version"
+   vardensity_value="{real} For calculations with buoyancy this gives the volumetric expansion factor."
+   scalarscheme="{N,FOU,LDA,Lax-Wendroff,PSI} Convection scheme used for any scalar transport equations. Options are: 1st order N-scheme, 1st order dimensionally-split upwind scheme, 2nd order LDA scheme (not +ve), 2nd order Lax-Wendroff scheme (not +ve) or 2nd order PSI scheme (+ve). For temperature equation Lax-Wendroff is recommended. For concentration PSI should be used to avoid under/overshoots but may be too diffusive. For turbulence quantities N is recommended (PSI can can also be used)."
+   turbulence="{NONE,KENA,KELB,KEV2,KWHR,KWLR,BSL,SST,KWPD} Specifies turbulence model to be used (if any). Options are: laminar flow, Abe-Kondoh-Nagano low-Re k-epsilon model, Lam-Bremhorst low-Re k-epsilon model, Durbin V2F model, Wilcox k-omega model (high-Re - no damping functions), Wilcox k-omega model (low-Re - with damping functions), Menter baseline model, Menter SST model or Peng-Davidson-Holmberg k-omega model."
+  />
+  <solver_nonlinear
+   maxiterations="{integer} Number of outer non-linear iterations"
+   convergence_level="{real} Level of residual at which calculation will be terminated. It is in fact log10(L2_res) where L2_res is the L2-norm residual of the variable named below as variable for error."
+   convergence_variable="{text} Solution variable on which convergence test is applied and also switch from Picard to Newton.  In general use p but t for buoyancy-driven flows."
+   relax_puvw_type="{linear,dt-local,dt-global} Relaxation type for pressure+velocity. Options are: linear relaxation (value is factor between 0.0 and 1.0) and time-step relaxation (value is global/local CFL number). Neutral setting is: LINEAR 1.0.  For laminar flow generally no relaxation is required though for turbulence it may be necessary to use light linear relaxation (e.g. 0.8) or time-stepping (e.g. DT-G 10000.0) For some high-Rayleigh-number flows some false-dt relaxation may also be required."
+   relax_puvw_value="{real} Relaxation value for pressure+velocity"
+   relax_t_type="{linear,dt-local,dt-global} Relaxation type for the scalar equation"
+   relax_t_value="{real} Relaxation value for the scalar equation"
+   relax_ke_type="{linear,dt-local,dt-global} Relaxation type for turbulence equations"
+   relax_ke_value="{real} Relaxation value for turbulence equations"
+   method="{Newton,Picard} Specifies the method used to calculate the implicit Jacobian matrix. Options are: approximate analytical Jacobian or full numerical Newton matrix. The Picard matrix is cheaper to evaluate at each step and is more robust than the Newton matrix but requires more iterations.  A recommended practice is to start the calculation using Picard and then switch to Newton when the residuals have reduced by e.g. 2 orders of magnitude (see below).  N.B.: For turbulent calculations it is recommened always to use the Picard method."
+   newton_eps="{real} Perturbation size used for calculation of numerical derivatives in Newton method. In general this should not altered. DEFAULT: 1.e-8."
+   newton_switch="{real} Convergence level at which Newton solver will be activated if calculation is started using Picard method. The definition is just as described above for convergence level and the variable used is that defined below by variable for error. If this is set to a very low negative value e.g. -100.0 then the Newton solver will not be activated."
+   couple_t="{false,true} If this is set to 0 then the temperature equation is fully decoupled and solved as as a separate scalar equation. If it is set to 1 then the temperature is solved fully coupled to the pressure/velocity system. The fully-coupled option uses more memory (e.g. in 2D a 4x4 system instead of 3x3) but is much more effective for flows with buoyancy."
+   couple_ke="{false,true} If this is set to 0 then the turbulence equations are fully decoupled and solved as as separate scalar equations. If it is set to 1 then the turbulence equations are solved coupled to each other as a 2x2 system but decoupled from the pressure/velocity system. If it is set to 2 the equations are fully-coupled. Option 1 is recommended as the fully coupled option requires substantially more memory (e.g. in 2D a 5x5 system instead of 3x3) without major benefit."
+  />
+  <solver_linear
+   coupled_precond="{text} Selects preconditioner for linear solver in Aztec.  Options are: JAC: Jacobi ILU: incomplete LU decomposition with no fill in, ILU(0) MILU: modified ILU(0) ILU is recommended even though it uses more memory than Jacobi. MILU uses the same memory as Jacobi and is only slightly worse than ILU.  For parallel computation one of three options for ILU can be chosen: ILU-NO, ILU-DO, ILU-FO with respectively: no overlapping, diagonal overlapping and full overlapping. This is because ILU is not easily parallelized and therefore preconditioning is often carried out on each processor separately (no overlapping) even though this degrades the convergence of the linear solver. Though diagonal and full overlapping may enhance convergence the extra cost of preconditioning is usually not justified."
+   coupled_solver="{text} Selects iterative linear equation solution method used by Aztec library. Options are: BICGS: Biconjugate gradient stabilized GMRES: Generalized minimum residual method TFQMR: Transpose-free quasi-minimum residual Both BICGS and GMRES are faster than TFQMR but the latter is sometimes more robust. GMRES is guaranteed to decrease monotonically so that it can be stopped after any number of iterations.  BICGS is not monotonic and can jump a lot hence risking stopping on a bad iteration.  The memory required by GMRES depends on the number of Krylov subspaces used (see below) with each subspace requiring a complete copy of the solution vector at all nodes. BICGS requires approximately the equivalent of 11 subspaces which is usually less than GMRES.  The settings for the linear solver below apply to the main coupled system ('coupled') and to any scalar equations or the decoupled turbulence system ('scalar') respectively."
+   coupled_overlap="{text} Selects overlap type for linear solver in Aztec"
+   coupled_max_iter="{integer} limit on the total number of linear iterations"
+   coupled_kspace="{integer} no. of Krylov subspaces used by GMRES solver (if selected). Convergence is improved with more subspaces but so is memory required by solver. Typically 25->50 subspaces."
+   coupled_tol="{real} level at which solver is judged to have converged.  It is not worth solving system too accurately as it is only approximate (for a non-linear system or discretization).  This is especially true for Picard where using a low threshold can even cause divergence. Recommended values are 1.e-2 for Picard and 1.e-4 for Newton. For Newton if the threshold is too high, quadratic convergence may not be achieved but if it is too low, time is wasted unnecessarily.  If the solver switches from Picard to Newton (see above) then the number of iterations is automatically doubled and the threshold reduced by two orders of magnitude."
+   scalar_overlap="{text} options for the scalar system"
+   scalar_precond="{text} options for the scalar system"
+   scalar_solver="{text} options for the scalar system"
+   scalar_max_iter="{integer} options for the scalar system"
+   scalar_kspace="{integer} options for the scalar system"
+   scalar_tol="{real} options for the scalar system"
+  />
+  <vars>
+   <v label="{text} p: pressure" init="{real} Initialization value, set uniformly across the domain"/>
+   <v label="{text} u: velocity x-component" init="{real} Initialization value"/>
+   <v label="{text} v: velocity y-component" init="{real} Initialization value"/>
+   <v label="{text} w: velocity z-component" init="{real} Initialization value"/>
+   <v label="{text} t: temperature or scalar" init="{real} Initialization value"/>
+   <v label="{text} k: turbulence k" init="{real} turbulence intensity (sqrt(2k)/Uinit) (can be set the same for all turbulence models)"/>
+   <v label="{text} e: epsilon or omega" init="{real} turbulence length scale (can be set the same for all turbulence models)."/>
+  </vars>
+  <bcs>
+   <bc zone="{text} zone name, from read file" label="{text} given name" type="fixv" option="" values=""/>
+   <bc zone="{text} zone name" label="{text} given name" type="fixp: fixed velocity" option="" values=""/>
+   <bc zone="{text} zone name" label="{text} given name" type="wall: fixed pressure" option="" values=""/>
+   <bc zone="{text} zone name" label="{text} given name" type="symm: viscous/fixed-temperature/fixed-heat-flux wall" option="" values=""/>
+   <bc zone="{text} zone name" label="{text} given name" type="peri: periodic inlet" option="" values=""/>
+   <bc zone="{text} zone name" label="{text} given name" type="pere: periodic outlet" option="" values=""/>
+  </bcs>
+ </c>
+</cdb>
+

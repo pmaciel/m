@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  conf.env.m_mlibraries.append('ls_pardiso')
+  conf.env['LIB_PARDISO']       = ['pardiso','lapack','gfortran']
+  conf.env['LIBPATH_PARDISO']   = ['/home/pmaciel/Documents/dev/external/pardiso']
+  conf.env['RPATH_PARDISO']     = ['/home/pmaciel/Documents/dev/external/pardiso']
+  conf.env['LINKFLAGS_PARDISO'] = ['-fopenmp']
+
+
+def build(bld):
+  bld.objects(
+    target   = 'ls_pardiso',
+    includes = ['.','../../mkernel'],
+    source   = ['ls_pardiso.cpp'],
+    use      = ['PARDISO'] )
+

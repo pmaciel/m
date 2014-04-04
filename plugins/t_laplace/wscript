@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  conf.env.m_mlibraries.append('t_laplace')
+
+
+def build(bld):
+  bld.objects(
+    target   = 't_laplace',
+    includes = ['.','../../mkernel'],
+    source   = ['t_laplace.cpp'] )
+

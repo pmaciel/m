@@ -1,0 +1,11 @@
+Versie 1.0
+[nElectrodes] = 1
+	<label> = WorkingElectrode
+
+[nBoundaries0] = 1
+	<boundary> = 0
+
+[nElecReactions0] = 1
+	<label> = Deposition
+
+[nGasReactions0] = 0

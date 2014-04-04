@@ -1,0 +1,26 @@
+Versie 1.0
+[nHomReactions] = 3
+	<label> = H2ODissociation	<kf> = 1.82e-12	/*2.71e-5*/	<kb> = 10	/*1.5e8*/
+// /*Aquatic chemistry*/ values Heidi
+	<label> = HSO4Dissociation	<kf> = 1.01e5	<kb> = 1000
+// Gemeten door Bernard Mollet
+	<label> = NaSO4Dissociation	<kf> = 50.97	<kb> = 0.1
+// uit een artikel (vraag aan Heidi Van Parys)
+
+[nReagents0] = 1
+	<label> = H2O	<stoich> = -1
+[nProducts0] = 2
+	<label> = H+	<stoich> = 1
+	<label> = OH-	<stoich> = 1
+
+[nReagents1] = 1
+	<label> = HSO4-	<stoich> = -1
+[nProducts1] = 2
+	<label> = H+	<stoich> = 1
+	<label> = SO42-	<stoich> = 1
+
+[nReagents2] = 1
+	<label> = NaSO4-	<stoich> = -1
+[nProducts2] = 2
+	<label> = Na+	<stoich> = 1
+	<label> = SO42-	<stoich> = 1

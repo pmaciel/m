@@ -1,0 +1,223 @@
+#LyX 1.4.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 245
+\begin_document
+\begin_header
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+MITReM library
+\end_layout
+
+\begin_layout Section
+Equations and nomenclature
+\end_layout
+
+\begin_layout Subsection
+Stationary mass conservation
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+-\vec{\nabla}.\vec{N}_{i}+R_{i}=0\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+with
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\vec{N}_{i}=c_{i}\vec{v}-\sum_{j}D_{ij}\vec{\nabla}c_{j}-w_{i}c_{i}\vec{\nabla}U\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $D_{ij}$
+\end_inset
+
+ is the diffusion factor.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $w_{i}c_{i}$
+\end_inset
+
+ is the migration factor.
+\end_layout
+
+\begin_layout Subsection
+Electrostatics
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\vec{\nabla}^{2}U+\frac{F}{\epsilon}\sum_{i}z_{i}c_{i}=0\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+The electrostatics potential factor is 
+\begin_inset Formula $1$
+\end_inset
+
+ if you use Poisson and 
+\begin_inset Formula $0$
+\end_inset
+
+ if you use electroneutrality.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\frac{z_{i}F}{\epsilon}$
+\end_inset
+
+ is the electrostatics concentration factor if you use Poison and 
+\begin_inset Formula $z_{i}$
+\end_inset
+
+ if you use electroneutrality.
+\end_layout
+
+\begin_layout Subsection
+Butler-Volmer kinetics
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+v=k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]c_{red}-k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]c_{ox}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Include
+\end_layout
+
+\begin_layout Standard
+Additional Include Directories: MITReM
+\backslash
+include 
+\end_layout
+
+\begin_layout Standard
+In your code: #include 
+\begin_inset Quotes eld
+\end_inset
+
+MITReM.h
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Functions
+\end_layout
+
+\begin_layout Subsection
+Constructor
+\end_layout
+
+\begin_layout Standard
+Pass the name of the MITReM files.
+ The constructor will then read all necessary parameters from the name.elecreacti
+ons, name.electrolytesolution, name.homreactions and name.models file.
+\end_layout
+
+\begin_layout Subsection
+getNIons()
+\end_layout
+
+\begin_layout Standard
+Returns the number of ions.
+\end_layout
+
+\begin_layout Subsection
+getIonInletConcentrations(
+\begin_inset Formula $i$
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Standard
+Returns the equilibrium concentration of ion 
+\begin_inset Formula $i$
+\end_inset
+
+ to be imposed on the inlet.
+\end_layout
+
+\begin_layout Subsection
+getNElecReactions()
+\end_layout
+
+\begin_layout Standard
+Returns the number of electrochemical reactions to choose from.
+ Every electrode will have some (or all) of these reactions occuring on
+ its surface.
+\end_layout
+
+\begin_layout Subsection
+getElecReactionLabel(
+\begin_inset Formula $r$
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Standard
+Returns the label of electrochemical reaction 
+\begin_inset Formula $r$
+\end_inset
+
+.
+ Use this function to construct the list of indices of electrochemical reactions
+ occuring on the electrode.
+ This list you will have to pass to calcBoundaryElementVec and calcBoundaryEleme
+ntJac of the ElementMatrixAssembler.
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_body
+\end_document

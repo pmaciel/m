@@ -1,0 +1,15 @@
+Versie 1.0
+[solventDielectricConstant] = 6.933104e-10
+[solutionKinematicViscosity] = 1e-6
+[solutionTemperature] = 298.15
+[nIons] = 8
+	<label> = Na+	<z> = +1	<D> = 9.30e-10	<cInlet> = 1285.973738050
+	<label> = SO42-	<z> = -2	<D> = 7.19e-10	<cInlet> = 283.006701417
+	<label> = NaSO4-	<z> = -1	<D> = 6.75e-10	<cInlet> = 714.026261948
+	<label> = HSO4-	<z> = -1	<D> = 9.35e-10	<cInlet> = 9.227036634
+	<label> = H+	<z> = +1	<D> = 9.31e-9	<cInlet> = 3.292963369045
+	<label> = OH-	<z> = -1	<D> = 5.22e-9	<cInlet> = 3.045e-9
+	<label> = H2O	<z> = 0	<D> = 1.55e-9	<cInlet> = 5.55e4
+	<label> = H2	<z> = 0	<D> = 4.87e-9	<cInlet> = 0
+// e-mail on Wednesday 27/08/2008 from Heidi Van Parys
+// D(H2): "Electrochemical Data", Conway

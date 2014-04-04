@@ -1,0 +1,12 @@
+Versie 1.0
+[nBoundaries] = 2
+	<type> = Electrode
+
+	<type> = VirtualElectrode
+
+[nBoundaryElements0] = 1
+	<boundaryElement> = 0
+
+[nBoundaryElements1] = 1
+	<boundaryElement> = 1
+

@@ -1,0 +1,8 @@
+Versie 1.0
+[dimensions] = 2D	//MIoTraS_2D	//RDE_1D	//ConvectionDiffusion_AX	//
+
+[v] = 0	//-1e-9
+[vRot] = 300	//1000
+[nElements] = 800	//400	//100	//200	//
+[length] = 1e-4
+[refFac] = 1.01159403	//1.023352047	//1.097498765	//1.047370898	//

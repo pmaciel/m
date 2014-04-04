@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+def configure(conf):
+  from sys import platform
+
+  conf.env.m_mlibraries.append('mkernel')
+  conf.check_cxx(uselib_store='GOMP', mandatory=False, lib='gomp')
+
+  # set configuration header options
+  conf.undefine('MVERSION')
+  conf.define('MVERSION',''.join([conf.env.m_mversion,'/',conf.env.m_mbuild]))
+  ## FIXME: import/export symbols depending on compiler
+  ##  - prefix imp/exporting symbols qualifiers for dll's
+  ##  - if 'cshlib': t.defines.extend(['M_CSHLIB'])
+  conf.define('M_SYMBOL_EXPORT','',quote=False)
+  conf.define('M_SYMBOL_IMPORT','',quote=False)
+  if platform=='win32':
+    conf.define('M_SYMBOL_EXPORT','__declspec(dllexport)' if conf.env['CXX_NAME']=='msvc' else '', quote=False)
+    conf.define('M_SYMBOL_IMPORT','__declspec(dllimport)' if conf.env['CXX_NAME']=='msvc' else '', quote=False)
+  conf.write_config_header('mconfig.h')
+
+
+def build(bld):
+  from sys import platform
+
+  # mkernel library
+  bld.stlib(
+    target   = 'mkernel',
+    includes = ['.'],
+    defines  = ['FP_NO_SUPPORT_OPTIMIZER'] if platform=='darwin' else [],
+    source   = [
+      'ext/fparser.cc','ext/fpoptimizer.cc',  # function parser
+      'ext/xmlParser.cpp',                    # xml parser
+      'cool/Element.cpp','cool/MathTools.cpp','cool/Framework.cpp',
+      'mlinearsystem.cpp','mlog.cpp','mmesh.cpp','hal.cpp' ] )
+
+  # m executable
+  bld.program(
+    target   = 'm',
+    use      = bld.env.m_mlibraries,
+    lib      = ['lapack','blas']+bld.env.LIB_GOMP,
+    includes = ['.'],
+    source   = ['m.cpp'] )
+

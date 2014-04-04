@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  conf.env.m_mlibraries.append('io_smurf')
+
+
+def build(bld):
+
+  # smurf library (does not use m)
+  bld.objects(
+    target   = 'smurf',
+    includes = ['.'],
+    source   = ['smurf.cpp'] )
+
+  # smurf filter (does not use m)
+  bld.program(
+    target   = 'p',
+    includes = ['.','../../mkernel'],
+    source   = ['p.cpp','../../mkernel/ext/fparser.cc','../../mkernel/ext/fpoptimizer.cc'],
+    use      = ['smurf'] )
+
+  # plugin
+  bld.objects(
+    target   = 'io_smurf',
+    includes = ['.','../../mkernel'],
+    source   = ['f_smurf.cpp','f_plt.cpp'],
+    use      = ['mkernel','smurf'] )
+

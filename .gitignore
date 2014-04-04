@@ -1,0 +1,13 @@
+.*.swo
+.*.swp
+.DS_Store
+.gitignore
+.lock-waf*
+.waf-*
+build/
+install/
+m.config
+m.creator*
+m.files
+m.includes
+waf-reconfigure-*.sh

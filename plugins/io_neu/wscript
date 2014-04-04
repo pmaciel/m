@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  conf.env.m_mlibraries.append('io_neu')
+
+
+def build(bld):
+  bld.objects(
+    target   = 'io_neu',
+    includes = ['.','../../mkernel'],
+    source   = ['f_neu.cpp'] )
+

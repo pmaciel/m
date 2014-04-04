@@ -1,0 +1,18 @@
+Versie 1.0
+[nElectrodes] = 2
+	<label> = anode
+	<label> = cathode
+
+[nBoundaries0] = 1
+	<boundary> = 1
+[nElecReactions0] = 2
+	<label> = DissolutionA
+	<label> = RedoxB
+[nGasReactions0] = 0
+
+[nBoundaries1] = 1
+	<boundary> = 5
+[nElecReactions1] = 2
+	<label> = DissolutionA
+	<label> = RedoxB
+[nGasReactions1] = 0

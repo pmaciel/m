@@ -1,0 +1,28 @@
+Versie 1.0
+[solventDielectricConstant] = 6.933104e-10
+[solventDynamicViscosity] = 8.904E-04
+[solutionKinematicViscosity] = 1e-6
+[solutionDensity] = 1000
+[solutionTemperature] = 298.15
+[nIons] = 5
+	<label> = Cu2+	<z> = +2	<D> = 0.714e-9	<d> = 4.56e-10	<M> = 63.546e-3	<cInlet> = 500
+	<label> = H3O+	<z> = +1	<D> = 9.311e-9	<d> = 4.47e-10	<M> = 19.0232e-3	<cInlet> = 100
+	<label> = SO42-	<z> = -2	<D> = 1.065e-9	<d> = 4.61e-10	<M> = 96.064e-3	<cInlet> = 550
+	<label> = HSO4-	<z> = -1	<D> = 1.385e-9	<d> = 3.54e-10	<M> = 97.072e-3	<cInlet> = 0
+	<label> = CuSO4	<z> = 0	<D> = 0.731e-9	<d> = 6.48e-10	<M> = 159.610e-3	<cInlet> = 0
+
+/*
+Diameters:
+H3O+: from HCl
+Cu2+: same as Ni2+, which was obtained from NiCl2
+SO42-: hydrodynamic radius
+HSO4-: hydrodynamic radius
+CuSO4: sqrt(dCu2+^2+dSO42-^2)
+
+Diffusion coefficients:
+H3O+: literature
+Cu2+: literature
+SO42-: literature
+HSO4-: literature
+CuSO4: fitted
+*/

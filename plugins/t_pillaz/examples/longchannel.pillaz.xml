@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE c [
+ <!ENTITY year "2011">
+ <!ENTITY author "Vrije Universiteit Brussel">
+ <!ENTITY author-note "&author;, &year;">
+]>
+<pillaz label="longchannel"
+
+  iterations="100"
+  dt="0.01"
+
+  material.continuum="water"
+  material.entities="air"
+  entities.init="0"
+  entities.production.diameter.distribution="constant"
+  entities.production.diameter.mean="1.e-5"
+  entities.production.diameter.std="7.55e-5"
+  entities.production.velocity.x="0."
+  entities.production.velocity.y="0."
+  entities.production.velocity.z="0."
+  entities.production.temperature="293.15"
+  couple.momentum="no"
+  couple.volumefraction="no"
+  couple.energy="no"
+  model.collision="no"
+  model.droplets.thinfilmevaporation="no"
+  model.bubbles.saturation="no"
+  model.bubbles.slip-shearliftforce="no"
+  gravity.x="0."
+  gravity.y="0."
+  gravity.z="0."
+  output.statistics="longchannel.pillaz.txt"
+  output.results="longchannel.pillaz.plt"
+  >
+
+  <wall zone="wall"/>
+
+  <production type="rectangle" massflux="1.e-15"
+    x0="0.0" y0="-0.2" z0="-0.2"
+    x1="0.0" y1="-0.1" z1="-0.1" />
+  <production type="rectangle" massflux="1.e-15"
+    x0="0.0" y0=" 0.2" z0=" 0.1"
+    x1="0.0" y1=" 0.1" z1=" 0.2" />
+
+</pillaz>

@@ -1,0 +1,372 @@
+#LyX 1.4.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 245
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+%% LyX 1.4.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+
+
+
+
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Bold symbol macro for standard LaTeX users
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+%% LyX 1.4.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+
+
+
+
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Bold symbol macro for standard LaTeX users
+
+
+
+
+\makeatother
+
+
+
+\makeatother
+\end_preamble
+\language english
+\inputencoding latin1
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\leftmargin 2cm
+\rightmargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Time integration
+\end_layout
+
+\begin_layout Section
+Equations
+\end_layout
+
+\begin_layout Subsection
+Mass conservation
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\frac{\partial c_{i}}{\partial t}=-\vec{\nabla}.\vec{N}_{i}+R_{i}\label{eq:mass conservation}\end{equation}
+
+\end_inset
+
+ with
+\begin_inset Formula \begin{equation}
+\vec{N}_{i}=c_{i}\vec{v}-\sum_{j}D_{ij}\vec{\nabla}c_{j}-w_{i}c_{i}\vec{\nabla}U\label{eq:flux}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Poisson's equation
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\vec{\nabla}^{2}U+\frac{F}{\epsilon}\sum_{i}z_{i}c_{i}=0\label{eq:Poisson}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Butler-Volmer kinetics
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+v=k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]c_{red}-k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]c_{ox}\label{eq:Butler-Volmer}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Section
+Time integration
+\end_layout
+
+\begin_layout Subsection
+Two parameter discretization schemes
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\left[T\right]\left(\frac{1+\epsilon}{\Delta t}\left(\left\{ x^{t+1}\right\} -\left\{ x^{t}\right\} \right)-\frac{\epsilon}{\Delta t_{-1}}\left(\left\{ x^{t}\right\} -\left\{ x^{t-1}\right\} \right)\right)\\
+=\theta\left(\left(\left[C\right]+\left[D\right]+\left[M\right]+\left[H\right]+\left[P\right]\right)\left\{ x^{t+1}\right\} +\left\{ E\right\} \right)\\
++\left(1-\theta\right)\left(\left(\left[C\right]+\left[D\right]+\left[M\right]+\left[H\right]+\left[P\right]\right)\left\{ x^{t}\right\} +\left\{ E\right\} \right)\end{array}\label{eq:time integration}\end{equation}
+
+\end_inset
+
+ with
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[T\right]$
+\end_inset
+
+ the time matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[C\right]$
+\end_inset
+
+ the convection matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[D\right]$
+\end_inset
+
+ the diffusion matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[M\right]$
+\end_inset
+
+ the migration matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[H\right]$
+\end_inset
+
+ the homogeneous reactions matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[P\right]$
+\end_inset
+
+ the Poisson's equation matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left\{ E\right\} $
+\end_inset
+
+ the electrode reactions vector
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left\{ x^{t+1}\right\} $
+\end_inset
+
+, 
+\begin_inset Formula $\left\{ x^{t}\right\} $
+\end_inset
+
+ and 
+\begin_inset Formula $\left\{ x^{t-1}\right\} $
+\end_inset
+
+ the vector of unknowns at time 
+\begin_inset Formula $t+1$
+\end_inset
+
+, 
+\begin_inset Formula $t$
+\end_inset
+
+ and 
+\begin_inset Formula $t-1$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+The matrices may depend on the unknowns.
+ The equation holds at the element level as well as the global level.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\epsilon=0$
+\end_inset
+
+, 
+\begin_inset Formula $\theta=0$
+\end_inset
+
+ : explicit
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\epsilon=0$
+\end_inset
+
+, 
+\begin_inset Formula $\theta=1$
+\end_inset
+
+ : Euler backwards
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\epsilon=0$
+\end_inset
+
+, 
+\begin_inset Formula $\theta=\frac{1}{2}$
+\end_inset
+
+ : Crank-Nicolson
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\epsilon=\frac{1}{2}$
+\end_inset
+
+, 
+\begin_inset Formula $\theta=1$
+\end_inset
+
+ : 3 point backwards (this is the one used)
+\end_layout
+
+\begin_layout Subsection
+Newton iterations
+\end_layout
+
+\begin_layout Standard
+Define
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{rcl}
+\left\{ \Psi\right\}  & = & \left(\frac{1+\epsilon}{\Delta t}\left[T^{t+1}\right]-\theta\left(\left[C^{t+1}\right]+\left[D^{t+1}\right]+\left[M^{t+1}\right]+\left[H^{t+1}\right]+\left[P^{t+1}\right]\right)\right)\left\{ x^{t+1}\right\} -\theta\left\{ E^{t+1}\right\} \\
+ &  & -\left(\left(\frac{1+\epsilon}{\Delta t}+\frac{\epsilon}{\Delta t_{-1}}\right)\left[T^{t}\right]+\left(1-\theta\right)\left(\left[C^{t}\right]+\left[D^{t}\right]+\left[M^{t}\right]+\left[H^{t}\right]+\left[P^{t}\right]\right)\right)\left\{ x^{t}\right\} -\left(1-\theta\right)\left\{ E^{t}\right\} \\
+ &  & +\frac{\epsilon}{\Delta t_{-1}}\left[T^{t-1}\right]\left\{ x^{t-1}\right\} \\
+ & = & \left\{ 0\right\} \end{array}\label{eq:Psi}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+First order Taylor expansion
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\left\{ \Psi^{p+1}\right\} \approx\left\{ \Psi^{p}\right\} +\left[\frac{\partial\Psi^{p}}{\partial X}\right]\left\{ \Delta X^{p}\right\} =\left\{ 0\right\} \label{eq:Taylor}\end{equation}
+
+\end_inset
+
+ with 
+\begin_inset Formula \[
+X=\left\{ x^{t+1}\right\} \]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\left[\frac{\partial\Psi^{p}}{\partial X}\right]=\frac{1+\epsilon}{\Delta t}\left(\left[T^{p}\right]+\left[\tilde{T}^{p}\right]\right)-\theta\left(\left[C^{p}\right]+\left[\tilde{C}^{p}\right]+\left[D^{p}\right]+\left[\tilde{D}^{p}\right]+\left[M^{p}\right]+\left[\tilde{M}^{p}\right]+\left[H^{p}\right]+\left[\tilde{H}^{p}\right]+\left[P^{p}\right]+\left[\tilde{P}^{p}\right]+\left[\tilde{E}^{p}\right]\right)\]
+
+\end_inset
+
+ and
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[\tilde{T}\right]$
+\end_inset
+
+ the time jacobian
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[\tilde{C}\right]$
+\end_inset
+
+ the convection jacobian
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[\tilde{D}\right]$
+\end_inset
+
+ the diffusion jacobian
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[\tilde{M}\right]$
+\end_inset
+
+ the migration jacobian
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[\tilde{H}\right]$
+\end_inset
+
+ the homogeneous reactions jacobian
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[\tilde{P}\right]$
+\end_inset
+
+ the Poisson's equation jacobian
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left[\tilde{E}\right]$
+\end_inset
+
+ the electrode reactions jacobian
+\end_layout
+
+\end_body
+\end_document

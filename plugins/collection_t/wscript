@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  conf.env.m_mlibraries.append('collection_t')
+
+
+def build(bld):
+  bld.objects(
+    target   = 'collection_t',
+    use      = ['io_smurf'],
+    includes = ['.','../../mkernel','../format_smurf'],
+    source   = [
+      't_avgsolution.cpp',
+      't_extrude.cpp',
+      't_fix.cpp',
+      't_flip.cpp',
+      't_geo.cpp',
+      't_info.cpp',
+      't_manip.cpp',
+      't_math.cpp',
+      't_minmax.cpp',
+      't_ncompress.cpp',
+      't_probe.cpp',
+      't_ren.cpp',
+      't_simplex.cpp',
+      't_solution.cpp',
+      't_surfmap.cpp',
+      't_walldistance.cpp',
+      't_zmerge.cpp' ] )
+

@@ -1,0 +1,4 @@
+Versie 1.0
+[timeAccurate] = false
+[nElectrodePotentials] = 1
+	<t> = 0	<Vanode> = 0.5	<Vcathode> = -0.5

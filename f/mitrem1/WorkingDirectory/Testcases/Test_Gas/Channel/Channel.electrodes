@@ -1,0 +1,20 @@
+Versie 1.0
+[nElectrodes] = 2
+	<label> = anode
+	<label> = cathode
+
+[nBoundaries0] = 1
+	<boundary> = 1
+[nElecReactions0] = 2
+	<label> = ReductionA
+	<label> = DissolutionB
+[nGasReactions0] = 1
+	<label> = AToGas
+
+[nBoundaries1] = 1
+	<boundary> = 5
+[nElecReactions1] = 2
+	<label> = ReductionA
+	<label> = DissolutionB
+[nGasReactions1] = 1
+	<label> = AToGas

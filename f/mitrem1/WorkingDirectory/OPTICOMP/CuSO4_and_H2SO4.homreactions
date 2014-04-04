@@ -1,0 +1,20 @@
+Versie 1.0
+[nHomReactions] = 2
+	<label> = H1SO41	<kf> = 0.1989e6	/*0.097051e6*/	<kb> = 1e7	/*1e6*/
+	<label> = Cu1SO41	<kf> = 0.06595e6	/*0.223872e6*/	<kb> = 1e7	/*1e6*/
+
+[nReagents0] = 2
+	<label> = H3O+	<stoich> = -1
+	<label> = SO42-	<stoich> = -1
+[nProducts0] = 1
+	<label> = HSO4-	<stoich> = 1
+
+[nReagents1] = 2
+	<label> = Cu2+	<stoich> = -1
+	<label> = SO42-	<stoich> = -1
+[nProducts1] = 1
+	<label> = CuSO4	<stoich> = 1
+
+/*
+K: IUPAC recommended values
+*/

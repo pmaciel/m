@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ec [
+ <!ENTITY year "2008">
+ <!ENTITY author "Vrije Universiteit Brussel">
+ <!ENTITY author-note "&author;, &year;">
+]>
+<ecdb>
+ <ec label="Test_OneNeutralSpecies" version="1.0">
+  <electrolyte model="Ideal">
+   <solvent dielectricconstant="6.933104e-10"/>
+   <solution kinematicviscosity="0.801e-6" temperature="298.15"/>
+   <species label="A" z="0" D="1e-9" cInlet="100"/>
+  </electrolyte>
+  <elecreactions/>
+  <homreactions/>
+  <gasreactions/>
+  <models>
+   <conductivity value="0"/>
+   <electrostatics model="Poisson"/>
+  </models>
+ </ec>
+ <ec label="FerriFerro" version="1.0">
+  <electrolyte model="Ideal">
+   <solvent dielectricconstant="6.933104e-10"/>
+   <solution kinematicviscosity="1e-6" temperature="298.15"/>
+   <species label="K+" z="+1" D="1.957e-9" cInlet="1035"/>
+   <species label="Cl--" z="-1" D="2e-9" cInlet="1000"/>
+   <species label="Fe(CN)63-" z="-3" D="8.31e-10" cInlet="5" beta="1.67e-4" MMChi="2.63e-8"/>
+   <species label="Fe(CN)64-" z="-4" D="8.07e-10" cInlet="5" beta="2.26e-4" />
+  </electrolyte>
+  <elecreactions>
+   <reaction label="FerriFerro" model="BV" nElectrons="1" kOxi="1.4e-8" kRed="1.6" aOxi="0.514" aRed="0.486">
+    <agent label="Fe(CN)64-" type="red" stoich="-1" order="1"/>
+    <agent label="Fe(CN)63-" type="oxi" stoich="1" order="1"/>
+    <!-- Fe(CN)64- <=> Fe(CN)63- + e- -->
+   </reaction>
+  </elecreactions>
+  <homreactions/>
+  <gasreactions/>
+  <models>
+   <conductivity value="0"/>
+   <electrostatics model="Electroneutrality"/>
+  </models>
+ </ec>
+</ecdb>

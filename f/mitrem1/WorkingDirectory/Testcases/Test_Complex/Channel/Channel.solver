@@ -1,0 +1,19 @@
+Versie 1.0
+[residuMax] = 0
+[iterMax] = 50
+[relaxFacConc] = 1.00
+[relaxFacConcInc] = 0.00
+[relaxFacPot] = 1.00
+[relaxFacPotInc] = 0.00
+
+[convectionScheme] = N	//Empty	//
+[diffusionScheme] = Galerkin	//MDC	//
+[migrationScheme] = Galerkin	//MDC	//
+[magneticScheme] = Empty	//MDC	//
+[homReactionScheme] = Galerkin_Diagonal	//MDC	//
+[electrostaticsScheme] = Galerkin	//MDC	//
+[timeScheme] = Empty	//Galerkin	//MDC	//
+[elecReactionScheme] = Galerkin	// MDC	//
+[gasReactionScheme] = Galerkin
+
+[linearSolver] = GMRES	//BandLU	//

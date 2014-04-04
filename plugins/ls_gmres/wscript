@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  conf.env.m_mlibraries.append('ls_gmres')
+
+
+def build(bld):
+  bld.objects(
+    target   = 'ls_gmres',
+    includes = ['.','../../mkernel'],
+    source   = ['ls_gmres.cpp'] )
+

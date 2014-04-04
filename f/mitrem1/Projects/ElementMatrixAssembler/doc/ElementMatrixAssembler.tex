@@ -1,0 +1,156 @@
+%% LyX 1.4.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Bold symbol macro for standard LaTeX users
+\providecommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
+
+
+\usepackage{babel}
+\makeatother
+\begin{document}
+
+\title{ElementMatrixAssembler library}
+
+\maketitle
+
+\section{Equations and nomenclature}
+
+
+\subsection{Stationary mass conservation}
+
+\[
+-\vec{\nabla}.\vec{N}_{i}+R_{i}=0\]
+
+
+with
+
+\[
+\vec{N}_{i}=c_{i}\vec{v}-\sum_{j}D_{ij}\vec{\nabla}c_{j}-w_{i}c_{i}\vec{\nabla}U\]
+
+
+\begin{itemize}
+\item $D_{ij}$ is the diffusion factor.
+\item $w_{i}c_{i}$ is the migration factor.
+\end{itemize}
+
+\subsection{Electrostatics}
+
+\[
+\vec{\nabla}^{2}U+\frac{F}{\epsilon}\sum_{i}z_{i}c_{i}=0\]
+
+
+\begin{itemize}
+\item The electrostatics potential factor is $1$ if you use Poisson and
+$0$ if you use electroneutrality.
+\item $\frac{z_{i}F}{\epsilon}$ is the electrostatics concentration factor
+if you use Poison and $z_{i}$ if you use electroneutrality.
+\end{itemize}
+
+\subsection{Butler-Volmer kinetics}
+
+\[
+v=k_{ox}\exp\left[\frac{\alpha_{ox}nF}{RT}\left(V-U\right)\right]c_{red}-k_{red}\exp\left[-\frac{\alpha_{red}nF}{RT}\left(V-U\right)\right]c_{ox}\]
+
+
+
+\section{Include}
+
+Additional Include Directories: ElementMatrixAssembler\textbackslash{}include 
+
+In your code: \#include \char`\"{}ElementMatrixAssembler.h\char`\"{}
+
+
+\section{Functions}
+
+
+\subsection{Constructor}
+
+Pass the number of dimensions, the MITReM object and the names of
+the numerical schemes to use.
+
+
+\subsubsection{Convection schemes}
+
+\begin{itemize}
+\item Empty
+\item N
+\item LDA
+\end{itemize}
+
+\subsubsection{Diffusion schemes}
+
+\begin{itemize}
+\item Empty
+\item DualMesh
+\end{itemize}
+
+\subsubsection{Migration schemes}
+
+\begin{itemize}
+\item Empty
+\item DualMesh
+\end{itemize}
+
+\subsubsection{Homogeneous reaction schemes}
+
+\begin{itemize}
+\item Empty
+\item DualMesh
+\end{itemize}
+
+\subsubsection{Electrostatics schemes}
+
+\begin{itemize}
+\item Empty
+\item DualMesh
+\end{itemize}
+
+\subsubsection{Time schemes}
+
+\begin{itemize}
+\item Empty
+\item DualMesh
+\end{itemize}
+
+\subsubsection{Electrochemical reaction schemes}
+
+\begin{itemize}
+\item Empty
+\item DualMesh
+\end{itemize}
+
+\subsection{calcElementMat}
+
+Returns the element matrix. Pass the coordinates, the velocities,
+the concentrations, the potentials, the temperatures, the densities
+and the void fractions in the nodes of the element.
+
+
+\subsection{calcElementJac}
+
+Returns the element jacobian. Pass the coordinates, the velocities,
+the concentrations, the potentials, the temperatures, the densities
+and the void fractions in the nodes of the element.
+
+
+\subsection{calcBoundaryElementVec}
+
+Returns the boundary element vector. Pass the coordinates, the concentrations,
+the potentials, the temperatures, the densities and the void fractions
+in the nodes of the boundary element, and also the list of electrochemical
+reaction indices and the length of this list and the electrode potential.
+
+
+\subsection{calcBoundaryElementJac}
+
+Returns the boundary element jacobian. Pass the coordinates, the concentrations,
+the potentials, the temperatures, the densities and the void fractions
+in the nodes of the boundary element, and also the list of electrochemical
+reaction indices and the length of this list and the electrode potential.
+\end{document}

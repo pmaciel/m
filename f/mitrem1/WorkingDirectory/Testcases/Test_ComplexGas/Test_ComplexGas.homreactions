@@ -1,0 +1,16 @@
+Versie 1.0
+[nHomReactions] = 2
+	<label> = Reaction1	<kf> = 1e8	<kb> = 1e-5
+	<label> = Reaction2	<kf> = 1e6	<kb> = 1e4
+
+[nReagents0] = 2
+	<label> = B+	<stoich> = -1
+	<label> = E-	<stoich> = -1
+[nProducts0] = 1
+	<label> = D	<stoich> = 1
+
+[nReagents1] = 1
+	<label> = A3+	<stoich> = -1
+[nProducts1] = 2
+	<label> = F2+	<stoich> = 1
+	<label> = B+	<stoich> = 1
