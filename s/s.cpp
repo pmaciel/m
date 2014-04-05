@@ -116,6 +116,16 @@ int main(int argc, char **argv)
     &si.BGThreadRunning,  // NULL allowed
     static_cast< void* >(&si) );
 
+  char** circarray = (char**)malloc(sizeof(char*) * 7);
+  circarray[0] = (char*) "test array";
+  circarray[1] = (char*) "V1 1 0 1";
+  circarray[2] = (char*) "R1 1 2 1";
+  circarray[3] = (char*) "C1 2 0 1 ic =0";
+  circarray[4] = (char*) ".tran 10u 3 uic";
+  circarray[5] = (char*) ".end";
+  circarray[6] = (char*) NULL;
+  ngSpice_Circ(circarray);
+  ngSpice_Command((char*)"run");
 
 
   return 0;
