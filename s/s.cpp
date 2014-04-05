@@ -1,6 +1,14 @@
 
 #include "GetPot.h"
 
+#include "mlog.h"
+
+namespace {
+extern "C" {
+#include "ext/ngspice/src/include/ngspice/sharedspice.h"
+}
+}
+
 
 using namespace std;
 
@@ -9,6 +17,7 @@ int main(int argc, char **argv)
 {
   // user options
   GetPot o(argc,argv);
+#if 0
   if (o.search(2,"--help","-h") || o.size()<2) {
     cout << "\n"
          "Adjust working/counter electrodes (WE/CE) metal potentials.\n"
@@ -19,7 +28,6 @@ int main(int argc, char **argv)
          "  -v [str]:         display every iteration (default: no)\n"
          "  -o [str]:         log file to write to (default: none)\n"
          "  -@:               current-fit complementary electrode (default: no)\n"
-#if 0
          "\n"
          "  -Niter [int]:     Newton method max. iterations (default: 1000)\n"
          "  -NdVL2 [real]:    ... max. error L2(dV) norm (default: 1.e-24)\n"
@@ -37,10 +45,104 @@ int main(int argc, char **argv)
          "  - metal pot. difference:  -V[ce,we] -R[ce,we] -A[ce,we]\n"
          "  - WE or CE current:       -I[we|ce] -R[we|ce] -A[we|ce]\n"
          "  - WE or CE c. density:    -J[we|ce] -R[we|ce]\n"
-#endif
          << endl;
     return 0;
   }
+#endif
+
+
+
+  mlog::facility::channel(mlog::DEBUG,new mlog::LogChannelStream(std::cout));
+
+
+  struct spiceinterface_t{
+
+    /*
+     * sending output from stdout, stderr to caller
+     * char* string to be sent to caller output
+     * int   identification number of calling ngspice shared lib
+     * void* return pointer received from caller, e.g. pointer to object having sent the request
+     */
+    static int printfcn(char* msg, int id, void*) {
+      istringstream is(msg);
+      string tag;
+      is >> tag;
+      tag=="stderr"? mlog::warn() << "spice[" << id << "]: " << is.str().substr(tag.length()) << mlog::nl :
+      tag=="stdout"? mlog::info() << "spice[" << id << "]: " << is.str().substr(tag.length()) << mlog::nl :
+                     mlog::info() << "spice[" << id << "]: " << msg << mlog::nl;
+      return 0;
+    }
+
+    /*
+     * sending simulation status to caller
+     * char* simulation status and value (in percent) to be sent to caller
+     * int   identification number of calling ngspice shared lib
+     * void* return pointer received from caller
+     */
+    static int statusfcn(char*, int, void*) {
+      mlog::info() << "statusfcn" << mlog::nl;
+      return 0;
+    }
+
+    /*
+     * asking for controlled exit
+     * int   exit status
+     * bool  if true: immediate unloading dll, if false: just set flag, unload is done when function has returned
+     * bool  if true: exit upon 'quit', if false: exit due to ngspice.dll error
+     * int   identification number of calling ngspice shared lib
+     * void* return pointer received from caller
+     */
+    static int ngspiceexit(int, bool, bool, int, void*) {
+      mlog::info() << "ngspiceexit" << mlog::nl;
+      return 0;
+    }
+
+    /*
+     * send back actual vector data
+     * vecvaluesall* pointer to array of structs containing actual values from all vectors
+     * int           number of structs (one per vector)
+     * int           identification number of calling ngspice shared lib
+     * void*         return pointer received from caller
+     */
+    static int sdata(pvecvaluesall, int, int, void*) {
+      mlog::info() << "sdata" << mlog::nl;
+      return 0;
+    }
+
+    /*
+     * send back initialization vector data
+     * vecinfoall* pointer to array of structs containing data from all vectors right after initialization
+     * int         identification number of calling ngspice shared lib
+     * void*       return pointer received from caller
+     */
+    static int sinitdata(pvecinfoall, int, void*) {
+      mlog::info() << "sinitdata" << mlog::nl;
+      return 0;
+    }
+
+    /*
+     * indicate if background thread is running
+     * bool        true if background thread is running
+     * int         identification number of calling ngspice shared lib
+     * void*       return pointer received from caller
+     */
+    static int bgtrun(bool, int, void*) {
+      mlog::info() << "bgtrun" << mlog::nl;
+      return 0;
+    }
+
+  }
+  si;
+
+
+  ngSpice_Init(
+    &si.printfcn,
+    &si.statusfcn,
+    &si.ngspiceexit,
+    &si.sdata,
+    &si.sinitdata,
+    &si.bgtrun,
+    static_cast< void* >(&si) );
 
 
 #if 0
