@@ -10,7 +10,7 @@ def configure(conf):
 
 def build(bld):
   bld.program(
-    use      = bld.env.m_mlibraries+['NGSPICE'],
+    use      = ['NGSPICE'],
     target   = 's',
     source   = 's.cpp',
     includes = '../mkernel ../mkernel/ext')
