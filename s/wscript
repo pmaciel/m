@@ -12,5 +12,7 @@ def build(bld):
   bld.program(
     use      = bld.env.m_mlibraries+['NGSPICE'],
     target   = 's',
-    source   = 's.cpp',
+    source   = [
+      's.cpp',
+      'spiceinterface.cpp' ],
     includes = '../mkernel ../mkernel/ext')

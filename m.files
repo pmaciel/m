@@ -5617,3 +5617,5 @@ s/ext/ngspice/xgraph/xtb.h
 s/s.cpp
 s/wscript
 wscript
+s/spiceinterface.h
+s/spiceinterface.cpp
