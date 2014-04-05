@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+
+
+def configure(conf):
+  base='/Users/pmaciel/Documents/dev/m/s/ext/ngspice'
+  conf.env.LIB_NGSPICE = 'ngspice'
+  conf.env.INCLUDES_NGSPICE                         = base+'/src/include'
+  conf.env.LIBPATH_NGSPICE = conf.env.RPATH_NGSPICE = base+'/build-mac/src/.libs'
+
+
+def build(bld):
+  bld.program(
+    use      = bld.env.m_mlibraries+['NGSPICE'],
+    target   = 's',
+    source   = 's.cpp',
+    includes = '../mkernel ../mkernel/ext')
