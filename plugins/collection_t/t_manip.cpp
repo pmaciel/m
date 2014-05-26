@@ -9,18 +9,18 @@
 using namespace m;
 
 
-Register< mtransform,t_manip > mt_manip(12,"-tvsort","                       variable sort by name (excluding coordinates)",
-                                           "-tvkeep","[str:...]              ... to keep, removing the rest",
-                                           "-tvrm",  "[str:...]              ... removal, by name",
-                                           "-tvmv",  "[str=str:...]          ... moving, from name, to before name",
-                                           "-tvren", "[str=str:...]          ... rename, from name, to name",
-                                           "-tvadd", "[str[@zone][=fun]:...] ... addition, optionally set by function (uses only coordinate variables)",
-                                           "-tvaxiz","                       ... add new axisymmetric variables (around z axis, 3D only)",
-                                           "-tzsort","                       zone sort by name",
-                                           "-tzkeep","[str:...]              ... to keep, removing the rest",
-                                           "-tzrm",  "[str:...]              ... removal, by name",
-                                           "-tzmv",  "[str=str:...]          ... moving, from name, to before name",
-                                           "-tzren", "[str=str:...]          ... rename, from name, to name");
+Register< mtransform,t_manip > mt_manip(12,"-tvsort","               variable sort by name (excluding coordinates)",
+                                           "-tvkeep","[str:...]      ... to keep, removing the rest",
+                                           "-tvrm",  "[str:...]      ... removal, by name",
+                                           "-tvmv",  "[str=str:...]  ... moving, from name, to before name",
+                                           "-tvren", "[str=str:...]  ... rename, from name, to name",
+                                           "-tvadd", "[str[@zone[@zone]][=fun]:...]  ... addition, optionally set by function (uses only coordinate variables)",
+                                           "-tvaxiz","               ... add new axisymmetric variables (around z axis, 3D only)",
+                                           "-tzsort","               zone sort by name",
+                                           "-tzkeep","[str:...]      ... to keep, removing the rest",
+                                           "-tzrm",  "[str:...]      ... removal, by name",
+                                           "-tzmv",  "[str=str:...]  ... moving, from name, to before name",
+                                           "-tzren", "[str=str:...]  ... rename, from name, to name");
 
 
 void t_manip::transform(GetPot& o, mmesh& m)

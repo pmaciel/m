@@ -26,11 +26,11 @@ class t_manip : public m::mtransform {
   void zren(m::mmesh& m, const unsigned i, const std::string& n);
 
   // utilities
-  unsigned getvindex(const m::mmesh& m, const std::string& n);
-  unsigned getzindex(const m::mmesh& m, const std::string& n);
-  std::vector< std::pair< std::string,std::string > > getoperands(const std::string& s);
-  std::vector< std::string >& split(const std::string& s, char delim, std::vector<std::string>& elems);
-  std::vector< std::string >  split(const std::string& s, char delim);
+  static unsigned getvindex(const m::mmesh& m, const std::string& n);
+  static unsigned getzindex(const m::mmesh& m, const std::string& n);
+  static std::vector< std::pair< std::string,std::string > > getoperands(const std::string& s);
+  static std::vector< std::string >& split(const std::string& s, char delim, std::vector<std::string>& elems);
+  static std::vector< std::string >  split(const std::string& s, char delim);
 
 };
 
