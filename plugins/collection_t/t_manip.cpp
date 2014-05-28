@@ -4,6 +4,8 @@
 
 #include "mfactory.h"
 #include "mfunction.h"
+
+#include "utils.h"
 #include "t_manip.h"
 
 using namespace m;
@@ -27,6 +29,8 @@ void t_manip::transform(GetPot& o, mmesh& m)
 {
   using std::string;
   using std::vector;
+  using utils::getvindex;
+  using utils::getzindex;
 
   // get options key
   const string k = o[o.get_cursor()],
@@ -40,13 +44,13 @@ void t_manip::transform(GetPot& o, mmesh& m)
   else if (k=="-tzkeep") { zkeep(m,v); return; }
 
   // operations that apply multiple times
-  const vector< std::pair< string,string > > vops = getoperands(v);
+  const vector< std::pair< string,string > > vops = utils::getoperands(v);
   for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i<vops.end(); ++i) {
          if (k=="-tvrm")  { vrm(m,getvindex(m,i->first)); }
     else if (k=="-tvmv")  { vmv(m,getvindex(m,i->first),getvindex(m,i->second)); }
     else if (k=="-tvren") { vren(m,getvindex(m,i->first),i->second); }
     else if (k=="-tvadd") {
-      const vector< string > spl(split(i->first,'@'));
+      const vector< string > spl(utils::split(i->first,'@'));
       if (spl.size()) {
         vector< unsigned > z;
         for (vector< string >::const_iterator iz=spl.begin()+1; iz!=spl.end(); ++iz)
@@ -54,11 +58,12 @@ void t_manip::transform(GetPot& o, mmesh& m)
         vadd(m,spl[0],i->second,z);
       }
     }
-    else if (k=="-tzrm")  { zrm(m,getzindex(m,i->first)); }
-    else if (k=="-tzmv")  { zmv(m,getzindex(m,i->first),getzindex(m,i->second)); }
+    else if (k=="-tzrm")  { zrm (m,getzindex(m,i->first)); }
+    else if (k=="-tzmv")  { zmv (m,getzindex(m,i->first),getzindex(m,i->second)); }
     else if (k=="-tzren") { zren(m,getzindex(m,i->first),i->second); }
   }
 }
+
 
 void t_manip::vsort(mmesh& m)
 {
@@ -74,8 +79,9 @@ void t_manip::vsort(mmesh& m)
 
   // move (variable) name to new (variable) position
   for (unsigned i=d; i<v; ++i)
-    vmv(m,getvindex(m,vn[i]),i);
+    vmv(m,utils::getvindex(m,vn[i]),i);
 }
+
 
 void t_manip::vkeep(m::mmesh& m, const std::string& s)
 {
@@ -83,7 +89,7 @@ void t_manip::vkeep(m::mmesh& m, const std::string& s)
   using std::vector;
 
   // get list of (variable) names to keep
-  vector< std::pair< string,string > > vops = getoperands(s);
+  vector< std::pair< string,string > > vops = utils::getoperands(s);
   vector< string > keep;
   for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
     keep.push_back(i->first);
@@ -91,14 +97,16 @@ void t_manip::vkeep(m::mmesh& m, const std::string& s)
   // remove variables not in that list (apply in reverse for performance)
   for (vector< string >::const_reverse_iterator i=m.vn.rbegin(); i!=m.vn.rend(); ++i)
     if (!std::count(keep.begin(),keep.end(),*i))
-      vrm(m,getvindex(m,*i));
+      vrm(m,utils::getvindex(m,*i));
 }
+
 
 void t_manip::vrm(mmesh& m, const unsigned i)
 {
   m.vn.erase(m.vn.begin()+i);
   m.vv.erase(m.vv.begin()+i);
 }
+
 
 void t_manip::vmv(mmesh& m, const unsigned i, const unsigned j)
 {
@@ -107,10 +115,12 @@ void t_manip::vmv(mmesh& m, const unsigned i, const unsigned j)
   vrm(m,i<j? i:i+1);
 }
 
+
 void t_manip::vren(mmesh& m, const unsigned i, const std::string& n)
 {
   m.vn[i] = n;
 }
+
 
 void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f, const std::vector< unsigned > zindex)
 {
@@ -135,7 +145,7 @@ void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f, const s
   // set variables for this function
   vector< unsigned > vindex(m.v(),0);
   for (unsigned i=0; i<m.v(); ++i)
-    vindex[i] = getvindex(m,m.vn[i]);
+    vindex[i] = utils::getvindex(m,m.vn[i]);
 
   vector< double > c(m.v(),0.);
   if (!zindex.size()) {
@@ -166,6 +176,7 @@ void t_manip::vadd(mmesh& m, const std::string& n, const std::string& f, const s
   }
 }
 
+
 void t_manip::vaxiz(mmesh& m)
 {
   using namespace std;
@@ -192,6 +203,7 @@ void t_manip::vaxiz(mmesh& m)
     }
 }
 
+
 void t_manip::zsort(mmesh& m)
 {
   using namespace std;
@@ -207,8 +219,9 @@ void t_manip::zsort(mmesh& m)
 
   // move (zone) name to new (zone) position
   for (unsigned i=0; i<z; ++i)
-    zmv(m,getzindex(m,zn[i]),i);
+    zmv(m,utils::getzindex(m,zn[i]),i);
 }
+
 
 void t_manip::zkeep(m::mmesh& m, const std::string& s)
 {
@@ -216,7 +229,7 @@ void t_manip::zkeep(m::mmesh& m, const std::string& s)
   using std::vector;
 
   // get list of (zone) names to keep
-  vector< std::pair< string,string > > vops = getoperands(s);
+  vector< std::pair< string,string > > vops = utils::getoperands(s);
   vector< string > keep;
   for (vector< std::pair< string,string > >::const_iterator i=vops.begin(); i!=vops.end(); ++i)
     keep.push_back(i->first);
@@ -224,13 +237,15 @@ void t_manip::zkeep(m::mmesh& m, const std::string& s)
   // remove zones not in that list (apply in reverse for performance)
   for (vector< mzone >::const_reverse_iterator i=m.vz.rbegin(); i!=m.vz.rend(); ++i)
     if (!std::count(keep.begin(),keep.end(),i->n))
-      zrm(m,getzindex(m,i->n));
+      zrm(m,utils::getzindex(m,i->n));
 }
+
 
 void t_manip::zrm(mmesh& m, const unsigned i)
 {
   m.vz.erase(m.vz.begin()+i);
 }
+
 
 void t_manip::zmv(mmesh& m, const unsigned i, const unsigned j)
 {
@@ -238,81 +253,8 @@ void t_manip::zmv(mmesh& m, const unsigned i, const unsigned j)
   zrm(m,i<j? i:i+1);
 }
 
+
 void t_manip::zren(mmesh& m, const unsigned i, const std::string& n)
 {
   m.vz[i].n = n;
-}
-
-unsigned t_manip::getvindex(const mmesh& m, const std::string& n)
-{
-  for (unsigned i=0; i<m.vn.size(); ++i)
-    if (n==m.vn[i])
-      return i;
-  std::cerr << "error: variable name not found: \"" << n << "\"" << std::endl;
-  throw 42;
-  return 0;
-}
-
-unsigned t_manip::getzindex(const mmesh& m, const std::string& n)
-{
-  for (unsigned i=0; i<m.vz.size(); ++i)
-    if (n==m.vz[i].n)
-      return i;
-  std::cerr << "error: zone name not found: \"" << n << "\"" << std::endl;
-  throw 42;
-  return 0;
-}
-
-std::vector< std::pair< std::string,std::string > >
-  t_manip::getoperands(const std::string& s)
-{
-  //TODO make use of the (better) split methods
-  using std::string;
-
-  // split string find a '=' then a ':'
-  std::vector< std::pair< string,string > > r;
-  string::size_type p1 = 0,
-                         p2 = 0;
-  while (p2!=string::npos) {
-    std::pair< string,string > p("","");
-
-    p2 = std::min(s.find(":",p1),s.find("=",p1));
-    p.first = s.substr(p1,(p2==string::npos? p2:p2-p1));
-    if (s.find("=",p1)<s.find(":",p1)) {
-      p1 = p2+1;
-      p2 = s.find(":",p1);
-
-      p.second = s.substr(p1,(p2==string::npos? p2:p2-p1));
-      /* older version, maybe works better
-        string s2 = s.substr(p1,(p2==string::npos? p2:p2-p1));
-        istringstream ss(s2);
-        ss >> p.second;
-      */
-    }
-
-    p1 = p2+1;
-    r.push_back(p);
-  }
-  return r;
-}
-
-
-std::vector< std::string >& t_manip::split(
-    const std::string &s,
-    char delim,
-    std::vector< std::string > &elems )
-{
-  std::stringstream ss(s);
-  std::string item;
-  while (std::getline(ss,item,delim))
-    elems.push_back(item);
-  return elems;
-}
-
-
-std::vector< std::string > t_manip::split(const std::string &s, char delim)
-{
-  std::vector< std::string > elems;
-  split(s,delim,elems);
-  return elems;
 }

@@ -27,5 +27,7 @@ def build(bld):
       't_solution.cpp',
       't_surfmap.cpp',
       't_walldistance.cpp',
-      't_zmerge.cpp' ] )
+      't_zedge.cpp',
+      't_zmerge.cpp',
+      'utils.cpp' ] )
 

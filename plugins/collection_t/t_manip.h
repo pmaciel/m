@@ -5,6 +5,7 @@
 
 // manipulation of variables and zones module
 class t_manip : public m::mtransform {
+
  public:
   void transform(GetPot& o, m::mmesh& m);
 
@@ -24,13 +25,6 @@ class t_manip : public m::mtransform {
   void zrm(m::mmesh& m, const unsigned i);
   void zmv(m::mmesh& m, const unsigned i, const unsigned j);
   void zren(m::mmesh& m, const unsigned i, const std::string& n);
-
-  // utilities
-  static unsigned getvindex(const m::mmesh& m, const std::string& n);
-  static unsigned getzindex(const m::mmesh& m, const std::string& n);
-  static std::vector< std::pair< std::string,std::string > > getoperands(const std::string& s);
-  static std::vector< std::string >& split(const std::string& s, char delim, std::vector<std::string>& elems);
-  static std::vector< std::string >  split(const std::string& s, char delim);
 
 };
 
