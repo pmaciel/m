@@ -33,13 +33,13 @@ struct interface_t{
 
   /**
    * @brief Simulation controlled exit
-   * @param st       exit status
-   * @param dounload if true: immediate unloading dll, if false: just set flag, unload is done when function has returned
-   * @param doexit   if true: exit upon 'quit', if false: exit due to ngspice.dll error
-   * @param id       identification number of calling ngspice shared lib
-   * @param data     return pointer received from caller
+   * @param st     exit status
+   * @param unload if true: immediate unloading dll, if false: just set flag, unload is done when function has returned
+   * @param exit   if true: exit upon 'quit', if false: exit due to ngspice.dll error
+   * @param id     identification number of calling ngspice shared lib
+   * @param data   return pointer received from caller
    */
-  static int ControledExit(int st, bool dounload, bool doexit, int id, void *data);
+  static int ControledExit(int st, bool unload, bool exit, int id, void *data);
 
   /**
    * @brief Data communication: manage simulation data
@@ -68,11 +68,11 @@ struct interface_t{
 
   /**
    * @brief Simulation thread running check
-   * @param isrunning  true if background thread is running
-   * @param id         identification number of calling ngspice shared lib
-   * @param data       return pointer received from caller
+   * @param running true if background thread is running
+   * @param id      identification number of calling ngspice shared lib
+   * @param data    return pointer received from caller
    */
-  static int BGThreadRunning(bool isrunning, int id, void *data);
+  static int BGThreadRunning(bool running, int id, void *data);
 
 };
 

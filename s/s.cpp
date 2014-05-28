@@ -104,6 +104,7 @@ int main(int argc, char **argv)
 
 
   mlog::facility::channel(mlog::DEBUG,new mlog::LogChannelStream(std::cout));
+  mlog::info() << std::boolalpha;
   spice::interface_t si;
 
 
