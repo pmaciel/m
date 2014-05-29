@@ -73,8 +73,9 @@ void t_zedge::transform(GetPot& o, mmesh& m)
         default:
           break;
       }
-      for (vector< aux::eedge >::const_iterator edi=eedges.begin(); edi!=eedges.end(); ++edi)
-        edges.erase(*edi)? true : edges.insert(*edi).second;
+      for (vector< aux::eedge >::const_iterator ei=eedges.begin();
+        (ei!=eedges.end()) && (edges.erase(*ei)? true:edges.insert(*ei).second);
+        ++ei) {}
     }
 
     // add surviving edges to a (new) destination zone connectivity table
