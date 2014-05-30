@@ -33,9 +33,9 @@ struct melem {
 
 // description of a zone
 struct mzone {
-  std::string n;             // name
-  std::vector< melem > e2n;  // element-node connectivity
-  mtype                t;    // element/zone type
+
+  // constructor (full default arguments)
+  mzone(const std::string& _n="", const mtype& _t=m::ORDERED) : n(_n), t(_t) {}
 
   // dimensionality
   unsigned d() const {
@@ -50,6 +50,11 @@ struct mzone {
            (t==PYRAMID4?        3 :
                                 0 )))))))));
   }
+
+  std::string n;             // name
+  std::vector< melem > e2n;  // element-node connectivity
+  mtype                t;    // element/zone type
+
 };
 
 

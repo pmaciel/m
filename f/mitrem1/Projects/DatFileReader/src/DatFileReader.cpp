@@ -11,7 +11,8 @@ DatFileReader::DatFileReader(const std::string &filename) //constructor
   // - data inlezen en voor verdere verwerking in array van std::string steken -
 
   std::ifstream istrm(filename_.c_str());
-  if (istrm == NULL) errorFileDoesNotExist(filename_);
+  if (!istrm)
+    errorFileDoesNotExist(filename_);
   istrm.setf(std::ios::scientific);
 
   std::string temp;

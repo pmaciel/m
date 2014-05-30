@@ -31,6 +31,7 @@ void f_smurf::read(GetPot& o, mmesh& m)
   // data section
   m.vz.clear();
   for (vector< SmURF::TecZone >::iterator zone=zheaders.begin(); zone!=zheaders.end(); ++zone) {
+#if 0
     cout << "info: ZONE TITLE=\"" << zone->title << "\""
          << " ZONETYPE=" << (zone->type==SmURF::ORDERED?         "ORDERED":
                             (zone->type==SmURF::FELINESEG?       "FELINESEG":
@@ -41,6 +42,7 @@ void f_smurf::read(GetPot& o, mmesh& m)
          << " DATAPACKING=" << (zone->pack==SmURF::BLOCK? "BLOCK":
                                (zone->pack==SmURF::POINT? "POINT":"error") )
          << " I,J,K=" << zone->i << "," << zone->j << "," << zone->k << endl;
+#endif
 
     mzone z;
     z.n = zone->title;
@@ -139,11 +141,11 @@ void f_smurf::write(GetPot& o, const mmesh& m)
                                  (z.t==PRISM3?          SmURF::FEBRICK         : //*2
                                  (z.t==PYRAMID4?        SmURF::FEBRICK         : //*3
                                                         SmURF::ORDERED ))))))))));
-    mwriter.writeZoneHeader(solutiontime,type,pack,z.n,m.n(),m.e(i));
+    mwriter.writeZoneHeader(type,pack,z.n,solutiontime,m.n(),m.e(i));
   }
   if (!m.z() && m.v()) {
     // no connectivities present, but there is a point cloud
-    mwriter.writeZoneHeader(solutiontime,SmURF::ORDERED,pack,"point_cloud",m.n());
+    mwriter.writeZoneHeader(SmURF::ORDERED,pack,"point_cloud",solutiontime,m.n());
   }
 
   // data section

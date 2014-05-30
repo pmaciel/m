@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 
   for (vector< aux::zone >::iterator z=tec_zones.begin(); z!=tec_zones.end(); ++z)
     if (z->type==SmURF::ORDERED && z->i)
-      swriter.writeZoneHeader(z->time,z->type,z->pack,z->title,z->i);
+      swriter.writeZoneHeader(z->type,z->pack,z->title,z->time,z->i);
 
   vector< vector< unsigned > > _ve;  // matrix of elements nodes (dummy)
   for (vector< aux::zone >::iterator z=tec_zones.begin(); z!=tec_zones.end(); ++z)
