@@ -3,8 +3,8 @@
 
 #include "mkernel.h"
 
-// zone merge transform module
-class t_zmerge : public m::mtransform {
+// zone boolean operations transform module
+class t_zbool : public m::mtransform {
  public:
   void transform(GetPot& o, m::mmesh& m);
 };

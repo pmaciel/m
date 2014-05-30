@@ -1,18 +1,34 @@
 
-#include "mfactory.h"
-#include "t_zmerge.h"
 #include <sstream>
 
-using namespace std;
+#include "mfactory.h"
+#include "t_zbool.h"
+
+
 using namespace m;
 
 
-Register< mtransform,t_zmerge > mt_zmerge("-tzm","[str:...] zone merge, for zones of the same type");
+Register< mtransform,t_zbool > mt_zbool( 2,
+  "-tzunion", "[str:...] zone union (merging of zones of the same type)",
+  "-tzinter", "[str:...] zone intersection" );
 
 
-void t_zmerge::transform(GetPot& o, mmesh& m)
+void t_zbool::transform(GetPot& o, mmesh& m)
 {
-  cout << "::zone merge..." << endl;
+  using namespace std;
+
+
+#if 0
+  const string k = o[o.get_cursor()],
+               v = (k=="-tvsort"||k=="-tvaxiz"||k=="-tzsort"? "" : o.get(o.inc_cursor(),""));
+
+  // operations that apply in one shot
+       if (k=="-tvsort") { vsort(m);   return; }
+  else if (k=="-tzsort") { zsort(m);   return; }
+#endif
+
+
+  cout << "::zone union..." << endl;
 
 
   // find zones, asserting same type
@@ -40,7 +56,7 @@ void t_zmerge::transform(GetPot& o, mmesh& m)
   const unsigned Nelemi = z.e2n.size();  // original nb. elements
   unsigned Nelemf = Nelemi;              // count new elements
   for (unsigned i=1; i<zm.size(); ++i) {
-    z.n.append("_m_" + m.vz[ zm[i] ].n);
+    z.n.append("_union_" + m.vz[ zm[i] ].n);
     Nelemf += m.vz[ zm[i] ].e2n.size();
     cout << ", \"" << m.vz[ zm[i] ].n << "\" [" << m.vz[ zm[i] ].e2n.size() << "]";
   }
@@ -64,6 +80,6 @@ void t_zmerge::transform(GetPot& o, mmesh& m)
   cout << "info [e]: \"" << z.n << "\" [" << z.e2n.size() << "]." << endl;
 
 
-  cout << "::zone merge." << endl;
+  cout << "::zone union." << endl;
 }
 
