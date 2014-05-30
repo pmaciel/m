@@ -2,10 +2,11 @@
 
 
 def configure(conf):
-  base='/Users/pmaciel/Documents/dev/m/s/ext/ngspice'
+  base='/Users/pmaciel/Documents/dev/m/s/ext/ngspice'  # my mac compilation of ngspice
+  base='/home/pmaciel/.local/deps/ngspice'             # my linux compilation
   conf.env.LIB_NGSPICE = 'ngspice'
   conf.env.INCLUDES_NGSPICE                         = base+'/src/include'
-  conf.env.LIBPATH_NGSPICE = conf.env.RPATH_NGSPICE = base+'/build-mac/src/.libs'
+  conf.env.LIBPATH_NGSPICE = conf.env.RPATH_NGSPICE = base+'/build/src/.libs'
 
 
 def build(bld):
@@ -16,3 +17,4 @@ def build(bld):
       's.cpp',
       'spiceinterface.cpp' ],
     includes = '../mkernel ../mkernel/ext')
+
