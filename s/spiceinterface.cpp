@@ -1,4 +1,6 @@
 
+#include <cstring>
+
 #include "mlog.h"
 #include "spiceinterface.h"
 
