@@ -5,8 +5,18 @@
 
 // zone boolean operations transform module
 class t_zbool : public m::mtransform {
- public:
+
+public:
   void transform(GetPot& o, m::mmesh& m);
+
+private:
+
+  // zone union (merge)
+  void zunion(m::mmesh& m, const std::vector< unsigned >& zidx);
+
+  // zone intersection
+  void zinter(m::mmesh& m, const std::vector< unsigned >& zidx);
+
 };
 
 #endif
