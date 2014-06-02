@@ -93,7 +93,7 @@ void t_zedge::transform(GetPot& o, mmesh& m)
         e.n[1] = ei->second;
         e2n.push_back(e);
       }
-      std::cout << "info: zone \"" << *n << "\" edges: " << edges.size() << std::endl;
+      std::cout << "info: zone \"" << m.vz.back().n << "\" [e]: " << edges.size() << std::endl;
     }
 
   }
