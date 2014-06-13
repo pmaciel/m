@@ -10,9 +10,10 @@
 using namespace m;
 
 
-Register< mtransform,t_zbool > mt_zbool( 2,
+Register< mtransform,t_zbool > mt_zbool( 3,
   "-tzunion", "[str:...] zone union (only for zones of the same type)",
-  "-tzinter", "[str:...] zone intersection" );
+  "-tzinter", "[str:...] zone intersection",
+  "-tzsplit-sharednodes", "[str:str:...] ..., based on other zone(s) sharing edges" );
 
 
 void t_zbool::transform(GetPot& o, mmesh& m)
@@ -36,6 +37,7 @@ void t_zbool::transform(GetPot& o, mmesh& m)
   if (zidx.size()>1) {
     if      (k=="-tzunion") { zunion(m,zidx); }
     else if (k=="-tzinter") { zinter(m,zidx); }
+    else if (k=="-tzsplit-sharednodes") { zsplit_sharednodes(m,zidx); }
   }
   else {
     cerr << "warn: nothing to do.";
@@ -117,6 +119,50 @@ void t_zbool::zinter(mmesh& m, const std::vector< unsigned >& zidx)
     cout << "info: zone \"" << zf.n << "\" [e]: " << m.vz[ zidx[0] ].e2n.size() << '>' << m.vz.back().e2n.size() << endl;
   }
   else {
-    cerr << "warn: zone intersection generated no valid elements.";
+    cerr << "warn: zone intersection generated no valid elements." << endl;
+  }
+}
+
+
+void t_zbool::zsplit_sharednodes(mmesh &m, const std::vector< unsigned > &zidx)
+{
+  using namespace std;
+  typedef vector< unsigned >::const_iterator vui;
+
+  // build list of used nodes by the zones other than the first
+  vector< bool > shared_nodes(m.n(),false);
+  for (vui i=zidx.begin()+1; i!=zidx.end() && m.vz[zidx[0]].e2n.size(); ++i)
+    for (vector< melem >::const_iterator j=m.vz[*i].e2n.begin(); j!=m.vz[*i].e2n.end(); ++j)
+      for (vui k=j->n.begin(); k!=j->n.end(); ++k)
+        shared_nodes[*k] = true;
+
+  // append empty zone to contain the splitted elements, and create & move list
+  // of all elements to be tested
+  string n(m.vz[zidx[0]].n);
+  while (utils::zexists(m,n))
+    n += "_split";
+  m.vz.push_back(mzone(n,m.vz[zidx[0]].t));
+  mzone
+   &zi(m.vz[zidx[0]]),  // reference!
+   &zf(m.vz.back());    // reference (possibly deleted if empty)
+  vector< melem > e2n;
+  e2n.swap(zi.e2n);
+
+  // check if element in original zone shares any node with the other zones,
+  // moving element to appropriate zone according to this
+  for (vector< melem >::iterator i=e2n.begin(); i!=e2n.end(); ++i) {
+    bool move = false;
+    for (vui j=i->n.begin(); j!=i->n.end() && !(move=shared_nodes[*j]); ++j) {}
+    (move? zf:zi).e2n.push_back(melem());
+    (move? zf:zi).e2n.back().n.swap(i->n);
+  }
+
+  // check if splitted zone contains any element, otherwise erase it
+  if (zf.e2n.size()) {
+    cout << "info: zone \"" << zi.n << "\" [e]: " << e2n.size() << '=' << zi.e2n.size() << '+' << zf.e2n.size() << endl;
+  }
+  else {
+    cerr << "warn: zone splitting generated no valid elements." << endl;
+    m.vz.pop_back();
   }
 }

@@ -17,6 +17,9 @@ private:
   // zone intersection
   void zinter(m::mmesh& m, const std::vector< unsigned >& zidx);
 
+  // zone splitting, neighboring node-sharing zone based
+  void zsplit_sharednodes(m::mmesh& m, const std::vector< unsigned >& zidx);
+
 };
 
 #endif
