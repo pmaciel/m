@@ -85,5 +85,21 @@ vector< string > split(const string &s, char delim)
 }
 
 
+bool vexists(const mmesh &m, const string &n)
+{
+  bool exists = false;
+  for (vector< string >::const_iterator i=m.vn.begin(); i!=m.vn.end() && !(exists=(n==*i)); ++i) {}
+  return exists;
+}
+
+
+bool zexists(const mmesh &m, const string &n)
+{
+  bool exists = false;
+  for (vector< mzone >::const_iterator i=m.vz.begin(); i!=m.vz.end() && !(exists=(n==i->n)); ++i) {}
+  return exists;
+}
+
+
 }  // namespace utils
 }  // namespace m
