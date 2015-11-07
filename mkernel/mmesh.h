@@ -27,6 +27,8 @@ enum mtype {
 
 // description of an element
 struct melem {
+  melem() {}
+  melem(const std::vector< unsigned >& _n) : n(_n) {}
   std::vector< unsigned > n;
 };
 
